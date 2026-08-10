@@ -6,6 +6,7 @@ Project docs for engineers and content/commerce operators.
 | --- | --- | --- |
 | Developers | [Commerce developer guide](./commerce/developer.md) | Architecture, env setup, API usage, provider swapping |
 | Content / merchandising | [Shopify content guide](./commerce/content.md) | How to manage products, collections, media, and checkout-ready catalog data in Shopify |
+| Developers | [Payload Ecommerce provider](./commerce/payload-ecommerce.md) | Self-hosted Payload Ecommerce adapter setup and cart/catalog mapping |
 
 Related:
 

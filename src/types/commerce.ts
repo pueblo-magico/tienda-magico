@@ -168,7 +168,7 @@ export type Paginated<T> = {
   };
 };
 
-export type CommerceProviderName = "shopify";
+export type CommerceProviderName = "shopify" | "payload";
 
 export class CommerceError extends Error {
   readonly status?: number;

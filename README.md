@@ -7,7 +7,7 @@ Multilingual headless ecommerce storefront for Pueblo Mágico.
 - Next.js 15 / React 19 / TypeScript
 - Tailwind CSS 4
 - next-intl (EN / ES)
-- Provider-agnostic commerce layer (Shopify Storefront API adapter)
+- Provider-agnostic commerce layer (Shopify + Payload Ecommerce adapters)
 
 ## Getting started
 
@@ -48,6 +48,7 @@ Required env (see `.env.example`):
 - [Docs home](./docs/README.md)
 - [Commerce developer guide](./docs/commerce/developer.md)
 - [Shopify content & merchandising guide](./docs/commerce/content.md)
+- [Payload Ecommerce provider](./docs/commerce/payload-ecommerce.md)
 - [Build plan (COMMAND.md)](./COMMAND.md)
 
 ## Scripts

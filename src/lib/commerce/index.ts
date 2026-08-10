@@ -5,6 +5,7 @@ export type { CommerceProvider } from "./provider";
 export { createCommerceProvider, resolveCommerceProviderName } from "./create-provider";
 export { formatMoney } from "./utils/format";
 export { shopifyCommerceProvider } from "./providers/shopify";
+export { payloadEcommerceProvider } from "./providers/payload-ecommerce";
 
 /** Singleton active commerce provider (selected via COMMERCE_PROVIDER). */
 let cached: CommerceProvider | null = null;

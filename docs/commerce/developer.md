@@ -42,6 +42,7 @@ App routes / features / cart UI
 | `src/lib/commerce/index.ts` | `commerce` facade + `getCommerceProvider()` |
 | `src/lib/commerce/create-provider.ts` | Provider factory (`COMMERCE_PROVIDER`) |
 | `src/lib/commerce/providers/shopify/*` | Shopify implementation |
+| `src/lib/commerce/providers/payload-ecommerce/*` | Self-hosted Payload Ecommerce implementation |
 | `src/types/shopify.ts` | Compatibility re-exports (prefer `@/types/commerce`) |
 | `src/lib/shopify/index.ts` | Deprecated shim (prefer `@/lib/commerce`) |
 
@@ -64,13 +65,18 @@ COMMERCE_PROVIDER=shopify
 SHOPIFY_STORE_DOMAIN=your-store.myshopify.com
 SHOPIFY_STOREFRONT_ACCESS_TOKEN=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 SHOPIFY_API_VERSION=2025-01
+
+# or Payload Ecommerce (self-hosted)
+# COMMERCE_PROVIDER=payload
+# PAYLOAD_ECOMMERCE_URL=http://localhost:4000
+# PAYLOAD_ECOMMERCE_CURRENCY=USD
 ```
 
 ### Variable reference
 
 | Variable | Required | Notes |
 | --- | --- | --- |
-| `COMMERCE_PROVIDER` | No (default `shopify`) | Active adapter name |
+| `COMMERCE_PROVIDER` | No (default `shopify`) | Active adapter name (`shopify` or `payload`) |
 | `SHOPIFY_STORE_DOMAIN` | Yes for Shopify | Host only, no `https://` |
 | `SHOPIFY_STOREFRONT_ACCESS_TOKEN` | Yes for Shopify | Storefront API token (not Admin API) |
 | `SHOPIFY_API_VERSION` | No | Defaults to `2025-01` |
