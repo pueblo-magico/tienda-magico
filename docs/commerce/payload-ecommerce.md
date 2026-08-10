@@ -1,25 +1,58 @@
 # Payload Ecommerce provider (self-hosted)
 
-Adapter: `src/lib/commerce/providers/payload-ecommerce`
+Storefront adapter: `src/lib/commerce/providers/payload-ecommerce`  
+CMS app: [`apps/cms`](../../apps/cms)
 
-Implements the shared `CommerceProvider` contract against a **self-hosted Payload CMS** app using `@payloadcms/plugin-ecommerce`.
+Implements the shared `CommerceProvider` contract against a **self-hosted Payload CMS** using `@payloadcms/plugin-ecommerce` over **REST**.
 
-## Enable
+Content editors: see [payload-content.md](./payload-content.md).
+
+---
+
+## Backend in this repo
+
+```bash
+# from monorepo root
+npm run db:cms:up    # Postgres on localhost:5433
+npm run dev:cms      # http://localhost:4000
+```
+
+| URL | Purpose |
+| --- | --- |
+| `http://localhost:4000/admin` | Payload admin |
+| `http://localhost:4000/api` | REST API |
+
+CMS setup details: [`apps/cms/README.md`](../../apps/cms/README.md).
+
+---
+
+## Enable on the storefront
 
 ```bash
 COMMERCE_PROVIDER=payload
+# aliases: payload-ecommerce, payload_ecommerce, payloadcms
+
 PAYLOAD_ECOMMERCE_URL=http://localhost:4000
 PAYLOAD_ECOMMERCE_CURRENCY=USD
+PAYLOAD_ECOMMERCE_AMOUNT_IS_CENTS=true
+PAYLOAD_ECOMMERCE_COLLECTIONS_SLUG=categories
+
+# Optional API key (Users → enable API key in admin)
+# PAYLOAD_ECOMMERCE_API_KEY=...
+# PAYLOAD_ECOMMERCE_API_KEY_COLLECTION=users
+
+# Optional overrides
+# PAYLOAD_ECOMMERCE_API_PREFIX=/api
+# PAYLOAD_ECOMMERCE_PRODUCTS_SLUG=products
+# PAYLOAD_ECOMMERCE_VARIANTS_SLUG=variants
+# PAYLOAD_ECOMMERCE_CARTS_SLUG=carts
+# PAYLOAD_ECOMMERCE_CHECKOUT_PATH=/checkout
+# PAYLOAD_ECOMMERCE_CHECKOUT_URL=https://shop.example.com/checkout
+# PAYLOAD_ECOMMERCE_DEPTH=2
+# NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
 
-Optional server API key:
-
-```bash
-PAYLOAD_ECOMMERCE_API_KEY=...
-PAYLOAD_ECOMMERCE_API_KEY_COLLECTION=users
-```
-
-App code stays the same:
+App code stays provider-agnostic:
 
 ```ts
 import { commerce } from "@/lib/commerce";
@@ -30,32 +63,45 @@ const cart = await commerce.createCart({
 });
 ```
 
-## Expected Payload collections
+---
 
-From `@payloadcms/plugin-ecommerce` (defaults):
+## Architecture
+
+```text
+Storefront (Next :3000)
+  └─ @/lib/commerce
+       └─ providers/payload-ecommerce  (REST fetch)
+            └─ apps/cms Payload (:4000) + Postgres
+```
+
+Same VM is fine: two Node processes + one Postgres.
+
+---
+
+## Expected collections
 
 | Slug | Purpose |
 | --- | --- |
-| `products` | Catalog products (draft/publish) |
+| `products` | Catalog (draft/publish) + catalogue fields override |
 | `variants` | Variant rows joined to products |
 | `carts` | Persisted carts + item endpoints |
-| `categories` (optional) | Used for `getCollections()` / `getCollection()` |
+| `categories` | Storefront `getCollections()` / `getCollection()` |
+| `media` | Images |
+| `users` | Admins / API keys / customers |
 
-Collection slugs are configurable via env (`PAYLOAD_ECOMMERCE_*_SLUG`).
+### Product fields mapped by the adapter
 
-### Product fields mapped
-
-The adapter is intentionally flexible and reads common template fields:
-
-- identity: `title`/`name`, `slug`/`handle`, `id`
+- identity: `title` / `name`, `slug` / `handle`, `id`
 - copy: `description` / `richText` / `summary`
-- media: `media`, `gallery`, `images`, `image`, `featuredImage`
-- pricing: `priceInUSD` (or configured currency), `price`, `amount`
-- variants join: `variants.docs` or `variants[]`
+- media: `gallery`, `media`, `images`, `image`, `featuredImage`
+- pricing: `priceInUSD` (or configured currency), `price`, `amount` — often **cents**
+- variants: `variants.docs` or `variants[]`
 - inventory: `inventory`
-- SEO: `meta.title`, `meta.description`
+- SEO: `meta.title`, `meta.description` (if present)
 
-### Cart endpoints used
+---
+
+## Cart behavior
 
 | Operation | Payload route |
 | --- | --- |
@@ -65,61 +111,66 @@ The adapter is intentionally flexible and reads common template fields:
 | Update qty | `POST /api/carts/:id/update-item` |
 | Remove line | `POST /api/carts/:id/remove-item` |
 
-Guest carts require `allowGuestCarts: true` in the Payload ecommerce plugin cart config.
+Guest carts require `allowGuestCarts: true` (enabled in `apps/cms`).
 
 ### Cart id + secret
 
-Payload guest carts use a hidden `secret`.  
-This adapter encodes it into `Cart.id` as:
+Guest carts use a hidden `secret`. The adapter encodes:
 
 ```text
 {cartId}::{secret}
 ```
 
-Pass that full value back into `getCart` / `addCartLines` / etc.
+Pass that full value back into cart methods.
 
 ### merchandiseId formats
 
 | Value | Meaning |
 | --- | --- |
-| `variantId` | Resolve variant, then parent product |
-| `productId` | Simple product (no variant) |
+| `variantId` | Resolve variant → parent product |
+| `productId` | Simple product |
 | `variant:variantId` | Explicit variant |
 | `product:productId` | Explicit product |
 | `productId:variantId` | Explicit pair |
 
 ### Checkout URL
 
-`Cart.checkoutUrl` points to:
+`Cart.checkoutUrl` → `PAYLOAD_ECOMMERCE_CHECKOUT_URL` or `NEXT_PUBLIC_SITE_URL` + `PAYLOAD_ECOMMERCE_CHECKOUT_PATH` with `?cart={cartRef}`.
 
-- `PAYLOAD_ECOMMERCE_CHECKOUT_URL`, or
-- `NEXT_PUBLIC_SITE_URL` + `PAYLOAD_ECOMMERCE_CHECKOUT_PATH` (default `/checkout`)
+Payments (Stripe) are **not** configured in CMS yet.
 
-with `?cart={cartRef}`.
+---
 
-Implement your storefront checkout page to read that query param and continue payment (Stripe adapter on Payload, etc.).
+## Localization
 
-## Payload plugin checklist
+| Layer | Status |
+| --- | --- |
+| Storefront UI (`next-intl`) | EN / ES |
+| Payload catalog fields | **Single locale** (not configured) |
+| Adapter `?locale=` | **Not sent yet** |
 
-On the Payload app:
+Multi-language CMS content is a planned follow-up.
 
-1. Install `@payloadcms/plugin-ecommerce`
-2. Enable products + variants + carts
-3. Enable guest carts if you need anonymous checkout
-4. Configure currency codes to match `PAYLOAD_ECOMMERCE_CURRENCY`
-5. Publish products (`_status: published`) and allow Storefront/public read access as needed
-6. Ensure CORS allows the Next.js origin if browser calls are used (prefer server-side calls)
+---
+
+## CMS checklist
+
+1. `apps/cms` running with Postgres
+2. Ecommerce plugin active (products, variants, carts)
+3. Guest carts enabled
+4. Currency matches `PAYLOAD_ECOMMERCE_CURRENCY` (USD)
+5. Products **published**
+6. `CORS_ORIGINS` includes the storefront origin
+7. After plugin/config changes: `npm run generate:importmap` in `apps/cms`
+
+---
 
 ## Switching providers
 
 ```bash
-# Shopify
 COMMERCE_PROVIDER=shopify
-
-# Payload Ecommerce
+# or
 COMMERCE_PROVIDER=payload
-# alias also supported:
-# COMMERCE_PROVIDER=payload-ecommerce
 ```
 
-No feature-code changes required when using `@/lib/commerce`.
+No feature-code changes when using `@/lib/commerce` only.

@@ -28,6 +28,7 @@ App routes / features / cart UI
         │
         ▼
  providers/shopify         ← Storefront GraphQL adapter
+       providers/payload-ecommerce ← REST → apps/cms
         │
         ▼
  Shopify Storefront API
@@ -307,3 +308,12 @@ This keeps builds and UI work unblocked before credentials exist.
 Merchandising/editorial workflow for catalog data lives in:
 
 → [Shopify content guide](./content.md)
+
+
+---
+
+## Localization notes
+
+- Storefront chrome: `next-intl` EN/ES
+- Shopify catalog: depends on Shopify Markets/translations setup
+- Payload catalog (`apps/cms`): **single locale today** — multi-language CMS support is planned

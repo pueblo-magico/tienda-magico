@@ -1,0 +1,95 @@
+import { postgresAdapter } from '@payloadcms/db-postgres'
+import { ecommercePlugin } from '@payloadcms/plugin-ecommerce'
+import { lexicalEditor } from '@payloadcms/richtext-lexical'
+import path from 'path'
+import { buildConfig } from 'payload'
+import { fileURLToPath } from 'url'
+import sharp from 'sharp'
+import { config as loadEnv } from 'dotenv'
+
+import { adminOnlyFieldAccess } from './access/adminOnlyFieldAccess'
+import { adminOrPublishedStatus } from './access/adminOrPublishedStatus'
+import { customerOnlyFieldAccess } from './access/customerOnlyFieldAccess'
+import { isAdmin } from './access/isAdmin'
+import { isDocumentOwner } from './access/isDocumentOwner'
+import { Categories } from './collections/Categories'
+import { Media } from './collections/Media'
+import { productsCollectionOverride } from './collections/Products'
+import { Users } from './collections/Users'
+
+loadEnv()
+
+const filename = fileURLToPath(import.meta.url)
+const dirname = path.dirname(filename)
+
+const corsOrigins = (process.env.CORS_ORIGINS ?? 'http://localhost:3000')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean)
+
+const serverURL =
+  process.env.PAYLOAD_PUBLIC_SERVER_URL ||
+  process.env.NEXT_PUBLIC_SERVER_URL ||
+  'http://localhost:4000'
+
+export default buildConfig({
+  serverURL,
+  admin: {
+    user: Users.slug,
+    importMap: {
+      baseDir: path.resolve(dirname),
+    },
+    meta: {
+      titleSuffix: ' · Pueblo Mágico CMS',
+    },
+  },
+  collections: [Users, Media, Categories],
+  editor: lexicalEditor(),
+  secret: process.env.PAYLOAD_SECRET || '',
+  typescript: {
+    outputFile: path.resolve(dirname, 'payload-types.ts'),
+  },
+  db: postgresAdapter({
+    pool: {
+      connectionString: process.env.DATABASE_URL || '',
+    },
+  }),
+  cors: corsOrigins,
+  csrf: corsOrigins,
+  sharp,
+  plugins: [
+    ecommercePlugin({
+      access: {
+        adminOnlyFieldAccess,
+        adminOrPublishedStatus,
+        customerOnlyFieldAccess,
+        isAdmin,
+        isDocumentOwner,
+      },
+      customers: {
+        slug: 'users',
+      },
+      currencies: {
+        defaultCurrency: 'USD',
+        supportedCurrencies: [
+          {
+            code: 'USD',
+            decimals: 2,
+            label: 'US Dollar',
+            symbol: '$',
+          },
+        ],
+      },
+      carts: {
+        allowGuestCarts: true,
+      },
+      // Payments/transactions can be added later (Stripe adapter).
+      // Catalogue + carts work without a payment method configured.
+      products: {
+        productsCollectionOverride,
+      },
+      addresses: true,
+      orders: true,
+    }),
+  ],
+})

@@ -6,7 +6,16 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "dev:web": "next dev --turbopack",
+    "dev:cms": "npm --prefix apps/cms run dev",
+    "build:web": "next build --turbopack",
+    "build:cms": "npm --prefix apps/cms run build",
+    "start:web": "next start",
+    "start:cms": "npm --prefix apps/cms run start",
+    "lint:cms": "npm --prefix apps/cms run lint",
+    "db:cms:up": "npm --prefix apps/cms run db:up",
+    "db:cms:down": "npm --prefix apps/cms run db:down"
   },
   "dependencies": {
     "next": "15.5.23",
