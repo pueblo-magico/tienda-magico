@@ -106,14 +106,38 @@ Plugin defaults do **not** include `title`. This app’s override adds:
 
 Plus plugin fields: pricing (`priceInUSD` in minor units), inventory, variants, drafts.
 
-## Localization status
+## Localization (EN / ES)
 
-**Not enabled yet.** Catalog content is single-locale.
+Configured in `src/payload.config.ts`:
 
-- Storefront UI strings: EN/ES via `next-intl`
-- CMS product copy: one language only (until Payload `localization` is configured)
+```ts
+localization: {
+  locales: [{ code: 'en', label: 'English' }, { code: 'es', label: 'Español' }],
+  defaultLocale: 'en',
+  fallback: true,
+}
+```
 
-Planned follow-up: Payload locales `en` / `es` + storefront adapter `?locale=`.
+| Field | Localized? |
+| --- | --- |
+| Product `title`, `description`, `summary`, `tags` | Yes |
+| Category `title`, `description` | Yes |
+| Media `alt` | Yes |
+| Product/category `slug` | **No** (shared handle) |
+| Price, inventory, gallery, category relation | No |
+
+### Editor workflow
+
+1. Create/edit a product in **English** (default locale)
+2. Use the admin **locale switcher** (top bar) → **Español**
+3. Fill Spanish title/description/summary
+4. Publish — missing ES fields fall back to EN when `fallback: true`
+
+### API
+
+```http
+GET /api/products?locale=es&fallback-locale=en&draft=false
+```
 
 ## Storefront connection
 

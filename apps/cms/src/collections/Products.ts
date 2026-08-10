@@ -12,6 +12,9 @@ import {
  *
  * Note: the plugin default does NOT ship a `title` field — the official
  * ecommerce template adds it via override. We do the same here.
+ *
+ * Localized copy fields: title, description, summary, tags.
+ * Shared across locales: slug (stable storefront handle), gallery, category, pricing.
  */
 export const productsCollectionOverride: CollectionOverride = ({ defaultCollection }) => {
   const catalogueFields = [
@@ -19,6 +22,7 @@ export const productsCollectionOverride: CollectionOverride = ({ defaultCollecti
       name: 'title',
       type: 'text',
       required: true,
+      localized: true,
     },
     {
       name: 'slug',
@@ -26,13 +30,17 @@ export const productsCollectionOverride: CollectionOverride = ({ defaultCollecti
       required: true,
       unique: true,
       index: true,
+      // Shared handle so /en and /es resolve the same product document
+      localized: false,
       admin: {
         position: 'sidebar',
+        description: 'Stable URL handle shared across languages (e.g. mountain-cacao).',
       },
     },
     {
       name: 'description',
       type: 'richText',
+      localized: true,
       editor: lexicalEditor({
         features: ({ rootFeatures }) => [
           ...rootFeatures,
@@ -45,6 +53,7 @@ export const productsCollectionOverride: CollectionOverride = ({ defaultCollecti
     {
       name: 'summary',
       type: 'textarea',
+      localized: true,
       admin: {
         description: 'Short plain-text blurb for cards and listings.',
       },
@@ -76,6 +85,7 @@ export const productsCollectionOverride: CollectionOverride = ({ defaultCollecti
     {
       name: 'tags',
       type: 'array',
+      localized: true,
       fields: [
         {
           name: 'tag',
@@ -105,7 +115,6 @@ export const productsCollectionOverride: CollectionOverride = ({ defaultCollecti
       priceInUSD: true,
       category: true,
     },
-    // title/slug/content first, then plugin fields (prices, variants, inventory)
     fields: [...catalogueFields, ...(defaultCollection.fields ?? [])],
   }
 }

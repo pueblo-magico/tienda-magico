@@ -13,6 +13,8 @@ export type PayloadEcommerceConfig = {
   collectionsSlug: string;
   checkoutBaseUrl: string;
   depth: number;
+  defaultLocale: string;
+  fallbackLocale: string;
 };
 
 function readEnv(name: string): string | undefined {
@@ -58,6 +60,8 @@ export function getPayloadEcommerceConfig(): PayloadEcommerceConfig {
       readEnv("PAYLOAD_ECOMMERCE_CHECKOUT_URL")?.replace(/\/$/, "") ??
       `${storefrontUrl}${checkoutPath.startsWith("/") ? checkoutPath : `/${checkoutPath}`}`,
     depth: Number.parseInt(readEnv("PAYLOAD_ECOMMERCE_DEPTH") ?? "2", 10) || 2,
+    defaultLocale: (readEnv("PAYLOAD_ECOMMERCE_DEFAULT_LOCALE") ?? "en").toLowerCase(),
+    fallbackLocale: (readEnv("PAYLOAD_ECOMMERCE_FALLBACK_LOCALE") ?? "en").toLowerCase(),
   };
 }
 

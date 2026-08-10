@@ -56,6 +56,20 @@ export default buildConfig({
   }),
   cors: corsOrigins,
   csrf: corsOrigins,
+  localization: {
+    locales: [
+      {
+        code: 'en',
+        label: 'English',
+      },
+      {
+        code: 'es',
+        label: 'Español',
+      },
+    ],
+    defaultLocale: 'en',
+    fallback: true,
+  },
   sharp,
   plugins: [
     ecommercePlugin({

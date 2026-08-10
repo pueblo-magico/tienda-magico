@@ -95,7 +95,7 @@ npm run start:cms    # CMS production server
 | Layer | EN / ES |
 | --- | --- |
 | Storefront UI (`next-intl`) | Yes |
-| Payload CMS catalog content | Not yet (single locale) |
+| Payload CMS catalog content | Yes (`en` / `es`, fallback to `en`) |
 
 ## Documentation
 

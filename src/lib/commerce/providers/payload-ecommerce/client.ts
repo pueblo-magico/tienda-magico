@@ -108,3 +108,17 @@ export async function payloadFetch<T>({
 export function collectionPath(slug: string, id?: string | number) {
   return id == null ? `/${slug}` : `/${slug}/${id}`;
 }
+
+/** Payload REST localization query params. */
+export function localeQuery(locale?: string | null): {
+  locale: string;
+  "fallback-locale": string;
+} {
+  const config = getPayloadEcommerceConfig();
+  const normalized = (locale ?? config.defaultLocale).trim().toLowerCase() || config.defaultLocale;
+  return {
+    locale: normalized,
+    "fallback-locale": config.fallbackLocale,
+  };
+}
+

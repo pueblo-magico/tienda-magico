@@ -16,7 +16,9 @@ export type {
   CartLineInput,
   CartLineUpdateInput,
   GetProductsParams,
+  GetProductParams,
   GetCollectionsParams,
+  GetCollectionParams,
   Paginated,
   CommerceProviderName,
 } from "./commerce";

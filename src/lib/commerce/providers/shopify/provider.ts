@@ -5,7 +5,9 @@ import type {
   CartLineUpdateInput,
   Collection,
   CollectionSummary,
+  GetCollectionParams,
   GetCollectionsParams,
+  GetProductParams,
   GetProductsParams,
   Paginated,
   Product,
@@ -34,7 +36,8 @@ export class ShopifyCommerceProvider implements CommerceProvider {
     return getProducts(params);
   }
 
-  getProduct(handle: string): Promise<Product | null> {
+  getProduct(handle: string, _params?: GetProductParams): Promise<Product | null> {
+    // Shopify Markets/locale can be added later; Storefront adapter ignores locale for now.
     return getProduct(handle);
   }
 
@@ -46,8 +49,12 @@ export class ShopifyCommerceProvider implements CommerceProvider {
 
   getCollection(
     handle: string,
-    productsFirst?: number,
+    productsFirstOrParams?: number | GetCollectionParams,
   ): Promise<Collection | null> {
+    const productsFirst =
+      typeof productsFirstOrParams === "number"
+        ? productsFirstOrParams
+        : productsFirstOrParams?.productsFirst;
     return getCollection(handle, productsFirst);
   }
 

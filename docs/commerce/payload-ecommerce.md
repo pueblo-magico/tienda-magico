@@ -146,10 +146,30 @@ Payments (Stripe) are **not** configured in CMS yet.
 | Layer | Status |
 | --- | --- |
 | Storefront UI (`next-intl`) | EN / ES |
-| Payload catalog fields | **Single locale** (not configured) |
-| Adapter `?locale=` | **Not sent yet** |
+| Payload catalog fields | **EN / ES** (`apps/cms` localization) |
+| Adapter `locale` param | Supported on catalog methods |
 
-Multi-language CMS content is a planned follow-up.
+### Storefront usage
+
+```ts
+import { commerce } from "@/lib/commerce";
+
+const { items } = await commerce.getProducts({ first: 12, locale: "es" });
+const product = await commerce.getProduct("mountain-cacao", { locale: "es" });
+const collection = await commerce.getCollection("ritual-cacao", {
+  productsFirst: 12,
+  locale: "es",
+});
+```
+
+Env (optional defaults for the adapter):
+
+```bash
+PAYLOAD_ECOMMERCE_DEFAULT_LOCALE=en
+PAYLOAD_ECOMMERCE_FALLBACK_LOCALE=en
+```
+
+Slug handles are **shared** across locales. Translate title/description in admin per locale.
 
 ---
 

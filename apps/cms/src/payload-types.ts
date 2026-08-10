@@ -116,10 +116,10 @@ export interface Config {
   db: {
     defaultIDType: number;
   };
-  fallbackLocale: null;
+  fallbackLocale: ('false' | 'none' | 'null') | false | null | ('en' | 'es') | ('en' | 'es')[];
   globals: {};
   globalsSelect: {};
-  locale: null;
+  locale: 'en' | 'es';
   widgets: {
     collections: CollectionsWidget;
   };
@@ -219,6 +219,9 @@ export interface Media {
 export interface Category {
   id: number;
   title: string;
+  /**
+   * Stable URL handle shared across languages.
+   */
   slug: string;
   description?: string | null;
   image?: (number | null) | Media;
@@ -313,6 +316,9 @@ export interface Variant {
 export interface Product {
   id: number;
   title: string;
+  /**
+   * Stable URL handle shared across languages (e.g. mountain-cacao).
+   */
   slug: string;
   description?: {
     root: {

@@ -140,6 +140,8 @@ export type GetProductsParams = {
   first?: number;
   after?: string;
   query?: string;
+  /** Preferred content locale (e.g. en, es). Provider-specific. */
+  locale?: string;
   sortKey?:
     | "TITLE"
     | "PRICE"
@@ -153,9 +155,22 @@ export type GetProductsParams = {
   reverse?: boolean;
 };
 
+export type GetProductParams = {
+  /** Preferred content locale (e.g. en, es). Provider-specific. */
+  locale?: string;
+};
+
 export type GetCollectionsParams = {
   first?: number;
   after?: string;
+  /** Preferred content locale (e.g. en, es). Provider-specific. */
+  locale?: string;
+};
+
+export type GetCollectionParams = {
+  productsFirst?: number;
+  /** Preferred content locale (e.g. en, es). Provider-specific. */
+  locale?: string;
 };
 
 export type Paginated<T> = {

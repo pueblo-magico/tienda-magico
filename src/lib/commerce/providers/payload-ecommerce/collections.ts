@@ -1,11 +1,12 @@
 import type {
   Collection,
   CollectionSummary,
+  GetCollectionParams,
   GetCollectionsParams,
   Paginated,
   ProductSummary,
 } from "@/types/commerce";
-import { collectionPath, payloadFetch } from "./client";
+import { collectionPath, localeQuery, payloadFetch } from "./client";
 import { getPayloadEcommerceConfig } from "./config";
 import {
   mapCollection,
@@ -33,10 +34,20 @@ type PayloadCollectionDoc = {
     | null;
 };
 
+function normalizeCollectionParams(
+  productsFirstOrParams?: number | GetCollectionParams,
+): GetCollectionParams {
+  if (typeof productsFirstOrParams === "number") {
+    return { productsFirst: productsFirstOrParams };
+  }
+  return productsFirstOrParams ?? {};
+}
+
 async function safeListCollections(params?: GetCollectionsParams) {
   const config = getPayloadEcommerceConfig();
   const limit = params?.first ?? 20;
   const page = params?.after ? Number.parseInt(params.after, 10) || 1 : 1;
+  const locales = localeQuery(params?.locale);
 
   try {
     return await payloadFetch<PayloadListResponse<PayloadCollectionDoc>>({
@@ -46,11 +57,16 @@ async function safeListCollections(params?: GetCollectionsParams) {
         limit,
         page,
         draft: false,
+        ...locales,
       },
       cache: "force-cache",
       next: {
         revalidate: 120,
-        tags: ["collections", "payload-collections"],
+        tags: [
+          "collections",
+          "payload-collections",
+          `collections:${locales.locale}`,
+        ],
       },
     });
   } catch (error) {
@@ -108,9 +124,12 @@ function extractRelatedProducts(
 
 export async function getCollection(
   handle: string,
-  productsFirst = 24,
+  productsFirstOrParams: number | GetCollectionParams = 24,
 ): Promise<Collection | null> {
   const config = getPayloadEcommerceConfig();
+  const params = normalizeCollectionParams(productsFirstOrParams);
+  const productsFirst = params.productsFirst ?? 24;
+  const locales = localeQuery(params.locale);
 
   try {
     const bySlug = await payloadFetch<PayloadListResponse<PayloadCollectionDoc>>({
@@ -120,11 +139,16 @@ export async function getCollection(
         limit: 1,
         "where[slug][equals]": handle,
         draft: false,
+        ...locales,
       },
       cache: "force-cache",
       next: {
         revalidate: 60,
-        tags: [`collection:${handle}`, "payload-collections"],
+        tags: [
+          `collection:${handle}`,
+          `collection:${handle}:${locales.locale}`,
+          "payload-collections",
+        ],
       },
     });
 
@@ -133,11 +157,19 @@ export async function getCollection(
     if (!doc) {
       doc = await payloadFetch<PayloadCollectionDoc>({
         path: collectionPath(config.collectionsSlug, handle),
-        query: { depth: Math.max(config.depth, 2), draft: false },
+        query: {
+          depth: Math.max(config.depth, 2),
+          draft: false,
+          ...locales,
+        },
         cache: "force-cache",
         next: {
           revalidate: 60,
-          tags: [`collection:${handle}`, "payload-collections"],
+          tags: [
+            `collection:${handle}`,
+            `collection:${handle}:${locales.locale}`,
+            "payload-collections",
+          ],
         },
       });
     }
@@ -152,6 +184,7 @@ export async function getCollection(
           depth: config.depth,
           limit: productsFirst,
           draft: false,
+          ...locales,
           "where[or][0][category][equals]": toId(doc.id),
           "where[or][1][categories][contains]": toId(doc.id),
           "where[or][2][collections][contains]": toId(doc.id),
@@ -159,7 +192,11 @@ export async function getCollection(
         cache: "force-cache",
         next: {
           revalidate: 60,
-          tags: [`collection:${handle}`, "payload-products"],
+          tags: [
+            `collection:${handle}`,
+            `collection:${handle}:${locales.locale}`,
+            "payload-products",
+          ],
         },
       });
       products = (related.docs ?? []).map(mapProductSummary);

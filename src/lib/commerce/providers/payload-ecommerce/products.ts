@@ -1,5 +1,11 @@
-import type { GetProductsParams, Paginated, Product, ProductSummary } from "@/types/commerce";
-import { collectionPath, payloadFetch } from "./client";
+import type {
+  GetProductParams,
+  GetProductsParams,
+  Paginated,
+  Product,
+  ProductSummary,
+} from "@/types/commerce";
+import { collectionPath, localeQuery, payloadFetch } from "./client";
 import { getPayloadEcommerceConfig } from "./config";
 import {
   mapProduct,
@@ -15,12 +21,14 @@ export async function getProducts(
   const config = getPayloadEcommerceConfig();
   const limit = params.first ?? 24;
   const page = params.after ? Number.parseInt(params.after, 10) || 1 : 1;
+  const locales = localeQuery(params.locale);
 
   const query: Record<string, string | number | boolean> = {
     depth: config.depth,
     limit,
     page,
     draft: false,
+    ...locales,
   };
 
   const sort = sortParam(params.sortKey, params.reverse);
@@ -36,7 +44,10 @@ export async function getProducts(
     path: collectionPath(config.productsSlug),
     query,
     cache: "force-cache",
-    next: { revalidate: 60, tags: ["products", "payload-products"] },
+    next: {
+      revalidate: 60,
+      tags: ["products", "payload-products", `products:${locales.locale}`],
+    },
   });
 
   return {
@@ -45,8 +56,12 @@ export async function getProducts(
   };
 }
 
-export async function getProduct(handle: string): Promise<Product | null> {
+export async function getProduct(
+  handle: string,
+  params: GetProductParams = {},
+): Promise<Product | null> {
   const config = getPayloadEcommerceConfig();
+  const locales = localeQuery(params.locale);
 
   const bySlug = await payloadFetch<PayloadListResponse<PayloadProductDoc>>({
     path: collectionPath(config.productsSlug),
@@ -55,9 +70,17 @@ export async function getProduct(handle: string): Promise<Product | null> {
       limit: 1,
       "where[slug][equals]": handle,
       draft: false,
+      ...locales,
     },
     cache: "force-cache",
-    next: { revalidate: 60, tags: [`product:${handle}`, "payload-products"] },
+    next: {
+      revalidate: 60,
+      tags: [
+        `product:${handle}`,
+        `product:${handle}:${locales.locale}`,
+        "payload-products",
+      ],
+    },
   });
 
   const doc = bySlug.docs?.[0];
@@ -67,9 +90,16 @@ export async function getProduct(handle: string): Promise<Product | null> {
   try {
     const byId = await payloadFetch<PayloadProductDoc>({
       path: collectionPath(config.productsSlug, handle),
-      query: { depth: config.depth, draft: false },
+      query: { depth: config.depth, draft: false, ...locales },
       cache: "force-cache",
-      next: { revalidate: 60, tags: [`product:${handle}`, "payload-products"] },
+      next: {
+        revalidate: 60,
+        tags: [
+          `product:${handle}`,
+          `product:${handle}:${locales.locale}`,
+          "payload-products",
+        ],
+      },
     });
     return mapProduct(byId);
   } catch {

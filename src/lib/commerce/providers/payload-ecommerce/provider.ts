@@ -5,7 +5,9 @@ import type {
   CartLineUpdateInput,
   Collection,
   CollectionSummary,
+  GetCollectionParams,
   GetCollectionsParams,
+  GetProductParams,
   GetProductsParams,
   Paginated,
   Product,
@@ -34,8 +36,8 @@ export class PayloadEcommerceProvider implements CommerceProvider {
     return getProducts(params);
   }
 
-  getProduct(handle: string): Promise<Product | null> {
-    return getProduct(handle);
+  getProduct(handle: string, params?: GetProductParams): Promise<Product | null> {
+    return getProduct(handle, params);
   }
 
   getCollections(
@@ -46,9 +48,9 @@ export class PayloadEcommerceProvider implements CommerceProvider {
 
   getCollection(
     handle: string,
-    productsFirst?: number,
+    productsFirstOrParams?: number | GetCollectionParams,
   ): Promise<Collection | null> {
-    return getCollection(handle, productsFirst);
+    return getCollection(handle, productsFirstOrParams);
   }
 
   getCart(cartId: string): Promise<Cart | null> {

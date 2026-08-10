@@ -5,7 +5,9 @@ import type {
   Collection,
   CollectionSummary,
   CommerceProviderName,
+  GetCollectionParams,
   GetCollectionsParams,
+  GetProductParams,
   GetProductsParams,
   Paginated,
   Product,
@@ -23,10 +25,13 @@ export interface CommerceProvider {
   isConfigured(): boolean;
 
   getProducts(params?: GetProductsParams): Promise<Paginated<ProductSummary>>;
-  getProduct(handle: string): Promise<Product | null>;
+  getProduct(handle: string, params?: GetProductParams): Promise<Product | null>;
 
   getCollections(params?: GetCollectionsParams): Promise<Paginated<CollectionSummary>>;
-  getCollection(handle: string, productsFirst?: number): Promise<Collection | null>;
+  getCollection(
+    handle: string,
+    productsFirstOrParams?: number | GetCollectionParams,
+  ): Promise<Collection | null>;
 
   getCart(cartId: string): Promise<Cart | null>;
   createCart(input?: { lines?: CartLineInput[]; note?: string }): Promise<Cart>;

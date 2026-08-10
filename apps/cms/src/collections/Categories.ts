@@ -20,6 +20,7 @@ export const Categories: CollectionConfig = {
       name: 'title',
       type: 'text',
       required: true,
+      localized: true,
     },
     {
       name: 'slug',
@@ -27,13 +28,17 @@ export const Categories: CollectionConfig = {
       required: true,
       unique: true,
       index: true,
+      // Shared handle across locales
+      localized: false,
       admin: {
         position: 'sidebar',
+        description: 'Stable URL handle shared across languages.',
       },
     },
     {
       name: 'description',
       type: 'textarea',
+      localized: true,
     },
     {
       name: 'image',

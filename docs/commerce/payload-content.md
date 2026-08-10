@@ -109,16 +109,19 @@ Editors usually do not manage carts. Carts are created by the storefront.
 
 ---
 
-## Localization
+## Localization (EN / ES)
 
-**CMS content is single-language today.**
+The admin has a **locale switcher** (English / Español).
 
-Storefront chrome (buttons, nav) is EN/ES via `next-intl`, but product title/description are not localized in Payload yet.
+1. Enter the default locale (**English**) first
+2. Switch to **Español** and translate:
+   - Product: title, description, summary, tags
+   - Category: title, description
+   - Media: alt text
+3. Keep **slug** the same (shared URL handle)
+4. Publish when both locales are ready (fallback serves EN if ES is empty)
 
-Until localization ships:
-
-- Write catalog copy in the primary launch language, or
-- Keep parallel fields manually (not recommended)
+Storefront requests should pass the active locale, e.g. `commerce.getProducts({ locale: "es" })`.
 
 ---
 

@@ -316,4 +316,5 @@ Merchandising/editorial workflow for catalog data lives in:
 
 - Storefront chrome: `next-intl` EN/ES
 - Shopify catalog: depends on Shopify Markets/translations setup
-- Payload catalog (`apps/cms`): **single locale today** — multi-language CMS support is planned
+- Payload catalog (`apps/cms`): **en / es** localization on catalogue fields
+- Pass `locale` into `commerce.getProducts` / `getProduct` / `getCollection` (Payload adapter maps to REST `locale` + `fallback-locale`)
