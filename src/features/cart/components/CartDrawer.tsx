@@ -31,6 +31,7 @@ export function CartDrawer() {
       open={isOpen}
       onClose={closeCart}
       title={t("title")}
+      titleId="cart-drawer-title"
       side="right"
       footer={
         hasLines ? (

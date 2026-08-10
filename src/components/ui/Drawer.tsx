@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, type ReactNode } from "react";
+import { useEffect, useId, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils/cn";
 
 export type DrawerProps = {
@@ -12,6 +12,8 @@ export type DrawerProps = {
   footer?: ReactNode;
   side?: "left" | "right";
   className?: string;
+  /** Stable id for the title heading (avoids useId hydration issues when set). */
+  titleId?: string;
 };
 
 export function Drawer({
@@ -22,8 +24,16 @@ export function Drawer({
   footer,
   side = "right",
   className,
+  titleId: titleIdProp,
 }: DrawerProps) {
-  const titleId = useId();
+  const generatedTitleId = useId();
+  const titleId = titleIdProp ?? generatedTitleId;
+  // Overlays should not SSR: useId / portal trees often mismatch with the client.
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -38,17 +48,22 @@ export function Drawer({
     };
   }, [open, onClose]);
 
+  if (!mounted) {
+    return null;
+  }
+
   return (
     <div
       className={cn(
         "fixed inset-0 z-50 transition-visibility",
-        open ? "visible" : "invisible",
+        open ? "visible" : "invisible pointer-events-none",
       )}
       aria-hidden={!open}
     >
       <button
         type="button"
         aria-label="Close drawer"
+        tabIndex={open ? 0 : -1}
         className={cn(
           "absolute inset-0 bg-forest/40 transition-opacity",
           open ? "opacity-100" : "opacity-0",
