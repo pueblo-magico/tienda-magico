@@ -137,7 +137,12 @@ Pass that full value back into cart methods.
 
 `Cart.checkoutUrl` → `PAYLOAD_ECOMMERCE_CHECKOUT_URL` or `NEXT_PUBLIC_SITE_URL` + `PAYLOAD_ECOMMERCE_CHECKOUT_PATH` with `?cart={cartRef}`.
 
-Payments (Stripe) are **not** configured in CMS yet.
+That URL is a **storefront entry** (`/[locale]/checkout`), not a payment gateway. Card/wallet payment is handled by the storefront checkout layer (**Mercado Pago Checkout Pro** by default when configured):
+
+- See [checkout developer guide](../checkout/developer.md)
+- Operator credentials: [checkout operations](../checkout/operations.md)
+
+Payments are **not** processed inside Payload admin.
 
 ---
 

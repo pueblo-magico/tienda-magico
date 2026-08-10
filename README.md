@@ -25,7 +25,9 @@ Open [http://localhost:3000](http://localhost:3000) (redirects to `/en`).
 | --- | --- |
 | `/en`, `/es` | Localized storefront (CMS home page `home` or fallback) |
 | `/ui-system` | Design system reference |
-| `/en/cart` | Cart page shell |
+| `/en/cart` | Cart page |
+| `/en/shop` | Product listing |
+| `/en/checkout` | Start checkout (Mercado Pago / commerce redirect) |
 
 ## Commerce (Shopify)
 
@@ -67,6 +69,25 @@ PAYLOAD_ECOMMERCE_URL=http://localhost:4000
 
 See [apps/cms/README.md](./apps/cms/README.md) and [docs/commerce/payload-ecommerce.md](./docs/commerce/payload-ecommerce.md).
 
+
+## Checkout
+
+Payments go through `@/lib/checkout` (not directly from cart UI to Mercado Pago).
+
+```bash
+# .env.local — Payload + Mercado Pago
+CHECKOUT_PROVIDER=mercado-pago
+MERCADOPAGO_ACCESS_TOKEN=TEST-xxxxxxxx
+MERCADOPAGO_SANDBOX=true
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+```
+
+```bash
+curl -s http://localhost:3000/api/checkout   # provider + configured
+```
+
+Details: [docs/checkout/operations.md](./docs/checkout/operations.md).
+
 ## Documentation
 
 - [Docs home](./docs/README.md)
@@ -74,6 +95,8 @@ See [apps/cms/README.md](./apps/cms/README.md) and [docs/commerce/payload-ecomme
 - [Shopify content & merchandising guide](./docs/commerce/content.md)
 - [Payload Ecommerce provider](./docs/commerce/payload-ecommerce.md)
 - [Payload content & merchandising](./docs/commerce/payload-content.md)
+- [Checkout developer guide](./docs/checkout/developer.md)
+- [Checkout operations (Mercado Pago)](./docs/checkout/operations.md)
 - [CMS homepage (developer)](./docs/cms/developer.md)
 - [CMS homepage (content editors)](./docs/cms/content.md)
 - [CMS app README](./apps/cms/README.md)

@@ -7,6 +7,8 @@ Project docs for engineers and content/commerce operators.
 | Developers | [Commerce developer guide](./commerce/developer.md) | Architecture, env setup, API usage, provider swapping |
 | Developers | [Payload Ecommerce provider](./commerce/payload-ecommerce.md) | Self-hosted Payload adapter, env, carts, monorepo CMS |
 | Developers | [CMS content developer guide](./cms/developer.md) | Homepage/pages via `@/lib/cms`, blocks, fallback, caching |
+| Developers | [Checkout developer guide](./checkout/developer.md) | Provider-agnostic checkout, Mercado Pago, HTTP API |
+| Operators | [Checkout operations guide](./checkout/operations.md) | MP credentials, sandbox, webhooks, go-live |
 | Content / merchandising | [Shopify content guide](./commerce/content.md) | Products & collections in Shopify |
 | Content / merchandising | [Payload catalog guide](./commerce/payload-content.md) | Products & categories in `apps/cms` |
 | Content / editors | [CMS homepage & pages guide](./cms/content.md) | Build the home page with layout blocks (EN/ES) |
@@ -32,12 +34,12 @@ npm run db:cms:up    # CMS database
 npm run dev:cms      # CMS admin + API
 ```
 
-## Content vs commerce (quick map)
+## Content vs commerce vs checkout (quick map)
 
 | Need | System | Docs |
 | --- | --- | --- |
 | Homepage sections, stories, FAQs | Payload **Pages** + blocks | [cms/content.md](./cms/content.md) |
-| Products, carts, checkout URL | `@/lib/commerce` | [commerce/developer.md](./commerce/developer.md) |
+| Products, carts | `@/lib/commerce` | [commerce/developer.md](./commerce/developer.md) |
 | Edit products in admin | Shopify or `apps/cms` shop | [commerce/content.md](./commerce/content.md) / [payload-content.md](./commerce/payload-content.md) |
-
-- [Checkout (developer)](./checkout/developer.md)
+| Pay with Mercado Pago (Payload carts) | `@/lib/checkout` + MP token in `.env.local` | [checkout/operations.md](./checkout/operations.md) |
+| Pay with Shopify Checkout | `CHECKOUT_PROVIDER=commerce-redirect` | [checkout/developer.md](./checkout/developer.md) |

@@ -370,7 +370,8 @@ This keeps builds and UI work unblocked before credentials exist.
 - [ ] `getProduct(handle)` resolves by Shopify handle
 - [ ] `getCollections()` / `getCollection(handle)` work
 - [ ] `createCart` + `addCartLines` + `updateCart` + `removeCartLines`
-- [ ] `checkoutUrl` opens Shopify checkout
+- [ ] Shopify: `checkoutUrl` opens Shopify checkout
+- [ ] Payload + MP: `GET /api/checkout` configured; cart Checkout redirects to Mercado Pago
 - [ ] Missing env fails with `CommerceConfigError`
 - [ ] App still builds when env is absent (`npm run build`)
 
@@ -394,4 +395,14 @@ Merchandising/editorial workflow for catalog data lives in:
 
 ## Checkout
 
-See [checkout developer docs](../checkout/developer.md) for Mercado Pago and the provider-agnostic checkout layer.
+Cart payment is **not** “only `cart.checkoutUrl`” anymore for Payload:
+
+| Provider | `CHECKOUT_PROVIDER` | Behavior |
+| --- | --- | --- |
+| Mercado Pago Checkout Pro | `mercado-pago` | Storefront builds a preference from the cart |
+| Commerce / Shopify URL | `commerce-redirect` | Browser goes to `cart.checkoutUrl` |
+
+- Developer API & troubleshooting → [checkout/developer.md](../checkout/developer.md)
+- Credentials & go-live → [checkout/operations.md](../checkout/operations.md)
+
+UI should call `POST /api/checkout` (via `CartProvider` / `@/features/checkout`), not hard-code gateway SDKs.

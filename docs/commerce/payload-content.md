@@ -104,8 +104,11 @@ http://localhost:4000/api/media/file/<filename>
 Editors usually do not manage carts. Carts are created by the storefront.
 
 - Guest carts are enabled
-- Checkout payment (Stripe) is **not** configured in CMS yet
-- Storefront `checkoutUrl` currently points at the shop checkout path with `?cart=`
+- Checkout payment runs on the **storefront** via Mercado Pago (not inside CMS admin)
+- Product **titles** (EN + ES) and images should be filled in — they appear on the cart and on the Mercado Pago preference
+- Storefront `checkoutUrl` points at `/{locale}/checkout?cart=` which starts the payment session
+
+Operators: [checkout operations](../checkout/operations.md).
 
 ---
 
