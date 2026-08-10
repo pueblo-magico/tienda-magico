@@ -1,8 +1,10 @@
-export type { Locale, NavItem } from "@/config/navigation";
-
+/**
+ * @deprecated Prefer `@/types/commerce` for provider-agnostic domain types.
+ * Kept for COMMAND.md Phase 4 path compatibility — re-exports commerce types.
+ */
 export type {
   Money,
-  CommerceImage,
+  CommerceImage as ShopifyImage,
   Product,
   ProductSummary,
   ProductVariant,
@@ -21,8 +23,7 @@ export type {
   CommerceProviderName,
 } from "./commerce";
 
-export { CommerceError, CommerceConfigError } from "./commerce";
-
-/** @deprecated Use CommerceError / types from `@/types/commerce`. */
-export type { ShopifyImage } from "./shopify";
-export { ShopifyError, ShopifyConfigError } from "./shopify";
+export {
+  CommerceError as ShopifyError,
+  CommerceConfigError as ShopifyConfigError,
+} from "./commerce";

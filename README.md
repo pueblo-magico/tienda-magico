@@ -1,36 +1,60 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Pueblo Mágico
 
-## Getting Started
+Multilingual headless ecommerce storefront for Pueblo Mágico.
 
-First, run the development server:
+## Stack
+
+- Next.js 15 / React 19 / TypeScript
+- Tailwind CSS 4
+- next-intl (EN / ES)
+- Provider-agnostic commerce layer (Shopify Storefront API adapter)
+
+## Getting started
 
 ```bash
+npm install
+cp .env.example .env.local
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) (redirects to `/en`).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Useful routes
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Route | Purpose |
+| --- | --- |
+| `/en`, `/es` | Localized storefront |
+| `/ui-system` | Design system reference |
+| `/en/cart` | Cart page shell |
 
-## Learn More
+## Commerce (Shopify)
 
-To learn more about Next.js, take a look at the following resources:
+Catalog and cart go through `@/lib/commerce`, not Shopify-specific imports in feature code.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```ts
+import { commerce } from "@/lib/commerce";
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+const { items } = await commerce.getProducts({ first: 12 });
+```
 
-## Deploy on Vercel
+Required env (see `.env.example`):
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- `COMMERCE_PROVIDER=shopify`
+- `SHOPIFY_STORE_DOMAIN`
+- `SHOPIFY_STOREFRONT_ACCESS_TOKEN`
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Documentation
+
+- [Docs home](./docs/README.md)
+- [Commerce developer guide](./docs/commerce/developer.md)
+- [Shopify content & merchandising guide](./docs/commerce/content.md)
+- [Build plan (COMMAND.md)](./COMMAND.md)
+
+## Scripts
+
+```bash
+npm run dev      # local development
+npm run build    # production build
+npm run start    # start production server
+npm run lint     # eslint
+```
