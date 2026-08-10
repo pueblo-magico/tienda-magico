@@ -24,7 +24,27 @@ Requirements
 - Accessible
 - High Lighthouse score
 
-Phase 0 — Foundation
+## Implementation status
+
+- [x] Phase 0 — Foundation
+- [x] Phase 1 — Global Layout
+- [x] Phase 2 — Design System
+- [x] Phase 3 — Localization
+- [x] Phase 4 — Shopify Integration (provider-agnostic commerce + Shopify + Payload Ecommerce)
+- [x] Phase 5 — Cart System
+- [x] Phase 6 — CMS
+- [x] Phase 7 — Homepage
+- [x] Phase 8 — Shop Listing
+- [x] Phase 9 — Product Page
+- [x] Checkout abstraction (Mercado Pago Checkout Pro + commerce-redirect)
+- [ ] Phase 10 — Journal
+- [ ] Phase 11 — Experiences
+- [ ] Phase 12 — Impact
+- [ ] Phase 13 — SEO
+- [ ] Phase 14 — Performance
+- [ ] Phase 15 — Production Readiness
+
+[x] Phase 0 — Foundation
 Task 0.1
 
 Create project structure.
@@ -67,7 +87,7 @@ Typography:
 Cormorant Garamond
 Inter
 
-Phase 1 — Global Layout
+[x] Phase 1 — Global Layout
 Task 1.1
 
 Create:
@@ -111,7 +131,7 @@ fullscreen
 animated
 accessible
 
-Phase 2 — Design System
+[x] Phase 2 — Design System
 
 Create reusable components.
 
@@ -155,7 +175,7 @@ Drawer
 Accordion
 Tabs
 
-Phase 3 — Localization
+[x] Phase 3 — Localization
 Task 3.1
 
 Install:
@@ -176,7 +196,7 @@ Create translation dictionaries.
 messages/en.json
 messages/es.json
 
-Phase 4 — Shopify Integration
+[x] Phase 4 — Shopify Integration
 Task 4.1
 
 Create Shopify client.
@@ -200,7 +220,7 @@ Strong TypeScript types.
 
 types/shopify.ts
 
-Phase 5 — Cart System
+[x] Phase 5 — Cart System
 Task 5.1
 
 Cart provider.
@@ -230,7 +250,7 @@ Checkout button.
 
 Redirect to Shopify checkout URL.
 
-Phase 6 — CMS
+[x] Phase 6 — CMS
 Task 6.1
 
 Install Payload CMS.
@@ -270,7 +290,7 @@ Newsletter
 FeaturedProducts
 ImpactStats
 
-Phase 7 — Homepage
+[x] Phase 7 — Homepage
 
 Route:
 
@@ -289,7 +309,7 @@ Newsletter
 
 All content CMS-driven.
 
-Phase 8 — Shop Listing
+[x] Phase 8 — Shop Listing
 
 Route:
 
@@ -304,7 +324,7 @@ sorting
 pagination
 search
 
-Phase 9 — Product Page
+[x] Phase 9 — Product Page
 
 Route:
 
@@ -321,7 +341,7 @@ story
 impact
 related products
 
-Phase 10 — Journal
+[ ] Phase 10 — Journal
 
 Routes:
 
@@ -338,7 +358,7 @@ search
 SEO
 related articles
 
-Phase 11 — Experiences
+[ ] Phase 11 — Experiences
 
 Routes:
 
@@ -348,7 +368,7 @@ Routes:
 
 CMS powered landing pages.
 
-Phase 12 — Impact
+[ ] Phase 12 — Impact
 
 Route:
 
@@ -365,7 +385,7 @@ Community
 Partners
 Statistics
 
-Phase 13 — SEO
+[ ] Phase 13 — SEO
 Implement
 Metadata API
 OpenGraph
@@ -374,7 +394,7 @@ Schema.org
 Sitemap
 Robots
 
-Phase 14 — Performance
+[ ] Phase 14 — Performance
 
 Requirements:
 
@@ -389,7 +409,7 @@ Targets:
 
 Lighthouse 90+
 
-Phase 15 — Production Readiness
+[ ] Phase 15 — Production Readiness
 Task 15.1
 
 Error boundaries.

@@ -11,6 +11,7 @@ import {
 } from "react";
 import { useLocale } from "next-intl";
 import type { Cart, CartLineInput } from "@/types/commerce";
+import { createCheckoutSession } from "@/features/checkout";
 import {
   addCartLines,
   fetchCart,
@@ -49,7 +50,7 @@ type CartContextValue = {
   addItem: (input: CartLineInput | CartLineInput[]) => Promise<Cart | null>;
   updateItemQuantity: (lineId: string, quantity: number) => Promise<Cart | null>;
   removeItem: (lineId: string) => Promise<Cart | null>;
-  checkout: () => void;
+  checkout: () => Promise<void>;
   clearError: () => void;
 };
 
@@ -195,13 +196,34 @@ export function CartProvider({ children }: { children: ReactNode }) {
     [applyCart, cart.id, locale],
   );
 
-  const checkout = useCallback(() => {
-    if (!cart.checkoutUrl) {
+  const checkout = useCallback(async () => {
+    const cartId = readStoredCartId() || cart.id;
+    if (!cartId || cart.totalQuantity <= 0) {
       setError("Checkout is not available for this cart yet.");
       return;
     }
-    window.location.assign(cart.checkoutUrl);
-  }, [cart.checkoutUrl]);
+
+    setIsMutating(true);
+    setError(null);
+    try {
+      const result = await createCheckoutSession({
+        cartId,
+        locale,
+      });
+      const redirectUrl = result.session?.redirectUrl;
+      if (!redirectUrl) {
+        setError("Checkout is not available for this cart yet.");
+        return;
+      }
+      window.location.assign(redirectUrl);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Could not start checkout.",
+      );
+    } finally {
+      setIsMutating(false);
+    }
+  }, [cart.id, cart.totalQuantity, locale]);
 
   const value = useMemo<CartContextValue>(
     () => ({

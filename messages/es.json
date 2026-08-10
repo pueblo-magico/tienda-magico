@@ -41,7 +41,9 @@
     "decrease": "Disminuir cantidad",
     "increase": "Aumentar cantidad",
     "taxesNote": "Impuestos y envío se calculan al pagar.",
-    "notConfigured": "El comercio aún no está configurado. El carrito funcionará cuando haya un proveedor conectado."
+    "notConfigured": "El comercio aún no está configurado. El carrito funcionará cuando haya un proveedor conectado.",
+    "checkoutStarting": "Redirigiendo al checkout…",
+    "checkoutFailed": "No se pudo iniciar el checkout. Inténtalo de nuevo."
   },
   "homeSections": {
     "categoriesEyebrow": "Colecciones",
@@ -114,5 +116,34 @@
     "relatedTitle": "Productos relacionados",
     "tags": "Etiquetas",
     "addFailed": "No se pudo añadir este producto al carrito. Inténtalo de nuevo."
+  },
+  "checkout": {
+    "eyebrow": "Pago",
+    "continueShopping": "Seguir comprando",
+    "backHome": "Volver al inicio",
+    "backToCart": "Volver al carrito",
+    "paymentId": "Pago",
+    "status": "Estado",
+    "preferenceId": "Preferencia",
+    "reference": "Referencia",
+    "redirecting": "Redirigiendo al checkout…",
+    "failed": "No se pudo iniciar el checkout. Inténtalo de nuevo.",
+    "success": {
+      "title": "Gracias",
+      "body": "Recibimos tu pago. Te escribiremos cuando el pedido esté en camino."
+    },
+    "failure": {
+      "title": "Pago no completado",
+      "body": "El pago fue cancelado o falló. Puedes volver al carrito e intentarlo de nuevo."
+    },
+    "pending": {
+      "title": "Pago pendiente",
+      "body": "Estamos esperando la confirmación del proveedor de pagos. Puede demorar unos minutos."
+    },
+    "startTitle": "Pago seguro",
+    "startBody": "Estamos preparando tu sesión de pago.",
+    "redirectingHint": "En un momento te redirigiremos a nuestro partner de pagos.",
+    "missingCart": "No hay carrito. Añade productos antes de pagar.",
+    "providerNotConfigured": "El proveedor de pagos no está configurado. Añade MERCADOPAGO_ACCESS_TOKEN para habilitar Mercado Pago."
   }
 }

@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils/cn";
 type Props = {
   cart: Cart;
   disabled?: boolean;
-  onCheckout: () => void;
+  onCheckout: () => void | Promise<void>;
   labels: {
     subtotal: string;
     checkout: string;
@@ -41,7 +41,7 @@ export function CartSummary({
       <Button
         type="button"
         className="w-full"
-        disabled={disabled || cart.totalQuantity === 0 || !cart.checkoutUrl}
+        disabled={disabled || cart.totalQuantity === 0}
         onClick={onCheckout}
       >
         {labels.checkout}

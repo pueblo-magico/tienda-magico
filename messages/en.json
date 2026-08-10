@@ -41,7 +41,9 @@
     "decrease": "Decrease quantity",
     "increase": "Increase quantity",
     "taxesNote": "Taxes and shipping are calculated at checkout.",
-    "notConfigured": "Commerce is not configured yet. Cart actions will work once a provider is connected."
+    "notConfigured": "Commerce is not configured yet. Cart actions will work once a provider is connected.",
+    "checkoutStarting": "Redirecting to checkout…",
+    "checkoutFailed": "Could not start checkout. Please try again."
   },
   "homeSections": {
     "categoriesEyebrow": "Collections",
@@ -114,5 +116,34 @@
     "relatedTitle": "Related products",
     "tags": "Tags",
     "addFailed": "Could not add this product to the cart. Please try again."
+  },
+  "checkout": {
+    "eyebrow": "Checkout",
+    "continueShopping": "Continue shopping",
+    "backHome": "Back home",
+    "backToCart": "Return to cart",
+    "paymentId": "Payment",
+    "status": "Status",
+    "preferenceId": "Preference",
+    "reference": "Reference",
+    "redirecting": "Redirecting to checkout…",
+    "failed": "Could not start checkout. Please try again.",
+    "success": {
+      "title": "Thank you",
+      "body": "Your payment was received. We’ll email you when your order is on its way."
+    },
+    "failure": {
+      "title": "Payment not completed",
+      "body": "The payment was cancelled or failed. You can return to your cart and try again."
+    },
+    "pending": {
+      "title": "Payment pending",
+      "body": "We’re waiting for confirmation from the payment provider. This can take a few minutes."
+    },
+    "startTitle": "Secure checkout",
+    "startBody": "We’re preparing your payment session.",
+    "redirectingHint": "You’ll be redirected to our payment partner in a moment.",
+    "missingCart": "No cart found. Add products before checking out.",
+    "providerNotConfigured": "Payment provider is not configured. Add MERCADOPAGO_ACCESS_TOKEN to enable Mercado Pago checkout."
   }
 }

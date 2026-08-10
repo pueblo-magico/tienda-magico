@@ -738,10 +738,6 @@ export function mapCart(
   };
 }
 
-function productHandleSafe(product: PayloadProductDoc) {
-  return String(product.slug ?? product.handle ?? product.id);
-}
-
 function buildCheckoutUrl(checkoutBaseUrl: string, cartRef: string) {
   try {
     const url = new URL(checkoutBaseUrl);

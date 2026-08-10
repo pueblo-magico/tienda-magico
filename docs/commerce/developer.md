@@ -391,3 +391,7 @@ Merchandising/editorial workflow for catalog data lives in:
 - Shopify catalog: depends on Shopify Markets/translations setup
 - Payload catalog (`apps/cms`): **en / es** localization on catalogue fields
 - Pass `locale` into `commerce.getProducts` / `getProduct` / `getCollection` (Payload adapter maps to REST `locale` + `fallback-locale`)
+
+## Checkout
+
+See [checkout developer docs](../checkout/developer.md) for Mercado Pago and the provider-agnostic checkout layer.

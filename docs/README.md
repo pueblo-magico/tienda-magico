@@ -39,3 +39,5 @@ npm run dev:cms      # CMS admin + API
 | Homepage sections, stories, FAQs | Payload **Pages** + blocks | [cms/content.md](./cms/content.md) |
 | Products, carts, checkout URL | `@/lib/commerce` | [commerce/developer.md](./commerce/developer.md) |
 | Edit products in admin | Shopify or `apps/cms` shop | [commerce/content.md](./commerce/content.md) / [payload-content.md](./commerce/payload-content.md) |
+
+- [Checkout (developer)](./checkout/developer.md)
