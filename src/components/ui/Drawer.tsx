@@ -8,6 +8,8 @@ export type DrawerProps = {
   onClose: () => void;
   title: string;
   children: ReactNode;
+  /** Optional sticky footer (e.g. cart subtotal + checkout). */
+  footer?: ReactNode;
   side?: "left" | "right";
   className?: string;
 };
@@ -17,6 +19,7 @@ export function Drawer({
   onClose,
   title,
   children,
+  footer,
   side = "right",
   className,
 }: DrawerProps) {
@@ -81,6 +84,9 @@ export function Drawer({
           </button>
         </div>
         <div className="flex-1 overflow-y-auto px-5 py-4">{children}</div>
+        {footer ? (
+          <div className="border-t border-border px-5 py-4">{footer}</div>
+        ) : null}
       </aside>
     </div>
   );

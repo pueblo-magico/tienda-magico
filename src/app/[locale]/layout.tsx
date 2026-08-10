@@ -3,6 +3,7 @@ import { getMessages, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
+import { CartDrawer, CartProvider } from "@/features/cart";
 import { routing } from "@/i18n/routing";
 
 type Props = {
@@ -26,11 +27,14 @@ export default async function LocaleLayout({ children, params }: Props) {
 
   return (
     <NextIntlClientProvider messages={messages}>
-      <div className="flex min-h-screen flex-col">
-        <Header />
-        <div className="flex-1">{children}</div>
-        <Footer />
-      </div>
+      <CartProvider>
+        <div className="flex min-h-screen flex-col">
+          <Header />
+          <div className="flex-1">{children}</div>
+          <Footer />
+        </div>
+        <CartDrawer />
+      </CartProvider>
     </NextIntlClientProvider>
   );
 }

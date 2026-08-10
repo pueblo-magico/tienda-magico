@@ -31,6 +31,16 @@
   "cart": {
     "title": "Tu carrito",
     "empty": "Tu carrito está vacío.",
-    "continue": "Seguir comprando"
+    "continue": "Seguir comprando",
+    "loading": "Cargando tu carrito…",
+    "subtotal": "Subtotal",
+    "checkout": "Pagar",
+    "viewCart": "Ver carrito",
+    "remove": "Eliminar",
+    "quantity": "Cantidad",
+    "decrease": "Disminuir cantidad",
+    "increase": "Aumentar cantidad",
+    "taxesNote": "Impuestos y envío se calculan al pagar.",
+    "notConfigured": "El comercio aún no está configurado. El carrito funcionará cuando haya un proveedor conectado."
   }
 }

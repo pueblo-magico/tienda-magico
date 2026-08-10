@@ -31,6 +31,16 @@
   "cart": {
     "title": "Your cart",
     "empty": "Your cart is empty.",
-    "continue": "Continue shopping"
+    "continue": "Continue shopping",
+    "loading": "Loading your cart…",
+    "subtotal": "Subtotal",
+    "checkout": "Checkout",
+    "viewCart": "View cart",
+    "remove": "Remove",
+    "quantity": "Quantity",
+    "decrease": "Decrease quantity",
+    "increase": "Increase quantity",
+    "taxesNote": "Taxes and shipping are calculated at checkout.",
+    "notConfigured": "Commerce is not configured yet. Cart actions will work once a provider is connected."
   }
 }

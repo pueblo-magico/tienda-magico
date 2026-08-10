@@ -239,6 +239,54 @@ When merchandisers publish catalog changes and you need immediate refresh, reval
 
 ---
 
+
+---
+
+## Cart UI layer (Phase 5)
+
+Storefront cart UX is provider-agnostic and lives under `src/features/cart`.
+
+| Path | Role |
+| --- | --- |
+| `src/features/cart/CartProvider.tsx` | Client context: cart state, drawer open, mutations |
+| `src/features/cart/api.ts` | Browser client for `/api/cart` |
+| `src/app/api/cart/route.ts` | Server route → `commerce.*` cart methods |
+| `src/features/cart/components/CartDrawer.tsx` | Mini-cart drawer (header cart button) |
+| `src/features/cart/components/CartPageContent.tsx` | Full `/[locale]/cart` page |
+| `src/features/cart/constants.ts` | `pm_cart_id` localStorage key |
+
+### Flow
+
+```text
+Header CartButton → openCart()
+CartProvider → fetch/mutate via /api/cart
+/api/cart → commerce.getCart | createCart | add/update/remove lines
+Checkout CTA → window.location = cart.checkoutUrl
+```
+
+- Cart id is stored in **localStorage** (`pm_cart_id`). For Payload Ecommerce the id may be `cartId::secret` — never put secrets in client bundles beyond this opaque cart token returned by the provider.
+- UI must call **`useCart()`** / `/api/cart` only — never import Shopify or Payload clients in components.
+- Checkout uses the provider’s `checkoutUrl` (Shopify-hosted checkout, or Payload-configured path).
+
+### Client usage
+
+```tsx
+"use client";
+import { useCart } from "@/features/cart";
+
+export function AddToCartButton({ variantId }: { variantId: string }) {
+  const { addItem, isMutating } = useCart();
+  return (
+    <button
+      disabled={isMutating}
+      onClick={() => void addItem({ merchandiseId: variantId, quantity: 1 })}
+    >
+      Add to cart
+    </button>
+  );
+}
+```
+
 ## Adding another provider
 
 1. Implement `CommerceProvider` in e.g. `src/lib/commerce/providers/medusa/provider.ts`

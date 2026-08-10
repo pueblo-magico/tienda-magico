@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { mainNavigation, type Locale } from "@/config/navigation";
 import { cn } from "@/lib/utils/cn";
+import { useCart } from "@/features/cart";
 import { CartButton } from "./CartButton";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { MobileMenu } from "./MobileMenu";
@@ -12,6 +13,7 @@ import { MobileMenu } from "./MobileMenu";
 export function Header({ className }: { className?: string }) {
   const t = useTranslations("nav");
   const locale = useLocale() as Locale;
+  const { openCart, itemCount } = useCart();
   const [menuOpen, setMenuOpen] = useState(false);
   const homeHref = `/${locale}`;
 
@@ -81,7 +83,8 @@ export function Header({ className }: { className?: string }) {
               <LanguageSwitcher className="border-brand-foreground/25 text-brand-foreground" />
             </div>
             <CartButton
-              href={`/${locale}/cart`}
+              count={itemCount}
+              onClick={openCart}
               className="text-brand-foreground hover:bg-white/10"
             />
           </div>
