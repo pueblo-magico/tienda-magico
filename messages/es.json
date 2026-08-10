@@ -1,0 +1,36 @@
+{
+  "meta": {
+    "title": "Pueblo Mágico",
+    "description": "Productos conscientes inspirados en las montañas, la comunidad y la vida regenerativa."
+  },
+  "nav": {
+    "shop": "Tienda",
+    "rituals": "Rituales",
+    "experiences": "Experiencias",
+    "journal": "Diario",
+    "impact": "Impacto",
+    "about": "Nosotros",
+    "shipping": "Envíos",
+    "faq": "Preguntas",
+    "contact": "Contacto"
+  },
+  "footer": {
+    "tagline": "Productos cotidianos inspirados en la regeneración, las comunidades locales y la magia de las montañas.",
+    "explore": "Explorar",
+    "support": "Soporte",
+    "rights": "Hecho con cuidado por las personas y el planeta."
+  },
+  "home": {
+    "eyebrow": "Tienda de montaña",
+    "title": "Lleva la magia a casa",
+    "subtitle": "Productos conscientes inspirados en las montañas, la comunidad y la vida regenerativa.",
+    "cta": "Ver colección",
+    "secondaryCta": "Nuestro impacto",
+    "designSystem": "Abrir design system"
+  },
+  "cart": {
+    "title": "Tu carrito",
+    "empty": "Tu carrito está vacío.",
+    "continue": "Seguir comprando"
+  }
+}

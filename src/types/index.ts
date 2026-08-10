@@ -1,0 +1,1 @@
+export type { Locale, NavItem } from "@/config/navigation";

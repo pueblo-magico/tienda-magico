@@ -1,0 +1,31 @@
+:root {
+  /* Brand palette — Pueblo Mágico */
+  --forest: #2c3327;
+  --forest-hover: #3a4334;
+  --forest-active: #23291f;
+  --earth: #6b5744;
+  --sand: #d4cec3;
+  --cream: #efece6;
+  --clay: #a67c5d;
+
+  --background: var(--cream);
+  --foreground: var(--forest);
+  --muted: #e4dfd6;
+  --muted-foreground: color-mix(in srgb, var(--forest) 65%, transparent);
+  --border: var(--sand);
+  --card: #f7f4ef;
+  --ring: color-mix(in srgb, var(--forest) 40%, transparent);
+
+  --brand: var(--forest);
+  --brand-hover: var(--forest-hover);
+  --brand-active: var(--forest-active);
+  --brand-foreground: #f7f4ef;
+
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-full: 9999px;
+
+  --container-max: 72rem;
+  --header-height: 4.25rem;
+}
