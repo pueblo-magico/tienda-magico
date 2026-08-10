@@ -192,18 +192,28 @@ Full adapter reference: [docs/commerce/payload-ecommerce.md](../../docs/commerce
 
 Root convenience scripts: `dev:cms`, `build:cms`, `start:cms`, `db:cms:up`, `db:cms:down`.
 
-## Same-VM deploy sketch
+## Same-VM deploy (Google Cloud)
+
+Production scripts + nginx + systemd:
+
+→ **[docs/deploy/gce.md](../../docs/deploy/gce.md)** and [`deploy/gce/`](../../deploy/gce/)
 
 ```text
-reverse proxy
+reverse proxy (nginx)
   shop.example.com  → 127.0.0.1:3000   storefront
   cms.example.com   → 127.0.0.1:4000   this app (/admin + /api)
-Postgres            → private bind or 127.0.0.1:5433
+Postgres (Docker)   → 127.0.0.1:5433
 ```
 
-Process managers: `systemd`, PM2, or Docker (optional `Dockerfile` + Compose Postgres service).
+```bash
+# from monorepo root on the VM
+sudo ./deploy/gce/deploy.sh bootstrap
+sudo ./deploy/gce/deploy.sh configure --shop-host shop.example.com --cms-host cms.example.com
+sudo ./deploy/gce/deploy.sh db-up
+sudo ./deploy/gce/deploy.sh deploy
+```
 
-Set `CMS_STANDALONE_OUTPUT=true` when building the optional standalone Docker image.
+Optional container image: set `CMS_STANDALONE_OUTPUT=true` when building the CMS `Dockerfile`.
 
 ## Troubleshooting
 
@@ -220,4 +230,4 @@ Set `CMS_STANDALONE_OUTPUT=true` when building the optional standalone Docker im
 
 - Prefer **server-side** storefront calls to Payload (adapter already does this).
 - Media is public-read; product **drafts** are admin-only until published.
-- Stripe / payment adapters are intentionally omitted until checkout work.
+- Card payments run on the **storefront** via Mercado Pago (`@/lib/checkout`), not inside this CMS process.

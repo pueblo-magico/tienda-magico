@@ -15,7 +15,8 @@
     "start:cms": "npm --prefix apps/cms run start",
     "lint:cms": "npm --prefix apps/cms run lint",
     "db:cms:up": "npm --prefix apps/cms run db:up",
-    "db:cms:down": "npm --prefix apps/cms run db:down"
+    "db:cms:down": "npm --prefix apps/cms run db:down",
+    "deploy:gce": "bash deploy/gce/deploy.sh"
   },
   "dependencies": {
     "next": "15.5.23",
