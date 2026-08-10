@@ -42,5 +42,30 @@
     "increase": "Aumentar cantidad",
     "taxesNote": "Impuestos y envío se calculan al pagar.",
     "notConfigured": "El comercio aún no está configurado. El carrito funcionará cuando haya un proveedor conectado."
+  },
+  "homeSections": {
+    "categoriesEyebrow": "Colecciones",
+    "categoriesTitle": "Categorías destacadas",
+    "bestsellersEyebrow": "Tienda",
+    "bestsellersTitle": "Más vendidos",
+    "storyEyebrow": "Nuestra historia",
+    "storyTitle": "Arraigados en la montaña",
+    "storyBody": "Colaboramos con makers locales y prácticas regenerativas para llevar magia cotidiana a casa.",
+    "storyCta": "Sobre nosotros",
+    "impactEyebrow": "Impacto",
+    "impactTitle": "Cuidado que multiplica",
+    "impact1Value": "12+",
+    "impact1Label": "Comunidades",
+    "impact1Description": "Apoyadas con alianzas justas.",
+    "impact2Value": "40%",
+    "impact2Label": "Regenerativo",
+    "impact2Description": "Materiales con cuidado por la tierra.",
+    "impact3Value": "1%",
+    "impact3Label": "Para el planeta",
+    "impact3Description": "De cada pedido se reinvierte.",
+    "newsletterEyebrow": "Cerca de ti",
+    "newsletterTitle": "Historias del pueblo",
+    "newsletterBody": "Lanzamientos, rituales y notas de campo — sin spam.",
+    "newsletterHint": "Conecta un bloque Newsletter en la home del CMS para el formulario."
   }
 }

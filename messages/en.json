@@ -42,5 +42,30 @@
     "increase": "Increase quantity",
     "taxesNote": "Taxes and shipping are calculated at checkout.",
     "notConfigured": "Commerce is not configured yet. Cart actions will work once a provider is connected."
+  },
+  "homeSections": {
+    "categoriesEyebrow": "Collections",
+    "categoriesTitle": "Featured categories",
+    "bestsellersEyebrow": "Shop",
+    "bestsellersTitle": "Best sellers",
+    "storyEyebrow": "Our story",
+    "storyTitle": "Rooted in the mountains",
+    "storyBody": "We partner with local makers and regenerative practices to bring everyday magic home.",
+    "storyCta": "About us",
+    "impactEyebrow": "Impact",
+    "impactTitle": "Care that compounds",
+    "impact1Value": "12+",
+    "impact1Label": "Communities",
+    "impact1Description": "Supported through fair partnerships.",
+    "impact2Value": "40%",
+    "impact2Label": "Regenerative",
+    "impact2Description": "Materials sourced with care for land.",
+    "impact3Value": "1%",
+    "impact3Label": "For the planet",
+    "impact3Description": "Of every order given back.",
+    "newsletterEyebrow": "Stay close",
+    "newsletterTitle": "Stories from the pueblo",
+    "newsletterBody": "Seasonal drops, rituals, and field notes — no spam.",
+    "newsletterHint": "Connect a CMS Newsletter block on the home page for the live form."
   }
 }

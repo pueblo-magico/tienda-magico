@@ -23,7 +23,7 @@ Open [http://localhost:3000](http://localhost:3000) (redirects to `/en`).
 
 | Route | Purpose |
 | --- | --- |
-| `/en`, `/es` | Localized storefront |
+| `/en`, `/es` | Localized storefront (CMS home page `home` or fallback) |
 | `/ui-system` | Design system reference |
 | `/en/cart` | Cart page shell |
 
@@ -74,6 +74,8 @@ See [apps/cms/README.md](./apps/cms/README.md) and [docs/commerce/payload-ecomme
 - [Shopify content & merchandising guide](./docs/commerce/content.md)
 - [Payload Ecommerce provider](./docs/commerce/payload-ecommerce.md)
 - [Payload content & merchandising](./docs/commerce/payload-content.md)
+- [CMS homepage (developer)](./docs/cms/developer.md)
+- [CMS homepage (content editors)](./docs/cms/content.md)
 - [CMS app README](./apps/cms/README.md)
 - [Build plan (COMMAND.md)](./COMMAND.md)
 
@@ -96,6 +98,3 @@ npm run start:cms    # CMS production server
 | --- | --- |
 | Storefront UI (`next-intl`) | Yes |
 | Payload CMS catalog content | Yes (`en` / `es`, fallback to `en`) |
-
-## Documentation
-

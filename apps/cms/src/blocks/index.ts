@@ -2,6 +2,7 @@ import type { Block } from 'payload'
 
 import { CTA } from './CTA'
 import { FAQ } from './FAQ'
+import { FeaturedCategories } from './FeaturedCategories'
 import { FeaturedProducts } from './FeaturedProducts'
 import { Gallery } from './Gallery'
 import { Hero } from './Hero'
@@ -20,12 +21,14 @@ export const layoutBlocks: Block[] = [
   FAQ,
   Newsletter,
   FeaturedProducts,
+  FeaturedCategories,
   ImpactStats,
 ]
 
 export {
   CTA,
   FAQ,
+  FeaturedCategories,
   FeaturedProducts,
   Gallery,
   Hero,

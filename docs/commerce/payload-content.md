@@ -180,4 +180,30 @@ Beyond the shop catalogue, the CMS also manages marketing content.
 5. Switch locale and translate localized fields
 6. **Publish**
 
-Homepage wiring on the storefront (Phase 7) will load a page by slug (e.g. `home`) and render its blocks.
+Homepage wiring on the storefront (Phase 7) loads a page by slug (e.g. `home`) and renders its blocks.
+
+Full editor + developer guides: [CMS homepage content](../cms/content.md) · [CMS developer](../cms/developer.md).
+
+---
+
+## Homepage (Phase 7)
+
+Storefront route `/[locale]` loads the **published** CMS page with slug `home` (override with `CMS_HOME_PAGE_SLUG`).
+
+Recommended layout blocks (in order):
+
+1. **Hero**
+2. **Featured categories**
+3. **Featured products** (best sellers)
+4. **Info section** (story)
+5. **Impact stats**
+6. **Newsletter**
+
+If the CMS is unreachable or the page is missing/empty, the storefront renders a localized fallback with the same section structure.
+
+API: `GET /api/pages?where[slug][equals]=home&locale=en`
+
+**Dedicated guides (start here for homepage work):**
+
+- Editors → [CMS homepage & pages](../cms/content.md)
+- Engineers → [CMS content developer guide](../cms/developer.md)

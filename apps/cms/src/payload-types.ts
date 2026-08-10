@@ -250,6 +250,7 @@ export interface Page {
     | FaqBlock
     | NewsletterBlock
     | FeaturedProductsBlock
+    | FeaturedCategoriesBlock
     | ImpactStatsBlock
   )[];
   seo?: {
@@ -651,6 +652,21 @@ export interface Variant {
   createdAt: string;
   deletedAt?: string | null;
   _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "FeaturedCategoriesBlock".
+ */
+export interface FeaturedCategoriesBlock {
+  eyebrow?: string | null;
+  title?: string | null;
+  description?: string | null;
+  selection?: ('manual' | 'latest') | null;
+  categories?: (number | Category)[] | null;
+  limit?: number | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'featuredCategories';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1067,6 +1083,7 @@ export interface PagesSelect<T extends boolean = true> {
         faq?: T | FaqBlockSelect<T>;
         newsletter?: T | NewsletterBlockSelect<T>;
         featuredProducts?: T | FeaturedProductsBlockSelect<T>;
+        featuredCategories?: T | FeaturedCategoriesBlockSelect<T>;
         impactStats?: T | ImpactStatsBlockSelect<T>;
       };
   seo?:
@@ -1229,6 +1246,20 @@ export interface FeaturedProductsBlockSelect<T extends boolean = true> {
   selection?: T;
   products?: T;
   category?: T;
+  limit?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "FeaturedCategoriesBlock_select".
+ */
+export interface FeaturedCategoriesBlockSelect<T extends boolean = true> {
+  eyebrow?: T;
+  title?: T;
+  description?: T;
+  selection?: T;
+  categories?: T;
   limit?: T;
   id?: T;
   blockName?: T;

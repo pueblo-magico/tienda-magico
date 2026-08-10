@@ -10,6 +10,8 @@ Related storefront docs:
 - [Payload Ecommerce adapter](../../docs/commerce/payload-ecommerce.md)
 - [Commerce developer guide](../../docs/commerce/developer.md)
 - [Payload content / merchandising](../../docs/commerce/payload-content.md)
+- [CMS homepage developer guide](../../docs/cms/developer.md)
+- [CMS homepage content guide](../../docs/cms/content.md)
 
 ## Stack
 
@@ -109,7 +111,7 @@ Never commit `.env`.
 
 Defined under `src/blocks/` and attached to `pages.layout`:
 
-Hero · CTA · InfoSection · Gallery · Testimonials · FAQ · Newsletter · FeaturedProducts · ImpactStats
+Hero · CTA · InfoSection · Gallery · Testimonials · FAQ · Newsletter · FeaturedProducts · FeaturedCategories · ImpactStats
 
 Shared field helpers: `src/fields/` (`link`, `slug`, `seo`, `richText`).
 
