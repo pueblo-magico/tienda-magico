@@ -242,6 +242,17 @@ When merchandisers publish catalog changes and you need immediate refresh, reval
 
 ---
 
+## Product detail page (Phase 9)
+
+Route: `/[locale]/shop/[handle]`
+
+| Piece | Path |
+| --- | --- |
+| Page | `src/app/[locale]/shop/[handle]/page.tsx` |
+| Feature UI | `src/features/product/*` |
+
+Loads `commerce.getProduct(handle, { locale })`, renders gallery, variant picker, add-to-cart (`useCart().addItem`), story, impact tags, and related products.
+
 ## Shop listing (Phase 8)
 
 Route: `/[locale]/shop`

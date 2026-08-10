@@ -93,5 +93,26 @@
     "previous": "Previous",
     "next": "Next",
     "pagination": "Pagination"
+  },
+  "product": {
+    "backToShop": "Back to shop",
+    "gallery": "Product gallery",
+    "addToCart": "Add to cart",
+    "adding": "Adding…",
+    "soldOut": "Sold out",
+    "quantity": "Quantity",
+    "decrease": "Decrease quantity",
+    "increase": "Increase quantity",
+    "from": "From",
+    "unavailable": "Cart is unavailable. Check commerce configuration.",
+    "storyEyebrow": "Story",
+    "storyTitle": "About this product",
+    "impactEyebrow": "Impact",
+    "impactTitle": "Why it matters",
+    "impactEmpty": "Impact details will appear here when tagged on the product.",
+    "relatedEyebrow": "More to explore",
+    "relatedTitle": "Related products",
+    "tags": "Tags",
+    "addFailed": "Could not add this product to the cart. Please try again."
   }
 }

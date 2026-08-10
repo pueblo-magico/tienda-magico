@@ -101,6 +101,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
         writeStoredCartId(null);
       }
     } catch (err) {
+      // Drop stale local cart ids so the next add can create a fresh cart.
+      writeStoredCartId(null);
       setError(err instanceof Error ? err.message : "Failed to load cart.");
       setCart(emptyCart());
     } finally {

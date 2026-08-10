@@ -93,5 +93,26 @@
     "previous": "Anterior",
     "next": "Siguiente",
     "pagination": "Paginación"
+  },
+  "product": {
+    "backToShop": "Volver a la tienda",
+    "gallery": "Galería del producto",
+    "addToCart": "Añadir al carrito",
+    "adding": "Añadiendo…",
+    "soldOut": "Agotado",
+    "quantity": "Cantidad",
+    "decrease": "Disminuir cantidad",
+    "increase": "Aumentar cantidad",
+    "from": "Desde",
+    "unavailable": "El carrito no está disponible. Revisa la configuración de comercio.",
+    "storyEyebrow": "Historia",
+    "storyTitle": "Sobre este producto",
+    "impactEyebrow": "Impacto",
+    "impactTitle": "Por qué importa",
+    "impactEmpty": "Los detalles de impacto aparecerán cuando el producto tenga etiquetas.",
+    "relatedEyebrow": "Sigue explorando",
+    "relatedTitle": "Productos relacionados",
+    "tags": "Etiquetas",
+    "addFailed": "No se pudo añadir este producto al carrito. Inténtalo de nuevo."
   }
 }

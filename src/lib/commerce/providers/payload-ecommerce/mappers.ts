@@ -44,6 +44,20 @@ export function toId(value: unknown): string {
   return String(value);
 }
 
+/**
+ * Payload Postgres relationship fields reject numeric IDs sent as strings
+ * (e.g. "1" fails, 1 succeeds). Keep non-numeric IDs as strings.
+ */
+export function toPayloadRelationId(value: unknown): string | number {
+  const id = toId(value).trim();
+  if (!id) return id;
+  if (/^\d+$/.test(id)) {
+    const asNumber = Number(id);
+    if (Number.isSafeInteger(asNumber)) return asNumber;
+  }
+  return id;
+}
+
 function asRecord(value: unknown): Record<string, unknown> | null {
   return value && typeof value === "object" ? (value as Record<string, unknown>) : null;
 }

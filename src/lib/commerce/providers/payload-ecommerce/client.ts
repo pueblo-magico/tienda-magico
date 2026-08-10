@@ -33,6 +33,30 @@ function buildUrl(
   return url;
 }
 
+function extractPayloadErrorMessage(payload: unknown, status: number): string {
+  if (payload && typeof payload === "object") {
+    const root = payload as {
+      message?: unknown;
+      errors?: Array<{ message?: unknown; data?: { errors?: Array<{ message?: unknown }> } }>;
+    };
+
+    if (typeof root.message === "string" && root.message.trim()) {
+      return root.message;
+    }
+
+    const first = root.errors?.[0];
+    if (first && typeof first.message === "string" && first.message.trim()) {
+      const nested = first.data?.errors?.[0];
+      if (nested && typeof nested.message === "string" && nested.message.trim()) {
+        return `${first.message}: ${nested.message}`;
+      }
+      return first.message;
+    }
+  }
+
+  return `Payload Ecommerce API request failed with status ${status}.`;
+}
+
 export async function payloadFetch<T>({
   method = "GET",
   path,
@@ -87,13 +111,7 @@ export async function payloadFetch<T>({
   }
 
   if (!response.ok) {
-    const message =
-      typeof payload === "object" &&
-      payload &&
-      "message" in payload &&
-      typeof (payload as { message: unknown }).message === "string"
-        ? (payload as { message: string }).message
-        : `Payload Ecommerce API request failed with status ${response.status}.`;
+    const message = extractPayloadErrorMessage(payload, response.status);
 
     throw new CommerceError(message, {
       provider: "payload",

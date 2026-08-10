@@ -1,7 +1,13 @@
 import { CommerceError, type Cart, type CartLineInput, type CartLineUpdateInput } from "@/types/commerce";
 import { collectionPath, payloadFetch } from "./client";
 import { getPayloadEcommerceConfig } from "./config";
-import { decodeCartRef, encodeCartRef, mapCart, toId } from "./mappers";
+import {
+  decodeCartRef,
+  encodeCartRef,
+  mapCart,
+  toId,
+  toPayloadRelationId,
+} from "./mappers";
 import type {
   PayloadCartDoc,
   PayloadCartMutationResult,
@@ -220,8 +226,26 @@ function resultToCart(
   return withPreservedSecret(cart, secret ?? undefined);
 }
 
+/**
+ * Mutation endpoints often return depth-0 carts (product/variant as ids only).
+ * Re-fetch so line titles, handles, and unit prices are populated for the UI.
+ */
+async function hydrateCart(cart: Cart): Promise<Cart> {
+  try {
+    const fresh = await getCart(cart.id);
+    return fresh ?? cart;
+  } catch {
+    return cart;
+  }
+}
+
 export async function getCart(cartRef: string): Promise<Cart | null> {
   const { cartId, secret } = decodeCartRef(cartRef);
+
+  // Guest carts require the secret; without it Payload returns 403.
+  // Treat missing/invalid refs as empty rather than hard errors so the UI
+  // can recover by creating a new cart.
+  if (!cartId) return null;
 
   try {
     const cart = await fetchCartDocument(cartId, secret);
@@ -231,7 +255,10 @@ export async function getCart(cartRef: string): Promise<Cart | null> {
       error &&
       typeof error === "object" &&
       "status" in error &&
-      (error.status === 404 || error.status === 403)
+      (error.status === 404 ||
+        error.status === 403 ||
+        error.status === 400 ||
+        error.status === 401)
     ) {
       return null;
     }
@@ -261,6 +288,8 @@ export async function createCart(input?: {
 
   if (input?.lines?.length) {
     cart = await addCartLines(cart.id, input.lines);
+  } else {
+    cart = await hydrateCart(cart);
   }
 
   return cart;
@@ -275,13 +304,19 @@ export async function addCartLines(
 
   for (const line of lines) {
     const merchandise = await resolveMerchandise(line.merchandiseId);
+    // Payload relationship fields need numeric IDs as numbers, not strings.
+    const product = toPayloadRelationId(merchandise.productId);
+    const variant = merchandise.variantId
+      ? toPayloadRelationId(merchandise.variantId)
+      : undefined;
+
     const result = await payloadFetch<PayloadCartMutationResult>({
       method: "POST",
       path: cartPath(cartId, "add-item"),
       body: {
         item: {
-          product: merchandise.productId,
-          ...(merchandise.variantId ? { variant: merchandise.variantId } : {}),
+          product,
+          ...(variant != null && variant !== "" ? { variant } : {}),
         },
         quantity: line.quantity,
         ...(secret ? { secret } : {}),
@@ -309,7 +344,7 @@ export async function addCartLines(
     return existing;
   }
 
-  return withPreservedSecret(latest, secret);
+  return hydrateCart(withPreservedSecret(latest, secret));
 }
 
 export async function updateCartLines(
@@ -352,7 +387,7 @@ export async function updateCartLines(
     return existing;
   }
 
-  return withPreservedSecret(latest, secret);
+  return hydrateCart(withPreservedSecret(latest, secret));
 }
 
 export async function updateCart(
@@ -400,5 +435,5 @@ export async function removeCartLines(
     return existing;
   }
 
-  return withPreservedSecret(latest, secret);
+  return hydrateCart(withPreservedSecret(latest, secret));
 }
