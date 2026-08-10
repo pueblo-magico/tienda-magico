@@ -58,6 +58,75 @@ export function toPayloadRelationId(value: unknown): string | number {
   return id;
 }
 
+/** Merge full product docs into cart lines (titles, handles, images, unit prices). */
+export function enrichCartWithProducts(
+  cart: Cart,
+  productsById: Map<string, PayloadProductDoc>,
+  locale?: string | null,
+): Cart {
+  if (!productsById.size) return cart;
+
+  const config = getPayloadEcommerceConfig();
+  const currency = cart.cost.subtotalAmount.currencyCode || config.currencyCode;
+
+  const lines = cart.lines.map((line) => {
+    const doc = productsById.get(line.merchandise.product.id);
+    if (!doc) return line;
+
+    const title = productTitle(doc, locale);
+    const handle = productHandle(doc);
+    const image = collectImages(doc)[0] ?? line.merchandise.product.featuredImage;
+    const amountRaw = readAmount(doc as Record<string, unknown>, currency);
+    const hasLinePrice = Number.parseFloat(line.cost.amountPerQuantity.amount) > 0;
+    const unitMoney = hasLinePrice
+      ? line.cost.amountPerQuantity
+      : mapMoney(amountRaw ?? 0, currency);
+    const unitMajor = Number.parseFloat(unitMoney.amount);
+    const lineMajor = unitMajor * line.quantity;
+
+    return {
+      ...line,
+      cost: {
+        amountPerQuantity: unitMoney,
+        totalAmount: moneyFromMajor(lineMajor, currency),
+      },
+      merchandise: {
+        ...line.merchandise,
+        // Always prefer the enriched product title (localized / complete).
+        title,
+        price: unitMoney,
+        product: {
+          id: line.merchandise.product.id,
+          handle,
+          title,
+          featuredImage: image,
+        },
+      },
+    } satisfies CartLine;
+  });
+
+  const subtotalFromLines = lines.reduce(
+    (sum, line) => sum + Number.parseFloat(line.cost.totalAmount.amount),
+    0,
+  );
+
+  const preferCartSubtotal =
+    Number.parseFloat(cart.cost.subtotalAmount.amount) > 0 &&
+    subtotalFromLines <= 0;
+
+  return {
+    ...cart,
+    lines,
+    cost: preferCartSubtotal
+      ? cart.cost
+      : {
+          subtotalAmount: moneyFromMajor(subtotalFromLines, currency),
+          totalAmount: moneyFromMajor(subtotalFromLines, currency),
+          totalTaxAmount: cart.cost.totalTaxAmount,
+        },
+  };
+}
+
 function asRecord(value: unknown): Record<string, unknown> | null {
   return value && typeof value === "object" ? (value as Record<string, unknown>) : null;
 }
@@ -105,10 +174,58 @@ function escapeHtml(value: string) {
     .replaceAll('"', "&quot;");
 }
 
+/** Resolve Payload localized field values (string or { en, es, ... }). */
+export function resolveLocalizedText(
+  value: unknown,
+  preferredLocales: string[] = [],
+): string {
+  if (typeof value === "string" && value.trim()) return value.trim();
+  if (!value || typeof value !== "object" || Array.isArray(value)) return "";
+
+  const record = value as Record<string, unknown>;
+  for (const locale of preferredLocales) {
+    const candidate = record[locale];
+    if (typeof candidate === "string" && candidate.trim()) {
+      return candidate.trim();
+    }
+  }
+
+  for (const candidate of Object.values(record)) {
+    if (typeof candidate === "string" && candidate.trim()) {
+      return candidate.trim();
+    }
+  }
+
+  return "";
+}
+
+function absoluteMediaUrl(url: string): string {
+  if (
+    url.startsWith("http://") ||
+    url.startsWith("https://") ||
+    url.startsWith("data:") ||
+    url.startsWith("blob:")
+  ) {
+    return url;
+  }
+
+  try {
+    const base = getPayloadEcommerceConfig().baseUrl;
+    return new URL(url, `${base}/`).toString();
+  } catch {
+    return url;
+  }
+}
+
 function mapMedia(value: unknown): CommerceImage | null {
   if (!value) return null;
   if (typeof value === "string") {
-    return { url: value, altText: null, width: null, height: null };
+    return {
+      url: absoluteMediaUrl(value),
+      altText: null,
+      width: null,
+      height: null,
+    };
   }
 
   const media = value as PayloadMedia;
@@ -116,7 +233,7 @@ function mapMedia(value: unknown): CommerceImage | null {
   if (!url) return null;
 
   return {
-    url,
+    url: absoluteMediaUrl(url),
     altText: media.alt ?? media.filename ?? null,
     width: media.width ?? null,
     height: media.height ?? null,
@@ -297,11 +414,43 @@ export function mapVariant(
 }
 
 function productHandle(product: PayloadProductDoc): string {
-  return String(product.slug ?? product.handle ?? product.id);
+  const slug = resolveLocalizedText(product.slug) || product.slug || product.handle;
+  return String(slug ?? product.id);
 }
 
-function productTitle(product: PayloadProductDoc): string {
-  return String(product.title ?? product.name ?? "Untitled product");
+function humanizeHandle(handle: string): string {
+  return handle
+    .replace(/[-_]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+/** Prefer requested locale, then any non-empty localized title, then slug. */
+export function productTitle(
+  product: PayloadProductDoc,
+  locale?: string | null,
+): string {
+  const config = getPayloadEcommerceConfig();
+  const preferred = [
+    locale ?? "",
+    config.defaultLocale,
+    config.fallbackLocale,
+    "en",
+    "es",
+  ].filter(Boolean);
+
+  const title =
+    resolveLocalizedText(product.title, preferred) ||
+    resolveLocalizedText(product.name, preferred);
+  if (title) return title;
+
+  const handle = productHandle(product);
+  if (handle && handle !== String(product.id)) {
+    return humanizeHandle(handle);
+  }
+
+  return "Untitled product";
 }
 
 export function mapProductSummary(product: PayloadProductDoc): ProductSummary {
@@ -331,7 +480,7 @@ export function mapProductSummary(product: PayloadProductDoc): ProductSummary {
   return {
     id: toId(product.id),
     handle: productHandle(product),
-    title: productTitle(product),
+    title: productTitle(product, undefined),
     vendor: String(product.vendor ?? product.brand ?? ""),
     availableForSale,
     tags: mapTags(product.tags),
@@ -479,12 +628,17 @@ function moneyFromMajor(amount: number, currencyCode: string): Money {
 
 export function mapCart(
   cart: PayloadCartDoc,
-  options?: { secret?: string | null; checkoutBaseUrl?: string },
+  options?: {
+    secret?: string | null;
+    checkoutBaseUrl?: string;
+    locale?: string | null;
+  },
 ): Cart {
   const config = getPayloadEcommerceConfig();
   const currency = String(cart.currency ?? config.currencyCode).toUpperCase();
   const secret = options?.secret ?? cart.secret ?? null;
   const cartRef = encodeCartRef(toId(cart.id), secret);
+  const locale = options?.locale ?? null;
 
   const lines: CartLine[] = (cart.items ?? [])
     .map((item) => {
@@ -518,16 +672,20 @@ export function mapCart(
       const unitMajor = Number.parseFloat(unitMoney.amount);
       const lineMajor = unitMajor * quantity;
 
-      const title =
-        variantDoc?.title ||
-        productDoc?.title ||
-        productDoc?.name ||
-        "Item";
-
-      const productTitle = productDoc?.title || productDoc?.name || title;
-      const productHandle = productDoc
-        ? productHandleSafe(productDoc)
+      const lineTitle = productDoc
+        ? productTitle(productDoc, locale)
+        : resolveLocalizedText(variantDoc?.title, locale ? [locale] : []) ||
+          variantDoc?.title ||
+          "Item";
+      const lineProductTitle = productDoc
+        ? productTitle(productDoc, locale)
+        : lineTitle;
+      const lineProductHandle = productDoc
+        ? productHandle(productDoc)
         : productId;
+      const featuredImage = productDoc
+        ? collectImages(productDoc)[0] ?? null
+        : null;
 
       return {
         id: lineId,
@@ -538,16 +696,14 @@ export function mapCart(
         },
         merchandise: {
           id: merchandiseId,
-          title: String(title),
+          title: String(lineTitle),
           selectedOptions: variantDoc ? mapSelectedOptions(variantDoc) : [],
           price: unitMoney,
           product: {
             id: productId,
-            handle: productHandle,
-            title: String(productTitle),
-            featuredImage: productDoc
-              ? collectImages(productDoc)[0] ?? null
-              : null,
+            handle: lineProductHandle,
+            title: String(lineProductTitle),
+            featuredImage,
           },
         },
       } satisfies CartLine;

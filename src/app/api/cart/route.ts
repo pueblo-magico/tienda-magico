@@ -40,7 +40,7 @@ function errorResponse(error: unknown, fallback = "Cart request failed.") {
   );
 }
 
-/** GET /api/cart?cartId= */
+/** GET /api/cart?cartId=&locale= */
 export async function GET(request: Request) {
   try {
     if (!commerce.isConfigured()) {
@@ -49,12 +49,13 @@ export async function GET(request: Request) {
 
     const { searchParams } = new URL(request.url);
     const cartId = searchParams.get("cartId")?.trim();
+    const locale = searchParams.get("locale")?.trim() || undefined;
 
     if (!cartId) {
       return NextResponse.json({ cart: emptyCart(), configured: true });
     }
 
-    const cart = await commerce.getCart(cartId);
+    const cart = await commerce.getCart(cartId, { locale });
     return NextResponse.json({
       cart: cart ?? emptyCart(),
       configured: true,
@@ -69,21 +70,25 @@ type CartBody =
       action: "create";
       lines?: CartLineInput[];
       note?: string;
+      locale?: string;
     }
   | {
       action: "add";
       cartId?: string;
       lines: CartLineInput[];
+      locale?: string;
     }
   | {
       action: "update";
       cartId: string;
       lines: CartLineUpdateInput[];
+      locale?: string;
     }
   | {
       action: "remove";
       cartId: string;
       lineIds: string[];
+      locale?: string;
     };
 
 /** POST /api/cart — create / add / update / remove */
@@ -102,12 +107,15 @@ export async function POST(request: Request) {
     }
 
     const body = (await request.json()) as CartBody;
+    const locale = body.locale?.trim() || undefined;
+    const cartParams = { locale };
 
     switch (body.action) {
       case "create": {
         const cart = await commerce.createCart({
           lines: body.lines,
           note: body.note,
+          locale,
         });
         return NextResponse.json({ cart, configured: true });
       }
@@ -122,16 +130,25 @@ export async function POST(request: Request) {
 
         const cartId = body.cartId?.trim();
         if (!cartId) {
-          const created = await commerce.createCart({ lines: body.lines });
+          const created = await commerce.createCart({
+            lines: body.lines,
+            locale,
+          });
           return NextResponse.json({ cart: created, configured: true });
         }
 
-        // Recover from stale cart ids by creating a fresh cart
         try {
-          const cart = await commerce.addCartLines(cartId, body.lines);
+          const cart = await commerce.addCartLines(
+            cartId,
+            body.lines,
+            cartParams,
+          );
           return NextResponse.json({ cart, configured: true });
         } catch {
-          const created = await commerce.createCart({ lines: body.lines });
+          const created = await commerce.createCart({
+            lines: body.lines,
+            locale,
+          });
           return NextResponse.json({ cart: created, configured: true });
         }
       }
@@ -149,7 +166,11 @@ export async function POST(request: Request) {
             { status: 400 },
           );
         }
-        const cart = await commerce.updateCartLines(body.cartId, body.lines);
+        const cart = await commerce.updateCartLines(
+          body.cartId,
+          body.lines,
+          cartParams,
+        );
         return NextResponse.json({ cart, configured: true });
       }
 
@@ -166,7 +187,11 @@ export async function POST(request: Request) {
             { status: 400 },
           );
         }
-        const cart = await commerce.removeCartLines(body.cartId, body.lineIds);
+        const cart = await commerce.removeCartLines(
+          body.cartId,
+          body.lineIds,
+          cartParams,
+        );
         return NextResponse.json({ cart, configured: true });
       }
 

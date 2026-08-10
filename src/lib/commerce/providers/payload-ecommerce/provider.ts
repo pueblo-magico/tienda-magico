@@ -3,6 +3,7 @@ import type {
   Cart,
   CartLineInput,
   CartLineUpdateInput,
+  CartParams,
   Collection,
   CollectionSummary,
   GetCollectionParams,
@@ -53,34 +54,48 @@ export class PayloadEcommerceProvider implements CommerceProvider {
     return getCollection(handle, productsFirstOrParams);
   }
 
-  getCart(cartId: string): Promise<Cart | null> {
-    return getCart(cartId);
+  getCart(cartId: string, params?: CartParams): Promise<Cart | null> {
+    return getCart(cartId, params);
   }
 
   createCart(input?: {
     lines?: CartLineInput[];
     note?: string;
+    locale?: string | null;
   }): Promise<Cart> {
     return createCart(input);
   }
 
-  updateCart(cartId: string, lines: CartLineUpdateInput[]): Promise<Cart> {
-    return updateCart(cartId, lines);
+  updateCart(
+    cartId: string,
+    lines: CartLineUpdateInput[],
+    params?: CartParams,
+  ): Promise<Cart> {
+    return updateCart(cartId, lines, params);
   }
 
-  addCartLines(cartId: string, lines: CartLineInput[]): Promise<Cart> {
-    return addCartLines(cartId, lines);
+  addCartLines(
+    cartId: string,
+    lines: CartLineInput[],
+    params?: CartParams,
+  ): Promise<Cart> {
+    return addCartLines(cartId, lines, params);
   }
 
   updateCartLines(
     cartId: string,
     lines: CartLineUpdateInput[],
+    params?: CartParams,
   ): Promise<Cart> {
-    return updateCartLines(cartId, lines);
+    return updateCartLines(cartId, lines, params);
   }
 
-  removeCartLines(cartId: string, lineIds: string[]): Promise<Cart> {
-    return removeCartLines(cartId, lineIds);
+  removeCartLines(
+    cartId: string,
+    lineIds: string[],
+    params?: CartParams,
+  ): Promise<Cart> {
+    return removeCartLines(cartId, lineIds, params);
   }
 }
 

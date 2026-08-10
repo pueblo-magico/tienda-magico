@@ -9,6 +9,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { useLocale } from "next-intl";
 import type { Cart, CartLineInput } from "@/types/commerce";
 import {
   addCartLines,
@@ -77,6 +78,7 @@ function writeStoredCartId(cartId: string | null) {
 }
 
 export function CartProvider({ children }: { children: ReactNode }) {
+  const locale = useLocale();
   const [cart, setCart] = useState<Cart>(emptyCart);
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -95,7 +97,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     setError(null);
     try {
-      const result = await fetchCart(cartId);
+      const result = await fetchCart(cartId, { locale });
       applyCart(result.cart, result.configured !== false);
       if (cartId && !result.cart.id) {
         writeStoredCartId(null);
@@ -108,7 +110,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  }, [applyCart]);
+  }, [applyCart, locale]);
 
   useEffect(() => {
     void refreshCart();
@@ -125,7 +127,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
       setIsMutating(true);
       setError(null);
       try {
-        const result = await addCartLines(readStoredCartId(), lines);
+        const result = await addCartLines(readStoredCartId(), lines, {
+          locale,
+        });
         applyCart(result.cart, result.configured !== false);
         setIsOpen(true);
         return result.cart;
@@ -136,7 +140,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         setIsMutating(false);
       }
     },
-    [applyCart],
+    [applyCart, locale],
   );
 
   const updateItemQuantity = useCallback(
@@ -148,12 +152,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
       setError(null);
       try {
         if (quantity <= 0) {
-          const result = await removeCartLines(cartId, [lineId]);
+          const result = await removeCartLines(cartId, [lineId], { locale });
           applyCart(result.cart, result.configured !== false);
           return result.cart;
         }
 
-        const result = await updateCartLines(cartId, [{ id: lineId, quantity }]);
+        const result = await updateCartLines(
+          cartId,
+          [{ id: lineId, quantity }],
+          { locale },
+        );
         applyCart(result.cart, result.configured !== false);
         return result.cart;
       } catch (err) {
@@ -163,7 +171,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         setIsMutating(false);
       }
     },
-    [applyCart, cart.id],
+    [applyCart, cart.id, locale],
   );
 
   const removeItem = useCallback(
@@ -174,7 +182,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       setIsMutating(true);
       setError(null);
       try {
-        const result = await removeCartLines(cartId, [lineId]);
+        const result = await removeCartLines(cartId, [lineId], { locale });
         applyCart(result.cart, result.configured !== false);
         return result.cart;
       } catch (err) {
@@ -184,7 +192,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         setIsMutating(false);
       }
     },
-    [applyCart, cart.id],
+    [applyCart, cart.id, locale],
   );
 
   const checkout = useCallback(() => {

@@ -136,6 +136,11 @@ export type CartLineUpdateInput = {
   quantity: number;
 };
 
+/** Optional cart request context (locale for localized product titles/images). */
+export type CartParams = {
+  locale?: string | null;
+};
+
 export type GetProductsParams = {
   first?: number;
   after?: string;

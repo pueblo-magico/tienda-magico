@@ -6,6 +6,10 @@ type CartResponse = {
   error?: string;
 };
 
+type LocaleOption = {
+  locale?: string | null;
+};
+
 async function parseResponse(response: Response): Promise<CartResponse> {
   const data = (await response.json()) as CartResponse;
   if (!response.ok) {
@@ -14,9 +18,15 @@ async function parseResponse(response: Response): Promise<CartResponse> {
   return data;
 }
 
-export async function fetchCart(cartId?: string | null): Promise<CartResponse> {
-  const query = cartId ? `?cartId=${encodeURIComponent(cartId)}` : "";
-  const response = await fetch(`/api/cart${query}`, {
+export async function fetchCart(
+  cartId?: string | null,
+  options?: LocaleOption,
+): Promise<CartResponse> {
+  const params = new URLSearchParams();
+  if (cartId) params.set("cartId", cartId);
+  if (options?.locale?.trim()) params.set("locale", options.locale.trim());
+  const query = params.toString();
+  const response = await fetch(`/api/cart${query ? `?${query}` : ""}`, {
     method: "GET",
     cache: "no-store",
   });
@@ -26,6 +36,7 @@ export async function fetchCart(cartId?: string | null): Promise<CartResponse> {
 export async function createCart(input?: {
   lines?: CartLineInput[];
   note?: string;
+  locale?: string | null;
 }): Promise<CartResponse> {
   const response = await fetch("/api/cart", {
     method: "POST",
@@ -38,6 +49,7 @@ export async function createCart(input?: {
 export async function addCartLines(
   cartId: string | null | undefined,
   lines: CartLineInput[],
+  options?: LocaleOption,
 ): Promise<CartResponse> {
   const response = await fetch("/api/cart", {
     method: "POST",
@@ -46,6 +58,7 @@ export async function addCartLines(
       action: "add",
       cartId: cartId || undefined,
       lines,
+      locale: options?.locale || undefined,
     }),
   });
   return parseResponse(response);
@@ -54,11 +67,17 @@ export async function addCartLines(
 export async function updateCartLines(
   cartId: string,
   lines: CartLineUpdateInput[],
+  options?: LocaleOption,
 ): Promise<CartResponse> {
   const response = await fetch("/api/cart", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ action: "update", cartId, lines }),
+    body: JSON.stringify({
+      action: "update",
+      cartId,
+      lines,
+      locale: options?.locale || undefined,
+    }),
   });
   return parseResponse(response);
 }
@@ -66,11 +85,17 @@ export async function updateCartLines(
 export async function removeCartLines(
   cartId: string,
   lineIds: string[],
+  options?: LocaleOption,
 ): Promise<CartResponse> {
   const response = await fetch("/api/cart", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ action: "remove", cartId, lineIds }),
+    body: JSON.stringify({
+      action: "remove",
+      cartId,
+      lineIds,
+      locale: options?.locale || undefined,
+    }),
   });
   return parseResponse(response);
 }

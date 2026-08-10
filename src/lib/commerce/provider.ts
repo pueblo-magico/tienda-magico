@@ -2,6 +2,7 @@ import type {
   Cart,
   CartLineInput,
   CartLineUpdateInput,
+  CartParams,
   Collection,
   CollectionSummary,
   CommerceProviderName,
@@ -33,11 +34,31 @@ export interface CommerceProvider {
     productsFirstOrParams?: number | GetCollectionParams,
   ): Promise<Collection | null>;
 
-  getCart(cartId: string): Promise<Cart | null>;
-  createCart(input?: { lines?: CartLineInput[]; note?: string }): Promise<Cart>;
+  getCart(cartId: string, params?: CartParams): Promise<Cart | null>;
+  createCart(input?: {
+    lines?: CartLineInput[];
+    note?: string;
+    locale?: string | null;
+  }): Promise<Cart>;
   /** Update line quantities (COMMAND: Update Cart). */
-  updateCart(cartId: string, lines: CartLineUpdateInput[]): Promise<Cart>;
-  addCartLines(cartId: string, lines: CartLineInput[]): Promise<Cart>;
-  updateCartLines(cartId: string, lines: CartLineUpdateInput[]): Promise<Cart>;
-  removeCartLines(cartId: string, lineIds: string[]): Promise<Cart>;
+  updateCart(
+    cartId: string,
+    lines: CartLineUpdateInput[],
+    params?: CartParams,
+  ): Promise<Cart>;
+  addCartLines(
+    cartId: string,
+    lines: CartLineInput[],
+    params?: CartParams,
+  ): Promise<Cart>;
+  updateCartLines(
+    cartId: string,
+    lines: CartLineUpdateInput[],
+    params?: CartParams,
+  ): Promise<Cart>;
+  removeCartLines(
+    cartId: string,
+    lineIds: string[],
+    params?: CartParams,
+  ): Promise<Cart>;
 }

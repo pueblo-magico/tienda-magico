@@ -1,9 +1,10 @@
 import { CommerceError, type Cart, type CartLineInput, type CartLineUpdateInput } from "@/types/commerce";
-import { collectionPath, payloadFetch } from "./client";
+import { collectionPath, localeQuery, payloadFetch } from "./client";
 import { getPayloadEcommerceConfig } from "./config";
 import {
   decodeCartRef,
   encodeCartRef,
+  enrichCartWithProducts,
   mapCart,
   toId,
   toPayloadRelationId,
@@ -18,6 +19,10 @@ import type {
 type ResolvedMerchandise = {
   productId: string;
   variantId?: string;
+};
+
+export type PayloadCartParams = {
+  locale?: string | null;
 };
 
 function cartPath(cartId: string, action?: string) {
@@ -108,16 +113,58 @@ export async function resolveMerchandise(
   });
 }
 
-async function fetchCartDocument(cartId: string, secret?: string): Promise<PayloadCartDoc> {
+async function fetchCartDocument(
+  cartId: string,
+  secret?: string,
+  locale?: string | null,
+): Promise<PayloadCartDoc> {
   const config = getPayloadEcommerceConfig();
+  const locales = localeQuery(locale);
   return payloadFetch<PayloadCartDoc>({
     path: collectionPath(config.cartsSlug, cartId),
     query: {
       depth: Math.max(config.depth, 2),
+      ...locales,
       ...(secret ? { secret } : {}),
     },
     cache: "no-store",
   });
+}
+
+async function fetchProductDocsForCart(
+  productIds: string[],
+): Promise<Map<string, PayloadProductDoc>> {
+  const config = getPayloadEcommerceConfig();
+  const unique = [...new Set(productIds.map((id) => id.trim()).filter(Boolean))];
+  const map = new Map<string, PayloadProductDoc>();
+
+  await Promise.all(
+    unique.map(async (productId) => {
+      try {
+        // locale=all so we can resolve titles filled in only some locales
+        const doc = await payloadFetch<PayloadProductDoc>({
+          path: collectionPath(config.productsSlug, productId),
+          query: {
+            depth: Math.max(config.depth, 1),
+            locale: "all",
+            draft: false,
+          },
+          cache: "no-store",
+        });
+        map.set(toId(doc.id), doc);
+      } catch {
+        // skip missing products
+      }
+    }),
+  );
+
+  return map;
+}
+
+async function finalizeCart(cart: Cart, locale?: string | null): Promise<Cart> {
+  const productIds = cart.lines.map((line) => line.merchandise.product.id);
+  const docs = await fetchProductDocsForCart(productIds);
+  return enrichCartWithProducts(cart, docs, locale);
 }
 
 function isCartDoc(value: unknown): value is PayloadCartDoc {
@@ -230,17 +277,21 @@ function resultToCart(
  * Mutation endpoints often return depth-0 carts (product/variant as ids only).
  * Re-fetch so line titles, handles, and unit prices are populated for the UI.
  */
-async function hydrateCart(cart: Cart): Promise<Cart> {
+async function hydrateCart(cart: Cart, locale?: string | null): Promise<Cart> {
   try {
-    const fresh = await getCart(cart.id);
+    const fresh = await getCart(cart.id, { locale });
     return fresh ?? cart;
   } catch {
-    return cart;
+    return finalizeCart(cart, locale);
   }
 }
 
-export async function getCart(cartRef: string): Promise<Cart | null> {
+export async function getCart(
+  cartRef: string,
+  params: PayloadCartParams = {},
+): Promise<Cart | null> {
   const { cartId, secret } = decodeCartRef(cartRef);
+  const locale = params.locale;
 
   // Guest carts require the secret; without it Payload returns 403.
   // Treat missing/invalid refs as empty rather than hard errors so the UI
@@ -248,8 +299,12 @@ export async function getCart(cartRef: string): Promise<Cart | null> {
   if (!cartId) return null;
 
   try {
-    const cart = await fetchCartDocument(cartId, secret);
-    return mapCart(cart, { secret: secret ?? cart.secret });
+    const cart = await fetchCartDocument(cartId, secret, locale);
+    const mapped = mapCart(cart, {
+      secret: secret ?? cart.secret,
+      locale,
+    });
+    return finalizeCart(mapped, locale);
   } catch (error) {
     if (
       error &&
@@ -269,8 +324,10 @@ export async function getCart(cartRef: string): Promise<Cart | null> {
 export async function createCart(input?: {
   lines?: CartLineInput[];
   note?: string;
+  locale?: string | null;
 }): Promise<Cart> {
   const config = getPayloadEcommerceConfig();
+  const locale = input?.locale;
 
   // Create empty cart first (guest carts require allowGuestCarts on Payload side)
   const created = await payloadFetch<PayloadCartMutationResult | PayloadCartDoc | { doc: PayloadCartDoc }>({
@@ -287,9 +344,9 @@ export async function createCart(input?: {
   let cart = resultToCart(created as PayloadCartMutationResult | PayloadCartDoc);
 
   if (input?.lines?.length) {
-    cart = await addCartLines(cart.id, input.lines);
+    cart = await addCartLines(cart.id, input.lines, { locale });
   } else {
-    cart = await hydrateCart(cart);
+    cart = await hydrateCart(cart, locale);
   }
 
   return cart;
@@ -298,8 +355,10 @@ export async function createCart(input?: {
 export async function addCartLines(
   cartRef: string,
   lines: CartLineInput[],
+  params: PayloadCartParams = {},
 ): Promise<Cart> {
   const { cartId, secret } = decodeCartRef(cartRef);
+  const locale = params.locale;
   let latest: Cart | null = null;
 
   for (const line of lines) {
@@ -335,7 +394,7 @@ export async function addCartLines(
   }
 
   if (!latest) {
-    const existing = await getCart(cartRef);
+    const existing = await getCart(cartRef, { locale });
     if (!existing) {
       throw new CommerceError("Cart not found after addCartLines.", {
         provider: "payload",
@@ -344,14 +403,16 @@ export async function addCartLines(
     return existing;
   }
 
-  return hydrateCart(withPreservedSecret(latest, secret));
+  return hydrateCart(withPreservedSecret(latest, secret), locale);
 }
 
 export async function updateCartLines(
   cartRef: string,
   lines: CartLineUpdateInput[],
+  params: PayloadCartParams = {},
 ): Promise<Cart> {
   const { cartId, secret } = decodeCartRef(cartRef);
+  const locale = params.locale;
   let latest: Cart | null = null;
 
   for (const line of lines) {
@@ -378,7 +439,7 @@ export async function updateCartLines(
   }
 
   if (!latest) {
-    const existing = await getCart(cartRef);
+    const existing = await getCart(cartRef, { locale });
     if (!existing) {
       throw new CommerceError("Cart not found after updateCartLines.", {
         provider: "payload",
@@ -387,21 +448,24 @@ export async function updateCartLines(
     return existing;
   }
 
-  return hydrateCart(withPreservedSecret(latest, secret));
+  return hydrateCart(withPreservedSecret(latest, secret), locale);
 }
 
 export async function updateCart(
   cartRef: string,
   lines: CartLineUpdateInput[],
+  params: PayloadCartParams = {},
 ): Promise<Cart> {
-  return updateCartLines(cartRef, lines);
+  return updateCartLines(cartRef, lines, params);
 }
 
 export async function removeCartLines(
   cartRef: string,
   lineIds: string[],
+  params: PayloadCartParams = {},
 ): Promise<Cart> {
   const { cartId, secret } = decodeCartRef(cartRef);
+  const locale = params.locale;
   let latest: Cart | null = null;
 
   for (const itemID of lineIds) {
@@ -426,7 +490,7 @@ export async function removeCartLines(
   }
 
   if (!latest) {
-    const existing = await getCart(cartRef);
+    const existing = await getCart(cartRef, { locale });
     if (!existing) {
       throw new CommerceError("Cart not found after removeCartLines.", {
         provider: "payload",
@@ -435,5 +499,5 @@ export async function removeCartLines(
     return existing;
   }
 
-  return hydrateCart(withPreservedSecret(latest, secret));
+  return hydrateCart(withPreservedSecret(latest, secret), locale);
 }

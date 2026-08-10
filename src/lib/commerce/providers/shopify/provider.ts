@@ -58,33 +58,47 @@ export class ShopifyCommerceProvider implements CommerceProvider {
     return getCollection(handle, productsFirst);
   }
 
-  getCart(cartId: string): Promise<Cart | null> {
+  getCart(cartId: string, _params?: { locale?: string | null }): Promise<Cart | null> {
     return getCart(cartId);
   }
 
   createCart(input?: {
     lines?: CartLineInput[];
     note?: string;
+    locale?: string | null;
   }): Promise<Cart> {
     return createCart(input);
   }
 
-  updateCart(cartId: string, lines: CartLineUpdateInput[]): Promise<Cart> {
+  updateCart(
+    cartId: string,
+    lines: CartLineUpdateInput[],
+    _params?: { locale?: string | null },
+  ): Promise<Cart> {
     return updateCart(cartId, lines);
   }
 
-  addCartLines(cartId: string, lines: CartLineInput[]): Promise<Cart> {
+  addCartLines(
+    cartId: string,
+    lines: CartLineInput[],
+    _params?: { locale?: string | null },
+  ): Promise<Cart> {
     return addCartLines(cartId, lines);
   }
 
   updateCartLines(
     cartId: string,
     lines: CartLineUpdateInput[],
+    _params?: { locale?: string | null },
   ): Promise<Cart> {
     return updateCartLines(cartId, lines);
   }
 
-  removeCartLines(cartId: string, lineIds: string[]): Promise<Cart> {
+  removeCartLines(
+    cartId: string,
+    lineIds: string[],
+    _params?: { locale?: string | null },
+  ): Promise<Cart> {
     return removeCartLines(cartId, lineIds);
   }
 }
