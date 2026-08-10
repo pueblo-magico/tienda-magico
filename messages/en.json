@@ -67,5 +67,31 @@
     "newsletterTitle": "Stories from the pueblo",
     "newsletterBody": "Seasonal drops, rituals, and field notes — no spam.",
     "newsletterHint": "Connect a CMS Newsletter block on the home page for the live form."
+  },
+  "shop": {
+    "eyebrow": "Shop",
+    "title": "All products",
+    "subtitle": "Conscious goods from the mountains — filter by collection, search, and sort.",
+    "notConfigured": "Commerce is not configured yet. Connect Shopify or Payload to load the catalog.",
+    "empty": "No products are available right now.",
+    "emptyFiltered": "No products match your filters. Try another search or collection.",
+    "results": "Showing {count} products",
+    "error": "Could not load catalog",
+    "search": "Search",
+    "searchPlaceholder": "Search products",
+    "sort": "Sort by",
+    "submit": "Apply",
+    "clear": "Clear",
+    "sortBest": "Best selling",
+    "sortNewest": "Newest",
+    "sortTitleAsc": "Title A–Z",
+    "sortTitleDesc": "Title Z–A",
+    "sortPriceAsc": "Price: low to high",
+    "sortPriceDesc": "Price: high to low",
+    "collections": "Collections",
+    "allCollections": "All",
+    "previous": "Previous",
+    "next": "Next",
+    "pagination": "Pagination"
   }
 }

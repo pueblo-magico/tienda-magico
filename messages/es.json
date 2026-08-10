@@ -67,5 +67,31 @@
     "newsletterTitle": "Historias del pueblo",
     "newsletterBody": "Lanzamientos, rituales y notas de campo — sin spam.",
     "newsletterHint": "Conecta un bloque Newsletter en la home del CMS para el formulario."
+  },
+  "shop": {
+    "eyebrow": "Tienda",
+    "title": "Todos los productos",
+    "subtitle": "Bienes conscientes de la montaña — filtra por colección, busca y ordena.",
+    "notConfigured": "El comercio aún no está configurado. Conecta Shopify o Payload para ver el catálogo.",
+    "empty": "No hay productos disponibles por ahora.",
+    "emptyFiltered": "Ningún producto coincide con tus filtros. Prueba otra búsqueda o colección.",
+    "results": "Mostrando {count} productos",
+    "error": "No se pudo cargar el catálogo",
+    "search": "Buscar",
+    "searchPlaceholder": "Buscar productos",
+    "sort": "Ordenar por",
+    "submit": "Aplicar",
+    "clear": "Limpiar",
+    "sortBest": "Más vendidos",
+    "sortNewest": "Más nuevos",
+    "sortTitleAsc": "Título A–Z",
+    "sortTitleDesc": "Título Z–A",
+    "sortPriceAsc": "Precio: menor a mayor",
+    "sortPriceDesc": "Precio: mayor a menor",
+    "collections": "Colecciones",
+    "allCollections": "Todas",
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "pagination": "Paginación"
   }
 }

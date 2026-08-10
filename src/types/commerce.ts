@@ -140,6 +140,8 @@ export type GetProductsParams = {
   first?: number;
   after?: string;
   query?: string;
+  /** Collection/category handle filter (provider-specific). */
+  collection?: string;
   /** Preferred content locale (e.g. en, es). Provider-specific. */
   locale?: string;
   sortKey?:

@@ -242,6 +242,20 @@ When merchandisers publish catalog changes and you need immediate refresh, reval
 
 ---
 
+## Shop listing (Phase 8)
+
+Route: `/[locale]/shop`
+
+| Piece | Path |
+| --- | --- |
+| Page | `src/app/[locale]/shop/page.tsx` |
+| Feature UI | `src/features/shop/*` |
+| Data | `commerce.getProducts` + `getCollections` |
+
+Query params: `q`, `collection` (handle), `sort`, `after` (cursor or page).
+
+`GetProductsParams.collection` filters by collection/category handle in both Shopify and Payload adapters.
+
 ## Cart UI layer (Phase 5)
 
 Storefront cart UX is provider-agnostic and lives under `src/features/cart`.

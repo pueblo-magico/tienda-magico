@@ -52,6 +52,17 @@ type ProductResponse = {
   product: Parameters<typeof mapProduct>[0] | null;
 };
 
+function buildShopifyProductQuery(params: GetProductsParams): string | undefined {
+  const parts: string[] = [];
+  if (params.collection?.trim()) {
+    parts.push(`collection:${params.collection.trim()}`);
+  }
+  if (params.query?.trim()) {
+    parts.push(params.query.trim());
+  }
+  return parts.length ? parts.join(" AND ") : undefined;
+}
+
 export async function getProducts(
   params: GetProductsParams = {},
 ): Promise<Paginated<ProductSummary>> {
@@ -60,7 +71,7 @@ export async function getProducts(
     variables: {
       first: params.first ?? 24,
       after: params.after,
-      query: params.query,
+      query: buildShopifyProductQuery(params),
       sortKey: params.sortKey ?? "BEST_SELLING",
       reverse: params.reverse ?? false,
     },
