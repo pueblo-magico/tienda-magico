@@ -147,3 +147,37 @@ Storefront requests should pass the active locale, e.g. `commerce.getProducts({ 
 | Duplicate / missing slug | PDP lookup fails or collides |
 | No published products | Empty catalog |
 | Wrong `PAYLOAD_ECOMMERCE_URL` | Storefront cannot reach CMS |
+
+---
+
+## Content collections (Phase 6)
+
+Beyond the shop catalogue, the CMS also manages marketing content.
+
+| Collection | Use for |
+| --- | --- |
+| **Pages** | Homepage and static routes built from **layout blocks** |
+| **Posts** | Journal / stories |
+| **Testimonials** | Quotes pulled into Testimonials blocks |
+| **FAQs** | Q&A pulled into FAQ blocks |
+| **Media** | Shared uploads |
+
+### Globals
+
+| Global | Use for |
+| --- | --- |
+| **Header** | Nav items + optional header CTA |
+| **Footer** | Columns of links + tagline |
+| **Site settings** | Site name, contact, social |
+| **SEO defaults** | Fallback title/description/OG image |
+
+### Building a page
+
+1. **Pages → Create**
+2. Set **Title** + **slug** (shared across EN/ES)
+3. Add **layout** blocks (Hero, Featured products, Impact stats, …)
+4. Fill **SEO** overrides if needed
+5. Switch locale and translate localized fields
+6. **Publish**
+
+Homepage wiring on the storefront (Phase 7) will load a page by slug (e.g. `home`) and render its blocks.

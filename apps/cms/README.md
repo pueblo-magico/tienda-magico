@@ -86,11 +86,32 @@ Never commit `.env`.
 | --- | --- | --- |
 | `users` | App | Admins/customers; API keys enabled |
 | `media` | App | Public-read uploads |
+| `pages` | App (Phase 6) | Marketing pages with layout blocks (draft/publish) |
+| `posts` | App (Phase 6) | Journal / editorial posts |
+| `testimonials` | App (Phase 6) | Quotes for Testimonials blocks |
+| `faqs` | App (Phase 6) | FAQ entries for FAQ blocks |
 | `categories` | App | Storefront “collections” listing |
 | `products` | Ecommerce plugin + override | Catalog (draft/publish) |
 | `variants` / variant types & options | Plugin | Product variants |
 | `carts` | Plugin | Carts + item endpoints (`allowGuestCarts: true`) |
 | `orders`, `addresses`, … | Plugin | Checkout domain (payments TBD) |
+
+## Globals (Phase 6)
+
+| Slug | Purpose |
+| --- | --- |
+| `header` | Logo override, nav items, optional CTA |
+| `footer` | Tagline, link columns, legal links |
+| `site-settings` | Site name, contact, social links |
+| `seo` | Default title template, description, OG image, robots |
+
+## Layout blocks (Pages)
+
+Defined under `src/blocks/` and attached to `pages.layout`:
+
+Hero · CTA · InfoSection · Gallery · Testimonials · FAQ · Newsletter · FeaturedProducts · ImpactStats
+
+Shared field helpers: `src/fields/` (`link`, `slug`, `seo`, `richText`).
 
 ### Product fields we added
 

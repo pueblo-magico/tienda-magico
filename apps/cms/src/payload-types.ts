@@ -74,6 +74,10 @@ export interface Config {
   collections: {
     users: User;
     media: Media;
+    pages: Page;
+    posts: Post;
+    testimonials: Testimonial;
+    faqs: Faq;
     categories: Category;
     addresses: Address;
     variants: Variant;
@@ -99,6 +103,10 @@ export interface Config {
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    pages: PagesSelect<false> | PagesSelect<true>;
+    posts: PostsSelect<false> | PostsSelect<true>;
+    testimonials: TestimonialsSelect<false> | TestimonialsSelect<true>;
+    faqs: FaqsSelect<false> | FaqsSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     addresses: AddressesSelect<false> | AddressesSelect<true>;
     variants: VariantsSelect<false> | VariantsSelect<true>;
@@ -117,8 +125,18 @@ export interface Config {
     defaultIDType: number;
   };
   fallbackLocale: ('false' | 'none' | 'null') | false | null | ('en' | 'es') | ('en' | 'es')[];
-  globals: {};
-  globalsSelect: {};
+  globals: {
+    header: Header;
+    footer: Footer;
+    'site-settings': SiteSetting;
+    seo: Seo;
+  };
+  globalsSelect: {
+    header: HeaderSelect<false> | HeaderSelect<true>;
+    footer: FooterSelect<false> | FooterSelect<true>;
+    'site-settings': SiteSettingsSelect<false> | SiteSettingsSelect<true>;
+    seo: SeoSelect<false> | SeoSelect<true>;
+  };
   locale: 'en' | 'es';
   widgets: {
     collections: CollectionsWidget;
@@ -214,100 +232,297 @@ export interface Media {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "categories".
+ * via the `definition` "pages".
  */
-export interface Category {
+export interface Page {
   id: number;
   title: string;
   /**
-   * Stable URL handle shared across languages.
+   * Stable URL handle shared across languages (lowercase-kebab).
    */
   slug: string;
-  description?: string | null;
-  image?: (number | null) | Media;
+  layout: (
+    | HeroBlock
+    | CtaBlock
+    | InfoSectionBlock
+    | GalleryBlock
+    | TestimonialsBlock
+    | FaqBlock
+    | NewsletterBlock
+    | FeaturedProductsBlock
+    | ImpactStatsBlock
+  )[];
+  seo?: {
+    /**
+     * Overrides document title in <title> / og:title when set.
+     */
+    title?: string | null;
+    description?: string | null;
+    /**
+     * Social share image (Open Graph).
+     */
+    image?: (number | null) | Media;
+    noIndex?: boolean | null;
+  };
   updatedAt: string;
   createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "addresses".
- */
-export interface Address {
-  id: number;
-  customer?: (number | null) | User;
-  title?: string | null;
-  firstName?: string | null;
-  lastName?: string | null;
-  company?: string | null;
-  addressLine1?: string | null;
-  addressLine2?: string | null;
-  city?: string | null;
-  state?: string | null;
-  postalCode?: string | null;
-  country:
-    | 'US'
-    | 'GB'
-    | 'CA'
-    | 'AU'
-    | 'AT'
-    | 'BE'
-    | 'BR'
-    | 'BG'
-    | 'CY'
-    | 'CZ'
-    | 'DK'
-    | 'EE'
-    | 'FI'
-    | 'FR'
-    | 'DE'
-    | 'GR'
-    | 'HK'
-    | 'HU'
-    | 'IN'
-    | 'IE'
-    | 'IT'
-    | 'JP'
-    | 'LV'
-    | 'LT'
-    | 'LU'
-    | 'MY'
-    | 'MT'
-    | 'MX'
-    | 'NL'
-    | 'NZ'
-    | 'NO'
-    | 'PL'
-    | 'PT'
-    | 'RO'
-    | 'SG'
-    | 'SK'
-    | 'SI'
-    | 'ES'
-    | 'SE'
-    | 'CH';
-  phone?: string | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "variants".
- */
-export interface Variant {
-  id: number;
-  /**
-   * Used for administrative purposes, not shown to customers. This is populated by default.
-   */
-  title?: string | null;
-  product: number | Product;
-  options: (number | VariantOption)[];
-  inventory?: number | null;
-  priceInUSDEnabled?: boolean | null;
-  priceInUSD?: number | null;
-  updatedAt: string;
-  createdAt: string;
-  deletedAt?: string | null;
   _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "HeroBlock".
+ */
+export interface HeroBlock {
+  eyebrow?: string | null;
+  title: string;
+  subtitle?: string | null;
+  body?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  media?: (number | null) | Media;
+  mediaPosition?: ('background' | 'right' | 'left' | 'none') | null;
+  actions?:
+    | {
+        link?: {
+          type?: ('custom' | 'internal') | null;
+          label?: string | null;
+          /**
+           * Absolute URL or site path (e.g. https://… or /shop).
+           */
+          url?: string | null;
+          /**
+           * Locale-free path (e.g. /shop, /about). Storefront prefixes locale.
+           */
+          path?: string | null;
+          newTab?: boolean | null;
+          appearance?: ('primary' | 'secondary' | 'ghost' | 'link') | null;
+        };
+        id?: string | null;
+      }[]
+    | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'hero';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "CtaBlock".
+ */
+export interface CtaBlock {
+  eyebrow?: string | null;
+  title: string;
+  description?: string | null;
+  actions?:
+    | {
+        link?: {
+          type?: ('custom' | 'internal') | null;
+          label?: string | null;
+          /**
+           * Absolute URL or site path (e.g. https://… or /shop).
+           */
+          url?: string | null;
+          /**
+           * Locale-free path (e.g. /shop, /about). Storefront prefixes locale.
+           */
+          path?: string | null;
+          newTab?: boolean | null;
+          appearance?: ('primary' | 'secondary' | 'ghost' | 'link') | null;
+        };
+        id?: string | null;
+      }[]
+    | null;
+  style?: ('brand' | 'sand' | 'outline') | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'cta';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "InfoSectionBlock".
+ */
+export interface InfoSectionBlock {
+  eyebrow?: string | null;
+  title: string;
+  body?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  media?: (number | null) | Media;
+  layout?: ('textMedia' | 'mediaText' | 'centered') | null;
+  link?: {
+    type?: ('custom' | 'internal') | null;
+    label?: string | null;
+    /**
+     * Absolute URL or site path (e.g. https://… or /shop).
+     */
+    url?: string | null;
+    /**
+     * Locale-free path (e.g. /shop, /about). Storefront prefixes locale.
+     */
+    path?: string | null;
+    newTab?: boolean | null;
+    appearance?: ('primary' | 'secondary' | 'ghost' | 'link') | null;
+  };
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'infoSection';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "GalleryBlock".
+ */
+export interface GalleryBlock {
+  title?: string | null;
+  images: {
+    image: number | Media;
+    caption?: string | null;
+    id?: string | null;
+  }[];
+  columns?: ('2' | '3' | '4') | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'gallery';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TestimonialsBlock".
+ */
+export interface TestimonialsBlock {
+  eyebrow?: string | null;
+  title?: string | null;
+  selection?: ('manual' | 'latest') | null;
+  items?: (number | Testimonial)[] | null;
+  limit?: number | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'testimonials';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "testimonials".
+ */
+export interface Testimonial {
+  id: number;
+  quote: string;
+  name: string;
+  /**
+   * Title or context (e.g. Guest · Valle de Bravo).
+   */
+  role?: string | null;
+  avatar?: (number | null) | Media;
+  /**
+   * Optional 1–5 star rating.
+   */
+  rating?: number | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "FaqBlock".
+ */
+export interface FaqBlock {
+  eyebrow?: string | null;
+  title?: string | null;
+  selection?: ('manual' | 'category' | 'all') | null;
+  items?: (number | Faq)[] | null;
+  /**
+   * Matches FAQ category field (e.g. shipping).
+   */
+  category?: string | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'faq';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "faqs".
+ */
+export interface Faq {
+  id: number;
+  question: string;
+  answer: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  /**
+   * Grouping key (e.g. shipping, products). Used by FAQ blocks.
+   */
+  category?: string | null;
+  sortOrder?: number | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "NewsletterBlock".
+ */
+export interface NewsletterBlock {
+  eyebrow?: string | null;
+  title: string;
+  description?: string | null;
+  placeholder?: string | null;
+  buttonLabel?: string | null;
+  successMessage?: string | null;
+  /**
+   * Optional external form/list id (provider-specific).
+   */
+  formId?: string | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'newsletter';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "FeaturedProductsBlock".
+ */
+export interface FeaturedProductsBlock {
+  eyebrow?: string | null;
+  title?: string | null;
+  description?: string | null;
+  selection?: ('manual' | 'category') | null;
+  products?: (number | Product)[] | null;
+  category?: (number | null) | Category;
+  limit?: number | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'featuredProducts';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -369,6 +584,22 @@ export interface Product {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "categories".
+ */
+export interface Category {
+  id: number;
+  title: string;
+  /**
+   * Stable URL handle shared across languages.
+   */
+  slug: string;
+  description?: string | null;
+  image?: (number | null) | Media;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "variantTypes".
  */
 export interface VariantType {
@@ -400,6 +631,156 @@ export interface VariantOption {
   updatedAt: string;
   createdAt: string;
   deletedAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "variants".
+ */
+export interface Variant {
+  id: number;
+  /**
+   * Used for administrative purposes, not shown to customers. This is populated by default.
+   */
+  title?: string | null;
+  product: number | Product;
+  options: (number | VariantOption)[];
+  inventory?: number | null;
+  priceInUSDEnabled?: boolean | null;
+  priceInUSD?: number | null;
+  updatedAt: string;
+  createdAt: string;
+  deletedAt?: string | null;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ImpactStatsBlock".
+ */
+export interface ImpactStatsBlock {
+  eyebrow?: string | null;
+  title?: string | null;
+  stats: {
+    /**
+     * Display value (e.g. 120+, 3k).
+     */
+    value: string;
+    label: string;
+    description?: string | null;
+    id?: string | null;
+  }[];
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'impactStats';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "posts".
+ */
+export interface Post {
+  id: number;
+  title: string;
+  /**
+   * Stable URL handle shared across languages (lowercase-kebab).
+   */
+  slug: string;
+  /**
+   * Short summary for cards and listings.
+   */
+  excerpt?: string | null;
+  heroImage?: (number | null) | Media;
+  content: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  publishedAt?: string | null;
+  authors?: (number | User)[] | null;
+  seo?: {
+    /**
+     * Overrides document title in <title> / og:title when set.
+     */
+    title?: string | null;
+    description?: string | null;
+    /**
+     * Social share image (Open Graph).
+     */
+    image?: (number | null) | Media;
+    noIndex?: boolean | null;
+  };
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "addresses".
+ */
+export interface Address {
+  id: number;
+  customer?: (number | null) | User;
+  title?: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
+  company?: string | null;
+  addressLine1?: string | null;
+  addressLine2?: string | null;
+  city?: string | null;
+  state?: string | null;
+  postalCode?: string | null;
+  country:
+    | 'US'
+    | 'GB'
+    | 'CA'
+    | 'AU'
+    | 'AT'
+    | 'BE'
+    | 'BR'
+    | 'BG'
+    | 'CY'
+    | 'CZ'
+    | 'DK'
+    | 'EE'
+    | 'FI'
+    | 'FR'
+    | 'DE'
+    | 'GR'
+    | 'HK'
+    | 'HU'
+    | 'IN'
+    | 'IE'
+    | 'IT'
+    | 'JP'
+    | 'LV'
+    | 'LT'
+    | 'LU'
+    | 'MY'
+    | 'MT'
+    | 'MX'
+    | 'NL'
+    | 'NZ'
+    | 'NO'
+    | 'PL'
+    | 'PT'
+    | 'RO'
+    | 'SG'
+    | 'SK'
+    | 'SI'
+    | 'ES'
+    | 'SE'
+    | 'CH';
+  phone?: string | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -530,6 +911,22 @@ export interface PayloadLockedDocument {
         value: number | Media;
       } | null)
     | ({
+        relationTo: 'pages';
+        value: number | Page;
+      } | null)
+    | ({
+        relationTo: 'posts';
+        value: number | Post;
+      } | null)
+    | ({
+        relationTo: 'testimonials';
+        value: number | Testimonial;
+      } | null)
+    | ({
+        relationTo: 'faqs';
+        value: number | Faq;
+      } | null)
+    | ({
         relationTo: 'categories';
         value: number | Category;
       } | null)
@@ -651,6 +1048,259 @@ export interface MediaSelect<T extends boolean = true> {
   height?: T;
   focalX?: T;
   focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pages_select".
+ */
+export interface PagesSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  layout?:
+    | T
+    | {
+        hero?: T | HeroBlockSelect<T>;
+        cta?: T | CtaBlockSelect<T>;
+        infoSection?: T | InfoSectionBlockSelect<T>;
+        gallery?: T | GalleryBlockSelect<T>;
+        testimonials?: T | TestimonialsBlockSelect<T>;
+        faq?: T | FaqBlockSelect<T>;
+        newsletter?: T | NewsletterBlockSelect<T>;
+        featuredProducts?: T | FeaturedProductsBlockSelect<T>;
+        impactStats?: T | ImpactStatsBlockSelect<T>;
+      };
+  seo?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+        noIndex?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "HeroBlock_select".
+ */
+export interface HeroBlockSelect<T extends boolean = true> {
+  eyebrow?: T;
+  title?: T;
+  subtitle?: T;
+  body?: T;
+  media?: T;
+  mediaPosition?: T;
+  actions?:
+    | T
+    | {
+        link?:
+          | T
+          | {
+              type?: T;
+              label?: T;
+              url?: T;
+              path?: T;
+              newTab?: T;
+              appearance?: T;
+            };
+        id?: T;
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "CtaBlock_select".
+ */
+export interface CtaBlockSelect<T extends boolean = true> {
+  eyebrow?: T;
+  title?: T;
+  description?: T;
+  actions?:
+    | T
+    | {
+        link?:
+          | T
+          | {
+              type?: T;
+              label?: T;
+              url?: T;
+              path?: T;
+              newTab?: T;
+              appearance?: T;
+            };
+        id?: T;
+      };
+  style?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "InfoSectionBlock_select".
+ */
+export interface InfoSectionBlockSelect<T extends boolean = true> {
+  eyebrow?: T;
+  title?: T;
+  body?: T;
+  media?: T;
+  layout?: T;
+  link?:
+    | T
+    | {
+        type?: T;
+        label?: T;
+        url?: T;
+        path?: T;
+        newTab?: T;
+        appearance?: T;
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "GalleryBlock_select".
+ */
+export interface GalleryBlockSelect<T extends boolean = true> {
+  title?: T;
+  images?:
+    | T
+    | {
+        image?: T;
+        caption?: T;
+        id?: T;
+      };
+  columns?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TestimonialsBlock_select".
+ */
+export interface TestimonialsBlockSelect<T extends boolean = true> {
+  eyebrow?: T;
+  title?: T;
+  selection?: T;
+  items?: T;
+  limit?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "FaqBlock_select".
+ */
+export interface FaqBlockSelect<T extends boolean = true> {
+  eyebrow?: T;
+  title?: T;
+  selection?: T;
+  items?: T;
+  category?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "NewsletterBlock_select".
+ */
+export interface NewsletterBlockSelect<T extends boolean = true> {
+  eyebrow?: T;
+  title?: T;
+  description?: T;
+  placeholder?: T;
+  buttonLabel?: T;
+  successMessage?: T;
+  formId?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "FeaturedProductsBlock_select".
+ */
+export interface FeaturedProductsBlockSelect<T extends boolean = true> {
+  eyebrow?: T;
+  title?: T;
+  description?: T;
+  selection?: T;
+  products?: T;
+  category?: T;
+  limit?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ImpactStatsBlock_select".
+ */
+export interface ImpactStatsBlockSelect<T extends boolean = true> {
+  eyebrow?: T;
+  title?: T;
+  stats?:
+    | T
+    | {
+        value?: T;
+        label?: T;
+        description?: T;
+        id?: T;
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "posts_select".
+ */
+export interface PostsSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  excerpt?: T;
+  heroImage?: T;
+  content?: T;
+  publishedAt?: T;
+  authors?: T;
+  seo?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+        noIndex?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "testimonials_select".
+ */
+export interface TestimonialsSelect<T extends boolean = true> {
+  quote?: T;
+  name?: T;
+  role?: T;
+  avatar?: T;
+  rating?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "faqs_select".
+ */
+export interface FaqsSelect<T extends boolean = true> {
+  question?: T;
+  answer?: T;
+  category?: T;
+  sortOrder?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -894,6 +1544,293 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   batch?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "header".
+ */
+export interface Header {
+  id: number;
+  /**
+   * Optional logo override. Storefront falls back to wordmark.
+   */
+  logo?: (number | null) | Media;
+  navItems?:
+    | {
+        link?: {
+          type?: ('custom' | 'internal') | null;
+          label?: string | null;
+          /**
+           * Absolute URL or site path (e.g. https://… or /shop).
+           */
+          url?: string | null;
+          /**
+           * Locale-free path (e.g. /shop, /about). Storefront prefixes locale.
+           */
+          path?: string | null;
+          newTab?: boolean | null;
+        };
+        id?: string | null;
+      }[]
+    | null;
+  cta?: {
+    enabled?: boolean | null;
+    link?: {
+      type?: ('custom' | 'internal') | null;
+      label?: string | null;
+      /**
+       * Absolute URL or site path (e.g. https://… or /shop).
+       */
+      url?: string | null;
+      /**
+       * Locale-free path (e.g. /shop, /about). Storefront prefixes locale.
+       */
+      path?: string | null;
+      newTab?: boolean | null;
+      appearance?: ('primary' | 'secondary') | null;
+    };
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "footer".
+ */
+export interface Footer {
+  id: number;
+  tagline?: string | null;
+  columns?:
+    | {
+        title: string;
+        links?:
+          | {
+              link?: {
+                type?: ('custom' | 'internal') | null;
+                label?: string | null;
+                /**
+                 * Absolute URL or site path (e.g. https://… or /shop).
+                 */
+                url?: string | null;
+                /**
+                 * Locale-free path (e.g. /shop, /about). Storefront prefixes locale.
+                 */
+                path?: string | null;
+                newTab?: boolean | null;
+              };
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  legalLinks?:
+    | {
+        link?: {
+          type?: ('custom' | 'internal') | null;
+          label?: string | null;
+          /**
+           * Absolute URL or site path (e.g. https://… or /shop).
+           */
+          url?: string | null;
+          /**
+           * Locale-free path (e.g. /shop, /about). Storefront prefixes locale.
+           */
+          path?: string | null;
+          newTab?: boolean | null;
+        };
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Optional override. Storefront can append the year.
+   */
+  copyright?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-settings".
+ */
+export interface SiteSetting {
+  id: number;
+  siteName: string;
+  tagline?: string | null;
+  logo?: (number | null) | Media;
+  contactEmail?: string | null;
+  contactPhone?: string | null;
+  social?:
+    | {
+        platform: 'instagram' | 'facebook' | 'youtube' | 'x' | 'tiktok' | 'other';
+        url: string;
+        /**
+         * Accessible label override.
+         */
+        label?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Informational; storefront routing still owns active locale.
+   */
+  defaultLocale?: ('en' | 'es') | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "seo".
+ */
+export interface Seo {
+  id: number;
+  /**
+   * Fallback document title.
+   */
+  defaultTitle?: string | null;
+  /**
+   * Use %s for the page title segment.
+   */
+  titleTemplate?: string | null;
+  defaultDescription?: string | null;
+  defaultOgImage?: (number | null) | Media;
+  /**
+   * Without @ (e.g. pueblomagico).
+   */
+  twitterHandle?: string | null;
+  robots?: {
+    index?: boolean | null;
+    follow?: boolean | null;
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "header_select".
+ */
+export interface HeaderSelect<T extends boolean = true> {
+  logo?: T;
+  navItems?:
+    | T
+    | {
+        link?:
+          | T
+          | {
+              type?: T;
+              label?: T;
+              url?: T;
+              path?: T;
+              newTab?: T;
+            };
+        id?: T;
+      };
+  cta?:
+    | T
+    | {
+        enabled?: T;
+        link?:
+          | T
+          | {
+              type?: T;
+              label?: T;
+              url?: T;
+              path?: T;
+              newTab?: T;
+              appearance?: T;
+            };
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "footer_select".
+ */
+export interface FooterSelect<T extends boolean = true> {
+  tagline?: T;
+  columns?:
+    | T
+    | {
+        title?: T;
+        links?:
+          | T
+          | {
+              link?:
+                | T
+                | {
+                    type?: T;
+                    label?: T;
+                    url?: T;
+                    path?: T;
+                    newTab?: T;
+                  };
+              id?: T;
+            };
+        id?: T;
+      };
+  legalLinks?:
+    | T
+    | {
+        link?:
+          | T
+          | {
+              type?: T;
+              label?: T;
+              url?: T;
+              path?: T;
+              newTab?: T;
+            };
+        id?: T;
+      };
+  copyright?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-settings_select".
+ */
+export interface SiteSettingsSelect<T extends boolean = true> {
+  siteName?: T;
+  tagline?: T;
+  logo?: T;
+  contactEmail?: T;
+  contactPhone?: T;
+  social?:
+    | T
+    | {
+        platform?: T;
+        url?: T;
+        label?: T;
+        id?: T;
+      };
+  defaultLocale?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "seo_select".
+ */
+export interface SeoSelect<T extends boolean = true> {
+  defaultTitle?: T;
+  titleTemplate?: T;
+  defaultDescription?: T;
+  defaultOgImage?: T;
+  twitterHandle?: T;
+  robots?:
+    | T
+    | {
+        index?: T;
+        follow?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

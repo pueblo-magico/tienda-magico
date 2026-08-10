@@ -4,6 +4,9 @@ import { adminOnly } from '../access/adminOnly'
 
 export const Media: CollectionConfig = {
   slug: 'media',
+  admin: {
+    group: 'Content',
+  },
   access: {
     create: adminOnly,
     delete: adminOnly,

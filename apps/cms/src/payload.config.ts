@@ -13,9 +13,17 @@ import { customerOnlyFieldAccess } from './access/customerOnlyFieldAccess'
 import { isAdmin } from './access/isAdmin'
 import { isDocumentOwner } from './access/isDocumentOwner'
 import { Categories } from './collections/Categories'
+import { FAQs } from './collections/FAQs'
 import { Media } from './collections/Media'
+import { Pages } from './collections/Pages'
+import { Posts } from './collections/Posts'
 import { productsCollectionOverride } from './collections/Products'
+import { Testimonials } from './collections/Testimonials'
 import { Users } from './collections/Users'
+import { Footer } from './globals/Footer'
+import { Header } from './globals/Header'
+import { SEO } from './globals/SEO'
+import { SiteSettings } from './globals/SiteSettings'
 
 loadEnv()
 
@@ -43,7 +51,18 @@ export default buildConfig({
       titleSuffix: ' · Pueblo Mágico CMS',
     },
   },
-  collections: [Users, Media, Categories],
+  collections: [
+    Users,
+    Media,
+    // Content (Phase 6)
+    Pages,
+    Posts,
+    Testimonials,
+    FAQs,
+    // Shop catalogue helpers
+    Categories,
+  ],
+  globals: [Header, Footer, SiteSettings, SEO],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {
