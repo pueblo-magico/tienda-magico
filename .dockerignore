@@ -1,0 +1,12 @@
+.git
+.github
+.next
+node_modules
+.env*
+apps/cms/.next
+apps/cms/node_modules
+apps/cms/.env*
+apps/cms/media
+npm-debug.log*
+docs
+

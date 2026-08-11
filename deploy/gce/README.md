@@ -1,13 +1,10 @@
-# GCE same-VM deploy
+# GCE artifact-only deployment
 
-Deploy the **storefront** and **Payload CMS** on one Google Cloud VM.
+GitHub Actions builds and publishes immutable storefront and CMS images. The VM
+only holds those images, Docker Compose configuration, nginx, database data, and
+Payload uploads—never a Git checkout or Node.js build dependencies.
 
-```bash
-sudo ./deploy.sh bootstrap
-sudo ./deploy.sh configure --shop-host shop.example.com --cms-host cms.example.com
-# edit /etc/tienda-magico/*.env
-sudo ./deploy.sh db-up
-sudo ./deploy.sh deploy
-```
+The staging deployment is configured with the `staging` GitHub Environment.
+Production uses the same workflow and a separate `production` Environment.
 
-Full documentation: **[docs/deploy/gce.md](../../docs/deploy/gce.md)**
+Setup and runbook: **[docs/deploy/github-actions.md](../../docs/deploy/github-actions.md)**

@@ -1,0 +1,17 @@
+{
+  "cleanupPolicies": {
+    "delete-untagged-after-one-day": {
+      "action": "DELETE",
+      "condition": {
+        "tagState": "UNTAGGED",
+        "olderThan": "86400s"
+      }
+    },
+    "keep-four-most-recent": {
+      "action": "KEEP",
+      "mostRecentVersions": {
+        "keepCount": 4
+      }
+    }
+  }
+}

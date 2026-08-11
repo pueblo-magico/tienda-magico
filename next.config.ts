@@ -53,6 +53,7 @@ function cmsMediaPatterns(): RemotePattern[] {
 }
 
 const nextConfig: NextConfig = {
+  output: process.env.STANDALONE_OUTPUT === "true" ? "standalone" : undefined,
   images: {
     remotePatterns: [
       {

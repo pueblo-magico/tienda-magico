@@ -91,17 +91,12 @@ Details: [docs/checkout/operations.md](./docs/checkout/operations.md).
 
 ## Deploy (Google Cloud VM)
 
-Same-VM production: nginx → storefront (:3000) + CMS (:4000), Postgres in Docker.
+GitHub Actions builds immutable storefront and CMS images, then deploys them to
+the staging or production Google Cloud VM. VMs run only images and persistent
+runtime data; they do not clone or build this repository.
 
-```bash
-sudo ./deploy/gce/deploy.sh bootstrap
-sudo ./deploy/gce/deploy.sh configure --shop-host shop.example.com --cms-host cms.example.com
-# edit /etc/tienda-magico/*.env
-sudo ./deploy/gce/deploy.sh db-up
-sudo ./deploy/gce/deploy.sh deploy
-```
-
-Full guide: [docs/deploy/gce.md](./docs/deploy/gce.md).
+Start with the [staging and production deployment runbook](./docs/deploy/github-actions.md).
+The [GCE VM runtime reference](./docs/deploy/gce.md) describes the VM runtime layout.
 
 ## Documentation
 
@@ -112,7 +107,8 @@ Full guide: [docs/deploy/gce.md](./docs/deploy/gce.md).
 - [Payload content & merchandising](./docs/commerce/payload-content.md)
 - [Checkout developer guide](./docs/checkout/developer.md)
 - [Checkout operations (Mercado Pago)](./docs/checkout/operations.md)
-- [GCE VM deploy](./docs/deploy/gce.md)
+- [Staging and production deployment](./docs/deploy/github-actions.md)
+- [GCE VM runtime reference](./docs/deploy/gce.md)
 - [CMS homepage (developer)](./docs/cms/developer.md)
 - [CMS homepage (content editors)](./docs/cms/content.md)
 - [CMS app README](./apps/cms/README.md)
@@ -129,7 +125,7 @@ npm run db:cms:up    # CMS Postgres (:5433)
 npm run dev:cms      # CMS (:4000)
 npm run build:cms    # CMS production build
 npm run start:cms    # CMS production server
-npm run deploy:gce   # ./deploy/gce/deploy.sh (see docs)
+npm run deploy:gce   # VM artifact activator (normally called by GitHub Actions)
 ```
 
 ## Localization status
