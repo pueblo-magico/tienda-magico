@@ -1,17 +1,25 @@
-{
-  "cleanupPolicies": {
-    "delete-untagged-after-one-day": {
-      "action": "DELETE",
-      "condition": {
-        "tagState": "UNTAGGED",
-        "olderThan": "86400s"
-      }
-    },
-    "keep-four-most-recent": {
-      "action": "KEEP",
-      "mostRecentVersions": {
-        "keepCount": 4
-      }
+[
+  {
+    "name": "delete-untagged-after-one-day",
+    "action": { "type": "Delete" },
+    "condition": {
+      "tagState": "untagged",
+      "olderThan": "1d"
+    }
+  },
+  {
+    "name": "delete-tagged-after-fourteen-days",
+    "action": { "type": "Delete" },
+    "condition": {
+      "tagState": "tagged",
+      "olderThan": "14d"
+    }
+  },
+  {
+    "name": "keep-four-most-recent",
+    "action": { "type": "Keep" },
+    "mostRecentVersions": {
+      "keepCount": 4
     }
   }
-}
+]

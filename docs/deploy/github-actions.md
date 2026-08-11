@@ -52,9 +52,15 @@ Apply the included image retention policy so a limited rollback window is kept:
 
 ```bash
 gcloud artifacts repositories set-cleanup-policies "$REPOSITORY" \
+  --project="$PROJECT_ID" \
   --location="$REGION" \
   --policy=deploy/gce/artifact-registry-cleanup.json
 ```
+
+The policy file is a JSON **list**: it removes untagged versions after one day,
+removes tagged versions after fourteen days, and protects the four newest
+versions of each image package for rollback. Artifact Registry evaluates cleanup
+policies asynchronously, so deletions can take about a day to occur.
 
 ### Create the two runtime identities and VMs
 
