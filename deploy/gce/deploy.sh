@@ -72,10 +72,10 @@ Options:
   --instance NAME       GCE instance name (remote)
   -h, --help            Show help
 
-Environment files (create after configure, chmod 600):
-  /etc/tienda-magico/storefront.env
-  /etc/tienda-magico/cms.env
-  /etc/tienda-magico/postgres.env   (POSTGRES_PASSWORD=...)
+Environment files under /etc/tienda-magico (seeded by configure, mode 640):
+  storefront.env
+  cms.env
+  postgres.env   (auto-created by configure or db-up; POSTGRES_PASSWORD=...)
 
 See docs/deploy/gce.md for full instructions.
 EOF
@@ -217,9 +217,9 @@ cmd_bootstrap() {
   pm="$(detect_pkg_manager)"
   if [[ "$pm" == apt ]]; then
     apt-get update -y
-    apt-get install -y ca-certificates curl gnupg git rsync jq ufw build-essential python3
+    apt-get install -y ca-certificates curl gnupg git rsync jq ufw build-essential python3 openssl
   else
-    dnf install -y ca-certificates curl git rsync jq firewalld gcc-c++ make python3
+    dnf install -y ca-certificates curl git rsync jq firewalld gcc-c++ make python3 openssl
   fi
 
   ensure_app_user
@@ -274,6 +274,52 @@ install_systemd_units() {
   log "systemd units installed and enabled"
 }
 
+gen_secret() {
+  local len="${1:-32}"
+  if command -v openssl >/dev/null 2>&1; then
+    openssl rand -base64 48 | tr -d '/+=\n' | head -c "${len}"
+  else
+    tr -dc 'A-Za-z0-9' </dev/urandom | head -c "${len}"
+  fi
+}
+
+# Create postgres.env if missing. Safe to call from configure or db-up.
+ensure_postgres_env() {
+  mkdir -p "${TM_ENV_DIR}"
+  if [[ -f "${TM_ENV_DIR}/postgres.env" ]]; then
+    return 0
+  fi
+
+  local pw
+  pw="$(gen_secret 32)"
+  [[ -n "$pw" ]] || die "Failed to generate Postgres password"
+
+  if [[ -f "${SCRIPT_DIR}/env/postgres.env.example" ]]; then
+    sed \
+      -e "s|CHANGE_ME_POSTGRES_PASSWORD|${pw}|g" \
+      "${SCRIPT_DIR}/env/postgres.env.example" > "${TM_ENV_DIR}/postgres.env"
+  else
+    cat > "${TM_ENV_DIR}/postgres.env" <<EOF
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=${pw}
+POSTGRES_DB=tienda_magico_cms
+EOF
+  fi
+  chmod 600 "${TM_ENV_DIR}/postgres.env"
+  log "Created ${TM_ENV_DIR}/postgres.env with generated password"
+}
+
+lock_env_dir_perms() {
+  chown root:root "${TM_ENV_DIR}" 2>/dev/null || true
+  chmod 755 "${TM_ENV_DIR}"
+  if id "${TM_APP_USER}" &>/dev/null; then
+    chown root:"${TM_APP_USER}" "${TM_ENV_DIR}"/*.env 2>/dev/null || true
+  else
+    chown root:root "${TM_ENV_DIR}"/*.env 2>/dev/null || true
+  fi
+  chmod 640 "${TM_ENV_DIR}"/*.env 2>/dev/null || true
+}
+
 seed_env_files() {
   mkdir -p "${TM_ENV_DIR}"
   if [[ ! -f "${TM_ENV_DIR}/storefront.env" ]]; then
@@ -298,21 +344,8 @@ seed_env_files() {
     log "Keeping existing ${TM_ENV_DIR}/cms.env"
   fi
 
-  if [[ ! -f "${TM_ENV_DIR}/postgres.env" ]]; then
-    cat > "${TM_ENV_DIR}/postgres.env" <<EOF
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=$(openssl rand -base64 24 | tr -d '/+=' | head -c 32)
-POSTGRES_DB=tienda_magico_cms
-EOF
-    chmod 600 "${TM_ENV_DIR}/postgres.env"
-    log "Created ${TM_ENV_DIR}/postgres.env with generated password"
-  fi
-
-  # Restrict directory
-  chown root:root "${TM_ENV_DIR}"
-  chmod 755 "${TM_ENV_DIR}"
-  chown root:"${TM_APP_USER}" "${TM_ENV_DIR}"/*.env 2>/dev/null || true
-  chmod 640 "${TM_ENV_DIR}"/*.env 2>/dev/null || true
+  ensure_postgres_env
+  lock_env_dir_perms
 }
 
 sync_cms_dotenv() {
@@ -352,6 +385,17 @@ cmd_configure() {
   log "Configure done. Edit env files under ${TM_ENV_DIR} before deploy."
 }
 
+align_cms_database_url() {
+  local cms_env="${TM_ENV_DIR}/cms.env"
+  local pw="${POSTGRES_PASSWORD:-}"
+  [[ -n "$pw" && -f "$cms_env" ]] || return 0
+
+  if grep -q 'CHANGE_ME_STRONG_PASSWORD' "$cms_env" 2>/dev/null; then
+    sed -i "s|CHANGE_ME_STRONG_PASSWORD|${pw}|g" "$cms_env"
+    log "Updated DATABASE_URL password in cms.env from postgres.env"
+  fi
+}
+
 cmd_db_up() {
   require_root
   need_cmd docker
@@ -359,7 +403,19 @@ cmd_db_up() {
   if [[ -f "${TM_APP_DIR}/deploy/gce/docker-compose.postgres.yml" ]]; then
     compose="${TM_APP_DIR}/deploy/gce/docker-compose.postgres.yml"
   fi
-  [[ -f "${TM_ENV_DIR}/postgres.env" ]] || die "Missing ${TM_ENV_DIR}/postgres.env — run configure first."
+  [[ -f "$compose" ]] || die "Missing compose file: ${compose} (is the repo checked out?)"
+
+  # postgres.env is normally created by configure; create it here if missing so
+  # db-up can still run after a partial setup or manual env edits.
+  if [[ ! -f "${TM_ENV_DIR}/postgres.env" ]]; then
+    warn "Missing ${TM_ENV_DIR}/postgres.env — creating it now (prefer: sudo $0 configure first)."
+    # Prefer templates shipped with the app tree when present
+    if [[ -f "${TM_APP_DIR}/deploy/gce/env/postgres.env.example" ]]; then
+      SCRIPT_DIR="${TM_APP_DIR}/deploy/gce"
+    fi
+    ensure_postgres_env
+    lock_env_dir_perms
+  fi
 
   # shellcheck disable=SC1090
   set -a
@@ -367,15 +423,12 @@ cmd_db_up() {
   source "${TM_ENV_DIR}/postgres.env"
   set +a
 
+  [[ -n "${POSTGRES_PASSWORD:-}" ]] || die "${TM_ENV_DIR}/postgres.env must set POSTGRES_PASSWORD"
+
   log "Starting Postgres on 127.0.0.1:5433"
   docker compose --env-file "${TM_ENV_DIR}/postgres.env" -f "$compose" up -d
 
-  # Align cms.env DATABASE_URL password if still placeholder
-  if [[ -f "${TM_ENV_DIR}/cms.env" ]] && grep -q 'CHANGE_ME_STRONG_PASSWORD' "${TM_ENV_DIR}/cms.env" 2>/dev/null; then
-    local pw="${POSTGRES_PASSWORD}"
-    sed -i "s|CHANGE_ME_STRONG_PASSWORD|${pw}|g" "${TM_ENV_DIR}/cms.env"
-    log "Updated DATABASE_URL password in cms.env from postgres.env"
-  fi
+  align_cms_database_url
 
   log "Waiting for Postgres health..."
   for _ in $(seq 1 30); do

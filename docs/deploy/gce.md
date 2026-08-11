@@ -108,13 +108,13 @@ sudo ./deploy/gce/deploy.sh <command> [options]
 
 ## Environment files
 
-Created by `configure` (mode `640`, not committed):
+Created by `configure` (mode `640`, not committed). `postgres.env` is also auto-created by `db-up` if missing.
 
 | File | Used by |
 | --- | --- |
 | `/etc/tienda-magico/storefront.env` | systemd `tienda-magico-web` + copied to app `.env.local` / `.env.production.local` |
 | `/etc/tienda-magico/cms.env` | systemd `tienda-magico-cms` + copied to `apps/cms/.env` |
-| `/etc/tienda-magico/postgres.env` | Docker Compose Postgres |
+| `/etc/tienda-magico/postgres.env` | Docker Compose Postgres (`db-up`) |
 
 Templates: [`deploy/gce/env/`](../../deploy/gce/env/).
 
@@ -128,7 +128,7 @@ PAYLOAD_PUBLIC_SERVER_URL=https://cms.example.com
 CORS_ORIGINS=https://shop.example.com
 ```
 
-`db-up` rewrites `CHANGE_ME_STRONG_PASSWORD` in `cms.env` from `postgres.env` when still present.
+`db-up` creates `postgres.env` when absent (generated password) and rewrites `CHANGE_ME_STRONG_PASSWORD` in `cms.env` from that file when still present. Prefer running `configure` first so all three env files exist before you edit secrets.
 
 ### Minimum storefront values
 
@@ -294,8 +294,9 @@ gcloud compute firewall-rules create allow-http-https \
 
 | Symptom | What to check |
 | --- | --- |
+| Missing `postgres.env` on `db-up` | Run `sudo ./deploy/gce/deploy.sh configure` first, or re-run `db-up` (it now seeds `postgres.env` under `--env-dir`, default `/etc/tienda-magico`). Confirm the same `--env-dir` for both commands. |
 | `deploy` OOM during build | Larger machine or add swap; CMS build uses high Node heap |
-| CMS boot loop | `journalctl -u tienda-magico-cms`; `DATABASE_URL`, Postgres up |
+| CMS boot loop | `journalctl -u tienda-magico-cms`; `DATABASE_URL`, Postgres up (`db-up`, `docker ps`) |
 | Storefront empty catalog | CMS URL, CORS, products **published**, `COMMERCE_PROVIDER=payload` |
 | CORS errors in browser | `CORS_ORIGINS` must include exact shop origin |
 | nginx 502 | App not listening: `status`, `ss -lntp \| grep -E '3000\|4000'` |

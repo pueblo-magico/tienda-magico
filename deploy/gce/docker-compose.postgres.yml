@@ -1,9 +1,12 @@
 # Production Postgres for same-VM deploys.
 # Binds only to loopback — do not publish 5433 on a public interface.
 #
-# Usage (from repo root or deploy/gce):
-#   export POSTGRES_PASSWORD='strong-password'
-#   docker compose -f deploy/gce/docker-compose.postgres.yml up -d
+# Usage (prefer deploy.sh so env files stay consistent):
+#   sudo ./deploy/gce/deploy.sh db-up
+#
+# Manual:
+#   docker compose --env-file /etc/tienda-magico/postgres.env \
+#     -f deploy/gce/docker-compose.postgres.yml up -d
 
 services:
   postgres:
