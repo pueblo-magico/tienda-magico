@@ -37,7 +37,7 @@ Requirements
 - [x] Phase 8 — Shop Listing
 - [x] Phase 9 — Product Page
 - [x] Checkout abstraction (Mercado Pago Checkout Pro + commerce-redirect)
-- [x] GCE same-VM deploy scripts (`deploy/gce`, docs/deploy/gce.md)
+- [x] Artifact-only GCE deployment (GitHub Actions, Artifact Registry, staging/production runbook)
 - [ ] Phase 10 — Journal
 - [ ] Phase 11 — Experiences
 - [ ] Phase 12 — Impact

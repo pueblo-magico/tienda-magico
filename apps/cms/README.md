@@ -192,26 +192,16 @@ Full adapter reference: [docs/commerce/payload-ecommerce.md](../../docs/commerce
 
 Root convenience scripts: `dev:cms`, `build:cms`, `start:cms`, `db:cms:up`, `db:cms:down`.
 
-## Same-VM deploy (Google Cloud)
+## Production deploy (Google Cloud)
 
-Production scripts + nginx + systemd:
+The CMS is deployed as an immutable container image by GitHub Actions, together
+with the storefront image. The VM runs images, nginx, Postgres, and persisted
+media only—never a repository checkout or Node build.
 
-→ **[docs/deploy/gce.md](../../docs/deploy/gce.md)** and [`deploy/gce/`](../../deploy/gce/)
-
-```text
-reverse proxy (nginx)
-  shop.example.com  → 127.0.0.1:3000   storefront
-  cms.example.com   → 127.0.0.1:4000   this app (/admin + /api)
-Postgres (Docker)   → 127.0.0.1:5433
-```
-
-```bash
-# from monorepo root on the VM
-sudo ./deploy/gce/deploy.sh bootstrap
-sudo ./deploy/gce/deploy.sh configure --shop-host shop.example.com --cms-host cms.example.com
-sudo ./deploy/gce/deploy.sh db-up
-sudo ./deploy/gce/deploy.sh deploy
-```
+Use the **[staging and production deployment runbook](../../docs/deploy/github-actions.md)**
+for Google Cloud setup, GitHub Environment variables and secrets, releases,
+TLS, verification, and rollback. The CMS is exposed through the configured
+`CMS_HOST` at `/admin` and `/api`.
 
 Optional container image: set `CMS_STANDALONE_OUTPUT=true` when building the CMS `Dockerfile`.
 
