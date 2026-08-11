@@ -41,7 +41,7 @@ gcloud compute ssh INSTANCE --zone=ZONE --project=PROJECT
 # 2) Get the code
 sudo mkdir -p /opt/tienda-magico
 sudo chown $USER:$USER /opt/tienda-magico
-git clone https://github.com/itsJASPERr/tienda-magico.git /opt/tienda-magico
+git clone git@github.com:itsJASPERr/tienda-magico.git /opt/tienda-magico
 cd /opt/tienda-magico
 
 # 3) One-time OS packages (Node 22, Docker, nginx, app user)
