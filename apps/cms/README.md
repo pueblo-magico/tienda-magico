@@ -3,7 +3,7 @@
 Self-hosted **Payload CMS 3** backend with `@payloadcms/plugin-ecommerce`.
 
 Runs as a **separate Next.js process** (default **port 4000**) next to the storefront (port 3000).  
-Same git repository; same-VM deploy is supported.
+Same git repository; production deploy supports **same VM** or a **dedicated CMS VM** (`--role cms`).
 
 Related storefront docs:
 
@@ -192,26 +192,25 @@ Full adapter reference: [docs/commerce/payload-ecommerce.md](../../docs/commerce
 
 Root convenience scripts: `dev:cms`, `build:cms`, `start:cms`, `db:cms:up`, `db:cms:down`.
 
-## Same-VM deploy (Google Cloud)
+## Production deploy (Google Cloud)
 
 Production scripts + nginx + systemd:
 
 → **[docs/deploy/gce.md](../../docs/deploy/gce.md)** and [`deploy/gce/`](../../deploy/gce/)
 
-```text
-reverse proxy (nginx)
-  shop.example.com  → 127.0.0.1:3000   storefront
-  cms.example.com   → 127.0.0.1:4000   this app (/admin + /api)
-Postgres (Docker)   → 127.0.0.1:5433
-```
-
 ```bash
-# from monorepo root on the VM
-sudo ./deploy/gce/deploy.sh bootstrap
-sudo ./deploy/gce/deploy.sh configure --shop-host shop.example.com --cms-host cms.example.com
+# CMS-only VM (recommended when storefront is separate)
+sudo ./deploy/gce/deploy.sh bootstrap --role cms
+sudo ./deploy/gce/deploy.sh configure --role cms \
+  --cms-host cms.example.com --shop-host shop.example.com
+# edit /etc/tienda-magico/cms.env (CORS_ORIGINS must include the shop origin)
 sudo ./deploy/gce/deploy.sh db-up
 sudo ./deploy/gce/deploy.sh deploy
+
+# Or same VM as the storefront: omit --role (defaults to all)
 ```
+
+On a split deploy, Postgres stays on the CMS VM (`127.0.0.1:5433`); the storefront talks to this app over its public HTTPS URL.
 
 Optional container image: set `CMS_STANDALONE_OUTPUT=true` when building the CMS `Dockerfile`.
 

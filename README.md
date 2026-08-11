@@ -91,14 +91,19 @@ Details: [docs/checkout/operations.md](./docs/checkout/operations.md).
 
 ## Deploy (Google Cloud VM)
 
-Same-VM production: nginx → storefront (:3000) + CMS (:4000), Postgres in Docker.
+Production via nginx → storefront (:3000) and/or CMS (:4000), Postgres in Docker on the CMS host.
+
+Same VM (`--role all`, default) or split backend/frontend (`--role cms` + `--role web`):
 
 ```bash
+# same VM
 sudo ./deploy/gce/deploy.sh bootstrap
 sudo ./deploy/gce/deploy.sh configure --shop-host shop.example.com --cms-host cms.example.com
 # edit /etc/tienda-magico/*.env
 sudo ./deploy/gce/deploy.sh db-up
 sudo ./deploy/gce/deploy.sh deploy
+
+# or split: --role cms on the backend VM, --role web on the storefront VM
 ```
 
 Full guide: [docs/deploy/gce.md](./docs/deploy/gce.md).

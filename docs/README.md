@@ -12,8 +12,8 @@ Project docs for engineers and content/commerce operators.
 | Content / merchandising | [Shopify content guide](./commerce/content.md) | Products & collections in Shopify |
 | Content / merchandising | [Payload catalog guide](./commerce/payload-content.md) | Products & categories in `apps/cms` |
 | Content / editors | [CMS homepage & pages guide](./cms/content.md) | Build the home page with layout blocks (EN/ES) |
-| Developers / DevOps | [GCE VM deploy](./deploy/gce.md) | Bootstrap, nginx, systemd, Postgres on one GCP VM |
-| Developers / DevOps | [`apps/cms` README](../apps/cms/README.md) | Run Payload + Postgres, import map, same-VM deploy |
+| Developers / DevOps | [GCE VM deploy](./deploy/gce.md) | Bootstrap, nginx, systemd, Postgres — same VM or split cms/web VMs |
+| Developers / DevOps | [`apps/cms` README](../apps/cms/README.md) | Run Payload + Postgres, import map, production deploy |
 
 Related:
 
@@ -44,4 +44,4 @@ npm run dev:cms      # CMS admin + API
 | Edit products in admin | Shopify or `apps/cms` shop | [commerce/content.md](./commerce/content.md) / [payload-content.md](./commerce/payload-content.md) |
 | Pay with Mercado Pago (Payload carts) | `@/lib/checkout` + MP token in `.env.local` | [checkout/operations.md](./checkout/operations.md) |
 | Pay with Shopify Checkout | `CHECKOUT_PROVIDER=commerce-redirect` | [checkout/developer.md](./checkout/developer.md) |
-| Deploy shop + CMS on one GCP VM | `deploy/gce/deploy.sh` | [deploy/gce.md](./deploy/gce.md) |
+| Deploy shop + CMS on GCP (one or two VMs) | `deploy/gce/deploy.sh --role all\|cms\|web` | [deploy/gce.md](./deploy/gce.md) |
