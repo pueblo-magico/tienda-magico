@@ -104,11 +104,52 @@ cmd_configure() {
 
 compose() { docker compose --env-file "$TM_ENV_DIR/deploy.env" -f "$TM_ROOT/docker-compose.yml" "$@"; }
 
+# Validate environment files for placeholder values that should be replaced before deployment
+validate_env_file() {
+  local file="$1"
+  local name="$2"
+  
+  if [[ ! -f "$file" ]]; then
+    die "Environment file $name not found at: $file"
+  fi
+  
+  # Check for common placeholder values that indicate the file was never properly configured
+  local issues=()
+  
+  # Check for CHANGE_ME placeholders (common in example files)
+  if grep -qE 'CHANGE_ME|replace-me' "$file" 2>/dev/null; then
+    issues+=("$name contains placeholder values like 'CHANGE_ME' or 'replace-me'")
+  fi
+  
+  # Check for example.com domains that should be replaced with real hostnames
+  if grep -qE 'example\.com' "$file" 2>/dev/null; then
+    issues+=("$name still contains 'example.com' placeholders")
+  fi
+  
+  if [[ ${#issues[@]} -gt 0 ]]; then
+    for issue in "${issues[@]}"; do
+      log "WARNING: $issue"
+    done
+    log "Please configure these environment files before running activate."
+    return 1
+  fi
+  
+  return 0
+}
+
 cmd_activate() {
   need_root
   [[ -n "$TAG" ]] || die '--tag is required.'
   [[ -f "$TM_ENV_DIR/deploy.env" ]] || die 'Run configure first.'
   [[ "$TAG" =~ ^[a-zA-Z0-9._-]+$ ]] || die 'Invalid image tag.'
+  
+  # Validate environment files before proceeding
+  log 'Validating environment configuration...'
+  validate_env_file "$TM_ENV_DIR/deploy.env" "deploy.env" || true  # deploy.env is auto-configured, may have placeholders set by GitHub
+  validate_env_file "$TM_ENV_DIR/storefront.env" "storefront.env"
+  validate_env_file "$TM_ENV_DIR/cms.env" "cms.env"
+  validate_env_file "$TM_ENV_DIR/postgres.env" "postgres.env"
+  
   # The VM service account has Artifact Registry Reader. Obtain a short-lived
   # metadata token at deploy time; no registry password is stored on the VM.
   # The registry host is the first segment of the configured image name.
