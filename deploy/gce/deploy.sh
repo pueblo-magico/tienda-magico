@@ -22,7 +22,7 @@ usage() {
 Usage: deploy.sh <bootstrap|configure|activate|rollback|status> [options]
 
 Commands:
-  bootstrap                 Install Docker, Compose, nginx and firewall rules once.
+  bootstrap                 Install Docker, Compose and nginx once.
   configure                 Install the artifact-only Compose and nginx configuration.
   activate --tag SHA        Pull immutable app images and start the release.
   rollback --tag SHA        Activate a previously deployed image tag.
@@ -117,8 +117,8 @@ validate_env_file() {
   local issues=()
   
   # Check for CHANGE_ME placeholders (common in example files)
-  if grep -qE 'CHANGE_ME|replace-me' "$file" 2>/dev/null; then
-    issues+=("$name contains placeholder values like 'CHANGE_ME' or 'replace-me'")
+  if grep -qiE 'CHANGE_ME|replace-me|PROJECT_ID|your-gcp-project' "$file" 2>/dev/null; then
+    issues+=("$name contains an unreplaced placeholder value")
   fi
   
   # Check for example.com domains that should be replaced with real hostnames
@@ -145,7 +145,7 @@ cmd_activate() {
   
   # Validate environment files before proceeding
   log 'Validating environment configuration...'
-  validate_env_file "$TM_ENV_DIR/deploy.env" "deploy.env" || true  # deploy.env is auto-configured, may have placeholders set by GitHub
+  validate_env_file "$TM_ENV_DIR/deploy.env" "deploy.env"
   validate_env_file "$TM_ENV_DIR/storefront.env" "storefront.env"
   validate_env_file "$TM_ENV_DIR/cms.env" "cms.env"
   validate_env_file "$TM_ENV_DIR/postgres.env" "postgres.env"

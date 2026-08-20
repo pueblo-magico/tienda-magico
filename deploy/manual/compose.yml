@@ -1,0 +1,90 @@
+services:
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      SHOP_HOST: ${SHOP_HOST:?Set SHOP_HOST}
+      CMS_HOST: ${CMS_HOST:?Set CMS_HOST}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - /opt/tienda-magico/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      storefront:
+        condition: service_healthy
+      cms:
+        condition: service_healthy
+    logging:
+      driver: local
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  storefront:
+    image: tienda-magico/storefront:${TIENDA_IMAGE_TAG:?Set TIENDA_IMAGE_TAG}
+    restart: unless-stopped
+    env_file:
+      - /opt/tienda-magico/env/storefront.env
+    expose:
+      - "3000"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:3000/ || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 15s
+    logging:
+      driver: local
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  cms:
+    image: tienda-magico/cms:${TIENDA_IMAGE_TAG:?Set TIENDA_IMAGE_TAG}
+    restart: unless-stopped
+    env_file:
+      - /opt/tienda-magico/env/cms.env
+    expose:
+      - "4000"
+    volumes:
+      - /var/lib/tienda-magico/media:/app/media
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:4000/admin || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    logging:
+      driver: local
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    env_file:
+      - /opt/tienda-magico/env/postgres.env
+    volumes:
+      - /var/lib/tienda-magico/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-postgres} -d $${POSTGRES_DB:-tienda_magico_cms}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    logging:
+      driver: local
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  caddy_data:
+  caddy_config:

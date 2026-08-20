@@ -16,6 +16,7 @@
     "lint:cms": "npm --prefix apps/cms run lint",
     "db:cms:up": "npm --prefix apps/cms run db:up",
     "db:cms:down": "npm --prefix apps/cms run db:down",
+    "build-artifact": "node deploy/manual/build-artifact.mjs",
     "deploy:gce": "bash deploy/gce/deploy.sh"
   },
   "dependencies": {

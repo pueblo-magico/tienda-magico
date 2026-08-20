@@ -1,0 +1,12 @@
+{$SHOP_HOST} {
+    encode zstd gzip
+    reverse_proxy storefront:3000
+}
+
+{$CMS_HOST} {
+    encode zstd gzip
+    request_body {
+        max_size 32MB
+    }
+    reverse_proxy cms:4000
+}

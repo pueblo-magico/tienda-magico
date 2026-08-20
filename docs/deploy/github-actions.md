@@ -25,10 +25,11 @@ in production.
 
 Run the following from an administrator workstation after setting the values
 for your project. The example uses `us-central1`; for an Always Free-eligible
-VM choose `us-central1`, `us-west1`, or `us-east1` and an `e2-micro` with a
-30 GB standard persistent boot disk. A single e2-micro may not have sufficient
-memory for this complete application stack, so validate staging before relying
-on it for production.
+VM choose `us-central1`, `us-west1`, or `us-east1`. Use at least an `e2-small`
+with a 30 GB standard persistent boot disk for this complete application stack;
+monitor staging memory and move to a larger machine when its workload requires
+it. An `e2-micro` is not recommended for the two Next.js services, PostgreSQL,
+Docker, and nginx running together.
 
 ```bash
 export PROJECT_ID="your-project-id"
@@ -82,7 +83,7 @@ gcloud artifacts repositories add-iam-policy-binding "$REPOSITORY" \
 
 gcloud compute instances create "$VM_NAME" \
   --zone="$ZONE" \
-  --machine-type=e2-micro \
+  --machine-type=e2-small \
   --image-family=ubuntu-2404-lts-amd64 \
   --image-project=ubuntu-os-cloud \
   --boot-disk-size=30GB \
@@ -197,6 +198,17 @@ one password and use it in both `POSTGRES_ENV` and CMS `DATABASE_URL`:
 POSTGRES_PASSWORD="$(openssl rand -base64 36 | tr -d '/+=')"
 PAYLOAD_SECRET="$(openssl rand -base64 48)"
 ```
+
+Inside `CMS_ENV`, connect through the Compose service name—not VM loopback:
+
+```dotenv
+HOSTNAME=0.0.0.0
+DATABASE_URL=postgresql://postgres:PASSWORD@postgres:5432/tienda_magico_cms
+```
+
+Use `HOSTNAME=0.0.0.0` in `STOREFRONT_ENV` as well. Docker still publishes both
+application ports on VM loopback only, so they remain accessible externally
+only through nginx.
 
 For staging, use sandbox/test payment credentials. For production, use live
 credentials and a different database password and Payload secret. Do not put

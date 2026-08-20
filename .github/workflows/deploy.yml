@@ -46,7 +46,10 @@ jobs:
       NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL }}
       PAYLOAD_ECOMMERCE_URL: ${{ vars.PAYLOAD_ECOMMERCE_URL }}
       PAYLOAD_CMS_URL: ${{ vars.PAYLOAD_CMS_URL }}
+      NEXT_PUBLIC_CMS_URL: ${{ vars.NEXT_PUBLIC_CMS_URL }}
       CMS_MEDIA_ORIGIN: ${{ vars.CMS_MEDIA_ORIGIN }}
+      NEXT_PUBLIC_SERVER_URL: ${{ vars.NEXT_PUBLIC_SERVER_URL }}
+      PAYLOAD_PUBLIC_SERVER_URL: ${{ vars.PAYLOAD_PUBLIC_SERVER_URL }}
       IMAGE_TAG: ${{ inputs.image_tag || github.sha }}
       STOREFRONT_ENV: ${{ secrets.STOREFRONT_ENV }}
       CMS_ENV: ${{ secrets.CMS_ENV }}
@@ -56,7 +59,7 @@ jobs:
 
       - name: Validate deployment configuration
         run: |
-          required=(GCP_PROJECT_ID GCP_REGION GCP_ZONE GCP_INSTANCE ARTIFACT_REPOSITORY GCP_WIF_PROVIDER GCP_SERVICE_ACCOUNT STOREFRONT_HOST CMS_HOST NEXT_PUBLIC_SITE_URL PAYLOAD_ECOMMERCE_URL PAYLOAD_CMS_URL)
+          required=(GCP_PROJECT_ID GCP_REGION GCP_ZONE GCP_INSTANCE ARTIFACT_REPOSITORY GCP_WIF_PROVIDER GCP_SERVICE_ACCOUNT STOREFRONT_HOST CMS_HOST NEXT_PUBLIC_SITE_URL PAYLOAD_ECOMMERCE_URL PAYLOAD_CMS_URL NEXT_PUBLIC_CMS_URL CMS_MEDIA_ORIGIN NEXT_PUBLIC_SERVER_URL PAYLOAD_PUBLIC_SERVER_URL)
           for key in "${required[@]}"; do
             [[ -n "${!key:-}" ]] || { echo "Missing GitHub Environment variable: $key"; exit 1; }
           done
@@ -80,9 +83,12 @@ jobs:
             --build-arg NEXT_PUBLIC_SITE_URL \
             --build-arg PAYLOAD_ECOMMERCE_URL \
             --build-arg PAYLOAD_CMS_URL \
+            --build-arg NEXT_PUBLIC_CMS_URL \
             --build-arg CMS_MEDIA_ORIGIN \
             -t "${REGISTRY}/storefront:${IMAGE_TAG}" .
           docker build -f apps/cms/Dockerfile \
+            --build-arg NEXT_PUBLIC_SERVER_URL \
+            --build-arg PAYLOAD_PUBLIC_SERVER_URL \
             -t "${REGISTRY}/cms:${IMAGE_TAG}" apps/cms
           docker push "${REGISTRY}/storefront:${IMAGE_TAG}"
           docker push "${REGISTRY}/cms:${IMAGE_TAG}"
