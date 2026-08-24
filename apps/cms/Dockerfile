@@ -1,7 +1,7 @@
 # Optional container image for same-VM / compose deploys.
 # Set CMS_STANDALONE_OUTPUT=true when building for standalone output.
 
-FROM node:22-alpine AS base
+FROM node:24.18.0-alpine AS base
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
@@ -31,8 +31,8 @@ COPY --from=builder /app/public ./public
 RUN mkdir .next && chown nextjs:nodejs .next
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-# Persist uploads outside the container in real deploys
-COPY --from=builder --chown=nextjs:nodejs /app/media ./media
+# Uploads are supplied by the persistent /app/media runtime volume.
+RUN mkdir -p /app/media && chown nextjs:nodejs /app/media
 USER nextjs
 EXPOSE 4000
 CMD ["node", "server.js"]
