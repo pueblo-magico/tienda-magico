@@ -24,6 +24,7 @@ import { Footer } from './globals/Footer'
 import { Header } from './globals/Header'
 import { SEO } from './globals/SEO'
 import { SiteSettings } from './globals/SiteSettings'
+import { migrations } from './migrations'
 
 loadEnv()
 
@@ -72,6 +73,7 @@ export default buildConfig({
     pool: {
       connectionString: process.env.DATABASE_URL || '',
     },
+    prodMigrations: migrations,
   }),
   cors: corsOrigins,
   csrf: corsOrigins,
