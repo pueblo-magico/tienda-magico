@@ -2,6 +2,7 @@
 
 import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
+import { localizePath } from "@/config/navigation";
 import { Body, PageTitle } from "@/components/typography";
 import { useCart } from "../CartProvider";
 import { CartLineItem } from "./CartLineItem";
@@ -45,7 +46,7 @@ export function CartPageContent() {
         ) : cart.lines.length === 0 ? (
           <div className="space-y-4">
             <Body>{t("empty")}</Body>
-            <Button href={`/${locale}/shop`} variant="secondary">
+            <Button href={localizePath(locale, "/shop")} variant="secondary">
               {t("continue")}
             </Button>
           </div>
@@ -88,7 +89,7 @@ export function CartPageContent() {
             }}
           />
           <div className="mt-3">
-            <Button href={`/${locale}/shop`} variant="ghost" className="w-full">
+            <Button href={localizePath(locale, "/shop")} variant="ghost" className="w-full">
               {t("continue")}
             </Button>
           </div>

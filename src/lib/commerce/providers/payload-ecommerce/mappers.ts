@@ -312,7 +312,7 @@ function readAmount(
     }
   }
 
-  // prices group style: { priceInUSD: 1200, priceInUSDEnabled: true }
+  // prices group style: { priceInARS: 1200, priceInARSEnabled: true }
   for (const [key, value] of Object.entries(source)) {
     if (
       key.toLowerCase().startsWith("pricein") &&

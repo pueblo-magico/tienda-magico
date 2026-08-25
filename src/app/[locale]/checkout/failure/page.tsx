@@ -4,6 +4,7 @@ import { Container } from "@/components/layout/Container";
 import { Section } from "@/components/layout/Section";
 import { Body, Eyebrow, PageTitle } from "@/components/typography";
 import { Button } from "@/components/ui/Button";
+import { localizePath } from "@/config/navigation";
 import { checkout } from "@/lib/checkout";
 
 type Props = {
@@ -81,7 +82,7 @@ export default async function CheckoutFailurePage({
         ) : null}
 
         <div className="flex flex-wrap items-center justify-center gap-3">
-          <Button href={`/${locale}/shop`}>{t("continueShopping")}</Button>
+          <Button href={localizePath(locale, "/shop")}>{t("continueShopping")}</Button>
           <Button href={`/${locale}`} variant="ghost">
             {t("backHome")}
           </Button>
@@ -89,7 +90,7 @@ export default async function CheckoutFailurePage({
 
         <p className="text-xs text-muted">
           <Link
-            href={`/${locale}/cart`}
+            href={localizePath(locale, "/cart")}
             className="underline-offset-4 hover:underline"
           >
             {t("backToCart")}

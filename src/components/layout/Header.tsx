@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { mainNavigation, type Locale } from "@/config/navigation";
+import { localizePath, mainNavigation, type Locale } from "@/config/navigation";
 import { cn } from "@/lib/utils/cn";
 import { useCart } from "@/features/cart";
 import { CartButton } from "./CartButton";
@@ -15,7 +15,7 @@ export function Header({ className }: { className?: string }) {
   const locale = useLocale() as Locale;
   const { openCart, itemCount } = useCart();
   const [menuOpen, setMenuOpen] = useState(false);
-  const homeHref = `/${locale}`;
+  const homeHref = localizePath(locale);
 
   const items = mainNavigation.map((item) => {
     const key = item.labelKey.replace("nav.", "") as
@@ -28,7 +28,7 @@ export function Header({ className }: { className?: string }) {
 
     return {
       ...item,
-      href: `/${locale}${item.href}`,
+      href: localizePath(locale, item.href),
       label: t(key),
     };
   });

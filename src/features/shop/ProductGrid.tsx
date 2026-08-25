@@ -1,4 +1,5 @@
 import { ProductCard } from "@/components/cards/ProductCard";
+import { localizePath } from "@/config/navigation";
 import { formatMoney } from "@/lib/commerce/utils/format";
 import type { ProductSummary } from "@/types/commerce";
 
@@ -16,7 +17,7 @@ export function ProductGrid({ locale, products }: Props) {
       {products.map((product) => (
         <li key={product.id}>
           <ProductCard
-            href={`/${locale}/shop/${product.handle}`}
+            href={localizePath(locale, `/shop/${product.handle}`)}
             title={product.title}
             price={formatMoney(product.priceRange.minVariantPrice, locale)}
             imageSrc={product.featuredImage?.url || PLACEHOLDER}

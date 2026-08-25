@@ -230,7 +230,7 @@ These are edited under **Globals** in admin. They do **not** replace homepage bl
 | Slug not exactly `home` | Fallback homepage |
 | Left as Draft | Fallback homepage |
 | Empty layout | Fallback homepage |
-| Internal link `/en/shop` | Double locale risk — use `/shop` |
+| Internal link `/es/tienda` | Double locale risk — use the internal path `/shop`; the storefront localizes it |
 | Product block but catalog empty | Section missing |
 | Image without Alt | Accessibility issues |
 | Only EN filled | ES shows English fallback or empty strings |

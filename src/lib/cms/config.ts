@@ -42,12 +42,12 @@ export function getCmsConfig(): CmsConfig | null {
     defaultLocale: (
       readEnv("PAYLOAD_CMS_DEFAULT_LOCALE") ??
       readEnv("PAYLOAD_ECOMMERCE_DEFAULT_LOCALE") ??
-      "en"
+      "es"
     ).toLowerCase(),
     fallbackLocale: (
       readEnv("PAYLOAD_CMS_FALLBACK_LOCALE") ??
       readEnv("PAYLOAD_ECOMMERCE_FALLBACK_LOCALE") ??
-      "en"
+      "es"
     ).toLowerCase(),
     homePageSlug: readEnv("CMS_HOME_PAGE_SLUG") ?? "home",
   };

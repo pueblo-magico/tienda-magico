@@ -2,7 +2,7 @@ import type { Money } from "@/types/commerce";
 
 export function formatMoney(
   money: Money,
-  locale = "en-US",
+  locale = "es-AR",
   options?: Intl.NumberFormatOptions,
 ): string {
   const amount = Number.parseFloat(money.amount);
@@ -12,9 +12,13 @@ export function formatMoney(
   }
 
   try {
-    return new Intl.NumberFormat(locale, {
+    const regionalLocale = locale === "es" ? "es-AR" : locale === "en" ? "en-US" : locale;
+    return new Intl.NumberFormat(regionalLocale, {
       style: "currency",
       currency: money.currencyCode,
+      ...(money.currencyCode === "ARS"
+        ? { minimumFractionDigits: 0, maximumFractionDigits: 2 }
+        : {}),
       ...options,
     }).format(amount);
   } catch {

@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { localizePath } from "@/config/navigation";
 import { Container } from "@/components/layout/Container";
 import { Section } from "@/components/layout/Section";
 import { Body, Eyebrow, SectionTitle } from "@/components/typography";
@@ -94,7 +95,7 @@ export async function FeaturedCategoriesBlockView({
           {categories.map((category) => (
             <li key={category.id}>
               <Link
-                href={`/${locale}/shop?collection=${encodeURIComponent(category.handle)}`}
+                href={localizePath(locale, `/shop?collection=${encodeURIComponent(category.handle)}`)}
                 className="group block overflow-hidden rounded-2xl border border-border bg-card transition-shadow hover:shadow-md"
               >
                 <div className="relative aspect-[4/3] bg-sand/40">

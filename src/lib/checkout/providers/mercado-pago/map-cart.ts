@@ -30,7 +30,7 @@ export function cartToPreferenceItems(cart: Cart): MercadoPagoPreferenceItem[] {
     const currency =
       line.cost.amountPerQuantity.currencyCode ||
       cart.cost.subtotalAmount.currencyCode ||
-      "USD";
+      "ARS";
 
     const title =
       line.merchandise.product.title ||

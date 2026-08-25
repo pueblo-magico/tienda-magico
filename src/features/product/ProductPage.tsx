@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { localizePath } from "@/config/navigation";
 import { Badge } from "@/components/ui/Badge";
 import { Container } from "@/components/layout/Container";
 import { Section } from "@/components/layout/Section";
@@ -48,7 +49,7 @@ export function ProductPageView({ locale, product, related, labels }: Props) {
       <Section spacing="lg">
         <Container className="space-y-8">
           <Link
-            href={`/${locale}/shop`}
+            href={localizePath(locale, "/shop")}
             className="text-xs font-medium uppercase tracking-[0.14em] text-muted transition-colors hover:text-forest"
           >
             ← {labels.backToShop}

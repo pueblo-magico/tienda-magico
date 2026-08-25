@@ -3,6 +3,7 @@
 import { useLocale, useTranslations } from "next-intl";
 import { Drawer } from "@/components/ui/Drawer";
 import { Button } from "@/components/ui/Button";
+import { localizePath } from "@/config/navigation";
 import { useCart } from "../CartProvider";
 import { CartLineItem } from "./CartLineItem";
 import { CartSummary } from "./CartSummary";
@@ -47,7 +48,7 @@ export function CartDrawer() {
               }}
             />
             <Button
-              href={`/${locale}/cart`}
+              href={localizePath(locale, "/cart")}
               variant="ghost"
               className="w-full"
               onClick={closeCart}
@@ -74,7 +75,7 @@ export function CartDrawer() {
         <div className="space-y-4 py-6">
           <p className="text-sm text-muted">{t("empty")}</p>
           <Button
-            href={`/${locale}/shop`}
+            href={localizePath(locale, "/shop")}
             variant="secondary"
             onClick={closeCart}
           >

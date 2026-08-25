@@ -3,16 +3,16 @@
 import Link from "next/link";
 import { useLocale } from "next-intl";
 import { usePathname } from "next/navigation";
-import { locales, type Locale } from "@/config/navigation";
+import {
+  internalPath,
+  localizePath,
+  locales,
+  type Locale,
+} from "@/config/navigation";
 import { cn } from "@/lib/utils/cn";
 
 function swapLocaleInPath(pathname: string, nextLocale: Locale) {
-  const segments = pathname.split("/");
-  if (segments.length > 1 && locales.includes(segments[1] as Locale)) {
-    segments[1] = nextLocale;
-    return segments.join("/") || "/";
-  }
-  return `/${nextLocale}${pathname === "/" ? "" : pathname}`;
+  return localizePath(nextLocale, internalPath(pathname));
 }
 
 export function LanguageSwitcher({ className }: { className?: string }) {

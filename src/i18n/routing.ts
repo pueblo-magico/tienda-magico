@@ -6,6 +6,14 @@ export const routing = defineRouting({
   locales: [...locales],
   defaultLocale,
   localePrefix: "always",
+  pathnames: {
+    "/shop": { en: "/shop", es: "/tienda" },
+    "/shop/[handle]": { en: "/shop/[handle]", es: "/tienda/[handle]" },
+    "/cart": { en: "/cart", es: "/carrito" },
+    "/about": { en: "/about", es: "/nosotros" },
+    "/shipping": { en: "/shipping", es: "/envios" },
+    "/contact": { en: "/contact", es: "/contacto" },
+  },
 });
 
 export const { Link, redirect, usePathname, useRouter, getPathname } =

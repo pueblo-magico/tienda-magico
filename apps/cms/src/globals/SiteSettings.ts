@@ -77,7 +77,7 @@ export const SiteSettings: GlobalConfig = {
     {
       name: 'defaultLocale',
       type: 'select',
-      defaultValue: 'en',
+      defaultValue: 'es',
       options: [
         { label: 'English', value: 'en' },
         { label: 'Español', value: 'es' },

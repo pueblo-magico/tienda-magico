@@ -34,7 +34,7 @@ export const productsCollectionOverride: CollectionOverride = ({ defaultCollecti
       localized: false,
       admin: {
         position: 'sidebar',
-        description: 'Stable URL handle shared across languages (e.g. mountain-cacao).',
+        description: 'URL estable, escrito principalmente en español y compartido entre idiomas (p. ej. cacao-de-montana).',
       },
     },
     {
@@ -112,7 +112,7 @@ export const productsCollectionOverride: CollectionOverride = ({ defaultCollecti
       variants: true,
       gallery: true,
       inventory: true,
-      priceInUSD: true,
+      priceInARS: true,
       category: true,
     },
     fields: [...catalogueFields, ...(defaultCollection.fields ?? [])],

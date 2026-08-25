@@ -127,7 +127,7 @@ Plugin defaults do **not** include `title`. This app’s override adds:
 - `category` → `categories`
 - `tags[]`
 
-Plus plugin fields: pricing (`priceInUSD` in minor units), inventory, variants, drafts.
+Plus plugin fields: pricing (`priceInARS` in minor units), inventory, variants, drafts.
 
 ## Localization (EN / ES)
 
@@ -136,7 +136,7 @@ Configured in `src/payload.config.ts`:
 ```ts
 localization: {
   locales: [{ code: 'en', label: 'English' }, { code: 'es', label: 'Español' }],
-  defaultLocale: 'en',
+  defaultLocale: 'es',
   fallback: true,
 }
 ```
@@ -151,15 +151,15 @@ localization: {
 
 ### Editor workflow
 
-1. Create/edit a product in **English** (default locale)
-2. Use the admin **locale switcher** (top bar) → **Español**
-3. Fill Spanish title/description/summary
-4. Publish — missing ES fields fall back to EN when `fallback: true`
+1. Create/edit a product in **Español** (default locale), including its Spanish canonical slug
+2. Use the admin **locale switcher** (top bar) → **English**
+3. Fill the English title/description/summary
+4. Publish — missing EN fields fall back to ES when `fallback: true`
 
 ### API
 
 ```http
-GET /api/products?locale=es&fallback-locale=en&draft=false
+GET /api/products?locale=en&fallback-locale=es&draft=false
 ```
 
 ## Storefront connection
@@ -169,7 +169,7 @@ Root storefront `.env.local`:
 ```bash
 COMMERCE_PROVIDER=payload
 PAYLOAD_ECOMMERCE_URL=http://localhost:4000
-PAYLOAD_ECOMMERCE_CURRENCY=USD
+PAYLOAD_ECOMMERCE_CURRENCY=ARS
 PAYLOAD_ECOMMERCE_AMOUNT_IS_CENTS=true
 PAYLOAD_ECOMMERCE_COLLECTIONS_SLUG=categories
 # Optional — Users collection API key for server-side reads/writes

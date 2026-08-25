@@ -1,6 +1,6 @@
 import type { Field } from 'payload'
 
-/** Stable, non-localized URL handle. */
+/** Stable, non-localized URL handle authored canonically in Spanish. */
 export const slugField = (overrides?: Partial<Field>): Field =>
   ({
     name: 'slug',
@@ -11,7 +11,7 @@ export const slugField = (overrides?: Partial<Field>): Field =>
     localized: false,
     admin: {
       position: 'sidebar',
-      description: 'Stable URL handle shared across languages (lowercase-kebab).',
+      description: 'URL canónica en español, compartida entre idiomas (minúsculas-con-guiones).',
     },
     ...overrides,
   }) as Field

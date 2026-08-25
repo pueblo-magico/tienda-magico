@@ -33,7 +33,7 @@ COMMERCE_PROVIDER=payload
 # aliases: payload-ecommerce, payload_ecommerce, payloadcms
 
 PAYLOAD_ECOMMERCE_URL=http://localhost:4000
-PAYLOAD_ECOMMERCE_CURRENCY=USD
+PAYLOAD_ECOMMERCE_CURRENCY=ARS
 PAYLOAD_ECOMMERCE_AMOUNT_IS_CENTS=true
 PAYLOAD_ECOMMERCE_COLLECTIONS_SLUG=categories
 
@@ -94,7 +94,7 @@ Same VM is fine: two Node processes + one Postgres.
 - identity: `title` / `name`, `slug` / `handle`, `id`
 - copy: `description` / `richText` / `summary`
 - media: `gallery`, `media`, `images`, `image`, `featuredImage`
-- pricing: `priceInUSD` (or configured currency), `price`, `amount` — often **cents**
+- pricing: `priceInARS` (or configured currency), `price`, `amount` — often **minor units**
 - variants: `variants.docs` or `variants[]`
 - inventory: `inventory`
 - SEO: `meta.title`, `meta.description` (if present)
@@ -170,8 +170,8 @@ const collection = await commerce.getCollection("ritual-cacao", {
 Env (optional defaults for the adapter):
 
 ```bash
-PAYLOAD_ECOMMERCE_DEFAULT_LOCALE=en
-PAYLOAD_ECOMMERCE_FALLBACK_LOCALE=en
+PAYLOAD_ECOMMERCE_DEFAULT_LOCALE=es
+PAYLOAD_ECOMMERCE_FALLBACK_LOCALE=es
 ```
 
 Slug handles are **shared** across locales. Translate title/description in admin per locale.
@@ -183,7 +183,7 @@ Slug handles are **shared** across locales. Translate title/description in admin
 1. `apps/cms` running with Postgres
 2. Ecommerce plugin active (products, variants, carts)
 3. Guest carts enabled
-4. Currency matches `PAYLOAD_ECOMMERCE_CURRENCY` (USD)
+4. Currency matches `PAYLOAD_ECOMMERCE_CURRENCY` (ARS)
 5. Products **published**
 6. `CORS_ORIGINS` includes the storefront origin
 7. After plugin/config changes: `npm run generate:importmap` in `apps/cms`

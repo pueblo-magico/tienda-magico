@@ -1,17 +1,17 @@
 import { Button } from "@/components/ui/Button";
+import { localizePath } from "@/config/navigation";
 import type { CmsLink as CmsLinkType } from "@/lib/cms";
 import type { ButtonProps } from "@/components/ui/Button";
 
 function resolveHref(link: CmsLinkType, locale: string): string | null {
   if (link.type === "internal" && link.path) {
     const path = link.path.startsWith("/") ? link.path : `/${link.path}`;
-    if (path === "/") return `/${locale}`;
-    return `/${locale}${path}`;
+    return localizePath(locale, path);
   }
   if (link.url) return link.url;
   if (link.path) {
     const path = link.path.startsWith("/") ? link.path : `/${link.path}`;
-    return `/${locale}${path}`;
+    return localizePath(locale, path);
   }
   return null;
 }

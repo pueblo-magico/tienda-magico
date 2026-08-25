@@ -1,4 +1,5 @@
 import { ProductCard } from "@/components/cards/ProductCard";
+import { localizePath } from "@/config/navigation";
 import { Container } from "@/components/layout/Container";
 import { Section } from "@/components/layout/Section";
 import { Body, Eyebrow, SectionTitle } from "@/components/typography";
@@ -101,7 +102,7 @@ export async function FeaturedProductsBlockView({
           {products.map((product) => (
             <li key={product.id}>
               <ProductCard
-                href={`/${locale}/shop/${product.handle}`}
+                href={localizePath(locale, `/shop/${product.handle}`)}
                 title={product.title}
                 price={formatMoney(product.priceRange.minVariantPrice, locale)}
                 imageSrc={

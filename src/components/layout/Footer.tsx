@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
-import { footerNavigation, type Locale } from "@/config/navigation";
+import { footerNavigation, localizePath, type Locale } from "@/config/navigation";
 import { Container } from "./Container";
 import { cn } from "@/lib/utils/cn";
 
 export async function Footer({ className }: { className?: string }) {
   const t = await getTranslations();
   const locale = (await getLocale()) as Locale;
-  const localize = (href: string) => `/${locale}${href}`;
+  const localize = (href: string) => localizePath(locale, href);
 
   return (
     <footer className={cn("border-t border-border bg-muted/50", className)}>

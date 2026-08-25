@@ -238,7 +238,7 @@ export interface Page {
   id: number;
   title: string;
   /**
-   * Stable URL handle shared across languages (lowercase-kebab).
+   * URL canónica en español, compartida entre idiomas (minúsculas-con-guiones).
    */
   slug: string;
   layout: (
@@ -533,7 +533,7 @@ export interface Product {
   id: number;
   title: string;
   /**
-   * Stable URL handle shared across languages (e.g. mountain-cacao).
+   * URL estable, escrito principalmente en español y compartido entre idiomas (p. ej. cacao-de-montana).
    */
   slug: string;
   description?: {
@@ -576,8 +576,8 @@ export interface Product {
     hasNextPage?: boolean;
     totalDocs?: number;
   };
-  priceInUSDEnabled?: boolean | null;
-  priceInUSD?: number | null;
+  priceInARSEnabled?: boolean | null;
+  priceInARS?: number | null;
   updatedAt: string;
   createdAt: string;
   deletedAt?: string | null;
@@ -591,7 +591,7 @@ export interface Category {
   id: number;
   title: string;
   /**
-   * Stable URL handle shared across languages.
+   * URL canónica en español, compartida entre idiomas.
    */
   slug: string;
   description?: string | null;
@@ -646,8 +646,8 @@ export interface Variant {
   product: number | Product;
   options: (number | VariantOption)[];
   inventory?: number | null;
-  priceInUSDEnabled?: boolean | null;
-  priceInUSD?: number | null;
+  priceInARSEnabled?: boolean | null;
+  priceInARS?: number | null;
   updatedAt: string;
   createdAt: string;
   deletedAt?: string | null;
@@ -696,7 +696,7 @@ export interface Post {
   id: number;
   title: string;
   /**
-   * Stable URL handle shared across languages (lowercase-kebab).
+   * URL canónica en español, compartida entre idiomas (minúsculas-con-guiones).
    */
   slug: string;
   /**
@@ -817,7 +817,7 @@ export interface Cart {
   purchasedAt?: string | null;
   status?: ('active' | 'purchased' | 'abandoned') | null;
   subtotal?: number | null;
-  currency?: 'USD' | null;
+  currency?: 'ARS' | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -853,7 +853,7 @@ export interface Order {
   transactions?: (number | Transaction)[] | null;
   status?: OrderStatus;
   amount?: number | null;
-  currency?: 'USD' | null;
+  currency?: 'ARS' | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -890,7 +890,7 @@ export interface Transaction {
   order?: (number | null) | Order;
   cart?: (number | null) | Cart;
   amount?: number | null;
-  currency?: 'USD' | null;
+  currency?: 'ARS' | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1374,8 +1374,8 @@ export interface VariantsSelect<T extends boolean = true> {
   product?: T;
   options?: T;
   inventory?: T;
-  priceInUSDEnabled?: T;
-  priceInUSD?: T;
+  priceInARSEnabled?: T;
+  priceInARS?: T;
   updatedAt?: T;
   createdAt?: T;
   deletedAt?: T;
@@ -1432,8 +1432,8 @@ export interface ProductsSelect<T extends boolean = true> {
   enableVariants?: T;
   variantTypes?: T;
   variants?: T;
-  priceInUSDEnabled?: T;
-  priceInUSD?: T;
+  priceInARSEnabled?: T;
+  priceInARS?: T;
   updatedAt?: T;
   createdAt?: T;
   deletedAt?: T;

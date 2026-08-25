@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useLocale } from "next-intl";
+import { localizePath } from "@/config/navigation";
 import type { CartLine } from "@/types/commerce";
 import { formatMoney } from "@/lib/commerce/utils/format";
 import { cn } from "@/lib/utils/cn";
@@ -30,7 +31,7 @@ export function CartLineItem({
   className,
 }: Props) {
   const locale = useLocale();
-  const productHref = `/${locale}/shop/${line.merchandise.product.handle}`;
+  const productHref = localizePath(locale, `/shop/${line.merchandise.product.handle}`);
   const image = line.merchandise.product.featuredImage;
   const options = line.merchandise.selectedOptions
     .map((option) => option.value)

@@ -28,11 +28,11 @@ export const Categories: CollectionConfig = {
       required: true,
       unique: true,
       index: true,
-      // Shared handle across locales
+      // Spanish canonical handle shared across locales
       localized: false,
       admin: {
         position: 'sidebar',
-        description: 'Stable URL handle shared across languages.',
+        description: 'URL canónica en español, compartida entre idiomas.',
       },
     },
     {

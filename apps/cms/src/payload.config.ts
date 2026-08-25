@@ -88,7 +88,7 @@ export default buildConfig({
         label: 'Español',
       },
     ],
-    defaultLocale: 'en',
+    defaultLocale: 'es',
     fallback: true,
   },
   sharp,
@@ -105,12 +105,12 @@ export default buildConfig({
         slug: 'users',
       },
       currencies: {
-        defaultCurrency: 'USD',
+        defaultCurrency: 'ARS',
         supportedCurrencies: [
           {
-            code: 'USD',
+            code: 'ARS',
             decimals: 2,
-            label: 'US Dollar',
+            label: 'Peso argentino',
             symbol: '$',
           },
         ],

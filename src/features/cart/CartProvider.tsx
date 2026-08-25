@@ -27,8 +27,8 @@ function emptyCart(): Cart {
     totalQuantity: 0,
     note: null,
     cost: {
-      subtotalAmount: { amount: "0.00", currencyCode: "USD" },
-      totalAmount: { amount: "0.00", currencyCode: "USD" },
+      subtotalAmount: { amount: "0.00", currencyCode: "ARS" },
+      totalAmount: { amount: "0.00", currencyCode: "ARS" },
       totalTaxAmount: null,
     },
     lines: [],

@@ -52,7 +52,7 @@ Used by the storefront as “collections” (`PAYLOAD_ECOMMERCE_COLLECTIONS_SLUG
 | --- | --- |
 | Title | Product name (admin list title) |
 | slug | Unique handle; storefront resolves `/product/[slug]` style routes by this |
-| Price (USD) | Plugin price field — stored in **cents** (e.g. `2500` = $25.00) |
+| Price (ARS) | Plugin price field — stored in **minor units** (e.g. `250000` = $2.500,00) |
 | Status | **Published** to appear in public API |
 
 ### Strongly recommended

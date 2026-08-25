@@ -1,4 +1,5 @@
 import type { GetProductsParams } from "@/types/commerce";
+import { localizePath } from "@/config/navigation";
 import {
   DEFAULT_SHOP_SORT,
   SHOP_PAGE_SIZE,
@@ -97,5 +98,5 @@ export function buildShopHref(
   if (after) params.set("after", after);
 
   const qs = params.toString();
-  return qs ? `/${locale}/shop?${qs}` : `/${locale}/shop`;
+  return localizePath(locale, qs ? `/shop?${qs}` : "/shop");
 }

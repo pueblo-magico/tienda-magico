@@ -70,7 +70,7 @@ SHOPIFY_API_VERSION=2025-01
 # or Payload Ecommerce (self-hosted)
 # COMMERCE_PROVIDER=payload
 # PAYLOAD_ECOMMERCE_URL=http://localhost:4000
-# PAYLOAD_ECOMMERCE_CURRENCY=USD
+# PAYLOAD_ECOMMERCE_CURRENCY=ARS
 ```
 
 ### Variable reference

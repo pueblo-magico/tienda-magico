@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/Button";
+import { localizePath } from "@/config/navigation";
 import { ImpactCard } from "@/components/cards/ImpactCard";
 import { ProductCard } from "@/components/cards/ProductCard";
 import { Container } from "@/components/layout/Container";
@@ -41,7 +42,7 @@ export async function FallbackHome({ locale }: { locale: string }) {
           <PageTitle>{t("title")}</PageTitle>
           <Body size="lg">{t("subtitle")}</Body>
           <div className="flex flex-wrap gap-3">
-            <Button href={`/${locale}/shop`}>{t("cta")}</Button>
+            <Button href={localizePath(locale, "/shop")}>{t("cta")}</Button>
             <Button href={`/${locale}/impact`} variant="secondary">
               {t("secondaryCta")}
             </Button>
@@ -60,7 +61,7 @@ export async function FallbackHome({ locale }: { locale: string }) {
               {categories.map((category) => (
                 <li key={category.id}>
                   <a
-                    href={`/${locale}/shop?collection=${encodeURIComponent(category.handle)}`}
+                    href={localizePath(locale, `/shop?collection=${encodeURIComponent(category.handle)}`)}
                     className="block rounded-2xl border border-border bg-card px-4 py-5 transition-shadow hover:shadow-md"
                   >
                     <h3 className="font-serif text-lg text-forest">
@@ -90,7 +91,7 @@ export async function FallbackHome({ locale }: { locale: string }) {
               {products.map((product) => (
                 <li key={product.id}>
                   <ProductCard
-                    href={`/${locale}/shop/${product.handle}`}
+                    href={localizePath(locale, `/shop/${product.handle}`)}
                     title={product.title}
                     price={formatMoney(
                       product.priceRange.minVariantPrice,

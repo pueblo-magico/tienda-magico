@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/Button";
+import { localizePath } from "@/config/navigation";
 import { Body } from "@/components/typography";
 import { CART_ID_STORAGE_KEY } from "@/features/cart/constants";
 import { createCheckoutSession } from "./api";
@@ -99,8 +100,8 @@ export function CheckoutStart({ initialCartId }: Props) {
       <div className="mx-auto max-w-md space-y-4 text-center">
         <Body className="text-forest/80">{error || t("failed")}</Body>
         <div className="flex flex-wrap justify-center gap-3">
-          <Button href={`/${locale}/cart`}>{t("backToCart")}</Button>
-          <Button href={`/${locale}/shop`} variant="ghost">
+          <Button href={localizePath(locale, "/cart")}>{t("backToCart")}</Button>
+          <Button href={localizePath(locale, "/shop")} variant="ghost">
             {t("continueShopping")}
           </Button>
         </div>
