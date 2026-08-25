@@ -1,283 +1,162 @@
-# Deploy staging and production with GitHub Actions
+# Automated staging deployment with GitHub Actions
 
-This is the supported deployment path. GitHub Actions builds the storefront and
-Payload CMS as immutable container images, publishes them to Artifact Registry,
-and activates them on Compute Engine through IAP. The VM never receives a Git
-checkout, `node_modules`, or application build tools.
-
-```text
-GitHub Environment → GitHub Actions → Artifact Registry → Google Cloud VM
-       secrets             build images                  pull and run images
-```
-
-## Deployment model
-
-| Environment | Trigger | VM | Intended use |
-| --- | --- | --- | --- |
-| `staging` | Push to `staging` | Staging VM | Automatic validation of changes |
-| `production` | Manual workflow run from `main` | Production VM | Protected customer-facing release |
-
-Both environments use the same variable and secret names, but their values are
-independent. Do not reuse staging payment, database, Payload, or domain values
-in production.
-
-## 1. Prepare Google Cloud
-
-Run the following from an administrator workstation after setting the values
-for your project. The example uses `us-central1`; for an Always Free-eligible
-VM choose `us-central1`, `us-west1`, or `us-east1`. Use at least an `e2-small`
-with a 30 GB standard persistent boot disk for this complete application stack;
-monitor staging memory and move to a larger machine when its workload requires
-it. An `e2-micro` is not recommended for the two Next.js services, PostgreSQL,
-Docker, and nginx running together.
-
-```bash
-export PROJECT_ID="your-project-id"
-export REGION="us-central1"
-export ZONE="us-central1-a"
-export REPOSITORY="tienda"
-export GITHUB_OWNER="your-github-owner"
-export GITHUB_REPOSITORY="tienda-magico"
-export PROJECT_NUMBER="$(gcloud projects describe "$PROJECT_ID" --format='value(projectNumber)')"
-
-gcloud config set project "$PROJECT_ID"
-gcloud services enable artifactregistry.googleapis.com compute.googleapis.com \
-  iamcredentials.googleapis.com iam.googleapis.com sts.googleapis.com
-
-gcloud artifacts repositories create "$REPOSITORY" \
-  --location="$REGION" --repository-format=docker \
-  --description="Tienda Magico deployment images"
-```
-
-Apply the included image retention policy so a limited rollback window is kept:
-
-```bash
-gcloud artifacts repositories set-cleanup-policies "$REPOSITORY" \
-  --project="$PROJECT_ID" \
-  --location="$REGION" \
-  --policy=deploy/gce/artifact-registry-cleanup.json
-```
-
-The policy file is a JSON **list**: it removes untagged versions after one day,
-removes tagged versions after fourteen days, and protects the four newest
-versions of each image package for rollback. Artifact Registry evaluates cleanup
-policies asynchronously, so deletions can take about a day to occur.
-
-### Create the two runtime identities and VMs
-
-Create a runtime service account for each VM. It can only read deployment
-images. Repeat the VM command once for `tienda-staging` and later for
-`tienda-production`, changing the names as appropriate.
-
-```bash
-export RUNTIME_SA="tienda-staging-runtime"
-export VM_NAME="tienda-staging"
-
-gcloud iam service-accounts create "$RUNTIME_SA" \
-  --display-name="Tienda staging VM runtime"
-
-gcloud artifacts repositories add-iam-policy-binding "$REPOSITORY" \
-  --location="$REGION" \
-  --member="serviceAccount:${RUNTIME_SA}@${PROJECT_ID}.iam.gserviceaccount.com" \
-  --role="roles/artifactregistry.reader"
-
-gcloud compute instances create "$VM_NAME" \
-  --zone="$ZONE" \
-  --machine-type=e2-small \
-  --image-family=ubuntu-2404-lts-amd64 \
-  --image-project=ubuntu-os-cloud \
-  --boot-disk-size=30GB \
-  --boot-disk-type=pd-standard \
-  --service-account="${RUNTIME_SA}@${PROJECT_ID}.iam.gserviceaccount.com" \
-  --scopes=https://www.googleapis.com/auth/cloud-platform \
-  --tags=tienda-http,tienda-https
-```
-
-Create VPC rules once per project. IAP needs SSH access from its documented
-proxy range; HTTP and HTTPS are the only public application ports.
-
-```bash
-gcloud compute firewall-rules create tienda-allow-iap-ssh \
-  --direction=INGRESS --action=ALLOW --rules=tcp:22 \
-  --source-ranges=35.235.240.0/20
-
-gcloud compute firewall-rules create tienda-allow-http-https \
-  --direction=INGRESS --action=ALLOW --rules=tcp:80,tcp:443 \
-  --target-tags=tienda-http,tienda-https
-```
-
-Assign an external IP or equivalent public ingress, then create DNS A records
-for the environment's storefront and CMS hosts. For example:
+The staging workflow reproduces the proven manual artifact deployment without a
+container registry. GitHub Actions builds all four Linux images, exports them as
+one checksummed tar archive, copies the archive and deployment kit over SSH, and
+activates the immutable release on the VM.
 
 ```text
-staging-shop.example.com  → staging VM external IP
-staging-cms.example.com   → staging VM external IP
+GitHub Actions -> Docker artifact -> SCP -> staging VM -> Docker Compose
+                                                    |-> Caddy
+                                                    |-> storefront
+                                                    |-> Payload CMS -> PostgreSQL
 ```
 
-### Create the GitHub deployment identity
+Runtime secrets remain in `/opt/tienda-magico/env` on the VM. They are never
+sent to GitHub, used as Docker build arguments, or included in an image layer.
 
-GitHub authenticates with short-lived OIDC credentials—never a downloaded
-service-account key. The condition below limits the identity to this repository
-and its deployment branches.
+## Triggers and release tags
+
+- A push to `staging` builds and deploys the commit automatically.
+- A manual run with `existing_tag` blank builds and deploys the selected commit.
+- A manual run with `existing_tag` set skips the build and activates that tag if
+  both application images still exist on the VM.
+
+New releases use `staging-SHORT_COMMIT_SHA`, for example
+`staging-1a2b3c4d5e6f`. The deployment concurrency group allows only one staging
+release at a time.
+
+## 1. One-time VM preparation
+
+Complete the install and environment configuration in
+[`deploy/manual/README.md`](../../deploy/manual/README.md) once. In particular,
+the following files must already contain real staging values rather than example
+domains or `CHANGE_ME` placeholders:
+
+```text
+/opt/tienda-magico/deployment.env
+/opt/tienda-magico/env/storefront.env
+/opt/tienda-magico/env/cms.env
+/opt/tienda-magico/env/postgres.env
+```
+
+The SSH user used by GitHub Actions must be able to run the deployment script
+with non-interactive `sudo`. Test this from a trusted terminal:
 
 ```bash
-export DEPLOY_SA="tienda-github-deployer"
-export POOL_ID="github"
-export PROVIDER_ID="github-actions"
-
-gcloud iam service-accounts create "$DEPLOY_SA" \
-  --display-name="Tienda GitHub deployment"
-
-gcloud iam workload-identity-pools create "$POOL_ID" \
-  --location=global --display-name="GitHub Actions"
-
-gcloud iam workload-identity-pools providers create-oidc "$PROVIDER_ID" \
-  --location=global --workload-identity-pool="$POOL_ID" \
-  --issuer-uri="https://token.actions.githubusercontent.com" \
-  --attribute-mapping="google.subject=assertion.sub,attribute.repository=assertion.repository,attribute.ref=assertion.ref" \
-  --attribute-condition="assertion.repository=='${GITHUB_OWNER}/${GITHUB_REPOSITORY}' && (assertion.ref=='refs/heads/staging' || assertion.ref=='refs/heads/main')"
-
-gcloud iam service-accounts add-iam-policy-binding \
-  "${DEPLOY_SA}@${PROJECT_ID}.iam.gserviceaccount.com" \
-  --role=roles/iam.workloadIdentityUser \
-  --member="principalSet://iam.googleapis.com/projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/${POOL_ID}/attribute.repository/${GITHUB_OWNER}/${GITHUB_REPOSITORY}"
-
-gcloud artifacts repositories add-iam-policy-binding "$REPOSITORY" \
-  --location="$REGION" \
-  --member="serviceAccount:${DEPLOY_SA}@${PROJECT_ID}.iam.gserviceaccount.com" \
-  --role=roles/artifactregistry.writer
-
-for ROLE in roles/compute.osAdminLogin roles/compute.viewer roles/iap.tunnelResourceAccessor; do
-  gcloud projects add-iam-policy-binding "$PROJECT_ID" \
-    --member="serviceAccount:${DEPLOY_SA}@${PROJECT_ID}.iam.gserviceaccount.com" \
-    --role="$ROLE"
-done
+ssh VM_USER@VM_HOST 'sudo -n true'
 ```
 
-If your organization disallows project-wide bindings, grant equivalent roles at
-the narrowest supported resource scope. The deployer must be an OS Login admin
-because the workflow uses `sudo` for the one-time VM bootstrap and release
-activation.
+If this fails, grant only the sudo access required by your VM policy. Do not put
+a sudo password in the workflow.
 
-## 2. Configure GitHub Environments
+## 2. Create a dedicated deployment SSH key
 
-In **Repository settings → Environments**, create `staging` and `production`.
-Add required reviewers to `production`; leave staging unprotected for automatic
-deployment. Configure the following values separately in each environment.
-
-### Variables
-
-Use [`deploy/config/deployment.env.example`](../../deploy/config/deployment.env.example)
-as the checklist. Set every listed key plus these two identity values:
-
-| Variable | Example / purpose |
-| --- | --- |
-| `GCP_WIF_PROVIDER` | `projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/github/providers/github-actions` |
-| `GCP_SERVICE_ACCOUNT` | `tienda-github-deployer@PROJECT_ID.iam.gserviceaccount.com` |
-
-All values used as Docker build arguments are non-secret. The public URLs in
-`NEXT_PUBLIC_*`, plus CMS URL settings, are compiled into images; they must
-match the environment's domains. A staging image and a production image are
-therefore built separately from the same commit when their public domains differ.
-
-### Secrets
-
-Create these three GitHub Environment secrets. Each secret is the complete
-dotenv content of the file shown below; preserve line breaks.
-
-| Secret | Destination on VM |
-| --- | --- |
-| `STOREFRONT_ENV` | `/etc/tienda-magico/storefront.env` |
-| `CMS_ENV` | `/etc/tienda-magico/cms.env` |
-| `POSTGRES_ENV` | `/etc/tienda-magico/postgres.env` |
-
-Start with the templates in [`deploy/gce/env/`](../../deploy/gce/env/). Generate
-one password and use it in both `POSTGRES_ENV` and CMS `DATABASE_URL`:
+Generate a dedicated Ed25519 key on a trusted workstation. Do not add a
+passphrase because GitHub Actions cannot answer an interactive prompt:
 
 ```bash
-POSTGRES_PASSWORD="$(openssl rand -base64 36 | tr -d '/+=')"
-PAYLOAD_SECRET="$(openssl rand -base64 48)"
+ssh-keygen -t ed25519 -C tienda-magico-staging-deploy -f tienda_staging_deploy
 ```
 
-Inside `CMS_ENV`, connect through the Compose service name—not VM loopback:
+Append `tienda_staging_deploy.pub` to the deployment user's
+`~/.ssh/authorized_keys` on the VM. Keep the private file secure; its complete
+contents become the `SSH_PRIVATE_KEY` GitHub Environment secret.
 
-```dotenv
-HOSTNAME=0.0.0.0
-DATABASE_URL=postgresql://postgres:PASSWORD@postgres:5432/tienda_magico_cms
-```
-
-Use `HOSTNAME=0.0.0.0` in `STOREFRONT_ENV` as well. Docker still publishes both
-application ports on VM loopback only, so they remain accessible externally
-only through nginx.
-
-For staging, use sandbox/test payment credentials. For production, use live
-credentials and a different database password and Payload secret. Do not put
-secrets in GitHub Variables, committed files, Docker build arguments, or image
-layers.
-
-## 3. First staging deployment
-
-1. Commit and push this deployment configuration to the `staging` branch.
-2. Confirm all `staging` variables and secrets are present.
-3. Push a change to `staging`, or run **Actions → Build and deploy → Run
-   workflow** and select `staging`.
-4. The workflow builds the images, publishes their commit-SHA tags, uploads the
-   small operational bundle, bootstraps the VM, writes runtime configuration,
-   and waits for storefront and CMS health checks.
-5. Inspect the action log and open `http://STOREFRONT_HOST` and
-   `http://CMS_HOST/admin`.
-
-The initial release uses HTTP. Once DNS resolves to the VM, issue certificates
-on the staging VM:
+Capture the VM's SSH host key from a trusted network and compare its fingerprint
+with the VM/provider console before trusting it:
 
 ```bash
-sudo apt-get update && sudo apt-get install -y certbot python3-certbot-nginx
-sudo certbot --nginx -d staging-shop.example.com -d staging-cms.example.com
+ssh-keyscan -H VM_HOST > tienda_staging_known_hosts
+ssh-keygen -lf tienda_staging_known_hosts
 ```
 
-Replace the example domains with the `STOREFRONT_HOST` and `CMS_HOST` values.
-After TLS works, ensure every public URL in the GitHub Environment variables and
-runtime secrets uses `https://`, then deploy staging again to rebuild the image
-with those URLs.
-
-## 4. Production deployment
-
-Complete the same VM, DNS, TLS, GitHub Variables, and secrets setup for the
-`production` Environment. Then:
-
-1. Merge the validated change into `main`.
-2. In **Actions → Build and deploy**, select **Run workflow**.
-3. Select `production`; run it from `main`.
-4. Approve the deployment if required reviewers are configured.
-5. Verify storefront, CMS admin, checkout configuration, and CMS-to-storefront
-   CORS after the workflow reports success.
-
-Production is never triggered by a push. It builds new production-configured
-images from the selected `main` commit, then deploys their immutable SHA tag.
-
-## Rollback and routine verification
-
-Each release is tagged with its commit SHA. To roll back an environment, run
-**Build and deploy**, select that environment, and enter a retained previous
-SHA in `image_tag`. This skips the build and re-activates the existing images.
-
-The workflow health checks `http://127.0.0.1:3000/` and
-`http://127.0.0.1:4000/admin` on the VM. For deeper checks, connect with IAP and
-run:
+For a nonstandard SSH port, use:
 
 ```bash
-sudo docker compose --env-file /etc/tienda-magico/deploy.env \
-  -f /opt/tienda-magico/docker-compose.yml ps
-sudo docker compose --env-file /etc/tienda-magico/deploy.env \
-  -f /opt/tienda-magico/docker-compose.yml logs --tail=100
+ssh-keyscan -p SSH_PORT -H VM_HOST > tienda_staging_known_hosts
 ```
 
-Persistent state is deliberately outside image containers:
+The complete known-hosts file becomes the `SSH_KNOWN_HOSTS` secret. Requiring a
+known host key prevents the deployment runner from silently accepting an
+impersonated VM.
 
-- PostgreSQL: `/var/lib/tienda-magico/postgres`
-- Payload media: `/var/lib/tienda-magico/media`
-- Runtime environment files: `/etc/tienda-magico/*.env`
+## 3. Configure the GitHub staging Environment
 
-Back up the database and media before production releases and test restoration.
-Monitor billing, VM disk use, and Artifact Registry storage; free-tier quotas
-are limits, not a capacity guarantee.
+In the repository, open **Settings -> Environments**, create `staging`, and add
+these Environment variables:
+
+| Variable          | Example                            | Purpose                                                  |
+| ----------------- | ---------------------------------- | -------------------------------------------------------- |
+| `SHOP_URL`        | `https://shop.staging.example.org` | Public storefront origin compiled into the image         |
+| `CMS_URL`         | `https://cms.staging.example.org`  | Public CMS origin compiled into both images              |
+| `DEPLOY_PLATFORM` | `linux/amd64`                      | Use `linux/arm64` when `uname -m` on the VM is `aarch64` |
+| `SSH_HOST`        | `203.0.113.10`                     | VM DNS name or public IP                                 |
+| `SSH_PORT`        | `22`                               | Optional; defaults to 22                                 |
+| `SSH_USER`        | `ubuntu`                           | Non-root deployment user                                 |
+
+Add these Environment secrets:
+
+| Secret            | Contents                                                  |
+| ----------------- | --------------------------------------------------------- |
+| `SSH_PRIVATE_KEY` | Complete dedicated private key, including BEGIN/END lines |
+| `SSH_KNOWN_HOSTS` | Verified `known_hosts` entry for this VM and port         |
+
+`SHOP_URL` and `CMS_URL` must be HTTP(S) origins without a trailing slash, path,
+query, or fragment. They must match the URLs already configured on the VM.
+
+## 4. First automated release
+
+Commit the workflow, Dockerfiles, Payload migrations, and application changes.
+Push them to the `staging` branch:
+
+```bash
+git push origin staging
+```
+
+Follow **Actions -> Deploy staging**. A successful run will:
+
+1. Validate all staging configuration.
+2. Build the storefront and CMS for the VM architecture.
+3. Pull matching PostgreSQL and Caddy images.
+4. Export and verify `tienda-magico-TAG.tar`.
+5. Copy the artifact, checksum, and current deployment kit over SSH.
+6. Refresh Compose and Caddy files without overwriting runtime environment files.
+7. Verify the checksum again on the VM.
+8. Load and activate the immutable images.
+9. Wait for the storefront and CMS health checks.
+10. Print deployment status and remove the transferred tar archive.
+
+Payload production migrations are bundled into the CMS image and run before CMS
+initialization. A migration failure prevents the CMS health check from passing
+and therefore fails the deployment.
+
+## 5. Verify staging
+
+Open the storefront and CMS admin URLs. On the VM, verify the release and
+migration record when needed:
+
+```bash
+sudo docker compose \
+  --env-file /opt/tienda-magico/deployment.env \
+  -f /opt/tienda-magico/compose.yml ps
+
+sudo docker compose \
+  --env-file /opt/tienda-magico/deployment.env \
+  -f /opt/tienda-magico/compose.yml \
+  exec postgres \
+  psql -U postgres -d tienda_magico_cms \
+  -c 'SELECT name, batch FROM payload_migrations ORDER BY id;'
+```
+
+## Rollback
+
+Open **Actions -> Deploy staging -> Run workflow** and enter a previously
+deployed tag in `existing_tag`. The workflow skips the build and tells the VM to
+activate that tag.
+
+Rollback requires both `tienda-magico/storefront:TAG` and
+`tienda-magico/cms:TAG` to remain in the VM's local Docker image store. Database
+migrations are forward-running; rolling back application images does not
+automatically run a migration's `down` function. Back up PostgreSQL and uploaded
+media before risky schema releases.

@@ -20,7 +20,7 @@ Usage:
   sudo ./vm-deploy.sh status
   sudo ./vm-deploy.sh logs
 
-install   Installs Docker if necessary, creates directories, and seeds config.
+install   Installs Docker if necessary, refreshes assets, and seeds missing config.
 activate  Optionally loads an artifact, then starts the selected immutable tag.
 status    Shows container and health status.
 logs      Shows the latest application logs.
@@ -32,9 +32,9 @@ compose() {
 }
 
 install_docker() {
-  apt-get update
-  apt-get install -y ca-certificates curl openssl
   if ! command -v docker >/dev/null 2>&1; then
+    apt-get update
+    apt-get install -y ca-certificates curl openssl
     curl -fsSL https://get.docker.com | sh
   fi
   docker compose version >/dev/null
@@ -100,8 +100,8 @@ cmd_install() {
   need_root
   install_docker
   install_config
-  log 'Installation complete.'
-  log "Edit $APP_DIR/deployment.env and every file under $APP_DIR/env/."
+  log 'Installation/configuration refresh complete.'
+  log "Confirm $APP_DIR/deployment.env and every file under $APP_DIR/env/ are configured."
 }
 
 cmd_activate() {

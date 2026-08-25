@@ -1,111 +1,174 @@
-name: Build and deploy
+name: Deploy staging
 
 on:
   push:
     branches: [staging]
   workflow_dispatch:
     inputs:
-      target:
-        description: GitHub Environment to deploy
-        required: true
-        type: choice
-        default: staging
-        options: [staging, production]
-      image_tag:
-        description: Existing image tag to activate (use for rollback; leave blank to build this commit)
+      existing_tag:
+        description: Existing image tag on the VM to activate (leave blank to build this commit)
         required: false
         type: string
 
 permissions:
   contents: read
-  id-token: write
+
+concurrency:
+  group: tienda-magico-staging
+  cancel-in-progress: false
 
 jobs:
   deploy:
-    # Production deployments are manual and must originate from main.
-    if: >-
-      github.event_name == 'push' ||
-      (inputs.target == 'staging') ||
-      (inputs.target == 'production' && github.ref == 'refs/heads/main')
     runs-on: ubuntu-latest
-    environment:
-      name: ${{ github.event_name == 'workflow_dispatch' && inputs.target || 'staging' }}
-    concurrency:
-      group: tienda-${{ github.event_name == 'workflow_dispatch' && inputs.target || 'staging' }}
-      cancel-in-progress: false
+    environment: staging
+    timeout-minutes: 90
     env:
-      GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
-      GCP_REGION: ${{ vars.GCP_REGION }}
-      GCP_ZONE: ${{ vars.GCP_ZONE }}
-      GCP_INSTANCE: ${{ vars.GCP_INSTANCE }}
-      ARTIFACT_REPOSITORY: ${{ vars.ARTIFACT_REPOSITORY }}
-      GCP_WIF_PROVIDER: ${{ vars.GCP_WIF_PROVIDER }}
-      GCP_SERVICE_ACCOUNT: ${{ vars.GCP_SERVICE_ACCOUNT }}
-      STOREFRONT_HOST: ${{ vars.STOREFRONT_HOST }}
-      CMS_HOST: ${{ vars.CMS_HOST }}
-      NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL }}
-      PAYLOAD_ECOMMERCE_URL: ${{ vars.PAYLOAD_ECOMMERCE_URL }}
-      PAYLOAD_CMS_URL: ${{ vars.PAYLOAD_CMS_URL }}
-      NEXT_PUBLIC_CMS_URL: ${{ vars.NEXT_PUBLIC_CMS_URL }}
-      CMS_MEDIA_ORIGIN: ${{ vars.CMS_MEDIA_ORIGIN }}
-      NEXT_PUBLIC_SERVER_URL: ${{ vars.NEXT_PUBLIC_SERVER_URL }}
-      PAYLOAD_PUBLIC_SERVER_URL: ${{ vars.PAYLOAD_PUBLIC_SERVER_URL }}
-      IMAGE_TAG: ${{ inputs.image_tag || github.sha }}
-      STOREFRONT_ENV: ${{ secrets.STOREFRONT_ENV }}
-      CMS_ENV: ${{ secrets.CMS_ENV }}
-      POSTGRES_ENV: ${{ secrets.POSTGRES_ENV }}
+      SHOP_URL: ${{ vars.SHOP_URL }}
+      CMS_URL: ${{ vars.CMS_URL }}
+      DEPLOY_PLATFORM: ${{ vars.DEPLOY_PLATFORM }}
+      SSH_HOST: ${{ vars.SSH_HOST }}
+      SSH_PORT: ${{ vars.SSH_PORT }}
+      SSH_USER: ${{ vars.SSH_USER }}
+      REQUESTED_TAG: ${{ inputs.existing_tag }}
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out source
+        uses: actions/checkout@v4
 
       - name: Validate deployment configuration
+        shell: bash
         run: |
-          required=(GCP_PROJECT_ID GCP_REGION GCP_ZONE GCP_INSTANCE ARTIFACT_REPOSITORY GCP_WIF_PROVIDER GCP_SERVICE_ACCOUNT STOREFRONT_HOST CMS_HOST NEXT_PUBLIC_SITE_URL PAYLOAD_ECOMMERCE_URL PAYLOAD_CMS_URL NEXT_PUBLIC_CMS_URL CMS_MEDIA_ORIGIN NEXT_PUBLIC_SERVER_URL PAYLOAD_PUBLIC_SERVER_URL)
+          set -euo pipefail
+
+          required=(SHOP_URL CMS_URL DEPLOY_PLATFORM SSH_HOST SSH_USER)
           for key in "${required[@]}"; do
-            [[ -n "${!key:-}" ]] || { echo "Missing GitHub Environment variable: $key"; exit 1; }
+            [[ -n "${!key:-}" ]] || {
+              echo "Missing staging GitHub Environment variable: ${key}"
+              exit 1
+            }
           done
-          for key in STOREFRONT_ENV CMS_ENV POSTGRES_ENV; do
-            [[ -n "${!key:-}" ]] || { echo "Missing GitHub Environment secret: $key"; exit 1; }
-          done
 
-      - uses: google-github-actions/auth@v3.0.0  # SHA v3.0.0 (2025-08-07)
-        with:
-          workload_identity_provider: ${{ env.GCP_WIF_PROVIDER }}
-          service_account: ${{ env.GCP_SERVICE_ACCOUNT }}
-
-      - uses: google-github-actions/setup-gcloud@v3.0.0  # SHA v3.0.0 (2025-08-07)
-
-      - name: Build and publish immutable images
-        if: github.event_name == 'push' || inputs.image_tag == ''
-        run: |
-          REGISTRY="${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/${ARTIFACT_REPOSITORY}"
-          gcloud auth configure-docker "${GCP_REGION}-docker.pkg.dev" --quiet
-          docker build -f deploy/docker/storefront.Dockerfile \
-            --build-arg NEXT_PUBLIC_SITE_URL \
-            --build-arg PAYLOAD_ECOMMERCE_URL \
-            --build-arg PAYLOAD_CMS_URL \
-            --build-arg NEXT_PUBLIC_CMS_URL \
-            --build-arg CMS_MEDIA_ORIGIN \
-            -t "${REGISTRY}/storefront:${IMAGE_TAG}" .
-          docker build -f apps/cms/Dockerfile \
-            --build-arg NEXT_PUBLIC_SERVER_URL \
-            --build-arg PAYLOAD_PUBLIC_SERVER_URL \
-            -t "${REGISTRY}/cms:${IMAGE_TAG}" apps/cms
-          docker push "${REGISTRY}/storefront:${IMAGE_TAG}"
-          docker push "${REGISTRY}/cms:${IMAGE_TAG}"
-
-      - name: Provision deployment assets and runtime configuration
-        run: |
-          remote() {
-            gcloud compute ssh "$GCP_INSTANCE" --project "$GCP_PROJECT_ID" --zone "$GCP_ZONE" --tunnel-through-iap --command "$1"
+          [[ "$SHOP_URL" =~ ^https?://[^/]+$ ]] || {
+            echo "SHOP_URL must be an HTTP(S) origin without a trailing slash."
+            exit 1
           }
-          BUNDLE="/tmp/tienda-gce-${IMAGE_TAG}"
-          gcloud compute scp --recurse deploy/gce "$GCP_INSTANCE:${BUNDLE}" --project "$GCP_PROJECT_ID" --zone "$GCP_ZONE" --tunnel-through-iap
-          remote "if ! command -v docker >/dev/null; then sudo bash ${BUNDLE}/gce/deploy.sh bootstrap; fi"
-          remote "sudo bash ${BUNDLE}/gce/deploy.sh configure --shop-host '${STOREFRONT_HOST}' --cms-host '${CMS_HOST}' --storefront-image '${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/${ARTIFACT_REPOSITORY}/storefront' --cms-image '${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/${ARTIFACT_REPOSITORY}/cms'"
-          for file in storefront cms postgres; do
-            secret_name="$(tr '[:lower:]' '[:upper:]' <<< "${file}")_ENV"
-            encoded="$(printf %s "${!secret_name}" | base64 --wrap=0)"
-            remote "printf %s '${encoded}' | base64 --decode | sudo tee /etc/tienda-magico/${file}.env >/dev/null && sudo chmod 600 /etc/tienda-magico/${file}.env"
-          done
-          remote "sudo bash ${BUNDLE}/gce/deploy.sh activate --tag '${IMAGE_TAG}'"
-          remote "rm -rf '${BUNDLE}'"
+          [[ "$CMS_URL" =~ ^https?://[^/]+$ ]] || {
+            echo "CMS_URL must be an HTTP(S) origin without a trailing slash."
+            exit 1
+          }
+          [[ "$DEPLOY_PLATFORM" == "linux/amd64" || "$DEPLOY_PLATFORM" == "linux/arm64" ]] || {
+            echo "DEPLOY_PLATFORM must be linux/amd64 or linux/arm64."
+            exit 1
+          }
+
+          if [[ -n "${REQUESTED_TAG:-}" ]]; then
+            IMAGE_TAG="$REQUESTED_TAG"
+            BUILD_RELEASE=false
+          else
+            IMAGE_TAG="staging-${GITHUB_SHA:0:12}"
+            BUILD_RELEASE=true
+          fi
+          [[ "$IMAGE_TAG" =~ ^[A-Za-z0-9._-]+$ ]] || {
+            echo "The release tag contains unsupported characters."
+            exit 1
+          }
+
+          echo "SSH_PORT=${SSH_PORT:-22}" >> "$GITHUB_ENV"
+          echo "IMAGE_TAG=$IMAGE_TAG" >> "$GITHUB_ENV"
+          echo "BUILD_RELEASE=$BUILD_RELEASE" >> "$GITHUB_ENV"
+          echo "ARTIFACT=artifacts/manual/tienda-magico-${IMAGE_TAG}.tar" >> "$GITHUB_ENV"
+          echo "Release tag: $IMAGE_TAG"
+
+      - name: Configure SSH host verification
+        shell: bash
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          [[ -n "$SSH_PRIVATE_KEY" ]] || { echo "Missing staging secret: SSH_PRIVATE_KEY"; exit 1; }
+          [[ -n "$SSH_KNOWN_HOSTS" ]] || { echo "Missing staging secret: SSH_KNOWN_HOSTS"; exit 1; }
+
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$SSH_PRIVATE_KEY" | tr -d '\r' > "$HOME/.ssh/id_ed25519"
+          printf '%s\n' "$SSH_KNOWN_HOSTS" | tr -d '\r' > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/id_ed25519" "$HOME/.ssh/known_hosts"
+
+      - name: Prepare Docker Buildx
+        if: env.BUILD_RELEASE == 'true'
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build immutable deployment artifact
+        if: env.BUILD_RELEASE == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run build-artifact -- \
+            --tag "$IMAGE_TAG" \
+            --shop-url "$SHOP_URL" \
+            --cms-url "$CMS_URL" \
+            --platform "$DEPLOY_PLATFORM"
+
+      - name: Verify artifact checksum
+        if: env.BUILD_RELEASE == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$(dirname "$ARTIFACT")"
+          sha256sum --check "$(basename "$ARTIFACT").sha256"
+
+      - name: Copy release and deployment kit to VM
+        shell: bash
+        run: |
+          set -euo pipefail
+          SSH_TARGET="${SSH_USER}@${SSH_HOST}"
+          REMOTE_BUNDLE="/tmp/tienda-manual-${IMAGE_TAG}"
+
+          scp -P "$SSH_PORT" -r deploy/manual "${SSH_TARGET}:${REMOTE_BUNDLE}"
+          if [[ "$BUILD_RELEASE" == "true" ]]; then
+            scp -P "$SSH_PORT" \
+              "$ARTIFACT" \
+              "${ARTIFACT}.sha256" \
+              "${SSH_TARGET}:/tmp/"
+          fi
+
+      - name: Activate and verify release
+        shell: bash
+        run: |
+          set -euo pipefail
+          SSH_TARGET="${SSH_USER}@${SSH_HOST}"
+          REMOTE_BUNDLE="/tmp/tienda-manual-${IMAGE_TAG}"
+          REMOTE_ARTIFACT="/tmp/tienda-magico-${IMAGE_TAG}.tar"
+
+          ssh -p "$SSH_PORT" "$SSH_TARGET" bash -s -- \
+            "$IMAGE_TAG" "$BUILD_RELEASE" "$REMOTE_BUNDLE" "$REMOTE_ARTIFACT" <<'REMOTE'
+          set -euo pipefail
+          image_tag="$1"
+          build_release="$2"
+          bundle="$3"
+          artifact="$4"
+
+          sudo bash "$bundle/vm-deploy.sh" install
+
+          if [[ "$build_release" == "true" ]]; then
+            cd /tmp
+            sha256sum --check "$(basename "$artifact").sha256"
+            sudo bash "$bundle/vm-deploy.sh" activate \
+              --artifact "$artifact" \
+              --tag "$image_tag"
+          else
+            sudo bash "$bundle/vm-deploy.sh" activate --tag "$image_tag"
+          fi
+
+          sudo bash "$bundle/vm-deploy.sh" status
+          rm -rf -- "$bundle"
+          REMOTE
+
+      - name: Remove transferred release files
+        if: success() && env.BUILD_RELEASE == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          SSH_TARGET="${SSH_USER}@${SSH_HOST}"
+          ssh -p "$SSH_PORT" "$SSH_TARGET" \
+            "rm -f '/tmp/tienda-magico-${IMAGE_TAG}.tar' '/tmp/tienda-magico-${IMAGE_TAG}.tar.sha256'"
