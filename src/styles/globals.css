@@ -23,6 +23,7 @@
   --color-border: var(--border);
   --color-card: var(--card);
   --color-card-hover: var(--card-hover);
+  --color-warm: var(--surface-warm);
   --color-ring: var(--ring);
   --color-brand: var(--brand);
   --color-brand-hover: var(--brand-hover);
@@ -35,6 +36,7 @@
   --radius-sm: var(--radius-sm);
   --radius-md: var(--radius-md);
   --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
 }
 
 * {

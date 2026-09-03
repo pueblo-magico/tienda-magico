@@ -28,19 +28,20 @@ export function CartSummary({
   const locale = useLocale();
 
   return (
-    <div className={cn("space-y-3", className)}>
+    <div className={cn("space-y-4", className)}>
       <div className="flex items-center justify-between gap-4">
-        <span className="text-sm uppercase tracking-[0.12em] text-muted">
+        <span className="text-muted text-sm tracking-[0.12em] uppercase">
           {labels.subtotal}
         </span>
-        <span className="font-serif text-xl text-forest">
+        <span className="font-navigation text-text-black text-2xl">
           {formatMoney(cart.cost.subtotalAmount, locale)}
         </span>
       </div>
-      <p className="text-xs text-muted">{labels.taxesNote}</p>
+      <div className="bg-border h-px" />
+      <p className="text-muted text-xs leading-relaxed">{labels.taxesNote}</p>
       <Button
         type="button"
-        className="w-full"
+        className="h-12 w-full"
         disabled={disabled || cart.totalQuantity === 0}
         onClick={onCheckout}
       >

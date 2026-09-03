@@ -42,7 +42,13 @@
     "taxesNote": "Taxes and shipping are calculated at checkout.",
     "notConfigured": "Commerce is not configured yet. Cart actions will work once a provider is connected.",
     "checkoutStarting": "Redirecting to checkout…",
-    "checkoutFailed": "Could not start checkout. Please try again."
+    "checkoutFailed": "Could not start checkout. Please try again.",
+    "summary": "Order summary",
+    "item": "item",
+    "items": "items",
+    "shippingBenefit": "Free shipping over $120",
+    "sourcingBenefit": "Ethically sourced",
+    "paymentBenefit": "Secure payment"
   },
   "homeSections": {
     "categoriesEyebrow": "Collections",
@@ -91,6 +97,11 @@
     "sortPriceDesc": "Price: high to low",
     "collections": "Collections",
     "allCollections": "All",
+    "filters": "Filters",
+    "price": "Price",
+    "tags": "Tags",
+    "minPrice": "Min",
+    "maxPrice": "Max",
     "previous": "Previous",
     "next": "Next",
     "pagination": "Pagination"
@@ -114,7 +125,14 @@
     "relatedEyebrow": "More to explore",
     "relatedTitle": "Related products",
     "tags": "Tags",
-    "addFailed": "Could not add this product to the cart. Please try again."
+    "addFailed": "Could not add this product to the cart. Please try again.",
+    "description": "Description",
+    "ingredients": "Ingredients & materials",
+    "howToUse": "How to use",
+    "originImpact": "Origin & impact",
+    "freeShipping": "Free shipping over $120",
+    "securePayment": "Secure payment",
+    "ethicallySourced": "Ethically sourced"
   },
   "checkout": {
     "eyebrow": "Checkout",

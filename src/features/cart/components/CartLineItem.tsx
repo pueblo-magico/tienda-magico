@@ -31,7 +31,10 @@ export function CartLineItem({
   className,
 }: Props) {
   const locale = useLocale();
-  const productHref = localizePath(locale, `/shop/${line.merchandise.product.handle}`);
+  const productHref = localizePath(
+    locale,
+    `/shop/${line.merchandise.product.handle}`,
+  );
   const image = line.merchandise.product.featuredImage;
   const options = line.merchandise.selectedOptions
     .map((option) => option.value)
@@ -39,15 +42,10 @@ export function CartLineItem({
     .join(" · ");
 
   return (
-    <article
-      className={cn(
-        "flex gap-3 border-b border-border py-4 last:border-b-0",
-        className,
-      )}
-    >
+    <article className={cn("flex gap-4 py-5", className)}>
       <Link
         href={productHref}
-        className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-sand/40"
+        className="bg-warm relative h-24 w-20 shrink-0 overflow-hidden rounded-lg sm:h-28 sm:w-24"
       >
         {image?.url ? (
           <Image
@@ -58,7 +56,7 @@ export function CartLineItem({
             sizes="80px"
           />
         ) : (
-          <span className="flex h-full items-center justify-center text-[10px] uppercase tracking-wider text-muted">
+          <span className="text-muted flex h-full items-center justify-center text-[10px] tracking-wider uppercase">
             —
           </span>
         )}
@@ -69,22 +67,22 @@ export function CartLineItem({
           <div className="min-w-0">
             <Link
               href={productHref}
-              className="font-serif text-base leading-snug text-forest hover:underline"
+              className="font-navigation text-text-black text-lg leading-snug hover:underline"
             >
               {line.merchandise.product.title}
             </Link>
             {options ? (
-              <p className="mt-0.5 text-xs text-muted">{options}</p>
+              <p className="text-muted mt-0.5 text-xs">{options}</p>
             ) : null}
           </div>
-          <p className="shrink-0 text-sm font-medium text-forest">
+          <p className="text-forest shrink-0 text-sm font-medium">
             {formatMoney(line.cost.totalAmount, locale)}
           </p>
         </div>
 
         <div className="flex items-center justify-between gap-3">
           <div
-            className="inline-flex items-center rounded-full border border-border"
+            className="border-border bg-background-primary inline-flex items-center rounded-lg border"
             aria-label={labels.quantity}
           >
             <button
@@ -112,7 +110,7 @@ export function CartLineItem({
 
           <button
             type="button"
-            className="text-xs uppercase tracking-[0.12em] text-muted underline-offset-4 hover:text-forest hover:underline disabled:opacity-40"
+            className="text-muted hover:text-forest text-xs tracking-[0.12em] uppercase underline-offset-4 hover:underline disabled:opacity-40"
             disabled={disabled}
             onClick={() => onRemove(line.id)}
           >

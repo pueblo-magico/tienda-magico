@@ -1,14 +1,13 @@
 import Link from "next/link";
 import { localizePath } from "@/config/navigation";
 import { Badge } from "@/components/ui/Badge";
+import { Accordion } from "@/components/ui/Accordion";
 import { Container } from "@/components/layout/Container";
 import { Section } from "@/components/layout/Section";
 import { Body, Eyebrow, PageTitle } from "@/components/typography";
 import type { Product, ProductSummary } from "@/types/commerce";
 import { AddToCartForm } from "./AddToCartForm";
 import { ProductGallery } from "./ProductGallery";
-import { ProductImpact } from "./ProductImpact";
-import { ProductStory } from "./ProductStory";
 import { RelatedProducts } from "./RelatedProducts";
 import { getGalleryImages, impactItemsFromProduct } from "./utils";
 
@@ -31,6 +30,13 @@ type Labels = {
   relatedEyebrow: string;
   relatedTitle: string;
   tags: string;
+  description: string;
+  ingredients: string;
+  howToUse: string;
+  originImpact: string;
+  freeShipping: string;
+  securePayment: string;
+  ethicallySourced: string;
 };
 
 type Props = {
@@ -46,25 +52,38 @@ export function ProductPageView({ locale, product, related, labels }: Props) {
 
   return (
     <>
-      <Section spacing="lg">
-        <Container className="space-y-8">
-          <Link
-            href={localizePath(locale, "/shop")}
-            className="text-xs font-medium uppercase tracking-[0.14em] text-muted transition-colors hover:text-forest"
+      <Section spacing="md">
+        <Container className="space-y-7">
+          <nav
+            className="text-muted flex flex-wrap items-center gap-2 text-xs"
+            aria-label="Breadcrumb"
           >
-            ← {labels.backToShop}
-          </Link>
+            <Link
+              href={localizePath(locale, "/shop")}
+              className="hover:text-forest transition-colors"
+            >
+              {labels.backToShop}
+            </Link>
+            <span>/</span>
+            {product.productType ? (
+              <>
+                <span>{product.productType}</span>
+                <span>/</span>
+              </>
+            ) : null}
+            <span className="text-text-black">{product.title}</span>
+          </nav>
 
-          <div className="grid gap-10 lg:grid-cols-2 lg:items-start">
+          <div className="grid gap-10 lg:grid-cols-[1.08fr_.92fr] lg:items-start">
             <ProductGallery
               title={product.title}
               images={images}
               labels={{ gallery: labels.gallery }}
             />
 
-            <div className="space-y-6 lg:sticky lg:top-28">
+            <div className="space-y-6 lg:sticky lg:top-28 lg:pt-4">
               {product.vendor ? <Eyebrow>{product.vendor}</Eyebrow> : null}
-              <PageTitle as="h1" className="text-4xl sm:text-5xl">
+              <PageTitle as="h1" className="text-4xl leading-tight sm:text-5xl">
                 {product.title}
               </PageTitle>
 
@@ -100,23 +119,61 @@ export function ProductPageView({ locale, product, related, labels }: Props) {
                   addFailed: labels.addFailed,
                 }}
               />
+
+              <div className="border-border text-muted grid grid-cols-3 gap-3 border-y py-5 text-center text-[11px] leading-snug">
+                <span>
+                  ♧
+                  <strong className="text-text-black mt-1 block font-medium">
+                    {labels.freeShipping}
+                  </strong>
+                </span>
+                <span>
+                  ♙
+                  <strong className="text-text-black mt-1 block font-medium">
+                    {labels.securePayment}
+                  </strong>
+                </span>
+                <span>
+                  ◇
+                  <strong className="text-text-black mt-1 block font-medium">
+                    {labels.ethicallySourced}
+                  </strong>
+                </span>
+              </div>
             </div>
           </div>
+
+          <Accordion
+            className="bg-card rounded-xl"
+            items={[
+              {
+                id: "description",
+                title: labels.description,
+                content: product.description || "—",
+              },
+              {
+                id: "ingredients",
+                title: labels.ingredients,
+                content: product.tags.length ? product.tags.join(" · ") : "—",
+              },
+              {
+                id: "use",
+                title: labels.howToUse,
+                content: product.productType || product.vendor || "—",
+              },
+              {
+                id: "impact",
+                title: labels.originImpact,
+                content: impact.length
+                  ? impact
+                      .map((item) => `${item.value} ${item.label}`)
+                      .join(" · ")
+                  : product.vendor || "Pueblo Mágico",
+              },
+            ]}
+          />
         </Container>
       </Section>
-
-      <ProductStory
-        eyebrow={labels.storyEyebrow}
-        title={labels.storyTitle}
-        descriptionHtml={product.descriptionHtml}
-        description={product.description}
-      />
-
-      <ProductImpact
-        eyebrow={labels.impactEyebrow}
-        title={labels.impactTitle}
-        items={impact}
-      />
 
       <RelatedProducts
         locale={locale}

@@ -4,6 +4,7 @@
   --surface-secondary: #005333;
   --surface-card: #ffffff;
   --surface-card-hover: #fafaf9;
+  --surface-warm: #f3eee5;
 
   --text-black: #111827;
   --text-primary: #6b7280;
@@ -38,6 +39,7 @@
   --radius-sm: 0.5rem;
   --radius-md: 0.75rem;
   --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
   --radius-full: 9999px;
 
   --container-max: 72rem;

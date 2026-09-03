@@ -2,6 +2,7 @@ import { ProductCard } from "@/components/cards/ProductCard";
 import { localizePath } from "@/config/navigation";
 import { Container } from "@/components/layout/Container";
 import { Section } from "@/components/layout/Section";
+import { Button } from "@/components/ui/Button";
 import { Eyebrow, SectionTitle } from "@/components/typography";
 import { formatMoney } from "@/lib/commerce/utils/format";
 import type { ProductSummary } from "@/types/commerce";
@@ -22,9 +23,14 @@ export function RelatedProducts({ locale, eyebrow, title, products }: Props) {
   return (
     <Section spacing="md" tone="muted">
       <Container className="space-y-8">
-        <div className="space-y-3">
-          <Eyebrow>{eyebrow}</Eyebrow>
-          <SectionTitle>{title}</SectionTitle>
+        <div className="flex items-end justify-between gap-4">
+          <div className="space-y-3">
+            <Eyebrow>{eyebrow}</Eyebrow>
+            <SectionTitle>{title}</SectionTitle>
+          </div>
+          <Button href={localizePath(locale, "/shop")} variant="link">
+            View all →
+          </Button>
         </div>
         <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {products.map((product) => (

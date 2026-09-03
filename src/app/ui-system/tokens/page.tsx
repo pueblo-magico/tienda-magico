@@ -22,6 +22,11 @@ const backgrounds = [
     swatch: "bg-card-hover border border-border",
     value: "#FAFAF9",
   },
+  {
+    name: "Warm surface",
+    swatch: "bg-warm border border-border",
+    value: "#F3EEE5",
+  },
 ];
 
 const textColors = [
@@ -44,7 +49,7 @@ export default function TokensPage() {
       <DocsSection
         title="Background colors"
         description="Primary page surfaces, deep-green sections, and white cards with warm off-white hover states."
-        className="grid w-full grid-cols-2 gap-4 sm:grid-cols-4"
+        className="grid w-full grid-cols-2 gap-4 sm:grid-cols-5"
       >
         {backgrounds.map((color) => (
           <div key={color.name} className="space-y-2">

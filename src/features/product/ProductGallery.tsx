@@ -25,30 +25,25 @@ export function ProductGallery({ title, images, labels }: Props) {
   const current = list[Math.min(active, list.length - 1)] ?? list[0];
 
   return (
-    <div className="space-y-3" aria-label={labels.gallery}>
-      <div className="relative aspect-[4/5] overflow-hidden rounded-3xl bg-sand/40">
-        <Image
-          src={current.url || PLACEHOLDER}
-          alt={current.altText || title}
-          fill
-          priority
-          className="object-cover"
-          sizes="(max-width: 1024px) 100vw, 50vw"
-        />
-      </div>
-
+    <div
+      className={cn(
+        "grid gap-3",
+        list.length > 1 && "sm:grid-cols-[5.25rem_1fr]",
+      )}
+      aria-label={labels.gallery}
+    >
       {list.length > 1 ? (
-        <ul className="grid grid-cols-4 gap-2 sm:grid-cols-5">
-          {list.map((image, index) => (
+        <ul className="order-2 grid grid-cols-4 gap-2 sm:order-1 sm:grid-cols-1">
+          {list.slice(0, 5).map((image, index) => (
             <li key={`${image.url}-${index}`}>
               <button
                 type="button"
                 onClick={() => setActive(index)}
                 className={cn(
-                  "relative aspect-square w-full overflow-hidden rounded-xl border bg-sand/30 transition-colors",
+                  "bg-warm relative aspect-square w-full overflow-hidden rounded-lg border transition-colors",
                   index === active
                     ? "border-forest"
-                    : "border-transparent hover:border-forest/30",
+                    : "hover:border-forest/30 border-transparent",
                 )}
                 aria-label={`${title} ${index + 1}`}
                 aria-current={index === active}
@@ -58,13 +53,23 @@ export function ProductGallery({ title, images, labels }: Props) {
                   alt={image.altText || title}
                   fill
                   className="object-cover"
-                  sizes="120px"
+                  sizes="84px"
                 />
               </button>
             </li>
           ))}
         </ul>
       ) : null}
+      <div className="bg-warm relative order-1 aspect-[4/5] overflow-hidden rounded-2xl sm:order-2">
+        <Image
+          src={current.url || PLACEHOLDER}
+          alt={current.altText || title}
+          fill
+          priority
+          className="object-cover"
+          sizes="(max-width: 1024px) 100vw, 50vw"
+        />
+      </div>
     </div>
   );
 }

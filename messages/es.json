@@ -42,7 +42,13 @@
     "taxesNote": "Impuestos y envío se calculan al pagar.",
     "notConfigured": "El comercio aún no está configurado. El carrito funcionará cuando haya un proveedor conectado.",
     "checkoutStarting": "Redirigiendo al checkout…",
-    "checkoutFailed": "No se pudo iniciar el checkout. Inténtalo de nuevo."
+    "checkoutFailed": "No se pudo iniciar el checkout. Inténtalo de nuevo.",
+    "summary": "Resumen del pedido",
+    "item": "producto",
+    "items": "productos",
+    "shippingBenefit": "Envío gratis desde $120",
+    "sourcingBenefit": "Origen ético",
+    "paymentBenefit": "Pago seguro"
   },
   "homeSections": {
     "categoriesEyebrow": "Colecciones",
@@ -91,6 +97,11 @@
     "sortPriceDesc": "Precio: mayor a menor",
     "collections": "Colecciones",
     "allCollections": "Todas",
+    "filters": "Filtros",
+    "price": "Precio",
+    "tags": "Etiquetas",
+    "minPrice": "Mín.",
+    "maxPrice": "Máx.",
     "previous": "Anterior",
     "next": "Siguiente",
     "pagination": "Paginación"
@@ -114,7 +125,14 @@
     "relatedEyebrow": "Sigue explorando",
     "relatedTitle": "Productos relacionados",
     "tags": "Etiquetas",
-    "addFailed": "No se pudo añadir este producto al carrito. Inténtalo de nuevo."
+    "addFailed": "No se pudo añadir este producto al carrito. Inténtalo de nuevo.",
+    "description": "Descripción",
+    "ingredients": "Ingredientes y materiales",
+    "howToUse": "Cómo usar",
+    "originImpact": "Origen e impacto",
+    "freeShipping": "Envío gratis desde $120",
+    "securePayment": "Pago seguro",
+    "ethicallySourced": "Origen ético"
   },
   "checkout": {
     "eyebrow": "Pago",

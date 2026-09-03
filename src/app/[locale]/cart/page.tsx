@@ -12,8 +12,8 @@ export default async function CartPage({ params }: Props) {
   setRequestLocale(locale);
 
   return (
-    <Section>
-      <Container className="max-w-5xl">
+    <Section spacing="md">
+      <Container className="max-w-6xl">
         <CartPageContent />
       </Container>
     </Section>

@@ -25,75 +25,119 @@ export function CartPageContent() {
   const busy = isLoading || isMutating;
 
   return (
-    <div className="grid gap-10 lg:grid-cols-[1fr_20rem]">
-      <div className="space-y-4">
-        <PageTitle as="h1" className="text-4xl sm:text-5xl">
-          {t("title")}
-        </PageTitle>
-
-        {!configured ? (
-          <Body className="text-muted">{t("notConfigured")}</Body>
-        ) : null}
-
-        {error ? (
-          <p className="rounded-lg border border-clay/30 bg-clay/10 px-3 py-2 text-sm">
-            {error}
+    <div className="space-y-8">
+      <div className="border-border flex items-end justify-between border-b pb-5">
+        <div>
+          <p className="text-text-accent mb-2 text-xs font-medium tracking-[0.16em] uppercase">
+            Pueblo Mágico
+          </p>
+          <PageTitle as="h1" className="text-4xl sm:text-5xl">
+            {t("title")}
+          </PageTitle>
+        </div>
+        {cart.totalQuantity > 0 ? (
+          <p className="text-muted text-sm">
+            {cart.totalQuantity}{" "}
+            {cart.totalQuantity === 1 ? t("item") : t("items")}
           </p>
         ) : null}
-
-        {isLoading ? (
-          <Body className="text-muted">{t("loading")}</Body>
-        ) : cart.lines.length === 0 ? (
-          <div className="space-y-4">
-            <Body>{t("empty")}</Body>
-            <Button href={localizePath(locale, "/shop")} variant="secondary">
-              {t("continue")}
-            </Button>
-          </div>
-        ) : (
-          <ul>
-            {cart.lines.map((line) => (
-              <li key={line.id}>
-                <CartLineItem
-                  line={line}
-                  disabled={busy}
-                  onQuantityChange={(lineId, quantity) => {
-                    void updateItemQuantity(lineId, quantity);
-                  }}
-                  onRemove={(lineId) => {
-                    void removeItem(lineId);
-                  }}
-                  labels={{
-                    remove: t("remove"),
-                    quantity: t("quantity"),
-                    decrease: t("decrease"),
-                    increase: t("increase"),
-                  }}
-                />
-              </li>
-            ))}
-          </ul>
-        )}
       </div>
 
+      <div className="grid gap-10 lg:grid-cols-[1fr_22rem]">
+        <div className="space-y-4">
+          {!configured ? (
+            <Body className="text-muted">{t("notConfigured")}</Body>
+          ) : null}
+
+          {error ? (
+            <p className="border-clay/30 bg-clay/10 rounded-lg border px-3 py-2 text-sm">
+              {error}
+            </p>
+          ) : null}
+
+          {isLoading ? (
+            <Body className="text-muted">{t("loading")}</Body>
+          ) : cart.lines.length === 0 ? (
+            <div className="space-y-4">
+              <Body>{t("empty")}</Body>
+              <Button href={localizePath(locale, "/shop")} variant="secondary">
+                {t("continue")}
+              </Button>
+            </div>
+          ) : (
+            <ul className="divide-border border-border bg-card divide-y rounded-2xl border px-4 sm:px-6">
+              {cart.lines.map((line) => (
+                <li key={line.id}>
+                  <CartLineItem
+                    line={line}
+                    disabled={busy}
+                    onQuantityChange={(lineId, quantity) => {
+                      void updateItemQuantity(lineId, quantity);
+                    }}
+                    onRemove={(lineId) => {
+                      void removeItem(lineId);
+                    }}
+                    labels={{
+                      remove: t("remove"),
+                      quantity: t("quantity"),
+                      decrease: t("decrease"),
+                      increase: t("increase"),
+                    }}
+                  />
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {cart.lines.length > 0 ? (
+          <aside className="border-border bg-warm h-fit rounded-2xl border p-6 lg:sticky lg:top-28">
+            <h2 className="font-navigation text-text-black mb-5 text-2xl">
+              {t("summary")}
+            </h2>
+            <CartSummary
+              cart={cart}
+              disabled={busy}
+              onCheckout={checkout}
+              labels={{
+                subtotal: t("subtotal"),
+                checkout: t("checkout"),
+                taxesNote: t("taxesNote"),
+              }}
+            />
+            <div className="mt-3">
+              <Button
+                href={localizePath(locale, "/shop")}
+                variant="ghost"
+                className="w-full"
+              >
+                {t("continue")}
+              </Button>
+            </div>
+          </aside>
+        ) : null}
+      </div>
       {cart.lines.length > 0 ? (
-        <aside className="h-fit rounded-2xl border border-border bg-white/50 p-5">
-          <CartSummary
-            cart={cart}
-            disabled={busy}
-            onCheckout={checkout}
-            labels={{
-              subtotal: t("subtotal"),
-              checkout: t("checkout"),
-              taxesNote: t("taxesNote"),
-            }}
-          />
-          <div className="mt-3">
-            <Button href={localizePath(locale, "/shop")} variant="ghost" className="w-full">
-              {t("continue")}
-            </Button>
-          </div>
-        </aside>
+        <div className="border-border text-muted grid gap-4 border-t pt-6 text-center text-xs sm:grid-cols-3">
+          <p>
+            ♧{" "}
+            <strong className="text-text-black block">
+              {t("shippingBenefit")}
+            </strong>
+          </p>
+          <p>
+            ◇{" "}
+            <strong className="text-text-black block">
+              {t("sourcingBenefit")}
+            </strong>
+          </p>
+          <p>
+            ♙{" "}
+            <strong className="text-text-black block">
+              {t("paymentBenefit")}
+            </strong>
+          </p>
+        </div>
       ) : null}
     </div>
   );

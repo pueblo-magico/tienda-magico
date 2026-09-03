@@ -30,6 +30,11 @@ type Labels = {
   sortPriceDesc: string;
   collections: string;
   allCollections: string;
+  filters: string;
+  price: string;
+  tags: string;
+  minPrice: string;
+  maxPrice: string;
   previous: string;
   next: string;
   pagination: string;
@@ -44,20 +49,36 @@ type Props = {
 export async function ShopPage({ locale, query, labels }: Props) {
   const t = await getTranslations("shop");
   const catalog = await loadShopCatalog(locale, query);
-  const hasFilters = Boolean(query.q || query.collection);
+  const hasFilters = Boolean(
+    query.q ||
+    query.collection ||
+    query.minPrice ||
+    query.maxPrice ||
+    query.tags.length,
+  );
   const count = catalog.products.items.length;
 
   return (
     <Section spacing="lg">
-      <Container className="space-y-10">
-        <header className="max-w-2xl space-y-3">
-          <Eyebrow>{labels.eyebrow}</Eyebrow>
-          <PageTitle as="h1" className="text-4xl sm:text-5xl">
-            {labels.title}
-          </PageTitle>
-          <Body size="lg" className="text-muted">
-            {labels.subtitle}
-          </Body>
+      <Container className="space-y-9">
+        <header className="border-border bg-warm relative overflow-hidden rounded-3xl border px-6 py-12 sm:px-12 lg:py-16">
+          <div className="relative z-10 max-w-xl space-y-3">
+            <Eyebrow>{labels.eyebrow}</Eyebrow>
+            <PageTitle as="h1" className="text-4xl sm:text-5xl">
+              {labels.title}
+            </PageTitle>
+            <Body size="lg" className="text-muted">
+              {labels.subtitle}
+            </Body>
+          </div>
+          <div
+            aria-hidden
+            className="bg-brand/8 absolute -top-24 -right-16 h-72 w-72 rounded-full"
+          />
+          <div
+            aria-hidden
+            className="border-brand/20 absolute right-20 -bottom-28 h-52 w-52 rounded-full border"
+          />
         </header>
 
         {!catalog.configured ? (
@@ -65,21 +86,29 @@ export async function ShopPage({ locale, query, labels }: Props) {
         ) : null}
 
         {catalog.error ? (
-          <p className="rounded-xl border border-clay/30 bg-clay/10 px-4 py-3 text-sm">
+          <p className="border-clay/30 bg-clay/10 rounded-xl border px-4 py-3 text-sm">
             {labels.error}: {catalog.error}
           </p>
         ) : null}
 
         {catalog.configured ? (
-          <div className="grid gap-10 lg:grid-cols-[14rem_1fr]">
-            <aside className="lg:sticky lg:top-24 lg:self-start">
+          <div className="grid gap-8 lg:grid-cols-[15rem_1fr]">
+            <aside className="lg:sticky lg:top-28 lg:self-start">
               <ShopFilters
                 locale={locale}
                 collections={catalog.collections}
+                tags={catalog.availableTags}
                 query={query}
                 labels={{
                   all: labels.allCollections,
                   collections: labels.collections,
+                  filters: labels.filters,
+                  price: labels.price,
+                  tags: labels.tags,
+                  minPrice: labels.minPrice,
+                  maxPrice: labels.maxPrice,
+                  apply: labels.submit,
+                  clear: labels.clear,
                 }}
               />
             </aside>
@@ -104,9 +133,7 @@ export async function ShopPage({ locale, query, labels }: Props) {
               />
 
               {count > 0 ? (
-                <p className="text-sm text-muted">
-                  {t("results", { count })}
-                </p>
+                <p className="text-muted text-sm">{t("results", { count })}</p>
               ) : null}
 
               {count === 0 ? (
@@ -114,7 +141,10 @@ export async function ShopPage({ locale, query, labels }: Props) {
                   {hasFilters ? labels.emptyFiltered : labels.empty}
                 </Body>
               ) : (
-                <ProductGrid locale={locale} products={catalog.products.items} />
+                <ProductGrid
+                  locale={locale}
+                  products={catalog.products.items}
+                />
               )}
 
               <ShopPagination

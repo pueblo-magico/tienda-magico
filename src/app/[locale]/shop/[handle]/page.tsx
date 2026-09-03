@@ -73,6 +73,13 @@ export default async function ProductRoutePage({ params }: Props) {
         relatedEyebrow: t("relatedEyebrow"),
         relatedTitle: t("relatedTitle"),
         tags: t("tags"),
+        description: t("description"),
+        ingredients: t("ingredients"),
+        howToUse: t("howToUse"),
+        originImpact: t("originImpact"),
+        freeShipping: t("freeShipping"),
+        securePayment: t("securePayment"),
+        ethicallySourced: t("ethicallySourced"),
       }}
     />
   );

@@ -5,10 +5,7 @@ import { useTransition } from "react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
-import {
-  DEFAULT_SHOP_SORT,
-  type ShopSortValue,
-} from "./constants";
+import { DEFAULT_SHOP_SORT, type ShopSortValue } from "./constants";
 import { buildShopHref, type ShopQuery } from "./search-params";
 
 type Props = {
@@ -49,14 +46,16 @@ export function ShopToolbar({ locale, query, labels }: Props) {
         event.preventDefault();
         const form = new FormData(event.currentTarget);
         const q = String(form.get("q") ?? "").trim();
-        const sort = String(form.get("sort") ?? DEFAULT_SHOP_SORT) as ShopSortValue;
+        const sort = String(
+          form.get("sort") ?? DEFAULT_SHOP_SORT,
+        ) as ShopSortValue;
 
         const href = buildShopHref(
           locale,
           {
+            ...query,
             q,
             sort,
-            collection: query.collection,
             after: "",
           },
           { dropAfter: true },
@@ -96,9 +95,9 @@ export function ShopToolbar({ locale, query, labels }: Props) {
                   buildShopHref(
                     locale,
                     {
+                      ...query,
                       q: "",
                       sort: DEFAULT_SHOP_SORT,
-                      collection: query.collection,
                       after: "",
                     },
                     { dropAfter: true },

@@ -10,6 +10,9 @@ export type ShopQuery = {
   q: string;
   sort: ShopSortValue;
   collection: string;
+  minPrice: string;
+  maxPrice: string;
+  tags: string[];
   /** Cursor (Shopify) or page number string (Payload). */
   after: string;
 };
@@ -28,7 +31,7 @@ export function parseShopQuery(
 ): ShopQuery {
   const read = (key: string) => {
     const value = input[key];
-    return Array.isArray(value) ? value[0] ?? "" : value ?? "";
+    return Array.isArray(value) ? (value[0] ?? "") : (value ?? "");
   };
 
   const sortRaw = read("sort");
@@ -40,6 +43,12 @@ export function parseShopQuery(
     q: read("q").trim(),
     sort,
     collection: read("collection").trim(),
+    minPrice: read("minPrice").trim(),
+    maxPrice: read("maxPrice").trim(),
+    tags: read("tags")
+      .split(",")
+      .map((tag) => tag.trim())
+      .filter(Boolean),
     after: read("after").trim(),
   };
 }
@@ -91,10 +100,16 @@ export function buildShopHref(
   const collection = query.collection?.trim();
   const sort = query.sort && query.sort !== DEFAULT_SHOP_SORT ? query.sort : "";
   const after = options?.dropAfter ? "" : query.after?.trim();
+  const minPrice = query.minPrice?.trim();
+  const maxPrice = query.maxPrice?.trim();
+  const tags = query.tags?.filter(Boolean) ?? [];
 
   if (q) params.set("q", q);
   if (collection) params.set("collection", collection);
   if (sort) params.set("sort", sort);
+  if (minPrice) params.set("minPrice", minPrice);
+  if (maxPrice) params.set("maxPrice", maxPrice);
+  if (tags.length) params.set("tags", tags.join(","));
   if (after) params.set("after", after);
 
   const qs = params.toString();
