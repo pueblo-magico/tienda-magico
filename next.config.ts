@@ -55,6 +55,11 @@ function cmsMediaPatterns(): RemotePattern[] {
 const nextConfig: NextConfig = {
   output: process.env.STANDALONE_OUTPUT === "true" ? "standalone" : undefined,
   images: {
+    // Local Payload runs on loopback. Keep private-network fetching blocked
+    // in production; remotePatterns still restrict origins and media paths.
+    dangerouslyAllowLocalIP: process.env.NODE_ENV === "development",
+    // Do not let an allowed development image redirect to another local service.
+    ...(process.env.NODE_ENV === "development" ? { maximumRedirects: 0 } : {}),
     remotePatterns: [
       {
         protocol: "https",

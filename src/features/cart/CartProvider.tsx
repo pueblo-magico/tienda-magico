@@ -48,7 +48,10 @@ type CartContextValue = {
   toggleCart: () => void;
   refreshCart: () => Promise<void>;
   addItem: (input: CartLineInput | CartLineInput[]) => Promise<Cart | null>;
-  updateItemQuantity: (lineId: string, quantity: number) => Promise<Cart | null>;
+  updateItemQuantity: (
+    lineId: string,
+    quantity: number,
+  ) => Promise<Cart | null>;
   removeItem: (lineId: string) => Promise<Cart | null>;
   checkout: () => Promise<void>;
   clearError: () => void;
@@ -104,10 +107,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
         writeStoredCartId(null);
       }
     } catch (err) {
-      // Drop stale local cart ids so the next add can create a fresh cart.
-      writeStoredCartId(null);
+      // A transient fetch/pricing failure must not discard an existing cart.
       setError(err instanceof Error ? err.message : "Failed to load cart.");
-      setCart(emptyCart());
     } finally {
       setIsLoading(false);
     }

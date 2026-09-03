@@ -117,7 +117,9 @@ export async function getProducts(
   });
 
   return {
-    items: (data.docs ?? []).map(mapProductSummary),
+    items: (data.docs ?? []).map((doc) =>
+      mapProductSummary(doc, params.locale),
+    ),
     pageInfo: pageInfoFromPayload(data),
   };
 }
@@ -150,7 +152,7 @@ export async function getProduct(
   });
 
   const doc = bySlug.docs?.[0];
-  if (doc) return mapProduct(doc);
+  if (doc) return mapProduct(doc, params.locale);
 
   // Fallback: treat handle as document id
   try {
@@ -167,7 +169,7 @@ export async function getProduct(
         ],
       },
     });
-    return mapProduct(byId);
+    return mapProduct(byId, params.locale);
   } catch {
     return null;
   }

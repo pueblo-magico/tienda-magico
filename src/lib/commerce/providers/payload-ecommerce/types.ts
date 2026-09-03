@@ -1,3 +1,6 @@
+export type PayloadLocalizedText =
+  string | Partial<Record<"en" | "es", string | null>>;
+
 export type PayloadDoc = {
   id: string | number;
   createdAt?: string;
@@ -25,13 +28,16 @@ export type PayloadMedia = {
   filename?: string | null;
   width?: number | null;
   height?: number | null;
-  sizes?: Record<string, { url?: string | null; width?: number | null; height?: number | null }>;
+  sizes?: Record<
+    string,
+    { url?: string | null; width?: number | null; height?: number | null }
+  >;
 };
 
 export type PayloadProductDoc = PayloadDoc & {
-  title?: string | null;
-  name?: string | null;
-  slug?: string | null;
+  title?: PayloadLocalizedText | null;
+  name?: PayloadLocalizedText | null;
+  slug?: PayloadLocalizedText | null;
   handle?: string | null;
   description?: unknown;
   richText?: unknown;
@@ -61,7 +67,7 @@ export type PayloadProductDoc = PayloadDoc & {
 };
 
 export type PayloadVariantDoc = PayloadDoc & {
-  title?: string | null;
+  title?: PayloadLocalizedText | null;
   sku?: string | null;
   inventory?: number | null;
   options?: Array<
@@ -69,7 +75,7 @@ export type PayloadVariantDoc = PayloadDoc & {
     | number
     | {
         id?: string | number;
-        label?: string | null;
+        label?: PayloadLocalizedText | null;
         value?: string | null;
         title?: string | null;
         variantType?:
@@ -77,7 +83,7 @@ export type PayloadVariantDoc = PayloadDoc & {
           | number
           | {
               id?: string | number;
-              label?: string | null;
+              label?: PayloadLocalizedText | null;
               name?: string | null;
               title?: string | null;
             }

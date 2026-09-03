@@ -96,7 +96,9 @@ export async function getCollections(
 ): Promise<Paginated<CollectionSummary>> {
   const data = await safeListCollections(params);
   return {
-    items: (data.docs ?? []).map(mapCollectionSummary),
+    items: (data.docs ?? []).map((doc) =>
+      mapCollectionSummary(doc, params?.locale),
+    ),
     pageInfo: pageInfoFromPayload(data),
   };
 }
@@ -104,6 +106,7 @@ export async function getCollections(
 function extractRelatedProducts(
   doc: PayloadCollectionDoc,
   productsFirst: number,
+  locale?: string,
 ): ProductSummary[] {
   const raw = Array.isArray(doc.products)
     ? doc.products
@@ -114,7 +117,7 @@ function extractRelatedProducts(
   return raw
     .map((item) => {
       if (item && typeof item === "object") {
-        return mapProductSummary(item as PayloadProductDoc);
+        return mapProductSummary(item as PayloadProductDoc, locale);
       }
       return null;
     })
@@ -132,7 +135,9 @@ export async function getCollection(
   const locales = localeQuery(params.locale);
 
   try {
-    const bySlug = await payloadFetch<PayloadListResponse<PayloadCollectionDoc>>({
+    const bySlug = await payloadFetch<
+      PayloadListResponse<PayloadCollectionDoc>
+    >({
       path: collectionPath(config.collectionsSlug),
       query: {
         depth: Math.max(config.depth, 2),
@@ -174,11 +179,13 @@ export async function getCollection(
       });
     }
 
-    let products = extractRelatedProducts(doc, productsFirst);
+    let products = extractRelatedProducts(doc, productsFirst, params.locale);
 
     // Fallback: products that reference this category/collection id
     if (products.length === 0) {
-      const related = await payloadFetch<PayloadListResponse<PayloadProductDoc>>({
+      const related = await payloadFetch<
+        PayloadListResponse<PayloadProductDoc>
+      >({
         path: collectionPath(config.productsSlug),
         query: {
           depth: config.depth,
@@ -199,10 +206,12 @@ export async function getCollection(
           ],
         },
       });
-      products = (related.docs ?? []).map(mapProductSummary);
+      products = (related.docs ?? []).map((product) =>
+        mapProductSummary(product, params.locale),
+      );
     }
 
-    return mapCollection(doc, products);
+    return mapCollection(doc, products, params.locale);
   } catch (error) {
     if (
       error &&

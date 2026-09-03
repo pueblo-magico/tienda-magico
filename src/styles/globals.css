@@ -66,3 +66,14 @@ body {
   outline: 2px solid var(--ring);
   outline-offset: 2px;
 }
+
+/* Shared interaction affordance, including native quantity and drawer buttons. */
+button:not(:disabled):not([aria-disabled="true"]),
+[role="button"]:not([aria-disabled="true"]) {
+  cursor: pointer;
+}
+
+button:disabled,
+[role="button"][aria-disabled="true"] {
+  cursor: default;
+}

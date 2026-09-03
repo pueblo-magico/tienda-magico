@@ -1,0 +1,439 @@
+import assert from "node:assert/strict";
+import { afterEach, beforeEach, test, mock } from "node:test";
+import { CommerceConfigError, CommerceError } from "@/types/commerce";
+import {
+  mapProduct,
+  mapProductSummary,
+  mapCart,
+  mapCollectionSummary,
+  enrichCartWithProducts,
+} from "@/lib/commerce/providers/payload-ecommerce/mappers";
+import {
+  resolveMerchandise,
+  addCartLines,
+  getCart,
+} from "@/lib/commerce/providers/payload-ecommerce/cart";
+
+test("saved cart absence is recoverable but backend failures are not", async () => {
+  transport({});
+  assert.equal(await getCart("999::test-secret"), null);
+  mock.restoreAll();
+  transport({ "GET /api/carts/999": new Error("offline") });
+  await assert.rejects(getCart("999::test-secret"));
+});
+import { mapProductVariant as mapShopifyVariant } from "@/lib/commerce/providers/shopify/mappers";
+import { findVariant } from "@/features/product/utils";
+
+test("storefront resolves stable IDs despite duplicate or translated labels", () => {
+  const product = mapProduct({
+    ...parent,
+    variants: [
+      variant,
+      { ...variant, id: 2, options: [option("es", "100 g", 11)] },
+    ],
+  });
+  assert.equal(
+    findVariant(product, [
+      { optionId: "5", valueId: "11", name: "Renamed", value: "Translated" },
+    ])?.id,
+    "variant:2",
+  );
+  assert.equal(
+    findVariant(product, [{ name: "Tamaño", value: "100 g" }]),
+    null,
+  );
+  assert.equal(
+    findVariant(product, [
+      { optionId: "5", valueId: "missing", name: "Tamaño", value: "100 g" },
+    ]),
+    null,
+  );
+  assert.equal(findVariant(product, []), null);
+  assert.equal(findVariant(mapProduct(simple), [])?.id, "product:1");
+});
+
+test("invalid combinations cannot fall back to another variant; label-only providers remain supported", () => {
+  const product = {
+    variants: [
+      {
+        id: "a",
+        availableForSale: true,
+        selectedOptions: [
+          { name: "Size", value: "Small" },
+          { name: "Color", value: "Red" },
+        ],
+      },
+      {
+        id: "b",
+        availableForSale: true,
+        selectedOptions: [
+          { name: "Size", value: "Large" },
+          { name: "Color", value: "Blue" },
+        ],
+      },
+    ],
+  };
+  assert.equal(
+    findVariant(product, [
+      { name: "Size", value: "Small" },
+      { name: "Color", value: "Blue" },
+    ]),
+    null,
+  );
+  assert.equal(
+    findVariant(product, product.variants[1].selectedOptions)?.id,
+    "b",
+  );
+});
+
+test("partial cart population never leaks private titles or substitutes parent pricing", () => {
+  const cart = mapCart({
+    id: 1,
+    items: [
+      {
+        id: 1,
+        product: 2,
+        variant: { ...variant, title: "PRIVATE_ADMIN_TITLE" },
+        quantity: 1,
+      },
+    ],
+  });
+  assert.ok(!JSON.stringify(cart).includes("PRIVATE_ADMIN_TITLE"));
+  assert.throws(
+    () =>
+      mapCart({
+        id: 1,
+        items: [{ id: 1, product: parent, variant: 1, quantity: 1 }],
+      }),
+    (error) => error.status === 409,
+  );
+});
+
+const envKeys = [
+  "PAYLOAD_ECOMMERCE_URL",
+  "PAYLOAD_ECOMMERCE_CURRENCY",
+  "PAYLOAD_ECOMMERCE_AMOUNT_IS_CENTS",
+  "PAYLOAD_ECOMMERCE_DEFAULT_LOCALE",
+  "PAYLOAD_ECOMMERCE_FALLBACK_LOCALE",
+  "PAYLOAD_ECOMMERCE_API_KEY",
+];
+let savedEnv;
+beforeEach(() => {
+  savedEnv = Object.fromEntries(envKeys.map((key) => [key, process.env[key]]));
+  process.env.PAYLOAD_ECOMMERCE_URL = "http://catalog.test";
+  process.env.PAYLOAD_ECOMMERCE_CURRENCY = "ARS";
+  process.env.PAYLOAD_ECOMMERCE_AMOUNT_IS_CENTS = "true";
+  process.env.PAYLOAD_ECOMMERCE_DEFAULT_LOCALE = "es";
+  process.env.PAYLOAD_ECOMMERCE_FALLBACK_LOCALE = "es";
+  delete process.env.PAYLOAD_ECOMMERCE_API_KEY;
+});
+afterEach(() => {
+  mock.restoreAll();
+  for (const [key, value] of Object.entries(savedEnv)) {
+    if (value === undefined) delete process.env[key];
+    else process.env[key] = value;
+  }
+});
+
+const simple = {
+  id: 1,
+  title: { es: "Taza", en: "Mug" },
+  slug: { es: "taza", en: "mug" },
+  enableVariants: false,
+  priceInARS: 250000,
+  inventory: 7,
+  _status: "published",
+};
+const parent = {
+  id: 2,
+  title: "Cacao",
+  slug: "cacao",
+  enableVariants: true,
+  inventory: 99,
+  priceInARS: 999999,
+  _status: "published",
+};
+const option = (locale, label, id = 10) => ({
+  id,
+  label,
+  variantType: { id: 5, label: locale === "en" ? "Size" : "Tamaño" },
+});
+const variant = {
+  id: 1,
+  product: 2,
+  priceInARS: 125050,
+  inventory: 3,
+  options: [option("es", "100 g")],
+};
+
+function transport(documents) {
+  const calls = [];
+  mock.method(globalThis, "fetch", async (input, init) => {
+    const url = new URL(input);
+    calls.push({ url, init });
+    const key = `${init?.method ?? "GET"} ${url.pathname}`;
+    const doc = documents[key];
+    if (doc instanceof Error) throw doc;
+    return new Response(JSON.stringify(doc ?? { message: "Not found" }), {
+      status: doc ? 200 : 404,
+    });
+  });
+  return calls;
+}
+
+test("simple item is a presentation variant with namespaced identity and product-owned ARS price", () => {
+  const product = mapProduct(simple, "en");
+  assert.equal(product.id, "1");
+  assert.equal(product.variants[0].id, "product:1");
+  assert.equal(product.variants[0].price.amount, "2500.00");
+  assert.equal(product.variants[0].price.currencyCode, "ARS");
+  assert.deepEqual(product.options, []);
+  assert.equal(product.variants[0].quantityAvailable, null);
+});
+
+test("multi-variant data owns its price and stable identities, not parent price/inventory", () => {
+  const product = mapProduct({
+    ...parent,
+    variants: {
+      docs: [
+        variant,
+        {
+          ...variant,
+          id: 2,
+          priceInARS: 400000,
+          options: [option("es", "500 g", 11)],
+        },
+      ],
+    },
+  });
+  assert.deepEqual(
+    product.variants.map((v) => v.id),
+    ["variant:1", "variant:2"],
+  );
+  assert.equal(product.priceRange.minVariantPrice.amount, "1250.50");
+  assert.equal(product.priceRange.maxVariantPrice.amount, "4000.00");
+  assert.equal(product.options[0].id, "5");
+  assert.deepEqual(product.options[0].choices, [
+    { id: "10", value: "100 g" },
+    { id: "11", value: "500 g" },
+  ]);
+});
+
+test("disabled variants ignore stale joined rows; missing enabled variants never synthesize a simple item", () => {
+  assert.equal(
+    mapProduct({ ...simple, variants: [variant] }).variants[0].id,
+    "product:1",
+  );
+  const product = mapProduct(parent);
+  assert.deepEqual(product.variants, []);
+  assert.equal(product.availableForSale, false);
+  assert.doesNotMatch(JSON.stringify(product), /Infinity|NaN/);
+  assert.deepEqual(
+    mapProduct({ ...parent, variants: [{ ...variant, product: 999 }] })
+      .variants,
+    [],
+  );
+});
+
+test("localized names and slugs change without changing entity, merchandise, or option IDs", () => {
+  const spanish = mapProduct(simple, "es"),
+    english = mapProduct(simple, "en");
+  assert.equal(spanish.handle, "taza");
+  assert.equal(english.handle, "mug");
+  assert.equal(spanish.id, english.id);
+  assert.equal(spanish.variants[0].id, english.variants[0].id);
+  const a = mapProduct({ ...parent, variants: [variant] }, "es");
+  const b = mapProduct(
+    {
+      ...parent,
+      variants: [{ ...variant, options: [option("en", "100 grams")] }],
+    },
+    "en",
+  );
+  assert.equal(a.options[0].id, b.options[0].id);
+  assert.equal(a.options[0].choices[0].id, b.options[0].choices[0].id);
+  assert.notEqual(a.options[0].name, b.options[0].name);
+});
+
+test("missing translation falls back to Spanish; shared legacy strings remain compatible", () => {
+  assert.equal(
+    mapProduct({ ...simple, title: { es: "Taza", en: "" } }, "en").title,
+    "Taza",
+  );
+  assert.equal(
+    mapProduct({ ...simple, slug: "taza-antigua" }, "en").handle,
+    "taza-antigua",
+  );
+  const category = mapCollectionSummary(
+    {
+      id: 5,
+      title: { en: "Rituals", es: "Rituales" },
+      slug: { en: "rituals", es: "rituales" },
+    },
+    "en",
+  );
+  assert.equal(category.handle, "rituals");
+  assert.equal(category.id, "5");
+});
+
+test("public projections do not spread private fields or administrative variant titles", () => {
+  const sensitive = {
+    cost: { amount: 100, currency: "BRL" },
+    supplier: "PRIVATE_SUPPLIER",
+    notes: "PRIVATE_NOTES",
+  };
+  const doc = {
+    ...parent,
+    ...sensitive,
+    variants: [{ ...variant, ...sensitive, title: "PRIVATE_ADMIN_TITLE" }],
+  };
+  for (const mapped of [
+    mapProduct(doc),
+    mapProductSummary(doc),
+    mapCart({
+      id: 8,
+      items: [{ id: 1, product: doc, variant: doc.variants[0], quantity: 1 }],
+    }),
+  ]) {
+    const serialized = JSON.stringify(mapped);
+    assert.doesNotMatch(serialized, /PRIVATE_|"supplier"|"notes"|"inventory"/);
+  }
+});
+
+test("namespaced refs disambiguate equal numeric IDs and retain numeric Payload relations", async () => {
+  transport({
+    "GET /api/products/1": simple,
+    "GET /api/products/2": parent,
+    "GET /api/variants/1": variant,
+  });
+  assert.deepEqual(await resolveMerchandise("product:1"), {
+    kind: "product",
+    productId: "1",
+  });
+  assert.deepEqual(await resolveMerchandise("variant:1"), {
+    kind: "variant",
+    productId: "2",
+    variantId: "1",
+  });
+  await assert.rejects(
+    resolveMerchandise("1"),
+    (error) => error.status === 409,
+  );
+});
+
+test("unambiguous legacy refs and legacy pairs still resolve", async () => {
+  transport({
+    "GET /api/products/9": { ...simple, id: 9 },
+    "GET /api/products/2": parent,
+    "GET /api/variants/1": variant,
+  });
+  assert.equal((await resolveMerchandise("9")).productId, "9");
+  assert.equal((await resolveMerchandise("1")).variantId, "1");
+  assert.equal((await resolveMerchandise("2:1")).variantId, "1");
+});
+
+test("malformed references, missing relationships and mismatched pairs fail before mutation", async () => {
+  transport({
+    "GET /api/products/2": parent,
+    "GET /api/variants/1": variant,
+    "GET /api/variants/3": { ...variant, id: 3, product: null },
+  });
+  for (const ref of [
+    "",
+    "product:",
+    "variant:",
+    "2:1:3",
+    "product:../1",
+    "9:1",
+    "product:2",
+    "variant:3",
+    "variant:99",
+  ]) {
+    await assert.rejects(resolveMerchandise(ref), CommerceError);
+  }
+});
+
+test("transport failures are not mistaken for absent products", async () => {
+  transport({ "GET /api/products/1": new Error("offline") });
+  await assert.rejects(resolveMerchandise("product:1"), /Failed to reach/);
+});
+
+test("saved carts re-emit namespaced references while keeping cart secret and line IDs", () => {
+  const cart = mapCart(
+    {
+      id: 8,
+      items: [
+        { id: "line-old", product: 2, variant: 1, amount: 125050, quantity: 2 },
+      ],
+    },
+    { secret: "fixture-secret" },
+  );
+  assert.equal(cart.id, "8::fixture-secret");
+  assert.equal(cart.lines[0].id, "line-old");
+  assert.equal(cart.lines[0].merchandise.id, "variant:1");
+  assert.equal(cart.lines[0].cost.totalAmount.amount, "2501.00");
+  const enriched = enrichCartWithProducts(cart, new Map([["2", parent]]), "en");
+  assert.equal(enriched.lines[0].merchandise.id, "variant:1");
+  assert.equal(enriched.lines[0].cost.amountPerQuantity.amount, "1250.50");
+});
+
+test("adding removes stale cart references while retaining valid lines", async () => {
+  const healthy = {
+    id: 77,
+    items: [{ id: "keep", product: parent, variant, quantity: 2 }],
+  };
+  const calls = transport({
+    "GET /api/carts/77": {
+      ...healthy,
+      items: [...healthy.items, { id: "removed", product: 999, quantity: 1 }],
+    },
+    "GET /api/products/2": parent,
+    "GET /api/variants/1": variant,
+    "PATCH /api/carts/77": { doc: healthy },
+    "POST /api/carts/77/add-item": { success: true, cart: healthy },
+  });
+  await addCartLines("77::test-secret", [
+    { merchandiseId: "variant:1", quantity: 1 },
+  ]);
+  const patch = calls.find((call) => call.init.method === "PATCH");
+  assert.deepEqual(JSON.parse(patch.init.body).items, [
+    { id: "keep", product: 2, variant: 1, quantity: 2 },
+  ]);
+  assert.equal(patch.url.searchParams.get("secret"), "test-secret");
+});
+
+test("actual add-cart request contains correct product/variant numeric IDs", async () => {
+  const cart = {
+    id: 8,
+    items: [{ id: 55, product: parent, variant, quantity: 1 }],
+  };
+  const calls = transport({
+    "GET /api/products/2": parent,
+    "GET /api/variants/1": variant,
+    "POST /api/carts/8/add-item": { success: true, cart },
+    "GET /api/carts/8": cart,
+  });
+  const result = await addCartLines("8::fixture-secret", [
+    { merchandiseId: "variant:1", quantity: 1 },
+  ]);
+  const mutation = calls.find((c) => c.init.method === "POST");
+  assert.deepEqual(JSON.parse(mutation.init.body).item, {
+    product: 2,
+    variant: 1,
+  });
+  assert.equal(result.lines[0].merchandise.id, "variant:1");
+});
+
+test("unconfigured Payload fails explicitly and Shopify opaque GIDs remain unchanged", () => {
+  delete process.env.PAYLOAD_ECOMMERCE_URL;
+  assert.throws(() => mapProduct(simple), CommerceConfigError);
+  const id = "gid://shopify/ProductVariant/1";
+  assert.equal(
+    mapShopifyVariant({
+      id,
+      title: "100g",
+      price: { amount: "10.00", currencyCode: "ARS" },
+    }).id,
+    id,
+  );
+});

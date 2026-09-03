@@ -18,6 +18,10 @@ import { Media } from './collections/Media'
 import { Pages } from './collections/Pages'
 import { Posts } from './collections/Posts'
 import { productsCollectionOverride } from './collections/Products'
+import {
+  variantsCollectionOverride,
+  variantOptionsCollectionOverride,
+} from './collections/variantEditorGuidance'
 import { Testimonials } from './collections/Testimonials'
 import { Users } from './collections/Users'
 import { Footer } from './globals/Footer'
@@ -122,6 +126,10 @@ export default buildConfig({
       // Catalogue + carts work without a payment method configured.
       products: {
         productsCollectionOverride,
+        variants: {
+          variantsCollectionOverride,
+          variantOptionsCollectionOverride,
+        },
       },
       addresses: true,
       orders: true,

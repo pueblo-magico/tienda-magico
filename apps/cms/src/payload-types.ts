@@ -568,15 +568,30 @@ export interface Product {
         id?: string | null;
       }[]
     | null;
+  /**
+   * Stock for this sellable item. Zero means sold out. For variant products, edit stock on each variant.
+   */
   inventory?: number | null;
+  /**
+   * For sizes such as 15g / 20g. Select option types, then create and publish a sellable variant for each size. Options alone do not create stock or prices.
+   */
   enableVariants?: boolean | null;
+  /**
+   * Reusable choices only. Save the product before creating its sellable variants below.
+   */
   variantTypes?: (number | VariantType)[] | null;
+  /**
+   * Create one record per combination. Select its options, enable ARS, enter its price and stock, then Publish. An empty list or draft-only variants cannot be purchased.
+   */
   variants?: {
     docs?: (number | Variant)[];
     hasNextPage?: boolean;
     totalDocs?: number;
   };
   priceInARSEnabled?: boolean | null;
+  /**
+   * Selling price of this item. For products with variants, set the price inside each sellable variant; the parent price is not used.
+   */
   priceInARS?: number | null;
   updatedAt: string;
   createdAt: string;
@@ -617,6 +632,8 @@ export interface VariantType {
   deletedAt?: string | null;
 }
 /**
+ * Reusable labels such as 15g and 20g. These are not sellable variants and have no prices or stock.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "variantOptions".
  */
@@ -626,7 +643,7 @@ export interface VariantOption {
   variantType: number | VariantType;
   label: string;
   /**
-   * should be defaulted or dynamic based on label
+   * Stable identifier, e.g. 20g. Never enter a selling price here. Set prices on sellable variants.
    */
   value: string;
   updatedAt: string;
@@ -634,6 +651,8 @@ export interface VariantOption {
   deletedAt?: string | null;
 }
 /**
+ * Each record is a purchasable combination with its own ARS price and stock. Save and publish every variant, not only the parent product.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "variants".
  */
@@ -644,9 +663,18 @@ export interface Variant {
    */
   title?: string | null;
   product: number | Product;
+  /**
+   * Choose one value per option type. Define the selling price separately below.
+   */
   options: (number | VariantOption)[];
+  /**
+   * Stock for this sellable item. Zero means sold out. For variant products, edit stock on each variant.
+   */
   inventory?: number | null;
   priceInARSEnabled?: boolean | null;
+  /**
+   * Selling price of this item. For products with variants, set the price inside each sellable variant; the parent price is not used.
+   */
   priceInARS?: number | null;
   updatedAt: string;
   createdAt: string;

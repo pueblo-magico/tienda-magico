@@ -14,14 +14,19 @@ export type ProductOption = {
   id: string;
   name: string;
   values: string[];
+  /** Stable provider value identities when supplied; labels remain presentation. */
+  choices?: Array<{ id: string; value: string }>;
 };
 
 export type SelectedOption = {
   name: string;
   value: string;
+  optionId?: string;
+  valueId?: string;
 };
 
 export type ProductVariant = {
+  /** Opaque sellable reference; may represent a simple product, not a persisted variant. */
   id: string;
   title: string;
   availableForSale: boolean;
@@ -210,7 +215,10 @@ export class CommerceError extends Error {
 }
 
 export class CommerceConfigError extends CommerceError {
-  constructor(message = "Commerce provider is not configured.", provider?: string) {
+  constructor(
+    message = "Commerce provider is not configured.",
+    provider?: string,
+  ) {
     super(message, { provider });
     this.name = "CommerceConfigError";
   }

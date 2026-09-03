@@ -23,6 +23,28 @@ PAYLOAD_ECOMMERCE_URL=http://localhost:4000
 
 ## Recommended content order
 
+### Products with sizes: options are not sellable variants
+
+For example, a product sold in 15g and 20g needs:
+
+1. An option type such as **Size**, with option labels **15g** and **20g**.
+   The option **code/value** is an identifier, not a price. Do not put prices there.
+2. Enable variants on the product, select Size, and save the product.
+3. In **Sellable variants — price and stock**, create a record for each size.
+   Choose its option, enable ARS pricing, enter its selling price using the price
+   control, and set available units.
+4. **Publish each variant** as well as the product. Saving a draft is not enough.
+5. Refresh the storefront after its existing 60-second product cache interval
+   (a subsequent request may complete background revalidation).
+
+The parent product price and stock do not replace variant prices and stock.
+An empty variant list means there are no publicly available sellable records,
+even if the Size options exist. The storefront cannot derive prices from option
+codes. Existing codes are not automatically rewritten or converted to prices.
+
+These editor guidance changes do not change stored fields, IDs, or slugs and
+require no database migration. Existing draft variants remain unpublished.
+
 1. **Media** — upload product images (set **Alt** text)
 2. **Categories** — create shop groupings (`title` + unique `slug`)
 3. **Products** — create items, attach gallery + category, set price
@@ -35,12 +57,12 @@ PAYLOAD_ECOMMERCE_URL=http://localhost:4000
 
 Used by the storefront as “collections” (`PAYLOAD_ECOMMERCE_COLLECTIONS_SLUG=categories`).
 
-| Field | Guidance |
-| --- | --- |
-| Title | Display name (e.g. Ritual Cacao) |
-| slug | URL key, unique, lowercase-kebab (e.g. `ritual-cacao`) |
-| Description | Optional plain text |
-| Image | Optional cover from Media |
+| Field       | Guidance                                               |
+| ----------- | ------------------------------------------------------ |
+| Title       | Display name (e.g. Ritual Cacao)                       |
+| slug        | URL key, unique, lowercase-kebab (e.g. `ritual-cacao`) |
+| Description | Optional plain text                                    |
+| Image       | Optional cover from Media                              |
 
 ---
 
@@ -48,23 +70,23 @@ Used by the storefront as “collections” (`PAYLOAD_ECOMMERCE_COLLECTIONS_SLUG
 
 ### Required for a usable storefront card/PDP
 
-| Field | Notes |
-| --- | --- |
-| Title | Product name (admin list title) |
-| slug | Unique handle; storefront resolves `/product/[slug]` style routes by this |
+| Field       | Notes                                                                      |
+| ----------- | -------------------------------------------------------------------------- |
+| Title       | Product name (admin list title)                                            |
+| slug        | Unique handle; storefront resolves `/product/[slug]` style routes by this  |
 | Price (ARS) | Plugin price field — stored in **minor units** (e.g. `250000` = $2.500,00) |
-| Status | **Published** to appear in public API |
+| Status      | **Published** to appear in public API                                      |
 
 ### Strongly recommended
 
-| Field | Notes |
-| --- | --- |
-| Summary | Short plain text for product cards |
-| Description | Rich text for PDP body |
-| Gallery | One or more images |
-| Category | Link to a category |
-| Inventory | When not using variants |
-| Tags | Optional labels |
+| Field       | Notes                              |
+| ----------- | ---------------------------------- |
+| Summary     | Short plain text for product cards |
+| Description | Rich text for PDP body             |
+| Gallery     | One or more images                 |
+| Category    | Link to a category                 |
+| Inventory   | When not using variants            |
+| Tags        | Optional labels                    |
 
 ### Draft vs published
 
@@ -143,13 +165,13 @@ Storefront requests should pass the active locale, e.g. `commerce.getProducts({ 
 
 ## Common mistakes
 
-| Mistake | Result |
-| --- | --- |
-| Left as Draft | Product missing from shop |
-| Price entered as dollars in a cents field | 100× too cheap/expensive |
-| Duplicate / missing slug | PDP lookup fails or collides |
-| No published products | Empty catalog |
-| Wrong `PAYLOAD_ECOMMERCE_URL` | Storefront cannot reach CMS |
+| Mistake                                   | Result                       |
+| ----------------------------------------- | ---------------------------- |
+| Left as Draft                             | Product missing from shop    |
+| Price entered as dollars in a cents field | 100× too cheap/expensive     |
+| Duplicate / missing slug                  | PDP lookup fails or collides |
+| No published products                     | Empty catalog                |
+| Wrong `PAYLOAD_ECOMMERCE_URL`             | Storefront cannot reach CMS  |
 
 ---
 
@@ -157,22 +179,22 @@ Storefront requests should pass the active locale, e.g. `commerce.getProducts({ 
 
 Beyond the shop catalogue, the CMS also manages marketing content.
 
-| Collection | Use for |
-| --- | --- |
-| **Pages** | Homepage and static routes built from **layout blocks** |
-| **Posts** | Journal / stories |
-| **Testimonials** | Quotes pulled into Testimonials blocks |
-| **FAQs** | Q&A pulled into FAQ blocks |
-| **Media** | Shared uploads |
+| Collection       | Use for                                                 |
+| ---------------- | ------------------------------------------------------- |
+| **Pages**        | Homepage and static routes built from **layout blocks** |
+| **Posts**        | Journal / stories                                       |
+| **Testimonials** | Quotes pulled into Testimonials blocks                  |
+| **FAQs**         | Q&A pulled into FAQ blocks                              |
+| **Media**        | Shared uploads                                          |
 
 ### Globals
 
-| Global | Use for |
-| --- | --- |
-| **Header** | Nav items + optional header CTA |
-| **Footer** | Columns of links + tagline |
-| **Site settings** | Site name, contact, social |
-| **SEO defaults** | Fallback title/description/OG image |
+| Global            | Use for                             |
+| ----------------- | ----------------------------------- |
+| **Header**        | Nav items + optional header CTA     |
+| **Footer**        | Columns of links + tagline          |
+| **Site settings** | Site name, contact, social          |
+| **SEO defaults**  | Fallback title/description/OG image |
 
 ### Building a page
 

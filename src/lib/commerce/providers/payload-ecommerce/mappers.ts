@@ -11,12 +11,15 @@ import type {
   ProductVariant,
   SelectedOption,
 } from "@/types/commerce";
+import { CommerceError } from "@/types/commerce";
 import { getPayloadEcommerceConfig } from "./config";
+import { merchandiseRef } from "./merchandise";
 import type {
   PayloadCartDoc,
   PayloadMedia,
   PayloadProductDoc,
   PayloadVariantDoc,
+  PayloadLocalizedText,
 } from "./types";
 
 export function encodeCartRef(cartId: string, secret?: string | null): string {
@@ -24,7 +27,10 @@ export function encodeCartRef(cartId: string, secret?: string | null): string {
   return `${cartId}::${secret}`;
 }
 
-export function decodeCartRef(cartRef: string): { cartId: string; secret?: string } {
+export function decodeCartRef(cartRef: string): {
+  cartId: string;
+  secret?: string;
+} {
   const separator = "::";
   const index = cartRef.indexOf(separator);
   if (index === -1) {
@@ -39,9 +45,11 @@ export function decodeCartRef(cartRef: string): { cartId: string; secret?: strin
 export function toId(value: unknown): string {
   if (value == null) return "";
   if (typeof value === "object" && value && "id" in value) {
-    return String((value as { id: string | number }).id);
+    return toId(value.id);
   }
-  return String(value);
+  return typeof value === "string" || typeof value === "number"
+    ? String(value)
+    : "";
 }
 
 /**
@@ -74,13 +82,16 @@ export function enrichCartWithProducts(
     if (!doc) return line;
 
     const title = productTitle(doc, locale);
-    const handle = productHandle(doc);
-    const image = collectImages(doc)[0] ?? line.merchandise.product.featuredImage;
+    const handle = productHandle(doc, locale);
+    const image =
+      collectImages(doc)[0] ?? line.merchandise.product.featuredImage;
     const amountRaw = readAmount(doc as Record<string, unknown>, currency);
-    const hasLinePrice = Number.parseFloat(line.cost.amountPerQuantity.amount) > 0;
-    const unitMoney = hasLinePrice
-      ? line.cost.amountPerQuantity
-      : mapMoney(amountRaw ?? 0, currency);
+    const hasLinePrice =
+      Number.parseFloat(line.cost.amountPerQuantity.amount) > 0;
+    const unitMoney =
+      hasLinePrice || line.merchandise.id.startsWith("variant:")
+        ? line.cost.amountPerQuantity
+        : mapMoney(amountRaw ?? 0, currency);
     const unitMajor = Number.parseFloat(unitMoney.amount);
     const lineMajor = unitMajor * line.quantity;
 
@@ -128,14 +139,19 @@ export function enrichCartWithProducts(
 }
 
 function asRecord(value: unknown): Record<string, unknown> | null {
-  return value && typeof value === "object" ? (value as Record<string, unknown>) : null;
+  return value && typeof value === "object"
+    ? (value as Record<string, unknown>)
+    : null;
 }
 
 function richTextToPlain(value: unknown): string {
   if (value == null) return "";
   if (typeof value === "string") return value;
   if (Array.isArray(value)) {
-    return value.map((node) => richTextToPlain(node)).filter(Boolean).join("\n");
+    return value
+      .map((node) => richTextToPlain(node))
+      .filter(Boolean)
+      .join("\n");
   }
 
   const node = asRecord(value);
@@ -229,7 +245,8 @@ function mapMedia(value: unknown): CommerceImage | null {
   }
 
   const media = value as PayloadMedia;
-  const url = media.url ?? media.sizes?.card?.url ?? media.sizes?.thumbnail?.url;
+  const url =
+    media.url ?? media.sizes?.card?.url ?? media.sizes?.thumbnail?.url;
   if (!url) return null;
 
   return {
@@ -241,7 +258,13 @@ function mapMedia(value: unknown): CommerceImage | null {
 }
 
 function collectImages(product: PayloadProductDoc): CommerceImage[] {
-  const buckets = [product.media, product.gallery, product.images, product.image, product.featuredImage];
+  const buckets = [
+    product.media,
+    product.gallery,
+    product.images,
+    product.image,
+    product.featuredImage,
+  ];
   const images: CommerceImage[] = [];
 
   for (const bucket of buckets) {
@@ -273,7 +296,14 @@ function mapTags(value: unknown): string[] {
         if (typeof tag === "string") return tag;
         const record = asRecord(tag);
         if (!record) return "";
-        return String(record.tag ?? record.label ?? record.value ?? record.title ?? record.id ?? "");
+        return String(
+          record.tag ??
+            record.label ??
+            record.value ??
+            record.title ??
+            record.id ??
+            "",
+        );
       })
       .filter(Boolean);
   }
@@ -307,7 +337,11 @@ function readAmount(
   for (const key of directKeys) {
     const value = source[key];
     if (typeof value === "number" && Number.isFinite(value)) return value;
-    if (typeof value === "string" && value.trim() && !Number.isNaN(Number(value))) {
+    if (
+      typeof value === "string" &&
+      value.trim() &&
+      !Number.isNaN(Number(value))
+    ) {
       return Number(value);
     }
   }
@@ -326,7 +360,10 @@ function readAmount(
   return null;
 }
 
-export function mapMoney(amount: number | null | undefined, currencyCode?: string): Money {
+export function mapMoney(
+  amount: number | null | undefined,
+  currencyCode?: string,
+): Money {
   const config = getPayloadEcommerceConfig();
   const code = (currencyCode ?? config.currencyCode).toUpperCase();
   const raw = amount ?? 0;
@@ -339,83 +376,130 @@ export function mapMoney(amount: number | null | undefined, currencyCode?: strin
 }
 
 function variantDocs(product: PayloadProductDoc): PayloadVariantDoc[] {
+  if (product.enableVariants === false) return [];
   const variants = product.variants;
   if (!variants) return [];
-  if (Array.isArray(variants)) return variants;
-  if (Array.isArray(variants.docs)) return variants.docs;
-  return [];
+  const docs = Array.isArray(variants) ? variants : (variants.docs ?? []);
+  return docs.filter((doc) => {
+    if (!doc || typeof doc !== "object" || doc.id == null) return false;
+    return doc.product == null || toId(doc.product) === toId(product.id);
+  });
 }
 
-function mapSelectedOptions(variant: PayloadVariantDoc): SelectedOption[] {
+function mapSelectedOptions(
+  variant: PayloadVariantDoc,
+  locale?: string | null,
+): SelectedOption[] {
+  const config = getPayloadEcommerceConfig();
+  const preferred = [locale ?? config.defaultLocale, config.fallbackLocale];
   const options = variant.options ?? [];
   return options
     .map((option) => {
-      if (option == null || typeof option === "string" || typeof option === "number") {
+      if (
+        option == null ||
+        typeof option === "string" ||
+        typeof option === "number"
+      ) {
         return {
           name: "Option",
           value: String(option ?? ""),
+          ...(option != null ? { valueId: String(option) } : {}),
         };
       }
 
       const typeRecord = asRecord(option.variantType);
       const name =
         (typeof option.variantType === "object" && option.variantType
-          ? option.variantType.label ??
+          ? (option.variantType.label ??
             option.variantType.name ??
-            option.variantType.title
+            option.variantType.title)
           : null) ??
         typeRecord?.label ??
         typeRecord?.name ??
         "Option";
 
-      const value = option.label ?? option.value ?? option.title ?? toId(option.id);
-      return { name: String(name), value: String(value) };
+      const value =
+        option.label ?? option.value ?? option.title ?? toId(option.id);
+      const optionId = toId(option.variantType);
+      return {
+        name: resolveLocalizedText(name, preferred) || "Option",
+        value: resolveLocalizedText(value, preferred),
+        ...(optionId ? { optionId } : {}),
+        ...(option.id != null ? { valueId: toId(option.id) } : {}),
+      };
     })
     .filter((option) => option.value);
 }
 
 function mapOptionsFromVariants(variants: ProductVariant[]): ProductOption[] {
-  const map = new Map<string, Set<string>>();
+  const map = new Map<string, ProductOption>();
   for (const variant of variants) {
     for (const option of variant.selectedOptions) {
-      if (!map.has(option.name)) map.set(option.name, new Set());
-      map.get(option.name)!.add(option.value);
+      // Missing type population must not invent a label-derived identity.
+      const id =
+        option.optionId ??
+        (option.valueId ? `unresolved-${option.valueId}` : null);
+      if (!id) continue;
+      const group = map.get(id) ?? {
+        id,
+        name: option.name,
+        values: [],
+        choices: [],
+      };
+      if (!group.values.includes(option.value)) group.values.push(option.value);
+      if (
+        option.valueId &&
+        !group.choices?.some((choice) => choice.id === option.valueId)
+      ) {
+        group.choices?.push({ id: option.valueId, value: option.value });
+      }
+      map.set(id, group);
     }
   }
 
-  return [...map.entries()].map(([name, values], index) => ({
-    id: `option-${index}-${name.toLowerCase().replace(/\s+/g, "-")}`,
-    name,
-    values: [...values],
-  }));
+  return [...map.values()];
 }
 
 export function mapVariant(
   variant: PayloadVariantDoc,
   currencyCode?: string,
+  locale?: string | null,
 ): ProductVariant {
   const config = getPayloadEcommerceConfig();
   const code = currencyCode ?? config.currencyCode;
   const inventory =
     typeof variant.inventory === "number" ? variant.inventory : null;
   const amount = readAmount(variant as Record<string, unknown>, code);
+  const selectedOptions = mapSelectedOptions(variant, locale);
 
   return {
-    id: toId(variant.id),
-    title: variant.title ?? "Default",
+    id: merchandiseRef("variant", toId(variant.id)),
+    // Payload's variant title is administrative; use public option labels instead.
+    title:
+      selectedOptions.map((option) => option.value).join(" / ") || "Default",
     availableForSale: inventory == null ? true : inventory > 0,
-    quantityAvailable: inventory,
+    quantityAvailable: null,
     sku: variant.sku ?? null,
-    selectedOptions: mapSelectedOptions(variant),
+    selectedOptions,
     price: mapMoney(amount, code),
     compareAtPrice: null,
     image: null,
   };
 }
 
-function productHandle(product: PayloadProductDoc): string {
-  const slug = resolveLocalizedText(product.slug) || product.slug || product.handle;
-  return String(slug ?? product.id);
+function productHandle(
+  product: PayloadProductDoc,
+  locale?: string | null,
+): string {
+  const config = getPayloadEcommerceConfig();
+  return (
+    resolveLocalizedText(product.slug, [
+      locale ?? config.defaultLocale,
+      config.fallbackLocale,
+    ]) ||
+    product.handle ||
+    toId(product.id)
+  );
 }
 
 function humanizeHandle(handle: string): string {
@@ -453,34 +537,50 @@ export function productTitle(
   return "Untitled product";
 }
 
-export function mapProductSummary(product: PayloadProductDoc): ProductSummary {
+export function mapProductSummary(
+  product: PayloadProductDoc,
+  locale?: string | null,
+): ProductSummary {
   const config = getPayloadEcommerceConfig();
   const images = collectImages(product);
-  const variants = variantDocs(product).map((variant) => mapVariant(variant));
+  const variants = variantDocs(product).map((variant) =>
+    mapVariant(variant, undefined, locale),
+  );
   const amount =
     readAmount(product as Record<string, unknown>, config.currencyCode) ??
-    (variants[0] ? Number.parseFloat(variants[0].price.amount) * (config.amountIsCents ? 100 : 1) : 0);
+    (variants[0]
+      ? Number.parseFloat(variants[0].price.amount) *
+        (config.amountIsCents ? 100 : 1)
+      : 0);
 
   // When variants exist, derive range from variant prices
-  const variantAmounts = variants.map((variant) => Number.parseFloat(variant.price.amount));
+  const variantAmounts = variants.map((variant) =>
+    Number.parseFloat(variant.price.amount),
+  );
   const minAmount =
-    variantAmounts.length > 0 ? Math.min(...variantAmounts) : Number.parseFloat(mapMoney(amount).amount);
+    variantAmounts.length > 0
+      ? Math.min(...variantAmounts)
+      : Number.parseFloat(mapMoney(amount).amount);
   const maxAmount =
-    variantAmounts.length > 0 ? Math.max(...variantAmounts) : Number.parseFloat(mapMoney(amount).amount);
+    variantAmounts.length > 0
+      ? Math.max(...variantAmounts)
+      : Number.parseFloat(mapMoney(amount).amount);
 
   const inventory =
     typeof product.inventory === "number" ? product.inventory : null;
   const availableForSale =
     variants.length > 0
       ? variants.some((variant) => variant.availableForSale)
-      : inventory == null
-        ? product._status !== "draft"
-        : inventory > 0;
+      : product.enableVariants === true
+        ? false
+        : inventory == null
+          ? product._status !== "draft"
+          : inventory > 0;
 
   return {
     id: toId(product.id),
-    handle: productHandle(product),
-    title: productTitle(product, undefined),
+    handle: productHandle(product, locale),
+    title: productTitle(product, locale),
     vendor: String(product.vendor ?? product.brand ?? ""),
     availableForSale,
     tags: mapTags(product.tags),
@@ -498,23 +598,27 @@ export function mapProductSummary(product: PayloadProductDoc): ProductSummary {
   };
 }
 
-export function mapProduct(product: PayloadProductDoc): Product {
-  const summary = mapProductSummary(product);
+export function mapProduct(
+  product: PayloadProductDoc,
+  locale?: string | null,
+): Product {
+  const summary = mapProductSummary(product, locale);
   const images = collectImages(product);
-  const variants = variantDocs(product).map((variant) => mapVariant(variant));
+  const variants = variantDocs(product).map((variant) =>
+    mapVariant(variant, undefined, locale),
+  );
   const config = getPayloadEcommerceConfig();
 
-  // Synthetic default variant when product has no variants collection rows
+  // Presentation-only simple item: never insert a hidden variant into Payload.
   const normalizedVariants =
-    variants.length > 0
+    variants.length > 0 || product.enableVariants === true
       ? variants
       : [
           {
-            id: toId(product.id),
+            id: merchandiseRef("product", toId(product.id)),
             title: "Default",
             availableForSale: summary.availableForSale,
-            quantityAvailable:
-              typeof product.inventory === "number" ? product.inventory : null,
+            quantityAvailable: null,
             sku: null,
             selectedOptions: [],
             price: summary.priceRange.minVariantPrice,
@@ -539,49 +643,74 @@ export function mapProduct(product: PayloadProductDoc): Product {
     productType: String(product.productType ?? ""),
     createdAt: product.createdAt ?? "",
     updatedAt: product.updatedAt ?? "",
-    images: images.length > 0 ? images : summary.featuredImage ? [summary.featuredImage] : [],
+    images:
+      images.length > 0
+        ? images
+        : summary.featuredImage
+          ? [summary.featuredImage]
+          : [],
     options: mapOptionsFromVariants(normalizedVariants),
     variants: normalizedVariants,
     seo: {
       title: product.meta?.title ?? product.seo?.title ?? null,
-      description: product.meta?.description ?? product.seo?.description ?? null,
+      description:
+        product.meta?.description ?? product.seo?.description ?? null,
     },
     // ensure currency consistency
     priceRange: {
       minVariantPrice: {
-        amount: Math.min(
-          ...normalizedVariants.map((variant) => Number.parseFloat(variant.price.amount)),
-        ).toFixed(2),
+        amount: normalizedVariants.length
+          ? Math.min(
+              ...normalizedVariants.map((variant) =>
+                Number.parseFloat(variant.price.amount),
+              ),
+            ).toFixed(2)
+          : summary.priceRange.minVariantPrice.amount,
         currencyCode: config.currencyCode,
       },
       maxVariantPrice: {
-        amount: Math.max(
-          ...normalizedVariants.map((variant) => Number.parseFloat(variant.price.amount)),
-        ).toFixed(2),
+        amount: normalizedVariants.length
+          ? Math.max(
+              ...normalizedVariants.map((variant) =>
+                Number.parseFloat(variant.price.amount),
+              ),
+            ).toFixed(2)
+          : summary.priceRange.maxVariantPrice.amount,
         currencyCode: config.currencyCode,
       },
     },
   };
 }
 
-export function mapCollectionSummary(doc: PayloadDocLike): CollectionSummary {
+export function mapCollectionSummary(
+  doc: PayloadDocLike,
+  locale?: string | null,
+): CollectionSummary {
+  const config = getPayloadEcommerceConfig();
+  const preferred = [locale ?? config.defaultLocale, config.fallbackLocale];
   return {
     id: toId(doc.id),
-    handle: String(doc.slug ?? doc.handle ?? doc.id),
-    title: String(doc.title ?? doc.name ?? "Untitled collection"),
+    handle:
+      resolveLocalizedText(doc.slug, preferred) || doc.handle || toId(doc.id),
+    title:
+      resolveLocalizedText(doc.title, preferred) ||
+      resolveLocalizedText(doc.name, preferred) ||
+      "Untitled collection",
     description:
       richTextToPlain(doc.description) ||
       richTextToPlain(doc.richText) ||
       String(doc.summary ?? ""),
-    image: collectImages(doc as PayloadProductDoc)[0] ?? mapMedia(doc.image) ?? null,
+    image:
+      collectImages(doc as PayloadProductDoc)[0] ?? mapMedia(doc.image) ?? null,
   };
 }
 
 export function mapCollection(
   doc: PayloadDocLike,
   products: ProductSummary[] = [],
+  locale?: string | null,
 ): Collection {
-  const summary = mapCollectionSummary(doc);
+  const summary = mapCollectionSummary(doc, locale);
   return {
     ...summary,
     descriptionHtml:
@@ -604,10 +733,10 @@ export function mapCollection(
 
 type PayloadDocLike = {
   id: string | number;
-  slug?: string | null;
+  slug?: PayloadLocalizedText | null;
   handle?: string | null;
-  title?: string | null;
-  name?: string | null;
+  title?: PayloadLocalizedText | null;
+  name?: PayloadLocalizedText | null;
   description?: unknown;
   richText?: unknown;
   summary?: string | null;
@@ -657,34 +786,40 @@ export function mapCart(
 
       const productId = productDoc ? toId(productDoc.id) : toId(item.product);
       const variantId = variantDoc ? toId(variantDoc.id) : toId(item.variant);
-      const merchandiseId = variantId || productId;
+      if (!productId) return null;
+      const merchandiseId = variantId
+        ? merchandiseRef("variant", variantId)
+        : merchandiseRef("product", productId);
 
       const unitAmountRaw =
         typeof item.amount === "number"
           ? item.amount
           : variantDoc
             ? readAmount(variantDoc as Record<string, unknown>, currency)
-            : productDoc
+            : !variantId && productDoc
               ? readAmount(productDoc as Record<string, unknown>, currency)
-              : 0;
+              : null;
+
+      if (unitAmountRaw == null) {
+        throw new CommerceError(
+          "Cart item pricing is unavailable. Refresh and try again.",
+          { provider: "payload", status: 409 },
+        );
+      }
 
       const unitMoney = mapMoney(unitAmountRaw ?? 0, currency);
       const unitMajor = Number.parseFloat(unitMoney.amount);
       const lineMajor = unitMajor * quantity;
 
-      const lineTitle = productDoc
-        ? productTitle(productDoc, locale)
-        : resolveLocalizedText(variantDoc?.title, locale ? [locale] : []) ||
-          variantDoc?.title ||
-          "Item";
+      const lineTitle = productDoc ? productTitle(productDoc, locale) : "Item";
       const lineProductTitle = productDoc
         ? productTitle(productDoc, locale)
         : lineTitle;
       const lineProductHandle = productDoc
-        ? productHandle(productDoc)
+        ? productHandle(productDoc, locale)
         : productId;
       const featuredImage = productDoc
-        ? collectImages(productDoc)[0] ?? null
+        ? (collectImages(productDoc)[0] ?? null)
         : null;
 
       return {
@@ -697,7 +832,9 @@ export function mapCart(
         merchandise: {
           id: merchandiseId,
           title: String(lineTitle),
-          selectedOptions: variantDoc ? mapSelectedOptions(variantDoc) : [],
+          selectedOptions: variantDoc
+            ? mapSelectedOptions(variantDoc, locale)
+            : [],
           price: unitMoney,
           product: {
             id: productId,
@@ -765,7 +902,10 @@ export function pageInfoFromPayload(list: {
   };
 }
 
-export function sortParam(sortKey?: string, reverse?: boolean): string | undefined {
+export function sortParam(
+  sortKey?: string,
+  reverse?: boolean,
+): string | undefined {
   if (!sortKey) return undefined;
   const map: Record<string, string> = {
     TITLE: "title",

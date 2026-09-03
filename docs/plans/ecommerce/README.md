@@ -57,6 +57,19 @@ Every task prompt below incorporates these requirements:
 
 A feature is done only when its CMS editing workflow, persistence, API permissions, storefront/domain integration where applicable, migrations, regression coverage, and operator documentation work together. A new collection or attractive UI alone is not completion.
 
+For customer-facing CMS data, every task must name the storefront surfaces that
+consume it and implement those consumers in the same feature. Verify a CMS edit
+through persistence, the public contract, and the rendered storefront, including
+the documented cache refresh/revalidation behavior. Mapping tests alone are not
+end-to-end completion. Private fields must remain absent from public output rather
+than receive a storefront representation. Record human test instructions alongside
+each task and distinguish implemented code from unexecuted verification.
+
+Tasks 01–03 explicitly specify their storefront representation below. Task 01 is
+in progress: its adapter foundation has verification evidence, but consumer
+integration and CMS-to-storefront verification remain open. Do not treat it as a
+completed dependency until those requirements are satisfied.
+
 ## Decisions to resolve during implementation
 
 - Task 01: how the installed plugin represents a simple sellable item without duplicating variant data.

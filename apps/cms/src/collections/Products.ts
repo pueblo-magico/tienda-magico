@@ -1,5 +1,6 @@
 import type { CollectionOverride } from '@payloadcms/plugin-ecommerce/types'
 import type { Field } from 'payload'
+import { clarifyVariantFields } from './variantEditorGuidance'
 import {
   FixedToolbarFeature,
   HeadingFeature,
@@ -34,7 +35,8 @@ export const productsCollectionOverride: CollectionOverride = ({ defaultCollecti
       localized: false,
       admin: {
         position: 'sidebar',
-        description: 'URL estable, escrito principalmente en español y compartido entre idiomas (p. ej. cacao-de-montana).',
+        description:
+          'URL estable, escrito principalmente en español y compartido entre idiomas (p. ej. cacao-de-montana).',
       },
     },
     {
@@ -115,6 +117,6 @@ export const productsCollectionOverride: CollectionOverride = ({ defaultCollecti
       priceInARS: true,
       category: true,
     },
-    fields: [...catalogueFields, ...(defaultCollection.fields ?? [])],
+    fields: [...catalogueFields, ...clarifyVariantFields(defaultCollection.fields ?? [])],
   }
 }

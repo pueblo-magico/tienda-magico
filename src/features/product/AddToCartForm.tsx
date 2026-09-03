@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/Button";
 import { useCart } from "@/features/cart";
 import { formatMoney } from "@/lib/commerce/utils/format";
 import type { Product, ProductVariant, SelectedOption } from "@/types/commerce";
-import { cn } from "@/lib/utils/cn";
 import { findVariant, getDefaultVariant } from "./utils";
 
 type Props = {
@@ -27,10 +26,7 @@ type Props = {
 function initialSelection(product: Product): SelectedOption[] {
   const variant = getDefaultVariant(product);
   if (variant?.selectedOptions?.length) {
-    return variant.selectedOptions.map((opt) => ({
-      name: opt.name,
-      value: opt.value,
-    }));
+    return variant.selectedOptions.map((opt) => ({ ...opt }));
   }
   return product.options.map((option) => ({
     name: option.name,
@@ -72,7 +68,9 @@ export function AddToCartForm({ product, labels }: Props) {
     <div className="space-y-5">
       <div className="border-border space-y-1 border-b pb-4">
         <p className="font-navigation text-text-black text-2xl">
-          {formatMoney(price, locale)}
+          {product.variants.length
+            ? formatMoney(price, locale)
+            : labels.unavailable}
         </p>
         {compareAt && Number(compareAt.amount) > Number(price.amount) ? (
           <p className="text-muted text-sm line-through">
@@ -91,40 +89,65 @@ export function AddToCartForm({ product, labels }: Props) {
 
       {showOptions
         ? product.options.map((option) => {
-            const current =
-              selection.find((sel) => sel.name === option.name)?.value ??
-              option.values[0];
+            const current = selection.find((sel) =>
+              sel.optionId
+                ? sel.optionId === option.id
+                : sel.name === option.name,
+            );
             return (
               <fieldset key={option.id || option.name} className="space-y-2">
                 <legend className="text-muted text-xs font-medium tracking-[0.14em] uppercase">
                   {option.name}
                 </legend>
                 <div className="flex flex-wrap gap-2">
-                  {option.values.map((value) => {
-                    const active = current === value;
+                  {(option.choices?.length
+                    ? option.choices
+                    : option.values.map((value) => ({ id: value, value }))
+                  ).map((choice) => {
+                    const { value } = choice;
+                    const usesIds = Boolean(option.choices?.length);
+                    const active = usesIds
+                      ? current?.valueId === choice.id
+                      : current?.value === value;
+                    const candidate = [
+                      ...selection.filter((sel) =>
+                        sel.optionId
+                          ? sel.optionId !== option.id
+                          : sel.name !== option.name,
+                      ),
+                      {
+                        name: option.name,
+                        value,
+                        ...(usesIds
+                          ? { optionId: option.id, valueId: choice.id }
+                          : {}),
+                      },
+                    ];
+                    const choiceAvailable = product.variants.some(
+                      (item) =>
+                        item.availableForSale &&
+                        item.selectedOptions.some((opt) =>
+                          usesIds
+                            ? opt.optionId === option.id &&
+                              opt.valueId === choice.id
+                            : opt.name === option.name && opt.value === value,
+                        ),
+                    );
                     return (
-                      <button
-                        key={value}
+                      <Button
+                        key={choice.id}
                         type="button"
-                        className={cn(
-                          "min-w-20 rounded-lg border px-4 py-2 text-sm transition-colors",
-                          active
-                            ? "border-forest bg-forest text-brand-foreground"
-                            : "border-border bg-card text-forest hover:border-forest/40",
-                        )}
+                        variant={active ? "primary" : "secondary"}
+                        aria-pressed={active}
+                        disabled={isMutating || !choiceAvailable}
+                        className="min-w-20 rounded-lg px-4 normal-case"
                         onClick={() => {
-                          setSelection((prev) => {
-                            const next = prev.filter(
-                              (sel) => sel.name !== option.name,
-                            );
-                            next.push({ name: option.name, value });
-                            return next;
-                          });
+                          setSelection(candidate);
                           setMessage(null);
                         }}
                       >
                         {value}
-                      </button>
+                      </Button>
                     );
                   })}
                 </div>
@@ -183,7 +206,9 @@ export function AddToCartForm({ product, labels }: Props) {
           }}
         >
           {!available
-            ? labels.soldOut
+            ? !variant
+              ? labels.unavailable
+              : labels.soldOut
             : isMutating
               ? labels.adding
               : labels.addToCart}

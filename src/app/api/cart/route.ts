@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { commerce } from "@/lib/commerce";
-import type { Cart, CartLineInput, CartLineUpdateInput } from "@/types/commerce";
+import type {
+  Cart,
+  CartLineInput,
+  CartLineUpdateInput,
+} from "@/types/commerce";
 import { CommerceError } from "@/types/commerce";
 
 export const dynamic = "force-dynamic";
@@ -137,20 +141,24 @@ export async function POST(request: Request) {
           return NextResponse.json({ cart: created, configured: true });
         }
 
-        try {
-          const cart = await commerce.addCartLines(
-            cartId,
-            body.lines,
-            cartParams,
-          );
-          return NextResponse.json({ cart, configured: true });
-        } catch {
+        // A persisted browser reference can outlive its guest cart. Confirm
+        // absence before replacing it; never retry arbitrary mutation errors.
+        const existing = await commerce.getCart(cartId, cartParams);
+        if (!existing) {
           const created = await commerce.createCart({
             lines: body.lines,
             locale,
           });
           return NextResponse.json({ cart: created, configured: true });
         }
+
+        // Do not replace a saved cart when merchandise validation or transport fails.
+        const cart = await commerce.addCartLines(
+          cartId,
+          body.lines,
+          cartParams,
+        );
+        return NextResponse.json({ cart, configured: true });
       }
 
       case "update": {
