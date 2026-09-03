@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  useEffect,
-  useId,
-  useRef,
-  type ReactNode,
-} from "react";
+import { useEffect, useId, useRef, type ReactNode } from "react";
 import { cn } from "@/lib/utils/cn";
 
 export type ModalProps = {
@@ -16,7 +11,13 @@ export type ModalProps = {
   className?: string;
 };
 
-export function Modal({ open, onClose, title, children, className }: ModalProps) {
+export function Modal({
+  open,
+  onClose,
+  title,
+  children,
+  className,
+}: ModalProps) {
   const titleId = useId();
   const dialogRef = useRef<HTMLDialogElement>(null);
 
@@ -45,7 +46,7 @@ export function Modal({ open, onClose, title, children, className }: ModalProps)
       ref={dialogRef}
       aria-labelledby={titleId}
       className={cn(
-        "fixed inset-0 m-auto w-[min(100%-2rem,32rem)] rounded-2xl border border-border bg-cream p-0 text-forest shadow-2xl open:flex open:flex-col",
+        "border-border bg-cream text-forest fixed inset-0 m-auto w-[min(100%-2rem,32rem)] rounded-2xl border p-0 shadow-2xl open:flex open:flex-col",
         "backdrop:bg-forest/40 backdrop:backdrop-blur-[2px]",
         className,
       )}
@@ -53,14 +54,14 @@ export function Modal({ open, onClose, title, children, className }: ModalProps)
         if (event.target === event.currentTarget) onClose();
       }}
     >
-      <div className="flex items-start justify-between gap-4 border-b border-border px-5 py-4">
-        <h2 id={titleId} className="font-serif text-xl font-medium">
+      <div className="border-border flex items-start justify-between gap-4 border-b px-5 py-4">
+        <h2 id={titleId} className="font-serif text-xl font-normal">
           {title}
         </h2>
         <button
           type="button"
           onClick={onClose}
-          className="rounded-full px-2 py-1 text-sm text-forest/70 transition-colors hover:bg-forest/5 hover:text-forest"
+          className="text-forest/70 hover:bg-forest/5 hover:text-forest rounded-full px-2 py-1 text-sm transition-colors"
           aria-label="Close dialog"
         >
           ✕

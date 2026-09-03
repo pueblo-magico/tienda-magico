@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
-import { Inter, Marcellus, Nunito } from "next/font/google";
+import { Jost, Marcellus } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({
-  variable: "--font-inter",
+const jost = Jost({
+  variable: "--font-jost",
   subsets: ["latin"],
+  weight: ["300", "700"],
   display: "swap",
 });
 
@@ -12,13 +13,6 @@ const marcellus = Marcellus({
   variable: "--font-marcellus",
   subsets: ["latin"],
   weight: "400",
-  display: "swap",
-});
-
-const nunito = Nunito({
-  variable: "--font-nunito",
-  subsets: ["latin"],
-  weight: "500",
   display: "swap",
 });
 
@@ -38,9 +32,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${inter.variable} ${marcellus.variable} ${nunito.variable} antialiased`}
-      >
+      <body className={`${jost.variable} ${marcellus.variable} antialiased`}>
         {children}
       </body>
     </html>

@@ -28,10 +28,10 @@
   --color-brand-hover: var(--brand-hover);
   --color-brand-active: var(--brand-active);
   --color-brand-foreground: var(--brand-foreground);
-  --font-sans: var(--font-inter);
+  --font-sans: var(--font-jost), sans-serif;
   --font-serif: Georgia, serif;
   --font-navigation: var(--font-marcellus), serif;
-  --font-navigation-desktop: var(--font-nunito), sans-serif;
+  --font-navigation-desktop: var(--font-jost), sans-serif;
   --radius-sm: var(--radius-sm);
   --radius-md: var(--radius-md);
   --radius-lg: var(--radius-lg);
@@ -48,7 +48,8 @@ html {
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-jost), system-ui, sans-serif;
+  font-weight: 300;
   min-height: 100vh;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;

@@ -19,17 +19,23 @@ export function ImpactCard({
   return (
     <article
       className={cn(
-        "rounded-2xl border border-border bg-card px-5 py-6 text-center",
+        "border-border bg-card rounded-2xl border px-5 py-6 text-center",
         className,
       )}
     >
-      {icon ? <div className="mb-3 flex justify-center text-forest">{icon}</div> : null}
-      <p className="font-serif text-3xl font-medium text-forest sm:text-4xl">{value}</p>
-      <p className="mt-2 text-sm font-medium uppercase tracking-[0.12em] text-forest/70">
+      {icon ? (
+        <div className="text-forest mb-3 flex justify-center">{icon}</div>
+      ) : null}
+      <p className="text-forest font-serif text-3xl font-normal sm:text-4xl">
+        {value}
+      </p>
+      <p className="text-forest/70 mt-2 text-sm font-medium tracking-[0.12em] uppercase">
         {label}
       </p>
       {description ? (
-        <p className="mt-2 text-sm leading-relaxed text-forest/60">{description}</p>
+        <p className="text-forest/60 mt-2 text-sm leading-relaxed">
+          {description}
+        </p>
       ) : null}
     </article>
   );

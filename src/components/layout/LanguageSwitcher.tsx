@@ -22,7 +22,7 @@ export function LanguageSwitcher({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        "inline-flex items-center gap-1 rounded-full border border-current/25 p-1 text-xs uppercase tracking-[0.12em]",
+        "inline-flex items-center gap-1 rounded-full border border-current/25 p-1 text-xs tracking-[0.12em] uppercase",
         className,
       )}
       aria-label="Language switcher"
@@ -38,7 +38,7 @@ export function LanguageSwitcher({ className }: { className?: string }) {
             className={cn(
               "rounded-full px-2.5 py-1 transition-colors",
               active
-                ? "bg-brand-foreground text-forest"
+                ? "bg-background-secondary text-brand-foreground font-bold"
                 : "text-current/75 hover:text-current",
             )}
           >

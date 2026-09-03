@@ -55,8 +55,8 @@ export function Drawer({
   return (
     <div
       className={cn(
-        "fixed inset-0 z-50 transition-visibility",
-        open ? "visible" : "invisible pointer-events-none",
+        "transition-visibility fixed inset-0 z-50",
+        open ? "visible" : "pointer-events-none invisible",
       )}
       aria-hidden={!open}
     >
@@ -65,7 +65,7 @@ export function Drawer({
         aria-label="Close drawer"
         tabIndex={open ? 0 : -1}
         className={cn(
-          "absolute inset-0 bg-forest/40 transition-opacity",
+          "bg-forest/40 absolute inset-0 transition-opacity",
           open ? "opacity-100" : "opacity-0",
         )}
         onClick={onClose}
@@ -75,7 +75,7 @@ export function Drawer({
         aria-modal="true"
         aria-labelledby={titleId}
         className={cn(
-          "absolute top-0 flex h-full w-full max-w-md flex-col bg-cream shadow-2xl transition-transform duration-300 ease-out",
+          "bg-cream absolute top-0 flex h-full w-full max-w-md flex-col shadow-2xl transition-transform duration-300 ease-out",
           side === "right" ? "right-0" : "left-0",
           open
             ? "translate-x-0"
@@ -85,14 +85,14 @@ export function Drawer({
           className,
         )}
       >
-        <div className="flex items-center justify-between border-b border-border px-5 py-4">
-          <h2 id={titleId} className="font-serif text-xl font-medium">
+        <div className="border-border flex items-center justify-between border-b px-5 py-4">
+          <h2 id={titleId} className="font-serif text-xl font-normal">
             {title}
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full px-2 py-1 text-sm text-forest/70 transition-colors hover:bg-forest/5 hover:text-forest"
+            className="text-forest/70 hover:bg-forest/5 hover:text-forest rounded-full px-2 py-1 text-sm transition-colors"
             aria-label="Close drawer"
           >
             ✕
@@ -100,7 +100,7 @@ export function Drawer({
         </div>
         <div className="flex-1 overflow-y-auto px-5 py-4">{children}</div>
         {footer ? (
-          <div className="border-t border-border px-5 py-4">{footer}</div>
+          <div className="border-border border-t px-5 py-4">{footer}</div>
         ) : null}
       </aside>
     </div>

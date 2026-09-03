@@ -13,11 +13,11 @@ export function DocsSection({
   className?: string;
 }) {
   return (
-    <section className="space-y-4 rounded-2xl border border-border bg-card/70 p-6">
+    <section className="border-border bg-card/70 space-y-4 rounded-2xl border p-6">
       <div className="space-y-1">
-        <h2 className="font-serif text-xl font-medium text-forest">{title}</h2>
+        <h2 className="text-forest font-serif text-xl font-normal">{title}</h2>
         {description ? (
-          <p className="text-sm text-forest/65">{description}</p>
+          <p className="text-forest/65 text-sm">{description}</p>
         ) : null}
       </div>
       <div className={cn("flex flex-wrap items-center gap-4", className)}>

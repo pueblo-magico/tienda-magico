@@ -14,8 +14,8 @@ export function RichText({
   return (
     <div
       className={cn(
-        "prose prose-forest max-w-none text-base leading-relaxed text-forest/85",
-        "prose-headings:font-serif prose-headings:font-medium prose-a:text-brand",
+        "prose prose-forest text-forest/85 max-w-none text-base leading-relaxed",
+        "prose-headings:font-serif prose-headings:font-normal prose-a:text-brand",
         className,
       )}
       dangerouslySetInnerHTML={{ __html: html }}

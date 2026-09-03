@@ -15,7 +15,7 @@ export function PageTitle({
   return (
     <Tag
       className={cn(
-        "font-serif text-4xl font-medium tracking-tight text-forest sm:text-5xl lg:text-6xl",
+        "text-forest font-serif text-4xl font-normal tracking-tight sm:text-5xl lg:text-6xl",
         className,
       )}
       {...props}

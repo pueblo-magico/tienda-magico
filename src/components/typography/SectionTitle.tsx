@@ -15,7 +15,7 @@ export function SectionTitle({
   return (
     <Tag
       className={cn(
-        "font-serif text-2xl font-medium tracking-tight text-forest sm:text-3xl",
+        "text-forest font-serif text-2xl font-normal tracking-tight sm:text-3xl",
         className,
       )}
       {...props}

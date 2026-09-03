@@ -46,7 +46,7 @@ export function ArticleCard({
               {category}
             </p>
           ) : null}
-          <h3 className="text-text-secondary font-serif text-xl font-medium group-hover:underline group-hover:underline-offset-4">
+          <h3 className="text-text-secondary font-serif text-xl font-normal group-hover:underline group-hover:underline-offset-4">
             {title}
           </h3>
           <p className="text-text-primary text-sm leading-relaxed">{excerpt}</p>

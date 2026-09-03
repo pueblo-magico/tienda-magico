@@ -70,9 +70,14 @@ export default function TokensPage() {
       </DocsSection>
 
       <DocsSection title="Typography" className="flex-col items-start gap-3">
-        <p className="text-text-secondary font-serif text-4xl">Georgia</p>
-        <p className="text-text-primary font-sans text-base">
-          Inter for body copy and general UI labels.
+        <p className="text-text-secondary font-serif text-4xl font-normal">
+          Georgia Regular 400 for editorial titles.
+        </p>
+        <p className="text-text-primary font-sans text-base font-light">
+          Jost Light 300 for body copy and general UI labels.
+        </p>
+        <p className="text-text-black font-sans text-base font-bold">
+          Jost Bold 700 for sans-serif titles and buttons.
         </p>
       </DocsSection>
     </>

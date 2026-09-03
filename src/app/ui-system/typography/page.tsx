@@ -13,7 +13,7 @@ export default function TypographyPage() {
     <>
       <DocsPageHeader
         title="Typography"
-        description="Editorial hierarchy using Georgia for display titles and Inter for readable body content."
+        description="Editorial hierarchy using Georgia Regular 400 for display titles and Jost for readable body content and interface controls."
       />
       <DocsSection title="Scale" className="w-full flex-col items-start gap-5">
         <div className="space-y-2">
@@ -28,6 +28,12 @@ export default function TypographyPage() {
           </Body>
           <Body size="sm">Body sm for denser supporting text.</Body>
           <Caption>Caption for meta information and helper text.</Caption>
+          <p className="font-sans text-base font-light">
+            Jost Light 300 is the standard sans-serif weight.
+          </p>
+          <p className="font-sans text-base font-bold">
+            Jost Bold 700 is used for sans-serif titles and buttons.
+          </p>
         </div>
       </DocsSection>
     </>

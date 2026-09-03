@@ -9,6 +9,7 @@ const groups = [
     title: "Foundation",
     items: [
       { href: "/ui-system", label: "Overview", exact: true },
+      { href: "/ui-system/example", label: "Usage example" },
       { href: "/ui-system/tokens", label: "Tokens" },
     ],
   },
@@ -62,14 +63,16 @@ export function UiSystemNav() {
     <div className="space-y-5">
       {groups.map((group) => (
         <div key={group.title}>
-          <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.16em] text-forest/45">
+          <p className="text-forest/45 mb-2 text-[11px] font-medium tracking-[0.16em] uppercase">
             {group.title}
           </p>
           <nav className="flex flex-row flex-wrap gap-1 lg:flex-col">
             {group.items.map((item) => {
-              const isActive = "exact" in item && item.exact
-                ? pathname === item.href
-                : pathname === item.href || pathname.startsWith(`${item.href}/`);
+              const isActive =
+                "exact" in item && item.exact
+                  ? pathname === item.href
+                  : pathname === item.href ||
+                    pathname.startsWith(`${item.href}/`);
 
               return (
                 <Link
