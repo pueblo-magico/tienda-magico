@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect } from "react";
 import { cn } from "@/lib/utils/cn";
 import { LanguageSwitcher } from "./LanguageSwitcher";
@@ -17,7 +18,12 @@ export type MobileMenuProps = {
   homeHref: string;
 };
 
-export function MobileMenu({ open, onClose, items, homeHref }: MobileMenuProps) {
+export function MobileMenu({
+  open,
+  onClose,
+  items,
+  homeHref,
+}: MobileMenuProps) {
   useEffect(() => {
     if (!open) return;
     const onKeyDown = (event: KeyboardEvent) => {
@@ -41,7 +47,7 @@ export function MobileMenu({ open, onClose, items, homeHref }: MobileMenuProps) 
     >
       <div
         className={cn(
-          "absolute inset-0 bg-forest/50 transition-opacity duration-300",
+          "bg-forest/50 absolute inset-0 transition-opacity duration-300",
           open ? "opacity-100" : "opacity-0",
         )}
         onClick={onClose}
@@ -51,22 +57,28 @@ export function MobileMenu({ open, onClose, items, homeHref }: MobileMenuProps) 
         aria-modal="true"
         aria-label="Mobile navigation"
         className={cn(
-          "absolute inset-0 flex flex-col bg-cream transition-transform duration-300 ease-out",
+          "bg-cream absolute inset-0 flex flex-col transition-transform duration-300 ease-out",
           open ? "translate-y-0" : "-translate-y-full",
         )}
       >
-        <div className="flex items-center justify-between border-b border-border px-4 py-4">
+        <div className="border-border flex items-center justify-between border-b px-4 py-4">
           <Link
             href={homeHref}
             onClick={onClose}
-            className="font-serif text-xl tracking-wide text-forest"
+            className="inline-flex items-center"
           >
-            Pueblo Mágico
+            <Image
+              src="/pueblo_magico_logo_marron.svg"
+              alt="Pueblo Mágico"
+              width={134}
+              height={65}
+              className="h-12 w-auto"
+            />
           </Link>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full px-3 py-2 text-sm uppercase tracking-[0.12em] text-forest/70 hover:bg-forest/5"
+            className="text-forest/70 hover:bg-forest/5 rounded-full px-3 py-2 text-sm tracking-[0.02em]"
             aria-label="Close menu"
           >
             Close
@@ -80,7 +92,7 @@ export function MobileMenu({ open, onClose, items, homeHref }: MobileMenuProps) 
               href={item.href}
               onClick={onClose}
               className={cn(
-                "border-b border-border/70 py-4 font-serif text-3xl text-forest transition-all",
+                "font-navigation border-border/70 text-forest border-b py-4 text-base font-normal transition-all",
                 open ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0",
               )}
               style={{ transitionDelay: open ? `${80 + index * 40}ms` : "0ms" }}
@@ -90,7 +102,7 @@ export function MobileMenu({ open, onClose, items, homeHref }: MobileMenuProps) 
           ))}
         </nav>
 
-        <div className="border-t border-border px-6 py-5">
+        <div className="border-border border-t px-6 py-5">
           <LanguageSwitcher />
         </div>
       </div>

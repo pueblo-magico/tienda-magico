@@ -21,7 +21,9 @@
   --color-brand-active: var(--brand-active);
   --color-brand-foreground: var(--brand-foreground);
   --font-sans: var(--font-inter);
-  --font-serif: var(--font-cormorant);
+  --font-serif: Georgia, serif;
+  --font-navigation: var(--font-marcellus), serif;
+  --font-navigation-desktop: var(--font-nunito), sans-serif;
   --radius-sm: var(--radius-sm);
   --radius-md: var(--radius-md);
   --radius-lg: var(--radius-lg);

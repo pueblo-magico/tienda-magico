@@ -1,4 +1,10 @@
-import { Body, Caption, Eyebrow, PageTitle, SectionTitle } from "@/components/typography";
+import {
+  Body,
+  Caption,
+  Eyebrow,
+  PageTitle,
+  SectionTitle,
+} from "@/components/typography";
 import { DocsPageHeader } from "@/components/ui-system/DocsPageHeader";
 import { DocsSection } from "@/components/ui-system/DocsSection";
 
@@ -7,7 +13,7 @@ export default function TypographyPage() {
     <>
       <DocsPageHeader
         title="Typography"
-        description="Editorial hierarchy using Cormorant for display titles and Inter for readable body content."
+        description="Editorial hierarchy using Georgia for display titles and Inter for readable body content."
       />
       <DocsSection title="Scale" className="w-full flex-col items-start gap-5">
         <div className="space-y-2">

@@ -78,6 +78,24 @@ Do not introduce imports in the opposite direction. If two features need the sam
 - Preserve accessibility: semantic elements, associated labels, keyboard support, visible focus, sensible heading order, and descriptive alternative text.
 - Use the existing design tokens and UI primitives before adding one-off colors, spacing, typography, or controls.
 
+### Design system and single sources of truth
+
+Treat the existing design system as application architecture, not optional styling guidance. A visual or interaction pattern must have one authoritative definition and all consumers must reuse it.
+
+- `src/styles/tokens.css` is the source of truth for brand colors, semantic colors, radii, shared dimensions, and other global CSS values. Do not redefine those values in components, feature styles, route styles, or configuration files.
+- `src/styles/globals.css` maps tokens into Tailwind theme utilities and owns only truly global element behavior. Prefer the resulting semantic utilities such as `bg-cream`, `text-forest`, and `border-border` over raw hex, RGB, HSL, or duplicated CSS variables.
+- Global typography families must be loaded once in `src/app/layout.tsx` and exposed through named font tokens in `src/styles/globals.css`. Components use the corresponding utility; they must not import fonts independently or repeat font-family stacks inline.
+- `src/components/ui` is the source of truth for reusable controls and interaction primitives. Extend an existing component with a typed prop or variant when the requested behavior belongs to the same primitive; do not create a visually similar button, input, modal, drawer, tab, badge, or accordion in a feature directory.
+- `src/components/typography`, `src/components/layout`, and `src/components/cards` own their respective reusable patterns. Compose these components before introducing new wrappers with duplicated markup and classes.
+- `src/app/ui-system` is the visual reference for supported tokens and reusable components. When adding or materially changing a shared token, component, state, or variant, update its UI-system example in the same change.
+- Shared application configuration, including navigation destinations and external-site URLs, belongs in the relevant module under `src/config`. Components consume configuration; they do not embed their own copy.
+- Before creating a component or style, search for an existing equivalent and inspect its supported variants. If a new abstraction is needed, place it at the narrowest shared layer that owns the pattern and migrate all in-scope duplicates to it.
+- Do not create multiple components with different names for the same visual role. Prefer one canonical component with explicit, constrained variants. Variants should express product intent such as `primary`, `secondary`, or `danger`, not isolated page names.
+- Avoid arbitrary Tailwind values such as `text-[...]`, `tracking-[...]`, and custom color expressions when an existing theme value fits. If an exact brand value is intentional and reusable, define a named token or documented component variant instead of copying the arbitrary value between call sites.
+- Keep state styling complete and consistent: default, hover, focus-visible, active, disabled, loading, validation/error, and responsive behavior should come from the canonical component whenever applicable.
+- Do not duplicate constants between TypeScript, CSS, CMS configuration, and documentation. Select one runtime source of truth and have other layers consume it when technically possible; when separate applications require mirrored values, document the relationship and update every mirror atomically.
+- Any deliberate exception must include a nearby comment explaining why the existing token or component cannot represent the requirement and whether the exception should later become a shared pattern.
+
 ### Naming and organization
 
 - Name functions and variables for the domain intent, not the implementation mechanism.

@@ -85,7 +85,7 @@ clay
 
 Typography:
 
-Cormorant Garamond
+Georgia
 Inter
 
 [x] Phase 1 — Global Layout

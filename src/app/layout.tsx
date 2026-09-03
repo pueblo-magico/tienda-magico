@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Inter } from "next/font/google";
+import { Inter, Marcellus, Nunito } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({
@@ -8,10 +8,17 @@ const inter = Inter({
   display: "swap",
 });
 
-const cormorant = Cormorant_Garamond({
-  variable: "--font-cormorant",
+const marcellus = Marcellus({
+  variable: "--font-marcellus",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: "400",
+  display: "swap",
+});
+
+const nunito = Nunito({
+  variable: "--font-nunito",
+  subsets: ["latin"],
+  weight: "500",
   display: "swap",
 });
 
@@ -31,7 +38,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} ${cormorant.variable} antialiased`}>
+      <body
+        className={`${inter.variable} ${marcellus.variable} ${nunito.variable} antialiased`}
+      >
         {children}
       </body>
     </html>

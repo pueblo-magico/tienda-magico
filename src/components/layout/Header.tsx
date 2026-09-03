@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import {
@@ -34,15 +35,15 @@ export function Header({ className }: { className?: string }) {
     <>
       <header
         className={cn(
-          "border-forest/10 bg-forest text-brand-foreground sticky top-0 z-40 border-b",
+          "border-forest/10 bg-cream text-forest sticky top-0 z-40 border-b",
           className,
         )}
       >
-        <div className="mx-auto flex h-[var(--header-height)] max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
+        <div className="mx-auto flex h-20 max-w-6xl items-center justify-between gap-4 px-4 sm:h-24 sm:px-6">
           <div className="flex items-center gap-3">
             <button
               type="button"
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full hover:bg-white/10 lg:hidden"
+              className="hover:bg-forest/5 inline-flex h-10 w-10 items-center justify-center rounded-full lg:hidden"
               aria-expanded={menuOpen}
               aria-controls="mobile-menu"
               onClick={() => setMenuOpen(true)}
@@ -55,11 +56,15 @@ export function Header({ className }: { className?: string }) {
               </span>
             </button>
 
-            <Link
-              href={homeHref}
-              className="font-serif text-lg tracking-[0.08em] sm:text-xl"
-            >
-              Pueblo Mágico
+            <Link href={homeHref} className="inline-flex shrink-0 items-center">
+              <Image
+                src="/pueblo_magico_logo_marron.svg"
+                alt="Pueblo Mágico"
+                width={134}
+                height={65}
+                priority
+                className="h-12 w-auto sm:h-14"
+              />
             </Link>
           </div>
 
@@ -71,7 +76,7 @@ export function Header({ className }: { className?: string }) {
               <Link
                 key={item.href}
                 href={item.href}
-                className="text-brand-foreground/85 hover:text-brand-foreground rounded-full px-3 py-2 text-xs font-medium tracking-[0.14em] uppercase transition-colors hover:bg-white/10"
+                className="font-navigation-desktop text-forest/80 hover:bg-forest/5 hover:text-forest rounded-full px-3 py-2 text-[13px] font-medium tracking-normal transition-colors"
               >
                 {item.label}
               </Link>
@@ -80,12 +85,12 @@ export function Header({ className }: { className?: string }) {
 
           <div className="flex items-center gap-1 sm:gap-2">
             <div className="hidden sm:block">
-              <LanguageSwitcher className="border-brand-foreground/25 text-brand-foreground" />
+              <LanguageSwitcher className="border-forest/25 text-forest" />
             </div>
             <CartButton
               count={itemCount}
               onClick={openCart}
-              className="text-brand-foreground hover:bg-white/10"
+              className="text-forest hover:bg-forest/5"
             />
           </div>
         </div>

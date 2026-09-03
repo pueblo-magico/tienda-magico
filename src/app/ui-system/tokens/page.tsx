@@ -18,20 +18,23 @@ export default function TokensPage() {
         description="Brand palette and type pairings extracted from the shop design: deep forest chrome on warm cream surfaces."
       />
 
-      <DocsSection title="Color" className="grid w-full grid-cols-2 gap-4 sm:grid-cols-5">
+      <DocsSection
+        title="Color"
+        className="grid w-full grid-cols-2 gap-4 sm:grid-cols-5"
+      >
         {colors.map((color) => (
           <div key={color.name} className="space-y-2">
             <div className={`h-20 rounded-2xl ${color.swatch}`} />
-            <p className="text-sm font-medium text-forest">{color.name}</p>
-            <p className="text-xs text-forest/55">{color.value}</p>
+            <p className="text-forest text-sm font-medium">{color.name}</p>
+            <p className="text-forest/55 text-xs">{color.value}</p>
           </div>
         ))}
       </DocsSection>
 
       <DocsSection title="Typography" className="flex-col items-start gap-3">
-        <p className="font-serif text-4xl text-forest">Cormorant Garamond</p>
-        <p className="font-sans text-base text-forest/75">
-          Inter for body copy, UI labels, and navigation.
+        <p className="text-forest font-serif text-4xl">Georgia</p>
+        <p className="text-forest/75 font-sans text-base">
+          Inter for body copy and general UI labels.
         </p>
       </DocsSection>
     </>
