@@ -35,7 +35,7 @@ export function Header({ className }: { className?: string }) {
     <>
       <header
         className={cn(
-          "border-forest/10 bg-cream text-forest sticky top-0 z-40 border-b",
+          "border-border bg-card text-text-black sticky top-0 z-40 border-b",
           className,
         )}
       >
@@ -43,7 +43,7 @@ export function Header({ className }: { className?: string }) {
           <div className="flex items-center gap-3">
             <button
               type="button"
-              className="hover:bg-forest/5 inline-flex h-10 w-10 items-center justify-center rounded-full lg:hidden"
+              className="hover:bg-card-hover inline-flex h-10 w-10 items-center justify-center rounded-full lg:hidden"
               aria-expanded={menuOpen}
               aria-controls="mobile-menu"
               onClick={() => setMenuOpen(true)}
@@ -76,7 +76,7 @@ export function Header({ className }: { className?: string }) {
               <Link
                 key={item.href}
                 href={item.href}
-                className="font-navigation-desktop text-forest/80 hover:bg-forest/5 hover:text-forest rounded-full px-3 py-2 text-[13px] font-medium tracking-normal transition-colors"
+                className="font-navigation-desktop text-text-black hover:bg-card-hover hover:text-text-secondary rounded-full px-3 py-2 text-[13px] font-medium tracking-normal transition-colors"
               >
                 {item.label}
               </Link>
@@ -85,12 +85,12 @@ export function Header({ className }: { className?: string }) {
 
           <div className="flex items-center gap-1 sm:gap-2">
             <div className="hidden sm:block">
-              <LanguageSwitcher className="border-forest/25 text-forest" />
+              <LanguageSwitcher className="border-border text-text-black" />
             </div>
             <CartButton
               count={itemCount}
               onClick={openCart}
-              className="text-forest hover:bg-forest/5"
+              className="text-text-black hover:bg-card-hover"
             />
           </div>
         </div>

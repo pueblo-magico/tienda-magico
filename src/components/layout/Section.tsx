@@ -14,9 +14,9 @@ const spacingClasses = {
 } as const;
 
 const toneClasses = {
-  default: "bg-transparent text-forest",
-  muted: "bg-muted/60 text-forest",
-  inverse: "bg-forest text-brand-foreground",
+  default: "text-text-black bg-transparent",
+  muted: "bg-card text-text-black",
+  inverse: "bg-background-secondary text-brand-foreground",
 } as const;
 
 export function Section({

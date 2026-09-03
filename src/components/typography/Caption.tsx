@@ -8,7 +8,7 @@ type CaptionProps = HTMLAttributes<HTMLParagraphElement> & {
 export function Caption({ children, className, ...props }: CaptionProps) {
   return (
     <p
-      className={cn("text-xs leading-normal text-forest/55", className)}
+      className={cn("text-text-primary text-xs leading-normal", className)}
       {...props}
     >
       {children}

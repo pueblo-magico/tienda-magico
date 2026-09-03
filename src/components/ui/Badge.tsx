@@ -9,7 +9,7 @@ export type BadgeProps = HTMLAttributes<HTMLSpanElement> & {
 };
 
 const variants: Record<BadgeVariant, string> = {
-  default: "bg-muted text-forest",
+  default: "bg-card-hover text-text-secondary",
   forest: "bg-forest text-brand-foreground",
   earth: "bg-earth text-brand-foreground",
   clay: "bg-clay text-brand-foreground",
@@ -25,7 +25,7 @@ export function Badge({
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.12em]",
+        "inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-medium tracking-[0.12em] uppercase",
         variants[variant],
         className,
       )}

@@ -20,7 +20,7 @@ export function Body({
 }: BodyProps) {
   return (
     <p
-      className={cn("text-forest/75", sizeClasses[size], className)}
+      className={cn("text-text-primary", sizeClasses[size], className)}
       {...props}
     >
       {children}

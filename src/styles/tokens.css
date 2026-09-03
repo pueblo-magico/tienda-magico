@@ -1,25 +1,39 @@
 :root {
-  /* Brand palette — Pueblo Mágico */
-  --forest: #2c3327;
-  --forest-hover: #3a4334;
-  --forest-active: #23291f;
-  --earth: #6b5744;
-  --sand: #d4cec3;
-  --cream: #efece6;
-  --clay: #a67c5d;
+  /* Pueblo Mágico semantic color system */
+  --surface-primary: #fafaf9;
+  --surface-secondary: #005333;
+  --surface-card: #ffffff;
+  --surface-card-hover: #fafaf9;
 
-  --background: var(--cream);
-  --foreground: var(--forest);
-  --muted: #e4dfd6;
-  --muted-foreground: color-mix(in srgb, var(--forest) 65%, transparent);
-  --border: var(--sand);
-  --card: #f7f4ef;
-  --ring: color-mix(in srgb, var(--forest) 40%, transparent);
+  --text-black: #111827;
+  --text-primary: #6b7280;
+  --text-secondary: #005333;
+  --text-highlight: #d4af37;
+  --text-accent: #8b6914;
 
-  --brand: var(--forest);
-  --brand-hover: var(--forest-hover);
-  --brand-active: var(--forest-active);
-  --brand-foreground: #f7f4ef;
+  /* Shared application semantics */
+  --background: var(--surface-primary);
+  --foreground: var(--text-black);
+  --muted: var(--text-primary);
+  --muted-foreground: var(--text-primary);
+  --border: color-mix(in srgb, var(--text-primary) 22%, transparent);
+  --card: var(--surface-card);
+  --card-hover: var(--surface-card-hover);
+  --ring: color-mix(in srgb, var(--text-secondary) 45%, transparent);
+
+  --brand: var(--surface-secondary);
+  --brand-hover: color-mix(in srgb, var(--surface-secondary) 88%, black);
+  --brand-active: color-mix(in srgb, var(--surface-secondary) 78%, black);
+  --brand-foreground: #ffffff;
+
+  /* Legacy aliases. Prefer the semantic tokens above in new code. */
+  --forest: var(--text-secondary);
+  --forest-hover: var(--brand-hover);
+  --forest-active: var(--brand-active);
+  --earth: var(--text-accent);
+  --sand: var(--text-highlight);
+  --cream: var(--surface-primary);
+  --clay: var(--text-accent);
 
   --radius-sm: 0.5rem;
   --radius-md: 0.75rem;

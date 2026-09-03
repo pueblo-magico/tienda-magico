@@ -24,13 +24,13 @@ export function ArticleCard({
   return (
     <article
       className={cn(
-        "group overflow-hidden rounded-2xl border border-border bg-card",
+        "hover:bg-card-hover group border-border bg-card overflow-hidden rounded-2xl border transition-colors",
         className,
       )}
     >
       <Link href={href} className="block">
         {imageSrc ? (
-          <div className="relative aspect-[16/10] overflow-hidden bg-muted">
+          <div className="bg-card-hover relative aspect-[16/10] overflow-hidden">
             <Image
               src={imageSrc}
               alt={imageAlt || title}
@@ -42,14 +42,14 @@ export function ArticleCard({
         ) : null}
         <div className="space-y-2 px-4 py-4">
           {category ? (
-            <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-forest/50">
+            <p className="text-text-highlight text-[11px] font-medium tracking-[0.16em] uppercase">
               {category}
             </p>
           ) : null}
-          <h3 className="font-serif text-xl font-medium text-forest group-hover:underline group-hover:underline-offset-4">
+          <h3 className="text-text-secondary font-serif text-xl font-medium group-hover:underline group-hover:underline-offset-4">
             {title}
           </h3>
-          <p className="text-sm leading-relaxed text-forest/70">{excerpt}</p>
+          <p className="text-text-primary text-sm leading-relaxed">{excerpt}</p>
         </div>
       </Link>
     </article>
