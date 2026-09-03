@@ -5,14 +5,13 @@
   },
   "nav": {
     "shop": "Shop",
-    "rituals": "Rituals",
+    "stay": "Stay",
     "experiences": "Experiences",
-    "journal": "Journal",
-    "impact": "Impact",
     "about": "About",
-    "shipping": "Shipping",
-    "faq": "FAQ",
-    "contact": "Contact"
+    "mainSite": "Visit Pueblo Mágico",
+    "contact": "Contact",
+    "terms": "Terms and conditions",
+    "privacy": "Privacy policy"
   },
   "footer": {
     "tagline": "Everyday products inspired by regeneration, local communities, and the magic of the mountains.",

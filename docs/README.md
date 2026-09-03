@@ -7,6 +7,7 @@ Project docs for engineers and content/commerce operators.
 | Developers | [Commerce developer guide](./commerce/developer.md) | Architecture, env setup, API usage, provider swapping |
 | Developers | [Payload Ecommerce provider](./commerce/payload-ecommerce.md) | Self-hosted Payload adapter, env, carts, monorepo CMS |
 | Developers | [CMS content developer guide](./cms/developer.md) | Homepage/pages via `@/lib/cms`, blocks, fallback, caching |
+| Developers / content | [Storefront navigation](./navigation.md) | Shop routes and links to the main Experiencia Mágico website |
 | Developers | [Checkout developer guide](./checkout/developer.md) | Provider-agnostic checkout, Mercado Pago, HTTP API |
 | Operators | [Checkout operations guide](./checkout/operations.md) | MP credentials, sandbox, webhooks, go-live |
 | Content / merchandising | [Shopify content guide](./commerce/content.md) | Products & collections in Shopify |

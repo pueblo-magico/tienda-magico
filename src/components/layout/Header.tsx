@@ -3,7 +3,12 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { localizePath, mainNavigation, type Locale } from "@/config/navigation";
+import {
+  localizePath,
+  mainNavigation,
+  resolveNavigationHref,
+  type Locale,
+} from "@/config/navigation";
 import { cn } from "@/lib/utils/cn";
 import { useCart } from "@/features/cart";
 import { CartButton } from "./CartButton";
@@ -11,25 +16,17 @@ import { LanguageSwitcher } from "./LanguageSwitcher";
 import { MobileMenu } from "./MobileMenu";
 
 export function Header({ className }: { className?: string }) {
-  const t = useTranslations("nav");
+  const t = useTranslations();
   const locale = useLocale() as Locale;
   const { openCart, itemCount } = useCart();
   const [menuOpen, setMenuOpen] = useState(false);
   const homeHref = localizePath(locale);
 
   const items = mainNavigation.map((item) => {
-    const key = item.labelKey.replace("nav.", "") as
-      | "shop"
-      | "rituals"
-      | "experiences"
-      | "journal"
-      | "impact"
-      | "about";
-
     return {
       ...item,
-      href: localizePath(locale, item.href),
-      label: t(key),
+      href: resolveNavigationHref(item, locale),
+      label: t(item.labelKey),
     };
   });
 
@@ -37,7 +34,7 @@ export function Header({ className }: { className?: string }) {
     <>
       <header
         className={cn(
-          "sticky top-0 z-40 border-b border-forest/10 bg-forest text-brand-foreground",
+          "border-forest/10 bg-forest text-brand-foreground sticky top-0 z-40 border-b",
           className,
         )}
       >
@@ -66,12 +63,15 @@ export function Header({ className }: { className?: string }) {
             </Link>
           </div>
 
-          <nav className="hidden items-center gap-1 lg:flex" aria-label="Primary">
+          <nav
+            className="hidden items-center gap-1 lg:flex"
+            aria-label="Primary"
+          >
             {items.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className="rounded-full px-3 py-2 text-xs font-medium uppercase tracking-[0.14em] text-brand-foreground/85 transition-colors hover:bg-white/10 hover:text-brand-foreground"
+                className="text-brand-foreground/85 hover:text-brand-foreground rounded-full px-3 py-2 text-xs font-medium tracking-[0.14em] uppercase transition-colors hover:bg-white/10"
               >
                 {item.label}
               </Link>

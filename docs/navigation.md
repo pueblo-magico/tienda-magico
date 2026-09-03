@@ -1,0 +1,59 @@
+# Storefront navigation
+
+The store is the commerce experience for [Experiencia Mágico](https://experienciamagico.com/), not a separate brand. Its navigation intentionally combines shop-owned destinations with selected destinations on the main website.
+
+## Navigation model
+
+The shop header prioritizes commerce while preserving a clear path back to the broader Pueblo Mágico experience:
+
+| Label                                       | Ownership    | Destination               |
+| ------------------------------------------- | ------------ | ------------------------- |
+| Tienda / Shop                               | Storefront   | Localized product catalog |
+| Estadías / Stay                             | Main website | Stay and glamping page    |
+| Experiencias / Experiences                  | Main website | Experiences section       |
+| Nosotros / About                            | Main website | About section             |
+| Visitar Pueblo Mágico / Visit Pueblo Mágico | Main website | Main homepage             |
+
+The footer repeats these discovery links and points contact, terms, and privacy links to the main website. Routes that do not exist in the shop must not appear as internal links.
+
+All brand-site destinations open in the same tab. They are part of the same customer journey, so they are not treated like unrelated third-party links.
+
+## Configuration
+
+Navigation is configured in `src/config/navigation.ts`. Components must consume that configuration instead of embedding destination URLs.
+
+Each item has a `kind`:
+
+- `internal` contains a locale-free storefront path such as `/shop`. `resolveNavigationHref` adds the active locale and translates known public path segments.
+- `external` contains a complete URL. `resolveNavigationHref` returns it unchanged.
+
+The canonical main-site origin lives in `externalSites`. Main-site destinations are built from that origin in the configuration, keeping domain changes centralized.
+
+```ts
+{
+  kind: "internal",
+  href: "/shop",
+  labelKey: "nav.shop",
+  label: { en: "Shop", es: "Tienda" },
+}
+
+{
+  kind: "external",
+  href: "https://experienciamagico.com/#experiencias",
+  labelKey: "nav.experiences",
+  label: { en: "Experiences", es: "Experiencias" },
+}
+```
+
+The `labelKey` must exist in both `messages/en.json` and `messages/es.json`. The inline `label` values are configuration metadata and must remain consistent with those translations.
+
+## Adding or changing a destination
+
+1. Confirm whether the destination is owned by this storefront or the main website.
+2. Add or update the item in `src/config/navigation.ts` with the correct `kind`.
+3. For internal destinations, use the shared, locale-free route. Add translated segments to `localizedSegments` when the public path differs by locale.
+4. For main-site destinations, build an absolute URL from the configured `externalSites.experienciaMagico` origin.
+5. Add matching label translations for English and Spanish.
+6. Verify desktop and mobile menus, the footer, both storefront locales, and the final destination.
+
+Do not add placeholder internal navigation for planned pages. A link should be published only when its destination exists.
