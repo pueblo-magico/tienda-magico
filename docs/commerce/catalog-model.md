@@ -24,15 +24,15 @@ joined variants are unavailable, not converted into simple products. Parent pric
 and inventory must not override variant commercial data. SKU and shipping-field
 editing belong to task 04; this task adds no competing write path.
 
-## Existing slug behavior is preserved
+## Stable shared slugs
 
-Keep the currently implemented slug concept, existing URLs, locale handling, and
-language-switching behavior. PMG-218 does not change CMS slug fields, routing,
-uniqueness rules, or stored values and does not mandate a slug migration. The
-adapter accepts existing strings and locale-keyed content and resolves requested
-language with the configured fallback. Stable product and option IDs remain
-independent of slugs and translations. Later tasks must inspect and preserve the
-existing behavior rather than infer a redesign from this ownership document.
+Products and categories each have one stable slug shared between EN/ES. Slugs are
+not localized. Name/translation edits must not regenerate them; switching language
+changes the locale, not the slug or record identity. Slugs are unique within their
+respective collections across both locales. Existing URLs and stored values remain
+unchanged. Intentional slug changes require approval and a redirect/compatibility
+plan, not an automatic migration. Adapter tolerance of locale-keyed legacy values
+does not change this CMS contract. Stable database IDs remain independent of slugs.
 
 ## Merchandise references and saved carts
 
@@ -75,6 +75,12 @@ disjoint combinations. The shared Button supplies focus and disabled behavior.
 
 ## Money, privacy, and derived output
 
+Cart mutations return ID-only relationships. The adapter now fetches the populated
+cart before mapping and validating line prices, preventing a false 409 after a
+successful write. Regression coverage includes add, update, and removal responses.
+Live local verification on an isolated guest cart returned HTTP 200 for adding a
+variant, changing its quantity to two, and removing it. All 19 catalog tests pass.
+
 ARS is the launch selling currency regardless of locale. Existing Payload
 `priceInARS` minor-unit values map to the provider-independent `Money` decimal
 string contract. Existing configuration and persistence paths remain authoritative;
@@ -112,10 +118,14 @@ populated cart lines. Missing variant pricing produces an explicit conflict rath
 than a parent-price substitution. Cart mutation failures no longer create a
 replacement cart, and refresh failures preserve saved cart identity for retry.
 
-PMG-218 verification: all 16 tests and the storefront production build pass.
-Repository lint exits successfully with seven unrelated unused-variable warnings;
-targeted lint passes without warnings. Touched files pass formatting checks.
-Live CMS workflows, browser checkout, and CMS role permissions were not exercised.
-Both local server ports responded, but automated visual verification was blocked
-because the prescribed `agent-browser` command is not installed. Task 01 remains
-open for end-to-end verification; automated mapping/selection tests do not replace it.
+PMG-218 verification: 19 catalog tests pass. Storefront and CMS builds passed
+during implementation; type checks and targeted lint passed after the final cart
+fix. Full CMS lint retains two unrelated frontend-link errors and 13 warnings;
+storefront lint previously reported seven unrelated warnings.
+
+Live local HTTP verification covers add, quantity update, removal, stale cart
+recovery, and image optimization. The user subsequently confirmed successful
+manual testing on mobile, EN/ES, and cart reload. See the task's manual checklist
+for the scope of confirmed results and remaining unreported scenarios.
+Automated browser verification was unavailable (`agent-browser` not installed).
+Payment completion and production CMS role permissions have not been verified.

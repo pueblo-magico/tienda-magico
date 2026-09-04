@@ -12,6 +12,8 @@ import {
   resolveMerchandise,
   addCartLines,
   getCart,
+  updateCartLines,
+  removeCartLines,
 } from "@/lib/commerce/providers/payload-ecommerce/cart";
 
 test("saved cart absence is recoverable but backend failures are not", async () => {
@@ -172,7 +174,12 @@ function transport(documents) {
     const url = new URL(input);
     calls.push({ url, init });
     const key = `${init?.method ?? "GET"} ${url.pathname}`;
-    const doc = documents[key];
+    const entry = documents[key];
+    const doc = Array.isArray(entry)
+      ? entry.length > 1
+        ? entry.shift()
+        : entry[0]
+      : entry;
     if (doc instanceof Error) throw doc;
     return new Response(JSON.stringify(doc ?? { message: "Not found" }), {
       status: doc ? 200 : 404,
@@ -383,10 +390,13 @@ test("adding removes stale cart references while retaining valid lines", async (
     items: [{ id: "keep", product: parent, variant, quantity: 2 }],
   };
   const calls = transport({
-    "GET /api/carts/77": {
-      ...healthy,
-      items: [...healthy.items, { id: "removed", product: 999, quantity: 1 }],
-    },
+    "GET /api/carts/77": [
+      {
+        ...healthy,
+        items: [...healthy.items, { id: "removed", product: 999, quantity: 1 }],
+      },
+      healthy,
+    ],
     "GET /api/products/2": parent,
     "GET /api/variants/1": variant,
     "PATCH /api/carts/77": { doc: healthy },
@@ -400,6 +410,36 @@ test("adding removes stale cart references while retaining valid lines", async (
     { id: "keep", product: 2, variant: 1, quantity: 2 },
   ]);
   assert.equal(patch.url.searchParams.get("secret"), "test-secret");
+});
+
+test("depth-zero mutation responses are populated before validating prices", async () => {
+  const full = {
+    id: 8,
+    items: [{ id: "line", product: parent, variant, quantity: 2 }],
+  };
+  const shallow = {
+    id: 8,
+    items: [{ id: "line", product: 2, variant: 1, quantity: 2 }],
+  };
+  transport({
+    "GET /api/products/2": parent,
+    "GET /api/variants/1": variant,
+    "GET /api/carts/8": full,
+    "POST /api/carts/8/add-item": { success: true, cart: shallow },
+    "POST /api/carts/8/update-item": { success: true, cart: shallow },
+    "POST /api/carts/8/remove-item": { success: true, cart: shallow },
+  });
+  const added = await addCartLines("8::test-secret", [
+    { merchandiseId: "variant:1", quantity: 1 },
+  ]);
+  const updated = await updateCartLines("8::test-secret", [
+    { id: "line", quantity: 2 },
+  ]);
+  const removed = await removeCartLines("8::test-secret", ["another-line"]);
+  for (const result of [added, updated, removed]) {
+    assert.equal(result.lines[0].cost.amountPerQuantity.amount, "1250.50");
+    assert.equal(result.id, "8::test-secret");
+  }
 });
 
 test("actual add-cart request contains correct product/variant numeric IDs", async () => {

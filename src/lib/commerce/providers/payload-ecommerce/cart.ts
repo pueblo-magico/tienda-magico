@@ -225,10 +225,11 @@ function withPreservedSecret(cart: Cart, secret?: string | null): Cart {
   };
 }
 
-function resultToCart(
+async function resultToCart(
   result: PayloadCartMutationResult | PayloadCartDoc,
   fallbackSecret?: string,
-): Cart {
+  locale?: string | null,
+): Promise<Cart> {
   const config = getPayloadEcommerceConfig();
   const cartDoc = extractCartDoc(result);
 
@@ -243,8 +244,14 @@ function resultToCart(
   }
 
   const secret = extractSecret(result, cartDoc, fallbackSecret);
-  const cart = mapCart(cartDoc, {
+  // Mutation responses are depth 0. Populate relationships before price
+  // validation; an ID-only response does not mean the saved item lacks a price.
+  const populated = cartDoc.items?.length
+    ? await fetchCartDocument(toId(cartDoc.id), secret ?? undefined, locale)
+    : cartDoc;
+  const cart = mapCart(populated, {
     secret,
+    locale,
     checkoutBaseUrl: config.checkoutBaseUrl,
   });
 
@@ -321,7 +328,7 @@ export async function createCart(input?: {
     cache: "no-store",
   });
 
-  let cart = resultToCart(
+  let cart = await resultToCart(
     created as PayloadCartMutationResult | PayloadCartDoc,
   );
 
@@ -407,7 +414,7 @@ export async function addCartLines(
       });
     }
 
-    latest = resultToCart(result, secret);
+    latest = await resultToCart(result, secret, locale);
   }
 
   if (!latest) {
@@ -452,7 +459,7 @@ export async function updateCartLines(
       });
     }
 
-    latest = resultToCart(result, secret);
+    latest = await resultToCart(result, secret, locale);
   }
 
   if (!latest) {
@@ -503,7 +510,7 @@ export async function removeCartLines(
       });
     }
 
-    latest = resultToCart(result, secret);
+    latest = await resultToCart(result, secret, locale);
   }
 
   if (!latest) {

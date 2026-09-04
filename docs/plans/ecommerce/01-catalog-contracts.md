@@ -1,8 +1,8 @@
 # 01 — Catalog ownership and migration foundation
 
-Status: in progress for PMG-218; adapter and storefront selection fixes implemented, end-to-end verification pending. Dependencies: none. Foundation details: `docs/commerce/catalog-model.md`.
+Status: implemented for PMG-218; user reports successful manual testing on mobile, EN/ES, and cart reload after the final cart fix. Remaining verification details are listed below. Dependencies: none. Foundation details: `docs/commerce/catalog-model.md`.
 
-Manual review: [human test checklist](01-catalog-contracts-manual-test.md) (not yet executed).
+Manual review: [human test checklist and results](01-catalog-contracts-manual-test.md). Confirmed checks are distinguished from scenarios not explicitly reported.
 
 ## Codex implementation prompt
 
@@ -23,7 +23,7 @@ Document field ownership, public/private boundaries, stable option IDs, preserva
 - Variant products: show the selected variant's ARS price and availability, disable unavailable or invalid combinations, and submit its opaque merchandise reference. Missing variant data must not fall back to purchasing the parent product.
 - Product cards/listings: consume the authoritative price range and availability rather than a competing parent-price calculation. Do not expose exact inventory or private data.
 - Cart: show the correct public product title and selected option labels, keep different variants as separate lines, and preserve identity through quantity changes and reloads. Surface stale/ambiguous merchandise failures with a localized, actionable message instead of silently substituting an item.
-- Preserve current URLs, slug behavior, and locale navigation. Use the existing UI primitives and tokens; this is functional integration, not a redesign. Document any existing locale-switch selection behavior rather than inventing new routes.
+- Preserve current URLs and locale navigation: products and categories each have one stable slug shared between EN/ES. Translating or renaming content must not change it. Use the existing UI primitives and tokens; this is functional integration, not a redesign. Document any existing locale-switch selection behavior rather than inventing new routes.
 
 ### Definition of done
 
@@ -39,14 +39,16 @@ Document field ownership, public/private boundaries, stable option IDs, preserva
 - [ ] Desktop/mobile, keyboard interaction, missing variants, unavailable stock, and actionable cart failure states are verified; the manual checklist records results or explicit blockers.
 - [ ] Shared execution checks pass for the complete integration or specific blockers are recorded; adapter-only tests do not establish feature completion.
 
-Automated verification only: 16 catalog/selection regression tests pass; storefront production build/type
-validation passes; lint passes with seven warnings in unrelated files; touched
-source/test files pass targeted lint. Formatting and diff whitespace checks pass.
-No live CMS mutation, browser checkout, or role-based CMS access test was performed;
-HTTP integration is fixture-tested. CMS schema is unchanged. The storefront
-selector now consumes stable IDs and uses the shared Button; invalid combinations
-cannot be purchased. The prescribed browser command was unavailable, so visual
-and CMS-edit-to-cart checks remain pending.
+### Verification evidence
+
+- User acceptance: manual testing successful on mobile, in EN/ES, and with cart reload after the final 409 fix.
+- Automated: 19 catalog/selection tests pass, including ID-only mutation responses, missing relationships, private-field exclusion, and saved-cart compatibility.
+- Live local HTTP: simple/variant adds, quantity changes, and removal return 200; deleted-product cart recovery and local image optimization were also verified.
+- Checks: storefront and CMS builds passed during implementation; type validation and targeted lint passed after the cart fix. Full CMS lint has two pre-existing frontend link errors and 13 warnings; storefront lint previously reported seven unrelated warnings. Formatting and diff checks passed.
+- CMS editor guidance and generated type comments were updated without persisted schema or slug changes. No database migration was required.
+- Not separately confirmed: desktop/keyboard coverage, the complete CMS-edit/cache-to-page sequence, and every availability/privacy manual scenario. Keep their checklist entries open rather than infer coverage from the reported successful manual test.
+- Automated browser verification was unavailable because `agent-browser` was not installed. User-reported manual results are independent evidence, not automated browser results.
+- Checkout stock warnings, reservations, payment completion, and production role-based access verification are not part of this acceptance; inventory/checkout protection remains deferred to tasks 06–07.
 
 ### Out of scope
 

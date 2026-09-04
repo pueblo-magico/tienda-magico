@@ -23,7 +23,7 @@ Implement shared-structure accordion entries with stable key, localized editable
 - Information accordions: render visible, non-empty CMS sections in their configured order using stable keys and the shared accordion component. Edited titles, custom sections, and localized bodies must appear without hard-coded section lists. Define emptiness after the documented locale fallback is applied.
 - Product cards/listings: reflect the published product name and selected primary image, not an independent image source. Reflect lifecycle visibility consistently with product detail and purchase eligibility.
 - Discontinued products: a published page may retain its story/media with a localized unavailable message and no purchase action. Until task 08 provides related products, link to an existing shop/category destination; do not add placeholder recommendations. Draft/unpublished content must not leak through public pages or metadata.
-- SEO: use localized CMS SEO title/description with documented fallbacks in page metadata. Preserve the existing slug/routing concept; do not make a slug migration part of content presentation.
+- SEO: use localized CMS SEO title/description with documented fallbacks in page metadata. Each product keeps one stable slug shared between EN/ES; translating or renaming content must not regenerate it. Preserve existing routes; no slug migration is part of content presentation.
 - CMS publication and subsequent edits must become visible through an explicit cache refresh/revalidation policy. A field existing in CMS or an adapter response is insufficient if the rendered storefront ignores it.
 
 ### Definition of done

@@ -1,19 +1,20 @@
 # Manual test — Task 01 / PMG-218
 
-Status: not executed. This checklist is for a later human review of
-[task 01](01-catalog-contracts.md).
+Status: user-reported manual test successful after the final cart fix: mobile,
+EN/ES, and cart reload. Other scenarios remain not separately confirmed.
+This checklist remains the repeatable manual procedure for [task 01](01-catalog-contracts.md).
 
 Use the local storefront and CMS with test data only. Do not complete real
 payments. Record unavailable scenarios as **Not tested**, not Pass.
 
 ## Test session
 
-- Tester:
+- Tester: project owner (reported in the development conversation)
 - Date:
-- Branch / commit:
+- Branch / commit: `codex/PMG-217-ecommerce`, including the uncommitted post-`a6c748e` cart response fix
 - Browser:
 - Storefront and CMS URLs:
-- Overall result: Not tested
+- Overall result: Pass for the reported mobile, EN/ES, and cart-reload scope; see remaining coverage below
 
 ## 1. Prepare test products
 
@@ -81,7 +82,8 @@ If no pre-change cart is available, mark this test **Not tested**.
 **Expected:** Existing slug and language-switching behavior is preserved. Links
 still resolve to the intended content. Missing translations use the configured
 fallback without displaying `[object Object]` or changing product identity.
-This test does not prescribe a new slug structure.
+The product/category slug must stay identical between EN/ES; only the locale
+changes. Translating or renaming the content must not regenerate its slug.
 
 ## 6. Availability
 
@@ -118,22 +120,25 @@ For each section, record **Pass / Fail / Not tested**, the product URL, language
 steps, and a screenshot for any failure. Do not include cookies, cart secrets,
 credentials, or customer information.
 
-| Scenario                    | Result     | Evidence / notes |
-| --------------------------- | ---------- | ---------------- |
-| Preparation                 | Not tested |                  |
-| Simple product              | Not tested |                  |
-| Variant product             | Not tested |                  |
-| Existing cart compatibility | Not tested |                  |
-| Language and slugs          | Not tested |                  |
-| Availability                | Not tested |                  |
-| Private information         | Not tested |                  |
+| Scenario                                       | Result                                          | Evidence / notes                                                                         |
+| ---------------------------------------------- | ----------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| Mobile use                                     | Pass                                            | User confirmed successful manual testing                                                 |
+| EN/ES use                                      | Pass                                            | User confirmed both languages                                                            |
+| Cart reload                                    | Pass                                            | User confirmed after final 409 fix                                                       |
+| Simple/variant add, quantity update, removal   | Pass (HTTP)                                     | Agent verified live local responses; individual manual scenarios not separately reported |
+| Existing cart recovery                         | Pass (HTTP)                                     | Invalid cart and deleted-product reference cases verified locally                        |
+| Existing URLs and missing-translation fallback | Not separately confirmed manually               | Automated translation/fallback coverage exists                                           |
+| Desktop and keyboard interaction               | Not separately confirmed                        | Do not infer from mobile acceptance                                                      |
+| CMS edit / cache refresh / rendered content    | Not separately confirmed as a complete sequence | Product cache interval is documented in the editor guide                                 |
+| Availability edge cases                        | Not separately confirmed manually               | Automated missing-variant coverage exists; checkout stock protection is deferred         |
+| Private information                            | Not separately confirmed manually               | Automated projection tests pass; not a CMS role-permissions audit                        |
 
 ### Findings and follow-up
 
-- Finding / reproduction steps:
-- Expected versus actual behavior:
-- Related issue:
-- Retest result:
+- Finding: successful cart mutations could return 409 because ID-only responses were mapped before population.
+- Resolution: fetch populated cart data before validating prices; add/update/remove regression coverage added.
+- Related issue: PMG-218.
+- Retest: local add/update/remove return 200; user confirms successful mobile, EN/ES, and cart-reload testing.
 
 After testing, restore any temporary changes to shared test fixtures and record
 remaining limitations here. Do not remove pre-existing data or other testers' carts.

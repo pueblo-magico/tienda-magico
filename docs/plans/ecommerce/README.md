@@ -7,7 +7,7 @@ These are feature-based Codex prompts for the agreed Pueblo Mágico CMS and stor
 ## Agreed product decisions
 
 - Spanish is the default content language; English and Spanish are supported.
-- Product and category slugs remain localized in EN/ES. Stable internal IDs connect translations, and language switching resolves the corresponding localized slug. Slug changes must preserve existing links through redirects
+- Products and categories each have one stable slug shared between EN/ES. Slugs are not localized or regenerated when names/translations change. Language switching changes the locale, not the slug or entity identity. Preserve existing URLs and enforce slug uniqueness within each collection across both locales. Any intentional slug change requires explicit approval and a redirect/compatibility plan.
 - Launch selling and checkout currency is ARS only. Content language never selects currency.
 - Purchase costs may use other currencies, including BRL. Costs, supplier contacts, purchasing details, exact stock balances, and internal notes are private.
 - Inventory is one shared pool across web, retreat, and event sales. Locations are sales context, not separate warehouses initially.
@@ -65,10 +65,11 @@ end-to-end completion. Private fields must remain absent from public output rath
 than receive a storefront representation. Record human test instructions alongside
 each task and distinguish implemented code from unexecuted verification.
 
-Tasks 01–03 explicitly specify their storefront representation below. Task 01 is
-in progress: its adapter foundation has verification evidence, but consumer
-integration and CMS-to-storefront verification remain open. Do not treat it as a
-completed dependency until those requirements are satisfied.
+Tasks 01–03 explicitly specify their storefront representation. Task 01 now has
+implemented storefront consumers, 19 passing tests, live local cart/image checks,
+and user-confirmed mobile, EN/ES, and cart-reload acceptance. Its task document
+records remaining unreported checks; do not equate them with failed tests or mark
+them passed without evidence. The dependency completion rule above still applies.
 
 ## Decisions to resolve during implementation
 
