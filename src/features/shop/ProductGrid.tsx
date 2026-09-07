@@ -22,6 +22,7 @@ export function ProductGrid({ locale, products }: Props) {
             price={formatMoney(product.priceRange.minVariantPrice, locale)}
             imageSrc={product.featuredImage?.url || PLACEHOLDER}
             imageAlt={product.featuredImage?.altText || product.title}
+            category={product.classification?.primaryCategory?.title}
           />
         </li>
       ))}

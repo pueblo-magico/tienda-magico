@@ -9,7 +9,8 @@ import type { ProductSummary } from "@/types/commerce";
 
 function refId(value: unknown): string | null {
   if (value == null) return null;
-  if (typeof value === "string" || typeof value === "number") return String(value);
+  if (typeof value === "string" || typeof value === "number")
+    return String(value);
   if (typeof value === "object" && value && "id" in value) {
     return String((value as { id: string | number }).id);
   }
@@ -62,6 +63,7 @@ export async function FeaturedProductsBlockView({
               featuredImage: product.featuredImage,
               priceRange: product.priceRange,
               tags: product.tags,
+              classification: product.classification,
             });
           }
           continue;
@@ -110,6 +112,7 @@ export async function FeaturedProductsBlockView({
                   "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=80"
                 }
                 imageAlt={product.featuredImage?.altText || product.title}
+                category={product.classification?.primaryCategory?.title}
               />
             </li>
           ))}

@@ -10,7 +10,8 @@ import type { CollectionSummary } from "@/types/commerce";
 
 function refId(value: unknown): string | null {
   if (value == null) return null;
-  if (typeof value === "string" || typeof value === "number") return String(value);
+  if (typeof value === "string" || typeof value === "number")
+    return String(value);
   if (typeof value === "object" && value && "id" in value) {
     return String((value as { id: string | number }).id);
   }
@@ -69,6 +70,8 @@ export async function FeaturedCategoriesBlockView({
               title: collection.title,
               description: collection.description,
               image: collection.image,
+              parent: collection.parent,
+              displayOrder: collection.displayOrder,
             });
           }
           if (categories.length >= limit) break;
@@ -95,10 +98,13 @@ export async function FeaturedCategoriesBlockView({
           {categories.map((category) => (
             <li key={category.id}>
               <Link
-                href={localizePath(locale, `/shop?collection=${encodeURIComponent(category.handle)}`)}
-                className="group block overflow-hidden rounded-2xl border border-border bg-card transition-shadow hover:shadow-md"
+                href={localizePath(
+                  locale,
+                  `/shop?collection=${encodeURIComponent(category.handle)}`,
+                )}
+                className="group border-border bg-card block overflow-hidden rounded-2xl border transition-shadow hover:shadow-md"
               >
-                <div className="relative aspect-[4/3] bg-sand/40">
+                <div className="bg-sand/40 relative aspect-[4/3]">
                   {category.image?.url ? (
                     <Image
                       src={category.image.url}
@@ -110,9 +116,11 @@ export async function FeaturedCategoriesBlockView({
                   ) : null}
                 </div>
                 <div className="space-y-1 px-4 py-3">
-                  <h3 className="font-serif text-lg text-forest">{category.title}</h3>
+                  <h3 className="text-forest font-serif text-lg">
+                    {category.title}
+                  </h3>
                   {category.description ? (
-                    <p className="line-clamp-2 text-sm text-muted">
+                    <p className="text-muted line-clamp-2 text-sm">
                       {category.description}
                     </p>
                   ) : null}

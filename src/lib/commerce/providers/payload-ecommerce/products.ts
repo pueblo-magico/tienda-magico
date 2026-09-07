@@ -31,6 +31,7 @@ async function resolveCategoryId(
         depth: 0,
         draft: false,
         "where[slug][equals]": handle,
+        "where[isVisible][equals]": true,
         ...locales,
       },
       cache: "force-cache",
@@ -73,9 +74,13 @@ function applyProductFilters(
     if (categoryId) {
       query[`where[and][${i}][or][0][category][equals]`] = categoryId;
       query[`where[and][${i}][or][1][category.slug][equals]`] = collection;
+      query[`where[and][${i}][or][2][additionalCategories][contains]`] =
+        categoryId;
     } else {
       query[`where[and][${i}][or][0][category.slug][equals]`] = collection;
       query[`where[and][${i}][or][1][category][equals]`] = collection;
+      query[`where[and][${i}][or][2][additionalCategories.slug][equals]`] =
+        collection;
     }
   }
 }

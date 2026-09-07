@@ -57,6 +57,7 @@ export default async function ShopRoutePage({ params, searchParams }: Props) {
         previous: t("previous"),
         next: t("next"),
         pagination: t("pagination"),
+        subcategories: t("subcategories"),
       }}
     />
   );

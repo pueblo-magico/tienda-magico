@@ -2,14 +2,50 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import type { CollectionSummary } from "@/types/commerce";
+import type { CollectionSummary, TagReference } from "@/types/commerce";
 import { cn } from "@/lib/utils/cn";
 import { buildShopHref, type ShopQuery } from "./search-params";
+import { buildCategoryTree, type CategoryTreeNode } from "./category-hierarchy";
+
+function CategoryOptions({
+  nodes,
+  selectedHandle,
+}: {
+  nodes: CategoryTreeNode[];
+  selectedHandle: string;
+}) {
+  return (
+    <ul className="space-y-2">
+      {nodes.map(({ category, children }) => (
+        <li key={category.id}>
+          <label className="flex cursor-pointer items-center gap-3 text-sm">
+            <input
+              type="radio"
+              name="collection"
+              value={category.handle}
+              defaultChecked={selectedHandle === category.handle}
+              className="accent-brand"
+            />
+            {category.title}
+          </label>
+          {children.length ? (
+            <div className="border-border mt-2 ml-2 border-l pl-5">
+              <CategoryOptions
+                nodes={children}
+                selectedHandle={selectedHandle}
+              />
+            </div>
+          ) : null}
+        </li>
+      ))}
+    </ul>
+  );
+}
 
 type Props = {
   locale: string;
   collections: CollectionSummary[];
-  tags: string[];
+  tags: TagReference[];
   query: ShopQuery;
   labels: {
     all: string;
@@ -34,6 +70,7 @@ export function ShopFilters({
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [pending, startTransition] = useTransition();
+  const categoryTree = buildCategoryTree(collections);
 
   const submit = (form: HTMLFormElement) => {
     const data = new FormData(form);
@@ -90,21 +127,10 @@ export function ShopFilters({
             />
             {labels.all}
           </label>
-          {collections.map((collection) => (
-            <label
-              key={collection.id}
-              className="flex cursor-pointer items-center gap-3 text-sm"
-            >
-              <input
-                type="radio"
-                name="collection"
-                value={collection.handle}
-                defaultChecked={query.collection === collection.handle}
-                className="accent-brand"
-              />
-              {collection.title}
-            </label>
-          ))}
+          <CategoryOptions
+            nodes={categoryTree}
+            selectedHandle={query.collection}
+          />
         </fieldset>
         <fieldset className="border-border space-y-3 border-t pt-5">
           <legend className="font-navigation text-text-black text-lg">
@@ -141,17 +167,17 @@ export function ShopFilters({
             <div className="space-y-2">
               {tags.map((tag) => (
                 <label
-                  key={tag}
+                  key={tag.id}
                   className="flex cursor-pointer items-center gap-3 text-sm"
                 >
                   <input
                     type="checkbox"
                     name="tags"
-                    value={tag}
-                    defaultChecked={query.tags.includes(tag)}
+                    value={tag.handle}
+                    defaultChecked={query.tags.includes(tag.handle)}
                     className="accent-brand"
                   />
-                  {tag}
+                  {tag.label}
                 </label>
               ))}
             </div>

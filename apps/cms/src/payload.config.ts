@@ -13,6 +13,7 @@ import { customerOnlyFieldAccess } from './access/customerOnlyFieldAccess'
 import { isAdmin } from './access/isAdmin'
 import { isDocumentOwner } from './access/isDocumentOwner'
 import { Categories } from './collections/Categories'
+import { Brands } from './collections/Brands'
 import { FAQs } from './collections/FAQs'
 import { Media } from './collections/Media'
 import { Pages } from './collections/Pages'
@@ -23,6 +24,7 @@ import {
   variantOptionsCollectionOverride,
 } from './collections/variantEditorGuidance'
 import { Testimonials } from './collections/Testimonials'
+import { Tags } from './collections/Tags'
 import { Users } from './collections/Users'
 import { Footer } from './globals/Footer'
 import { Header } from './globals/Header'
@@ -66,6 +68,8 @@ export default buildConfig({
     FAQs,
     // Shop catalogue helpers
     Categories,
+    Brands,
+    Tags,
   ],
   globals: [Header, Footer, SiteSettings, SEO],
   editor: lexicalEditor(),

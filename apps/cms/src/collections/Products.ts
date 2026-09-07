@@ -1,6 +1,7 @@
 import type { CollectionOverride } from '@payloadcms/plugin-ecommerce/types'
 import type { Field } from 'payload'
 import { clarifyVariantFields } from './variantEditorGuidance'
+import { normalizeProductCategories } from './productClassificationHooks'
 import {
   FixedToolbarFeature,
   HeadingFeature,
@@ -14,8 +15,8 @@ import {
  * Note: the plugin default does NOT ship a `title` field — the official
  * ecommerce template adds it via override. We do the same here.
  *
- * Localized copy fields: title, description, summary, tags.
- * Shared across locales: slug (stable storefront handle), gallery, category, pricing.
+ * Localized copy fields: title, description, summary, legacy tags.
+ * Shared across locales: slug, gallery, classifications, and pricing.
  */
 export const productsCollectionOverride: CollectionOverride = ({ defaultCollection }) => {
   const catalogueFields = [
@@ -82,12 +83,50 @@ export const productsCollectionOverride: CollectionOverride = ({ defaultCollecti
       relationTo: 'categories',
       admin: {
         position: 'sidebar',
+        description: 'Primary category. It owns the storefront breadcrumb path.',
+      },
+    },
+    {
+      name: 'additionalCategories',
+      type: 'relationship',
+      relationTo: 'categories',
+      hasMany: true,
+      filterOptions: ({ siblingData }) => {
+        const primary = (siblingData as { category?: unknown } | undefined)?.category
+        const primaryId =
+          primary && typeof primary === 'object' && 'id' in primary ? primary.id : primary
+        return primaryId ? { id: { not_equals: primaryId } } : true
+      },
+      admin: {
+        position: 'sidebar',
+        description: 'Optional extra browsing categories. Do not repeat the primary category.',
+      },
+    },
+    {
+      name: 'brand',
+      type: 'relationship',
+      relationTo: 'brands',
+      admin: { position: 'sidebar' },
+    },
+    {
+      name: 'taxonomyTags',
+      label: 'Public tags',
+      type: 'relationship',
+      relationTo: 'tags',
+      hasMany: true,
+      admin: {
+        description: 'Reusable public labels. Operational labels do not belong here.',
       },
     },
     {
       name: 'tags',
       type: 'array',
       localized: true,
+      admin: {
+        readOnly: true,
+        description:
+          'Legacy free-text tags preserved for migration review. Assign reusable Public tags above.',
+      },
       fields: [
         {
           name: 'tag',
@@ -116,6 +155,16 @@ export const productsCollectionOverride: CollectionOverride = ({ defaultCollecti
       inventory: true,
       priceInARS: true,
       category: true,
+      additionalCategories: true,
+      brand: true,
+      taxonomyTags: true,
+    },
+    hooks: {
+      ...defaultCollection.hooks,
+      beforeValidate: [
+        ...(defaultCollection.hooks?.beforeValidate ?? []),
+        normalizeProductCategories,
+      ],
     },
     fields: [...catalogueFields, ...clarifyVariantFields(defaultCollection.fields ?? [])],
   }

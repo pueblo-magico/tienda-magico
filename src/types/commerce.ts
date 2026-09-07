@@ -10,6 +10,40 @@ export type CommerceImage = {
   height: number | null;
 };
 
+export type CategoryReference = {
+  id: string;
+  handle: string;
+  title: string;
+  description: string;
+  image: CommerceImage | null;
+  parent: CategoryReference | null;
+};
+
+export type BrandReference = {
+  id: string;
+  handle: string;
+  name: string;
+  description: string;
+  logo: CommerceImage | null;
+  countryCode: string | null;
+  website: string | null;
+};
+
+export type TagReference = {
+  id: string;
+  handle: string;
+  label: string;
+  description: string;
+  group: string | null;
+};
+
+export type ProductClassification = {
+  primaryCategory: CategoryReference | null;
+  additionalCategories: CategoryReference[];
+  brand: BrandReference | null;
+  tags: TagReference[];
+};
+
 export type ProductOption = {
   id: string;
   name: string;
@@ -47,6 +81,8 @@ export type Product = {
   vendor: string;
   productType: string;
   tags: string[];
+  /** Structured, provider-independent public classification. */
+  classification?: ProductClassification;
   availableForSale: boolean;
   createdAt: string;
   updatedAt: string;
@@ -74,6 +110,7 @@ export type ProductSummary = Pick<
   | "featuredImage"
   | "priceRange"
   | "tags"
+  | "classification"
 >;
 
 export type Collection = {
@@ -83,6 +120,8 @@ export type Collection = {
   description: string;
   descriptionHtml: string;
   image: CommerceImage | null;
+  parent?: CategoryReference | null;
+  displayOrder?: number;
   seo: {
     title: string | null;
     description: string | null;
@@ -92,7 +131,13 @@ export type Collection = {
 
 export type CollectionSummary = Pick<
   Collection,
-  "id" | "handle" | "title" | "description" | "image"
+  | "id"
+  | "handle"
+  | "title"
+  | "description"
+  | "image"
+  | "parent"
+  | "displayOrder"
 >;
 
 export type CartLineMerchandise = {

@@ -10,6 +10,8 @@ export type ProductCardProps = {
   imageSrc: string;
   imageAlt?: string;
   badge?: string;
+  category?: string;
+  imageLoading?: "eager" | "lazy";
   className?: string;
 };
 
@@ -20,6 +22,8 @@ export function ProductCard({
   imageSrc,
   imageAlt = "",
   badge,
+  category,
+  imageLoading = "lazy",
   className,
 }: ProductCardProps) {
   return (
@@ -37,6 +41,7 @@ export function ProductCard({
             fill
             className="object-cover transition-transform duration-500 group-hover:scale-105"
             sizes="(max-width: 768px) 50vw, 25vw"
+            loading={imageLoading}
           />
           {badge ? (
             <Badge className="absolute top-3 left-3" variant="forest">
@@ -45,6 +50,11 @@ export function ProductCard({
           ) : null}
         </div>
         <div className="space-y-1 px-4 py-3">
+          {category ? (
+            <p className="text-text-accent text-xs font-bold tracking-wide">
+              {category}
+            </p>
+          ) : null}
           <h3 className="text-text-secondary text-sm font-medium">{title}</h3>
           <p className="text-text-primary text-sm">{price}</p>
         </div>

@@ -1,6 +1,8 @@
 import type { CollectionConfig } from 'payload'
 
 import { adminOnly } from '../access/adminOnly'
+import { publicVisibleOrAdmin } from '../access/publicOrAdmin'
+import { preventCategoryCycles } from './categoryHierarchy'
 
 export const Categories: CollectionConfig = {
   slug: 'categories',
@@ -12,8 +14,11 @@ export const Categories: CollectionConfig = {
   access: {
     create: adminOnly,
     delete: adminOnly,
-    read: () => true,
+    read: publicVisibleOrAdmin('isVisible'),
     update: adminOnly,
+  },
+  hooks: {
+    beforeChange: [preventCategoryCycles],
   },
   fields: [
     {
@@ -44,6 +49,38 @@ export const Categories: CollectionConfig = {
       name: 'image',
       type: 'upload',
       relationTo: 'media',
+    },
+    {
+      name: 'parent',
+      type: 'relationship',
+      relationTo: 'categories',
+      admin: {
+        position: 'sidebar',
+        description: 'Optional parent used for category context and breadcrumbs.',
+      },
+    },
+    {
+      name: 'displayOrder',
+      type: 'number',
+      defaultValue: 0,
+      required: true,
+      admin: { position: 'sidebar' },
+    },
+    {
+      name: 'isVisible',
+      type: 'checkbox',
+      defaultValue: true,
+      required: true,
+      admin: { position: 'sidebar' },
+    },
+    {
+      name: 'seo',
+      type: 'group',
+      localized: true,
+      fields: [
+        { name: 'title', type: 'text' },
+        { name: 'description', type: 'textarea' },
+      ],
     },
   ],
 }

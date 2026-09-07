@@ -104,7 +104,8 @@
     "maxPrice": "Max",
     "previous": "Previous",
     "next": "Next",
-    "pagination": "Pagination"
+    "pagination": "Pagination",
+    "subcategories": "Explore subcategories"
   },
   "product": {
     "backToShop": "Back to shop",
@@ -125,6 +126,7 @@
     "relatedEyebrow": "More to explore",
     "relatedTitle": "Related products",
     "tags": "Tags",
+    "breadcrumb": "Product breadcrumb",
     "addFailed": "Could not add this product. Refresh the page, check your selection, and try again. Your existing cart is preserved.",
     "description": "Description",
     "ingredients": "Ingredients & materials",

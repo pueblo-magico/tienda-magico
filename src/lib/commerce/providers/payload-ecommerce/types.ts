@@ -34,6 +34,35 @@ export type PayloadMedia = {
   >;
 };
 
+export type PayloadCategoryDoc = PayloadDoc & {
+  title?: PayloadLocalizedText | null;
+  slug?: string | null;
+  description?: unknown;
+  image?: unknown;
+  parent?: string | number | PayloadCategoryDoc | null;
+  displayOrder?: number | null;
+  isVisible?: boolean | null;
+  seo?: unknown;
+};
+
+export type PayloadBrandDoc = PayloadDoc & {
+  name?: string | null;
+  slug?: string | null;
+  description?: unknown;
+  logo?: unknown;
+  countryCode?: string | null;
+  website?: string | null;
+  isActive?: boolean | null;
+};
+
+export type PayloadTagDoc = PayloadDoc & {
+  label?: PayloadLocalizedText | null;
+  slug?: string | null;
+  description?: unknown;
+  group?: string | null;
+  isVisible?: boolean | null;
+};
+
 export type PayloadProductDoc = PayloadDoc & {
   title?: PayloadLocalizedText | null;
   name?: PayloadLocalizedText | null;
@@ -43,9 +72,11 @@ export type PayloadProductDoc = PayloadDoc & {
   richText?: unknown;
   summary?: string | null;
   vendor?: string | null;
-  brand?: string | null;
+  brand?: string | number | PayloadBrandDoc | null;
   productType?: string | null;
   category?: unknown;
+  additionalCategories?: unknown;
+  taxonomyTags?: unknown;
   tags?: unknown;
   enableVariants?: boolean | null;
   inventory?: number | null;

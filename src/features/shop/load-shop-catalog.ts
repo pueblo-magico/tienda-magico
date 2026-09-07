@@ -3,6 +3,7 @@ import type {
   CollectionSummary,
   Paginated,
   ProductSummary,
+  TagReference,
 } from "@/types/commerce";
 import { toCommerceProductsParams, type ShopQuery } from "./search-params";
 
@@ -10,7 +11,8 @@ export type ShopCatalogResult = {
   configured: boolean;
   products: Paginated<ProductSummary>;
   collections: CollectionSummary[];
-  availableTags: string[];
+  selectedCollection: CollectionSummary | null;
+  availableTags: TagReference[];
   error: string | null;
 };
 
@@ -33,6 +35,7 @@ export async function loadShopCatalog(
       configured: false,
       products: emptyPage,
       collections: [],
+      selectedCollection: null,
       availableTags: [],
       error: null,
     };
@@ -46,9 +49,13 @@ export async function loadShopCatalog(
 
     const minPrice = Number(query.minPrice);
     const maxPrice = Number(query.maxPrice);
-    const selectedTags = new Set(query.tags.map((tag) => tag.toLowerCase()));
+    const selectedTags = new Set(query.tags);
     const availableTags = Array.from(
-      new Set(products.items.flatMap((product) => product.tags)),
+      new Map(
+        products.items
+          .flatMap((product) => product.classification?.tags ?? [])
+          .map((tag) => [tag.handle, tag]),
+      ).values(),
     ).slice(0, 8);
     const filteredItems = products.items.filter((product) => {
       const price = Number(product.priceRange.minVariantPrice.amount);
@@ -58,7 +65,9 @@ export async function loadShopCatalog(
         return false;
       if (
         selectedTags.size &&
-        !product.tags.some((tag) => selectedTags.has(tag.toLowerCase()))
+        !(product.classification?.tags ?? []).some((tag) =>
+          selectedTags.has(tag.handle),
+        )
       )
         return false;
       return true;
@@ -68,6 +77,10 @@ export async function loadShopCatalog(
       configured: true,
       products: { ...products, items: filteredItems },
       collections: collectionsPage.items,
+      selectedCollection:
+        collectionsPage.items.find(
+          (collection) => collection.handle === query.collection,
+        ) ?? null,
       availableTags,
       error: null,
     };
@@ -76,6 +89,7 @@ export async function loadShopCatalog(
       configured: true,
       products: emptyPage,
       collections: [],
+      selectedCollection: null,
       availableTags: [],
       error:
         error instanceof Error ? error.message : "Failed to load shop catalog.",

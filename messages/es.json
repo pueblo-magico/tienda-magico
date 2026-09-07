@@ -104,7 +104,8 @@
     "maxPrice": "Máx.",
     "previous": "Anterior",
     "next": "Siguiente",
-    "pagination": "Paginación"
+    "pagination": "Paginación",
+    "subcategories": "Explorar subcategorías"
   },
   "product": {
     "backToShop": "Volver a la tienda",
@@ -125,6 +126,7 @@
     "relatedEyebrow": "Sigue explorando",
     "relatedTitle": "Productos relacionados",
     "tags": "Etiquetas",
+    "breadcrumb": "Ruta del producto",
     "addFailed": "No se pudo añadir este producto. Actualizá la página, revisá tu selección e intentá de nuevo. Tu carrito existente se conserva.",
     "description": "Descripción",
     "ingredients": "Ingredientes y materiales",

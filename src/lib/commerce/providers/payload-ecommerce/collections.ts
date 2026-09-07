@@ -15,19 +15,13 @@ import {
   pageInfoFromPayload,
   toId,
 } from "./mappers";
-import type { PayloadListResponse, PayloadProductDoc } from "./types";
+import type {
+  PayloadCategoryDoc,
+  PayloadListResponse,
+  PayloadProductDoc,
+} from "./types";
 
-type PayloadCollectionDoc = {
-  id: string | number;
-  title?: string | null;
-  name?: string | null;
-  slug?: string | null;
-  handle?: string | null;
-  description?: unknown;
-  richText?: unknown;
-  summary?: string | null;
-  image?: unknown;
-  media?: unknown;
+type PayloadCollectionDoc = PayloadCategoryDoc & {
   products?:
     | Array<string | number | PayloadProductDoc>
     | { docs?: Array<string | number | PayloadProductDoc> }
@@ -57,6 +51,8 @@ async function safeListCollections(params?: GetCollectionsParams) {
         limit,
         page,
         draft: false,
+        sort: "displayOrder",
+        "where[isVisible][equals]": true,
         ...locales,
       },
       cache: "force-cache",
@@ -143,6 +139,7 @@ export async function getCollection(
         depth: Math.max(config.depth, 2),
         limit: 1,
         "where[slug][equals]": handle,
+        "where[isVisible][equals]": true,
         draft: false,
         ...locales,
       },
@@ -179,6 +176,8 @@ export async function getCollection(
       });
     }
 
+    if (doc.isVisible === false) return null;
+
     let products = extractRelatedProducts(doc, productsFirst, params.locale);
 
     // Fallback: products that reference this category/collection id
@@ -193,8 +192,9 @@ export async function getCollection(
           draft: false,
           ...locales,
           "where[or][0][category][equals]": toId(doc.id),
-          "where[or][1][categories][contains]": toId(doc.id),
-          "where[or][2][collections][contains]": toId(doc.id),
+          "where[or][1][additionalCategories][contains]": toId(doc.id),
+          "where[or][2][categories][contains]": toId(doc.id),
+          "where[or][3][collections][contains]": toId(doc.id),
         },
         cache: "force-cache",
         next: {

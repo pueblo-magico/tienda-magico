@@ -1,11 +1,16 @@
 import Link from "next/link";
+import Image from "next/image";
 import { localizePath } from "@/config/navigation";
 import { Badge } from "@/components/ui/Badge";
 import { Accordion } from "@/components/ui/Accordion";
 import { Container } from "@/components/layout/Container";
 import { Section } from "@/components/layout/Section";
 import { Body, Eyebrow, PageTitle } from "@/components/typography";
-import type { Product, ProductSummary } from "@/types/commerce";
+import type {
+  CategoryReference,
+  Product,
+  ProductSummary,
+} from "@/types/commerce";
 import { AddToCartForm } from "./AddToCartForm";
 import { ProductGallery } from "./ProductGallery";
 import { RelatedProducts } from "./RelatedProducts";
@@ -30,6 +35,7 @@ type Labels = {
   relatedEyebrow: string;
   relatedTitle: string;
   tags: string;
+  breadcrumb: string;
   description: string;
   ingredients: string;
   howToUse: string;
@@ -49,6 +55,14 @@ type Props = {
 export function ProductPageView({ locale, product, related, labels }: Props) {
   const images = getGalleryImages(product);
   const impact = impactItemsFromProduct(product);
+  const classification = product.classification;
+  const categoryPath: CategoryReference[] = [];
+  let category = classification?.primaryCategory ?? null;
+  while (category) {
+    categoryPath.unshift(category);
+    category = category.parent;
+  }
+  const publicTags = classification?.tags ?? [];
 
   return (
     <>
@@ -56,7 +70,7 @@ export function ProductPageView({ locale, product, related, labels }: Props) {
         <Container className="space-y-7">
           <nav
             className="text-muted flex flex-wrap items-center gap-2 text-xs"
-            aria-label="Breadcrumb"
+            aria-label={labels.breadcrumb}
           >
             <Link
               href={localizePath(locale, "/shop")}
@@ -65,12 +79,20 @@ export function ProductPageView({ locale, product, related, labels }: Props) {
               {labels.backToShop}
             </Link>
             <span>/</span>
-            {product.productType ? (
-              <>
-                <span>{product.productType}</span>
+            {categoryPath.map((item) => (
+              <span key={item.id} className="contents">
+                <Link
+                  href={localizePath(
+                    locale,
+                    `/shop?collection=${encodeURIComponent(item.handle)}`,
+                  )}
+                  className="hover:text-forest transition-colors"
+                >
+                  {item.title}
+                </Link>
                 <span>/</span>
-              </>
-            ) : null}
+              </span>
+            ))}
             <span className="text-text-black">{product.title}</span>
           </nav>
 
@@ -82,18 +104,57 @@ export function ProductPageView({ locale, product, related, labels }: Props) {
             />
 
             <div className="space-y-6 lg:sticky lg:top-28 lg:pt-4">
-              {product.vendor ? <Eyebrow>{product.vendor}</Eyebrow> : null}
+              {classification?.brand ? (
+                <div className="flex items-center gap-3">
+                  {classification.brand.logo?.url ? (
+                    <span className="border-border bg-card relative h-10 w-10 overflow-hidden rounded-full border">
+                      <Image
+                        src={classification.brand.logo.url}
+                        alt={
+                          classification.brand.logo.altText ||
+                          classification.brand.name
+                        }
+                        fill
+                        className="object-contain p-1"
+                        sizes="40px"
+                      />
+                    </span>
+                  ) : null}
+                  {classification.brand.website ? (
+                    <a
+                      href={classification.brand.website}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="hover:text-text-accent transition-colors"
+                    >
+                      <Eyebrow>{classification.brand.name}</Eyebrow>
+                    </a>
+                  ) : (
+                    <Eyebrow>{classification.brand.name}</Eyebrow>
+                  )}
+                </div>
+              ) : product.vendor ? (
+                <Eyebrow>{product.vendor}</Eyebrow>
+              ) : null}
               <PageTitle as="h1" className="text-4xl leading-tight sm:text-5xl">
                 {product.title}
               </PageTitle>
 
-              {product.tags?.length ? (
+              {publicTags.length || product.tags.length ? (
                 <div className="flex flex-wrap gap-2" aria-label={labels.tags}>
-                  {product.tags.slice(0, 6).map((tag) => (
-                    <Badge key={tag} variant="outline">
-                      {tag}
-                    </Badge>
-                  ))}
+                  {(publicTags.length
+                    ? publicTags.map((tag) => ({
+                        id: tag.id,
+                        label: tag.label,
+                      }))
+                    : product.tags.map((tag) => ({ id: tag, label: tag }))
+                  )
+                    .slice(0, 6)
+                    .map((tag) => (
+                      <Badge key={tag.id} variant="outline">
+                        {tag.label}
+                      </Badge>
+                    ))}
                 </div>
               ) : null}
 
@@ -159,7 +220,11 @@ export function ProductPageView({ locale, product, related, labels }: Props) {
               {
                 id: "use",
                 title: labels.howToUse,
-                content: product.productType || product.vendor || "—",
+                content:
+                  classification?.primaryCategory?.title ||
+                  product.productType ||
+                  product.vendor ||
+                  "—",
               },
               {
                 id: "impact",

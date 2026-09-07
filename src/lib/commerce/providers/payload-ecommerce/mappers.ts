@@ -1,5 +1,7 @@
 import type {
   Cart,
+  BrandReference,
+  CategoryReference,
   CartLine,
   Collection,
   CollectionSummary,
@@ -10,16 +12,20 @@ import type {
   ProductSummary,
   ProductVariant,
   SelectedOption,
+  TagReference,
 } from "@/types/commerce";
 import { CommerceError } from "@/types/commerce";
 import { getPayloadEcommerceConfig } from "./config";
 import { merchandiseRef } from "./merchandise";
 import type {
   PayloadCartDoc,
+  PayloadBrandDoc,
+  PayloadCategoryDoc,
   PayloadMedia,
   PayloadProductDoc,
   PayloadVariantDoc,
   PayloadLocalizedText,
+  PayloadTagDoc,
 } from "./types";
 
 export function encodeCartRef(cartId: string, secret?: string | null): string {
@@ -316,6 +322,121 @@ function mapTags(value: unknown): string[] {
   return [];
 }
 
+function relationshipDocs<T>(value: unknown): T[] {
+  if (Array.isArray(value)) {
+    return value.filter((item): item is T => Boolean(asRecord(item)));
+  }
+  const record = asRecord(value);
+  if (!record) return [];
+  if (Array.isArray(record.docs)) {
+    return record.docs.filter((item): item is T => Boolean(asRecord(item)));
+  }
+  return [value as T];
+}
+
+function safeWebsite(value: unknown): string | null {
+  if (typeof value !== "string" || !value.trim()) return null;
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" || url.protocol === "http:"
+      ? url.toString()
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+function mapCategoryReference(
+  value: unknown,
+  locale?: string | null,
+  depth = 0,
+): CategoryReference | null {
+  const doc = asRecord(value) as PayloadCategoryDoc | null;
+  if (!doc || doc.id == null || doc.isVisible === false) return null;
+  const config = getPayloadEcommerceConfig();
+  const preferred = [locale ?? config.defaultLocale, config.fallbackLocale];
+  const handle = typeof doc.slug === "string" ? doc.slug : "";
+  const title = resolveLocalizedText(doc.title, preferred);
+  if (!handle || !title) return null;
+
+  return {
+    id: toId(doc.id),
+    handle,
+    title,
+    description: richTextToPlain(doc.description),
+    image: mapMedia(doc.image),
+    parent:
+      depth < 8 ? mapCategoryReference(doc.parent, locale, depth + 1) : null,
+  };
+}
+
+function mapBrandReference(value: unknown): BrandReference | null {
+  const doc = asRecord(value) as PayloadBrandDoc | null;
+  if (
+    !doc ||
+    doc.id == null ||
+    doc.isActive === false ||
+    !doc.name ||
+    !doc.slug
+  )
+    return null;
+  return {
+    id: toId(doc.id),
+    handle: doc.slug,
+    name: doc.name,
+    description: richTextToPlain(doc.description),
+    logo: mapMedia(doc.logo),
+    countryCode: doc.countryCode?.toUpperCase() ?? null,
+    website: safeWebsite(doc.website),
+  };
+}
+
+function mapTagReference(
+  value: unknown,
+  locale?: string | null,
+): TagReference | null {
+  const doc = asRecord(value) as PayloadTagDoc | null;
+  if (!doc || doc.id == null || doc.isVisible === false || !doc.slug)
+    return null;
+  const config = getPayloadEcommerceConfig();
+  const preferred = [locale ?? config.defaultLocale, config.fallbackLocale];
+  const label = resolveLocalizedText(doc.label, preferred);
+  if (!label) return null;
+  return {
+    id: toId(doc.id),
+    handle: doc.slug,
+    label,
+    description: richTextToPlain(doc.description),
+    group: doc.group ?? null,
+  };
+}
+
+function mapClassification(product: PayloadProductDoc, locale?: string | null) {
+  const primaryCategory = mapCategoryReference(product.category, locale);
+  const seenCategories = new Set(primaryCategory ? [primaryCategory.id] : []);
+  const additionalCategories = relationshipDocs<PayloadCategoryDoc>(
+    product.additionalCategories,
+  ).flatMap((value) => {
+    const category = mapCategoryReference(value, locale);
+    if (!category || seenCategories.has(category.id)) return [];
+    seenCategories.add(category.id);
+    return [category];
+  });
+  const tags = relationshipDocs<PayloadTagDoc>(product.taxonomyTags).flatMap(
+    (value) => {
+      const tag = mapTagReference(value, locale);
+      return tag ? [tag] : [];
+    },
+  );
+
+  return {
+    primaryCategory,
+    additionalCategories,
+    brand: mapBrandReference(product.brand),
+    tags,
+  };
+}
+
 function priceKey(currencyCode: string) {
   return `priceIn${currencyCode.toUpperCase()}`;
 }
@@ -577,13 +698,19 @@ export function mapProductSummary(
           ? product._status !== "draft"
           : inventory > 0;
 
+  const classification = mapClassification(product, locale);
   return {
     id: toId(product.id),
     handle: productHandle(product, locale),
     title: productTitle(product, locale),
-    vendor: String(product.vendor ?? product.brand ?? ""),
+    vendor:
+      classification.brand?.name ??
+      (typeof product.vendor === "string" ? product.vendor : ""),
     availableForSale,
-    tags: mapTags(product.tags),
+    tags: classification.tags.length
+      ? classification.tags.map((tag) => tag.label)
+      : mapTags(product.tags),
+    classification,
     featuredImage: images[0] ?? null,
     priceRange: {
       minVariantPrice: {
@@ -688,6 +815,7 @@ export function mapCollectionSummary(
 ): CollectionSummary {
   const config = getPayloadEcommerceConfig();
   const preferred = [locale ?? config.defaultLocale, config.fallbackLocale];
+  const category = doc as PayloadDocLike & PayloadCategoryDoc;
   return {
     id: toId(doc.id),
     handle:
@@ -702,6 +830,9 @@ export function mapCollectionSummary(
       String(doc.summary ?? ""),
     image:
       collectImages(doc as PayloadProductDoc)[0] ?? mapMedia(doc.image) ?? null,
+    parent: mapCategoryReference(category.parent, locale),
+    displayOrder:
+      typeof category.displayOrder === "number" ? category.displayOrder : 0,
   };
 }
 
@@ -746,6 +877,8 @@ type PayloadDocLike = {
   images?: unknown;
   meta?: unknown;
   seo?: unknown;
+  parent?: unknown;
+  displayOrder?: number | null;
 };
 
 function moneyFromMajor(amount: number, currencyCode: string): Money {

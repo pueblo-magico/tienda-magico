@@ -1,4 +1,6 @@
 import { getTranslations } from "next-intl/server";
+import Image from "next/image";
+import Link from "next/link";
 import { Container } from "@/components/layout/Container";
 import { Section } from "@/components/layout/Section";
 import { Body, Eyebrow, PageTitle } from "@/components/typography";
@@ -8,6 +10,9 @@ import { ShopFilters } from "./ShopFilters";
 import { ShopPagination } from "./ShopPagination";
 import { ShopToolbar } from "./ShopToolbar";
 import type { ShopQuery } from "./search-params";
+import { buildShopHref } from "./search-params";
+import type { CategoryReference } from "@/types/commerce";
+import { directChildCategories } from "./category-hierarchy";
 
 type Labels = {
   eyebrow: string;
@@ -38,6 +43,7 @@ type Labels = {
   previous: string;
   next: string;
   pagination: string;
+  subcategories: string;
 };
 
 type Props = {
@@ -57,18 +63,92 @@ export async function ShopPage({ locale, query, labels }: Props) {
     query.tags.length,
   );
   const count = catalog.products.items.length;
+  const categoryParents: CategoryReference[] = [];
+  let categoryParent = catalog.selectedCollection?.parent ?? null;
+  while (categoryParent) {
+    categoryParents.unshift(categoryParent);
+    categoryParent = categoryParent.parent;
+  }
+  const categoryCards = catalog.selectedCollection
+    ? directChildCategories(catalog.collections, catalog.selectedCollection.id)
+    : catalog.collections
+        .filter((collection) => !collection.parent)
+        .slice(0, 4);
 
   return (
     <Section spacing="lg">
       <Container className="space-y-9">
         <header className="border-border bg-warm relative overflow-hidden rounded-3xl border px-6 py-12 sm:px-12 lg:py-16">
+          {catalog.selectedCollection?.image?.url ? (
+            <>
+              <Image
+                src={catalog.selectedCollection.image.url}
+                alt=""
+                fill
+                priority
+                className="object-cover"
+                sizes="(max-width: 1280px) 100vw, 1280px"
+              />
+              <div className="bg-forest/65 absolute inset-0" />
+            </>
+          ) : null}
           <div className="relative z-10 max-w-xl space-y-3">
-            <Eyebrow>{labels.eyebrow}</Eyebrow>
-            <PageTitle as="h1" className="text-4xl sm:text-5xl">
-              {labels.title}
+            {categoryParents.length ? (
+              <nav
+                aria-label={labels.collections}
+                className={
+                  catalog.selectedCollection?.image?.url
+                    ? "text-card/80 flex flex-wrap gap-2 text-xs"
+                    : "text-muted flex flex-wrap gap-2 text-xs"
+                }
+              >
+                <Link
+                  href={buildShopHref(locale, { ...query, collection: "" })}
+                >
+                  {labels.allCollections}
+                </Link>
+                {categoryParents.map((parent) => (
+                  <span key={parent.id} className="contents">
+                    <span aria-hidden>/</span>
+                    <Link
+                      href={buildShopHref(locale, {
+                        ...query,
+                        collection: parent.handle,
+                        after: "",
+                      })}
+                    >
+                      {parent.title}
+                    </Link>
+                  </span>
+                ))}
+              </nav>
+            ) : null}
+            <Eyebrow
+              className={
+                catalog.selectedCollection?.image?.url ? "text-gold" : undefined
+              }
+            >
+              {labels.eyebrow}
+            </Eyebrow>
+            <PageTitle
+              as="h1"
+              className={
+                catalog.selectedCollection?.image?.url
+                  ? "text-card text-4xl sm:text-5xl"
+                  : "text-4xl sm:text-5xl"
+              }
+            >
+              {catalog.selectedCollection?.title ?? labels.title}
             </PageTitle>
-            <Body size="lg" className="text-muted">
-              {labels.subtitle}
+            <Body
+              size="lg"
+              className={
+                catalog.selectedCollection?.image?.url
+                  ? "text-card/85"
+                  : "text-muted"
+              }
+            >
+              {catalog.selectedCollection?.description || labels.subtitle}
             </Body>
           </div>
           <div
@@ -80,6 +160,58 @@ export async function ShopPage({ locale, query, labels }: Props) {
             className="border-brand/20 absolute right-20 -bottom-28 h-52 w-52 rounded-full border"
           />
         </header>
+
+        {categoryCards.length ? (
+          <nav
+            aria-label={
+              catalog.selectedCollection
+                ? labels.subcategories
+                : labels.collections
+            }
+            className="space-y-4"
+          >
+            {catalog.selectedCollection ? (
+              <Eyebrow>{labels.subcategories}</Eyebrow>
+            ) : null}
+            <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {categoryCards.map((collection) => (
+                <li key={collection.id}>
+                  <Link
+                    href={buildShopHref(locale, {
+                      ...query,
+                      collection: collection.handle,
+                      after: "",
+                    })}
+                    aria-current={
+                      query.collection === collection.handle
+                        ? "page"
+                        : undefined
+                    }
+                    className="border-border bg-card hover:bg-card-hover aria-[current=page]:border-brand flex min-h-20 items-center gap-4 rounded-xl border p-4 transition-colors"
+                  >
+                    <span className="border-border bg-background-primary relative h-12 w-12 shrink-0 overflow-hidden rounded-full border">
+                      {collection.image?.url ? (
+                        <Image
+                          src={collection.image.url}
+                          alt=""
+                          fill
+                          className="object-cover"
+                          sizes="48px"
+                        />
+                      ) : null}
+                    </span>
+                    <span className="font-serif text-lg">
+                      {collection.title}
+                    </span>
+                    <span aria-hidden className="ml-auto">
+                      →
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        ) : null}
 
         {!catalog.configured ? (
           <Body className="text-muted">{labels.notConfigured}</Body>

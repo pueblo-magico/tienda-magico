@@ -1,6 +1,6 @@
 # 02 — Bilingual categories, reusable tags, and brands
 
-Status: planned. Depends on: 01.
+Status: implemented; pending manual CMS-to-storefront verification. Depends on: 01.
 
 ## Codex implementation prompt
 
@@ -42,3 +42,17 @@ Implement structured classification for products. Follow `docs/plans/ecommerce/R
 ### Out of scope
 
 Supplier records, separate campaign collections, advanced search/filter UI, standalone brand/tag landing pages, and automated taxonomy translation. Basic category browsing and product taxonomy presentation are in scope.
+
+## Implementation notes
+
+- `category` remains the primary product category so existing product assignments and URLs remain compatible. `additionalCategories`, `brand`, and `taxonomyTags` are shared relationships.
+- Category, brand, and tag slugs are stable identities shared by EN and ES. Localized label edits never change them.
+- Anonymous Payload reads are constrained to visible categories/tags and active brands. The storefront mapper repeats that policy defensively and exposes only public fields.
+- Existing localized free-text product tags are preserved read-only as a migration-review source. They are used only as a storefront fallback until reusable tags are assigned; no ambiguous EN/ES equivalence is guessed.
+- Category lists revalidate after 120 seconds; individual category and product views revalidate after 60 seconds. Refresh after that window, or restart development servers, when verifying CMS edits without an on-demand webhook.
+- The category filter renders the complete visible hierarchy as nested radio options. The category-card strip shows root categories without a filter and switches to the selected category's direct visible children when a category is active.
+- A database migration is required before starting the updated CMS. Its rollback removes the new taxonomy tables and relationships but intentionally leaves the legacy free-text tag rows untouched.
+
+## Verification
+
+Follow [02-taxonomy-brands-manual-test.md](./02-taxonomy-brands-manual-test.md). Automated catalog coverage verifies shared identities, localized labels, hierarchy mapping, relationship deduplication, inactive records, and unsafe brand links.

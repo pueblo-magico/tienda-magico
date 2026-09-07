@@ -15,6 +15,14 @@ import {
   updateCartLines,
   removeCartLines,
 } from "@/lib/commerce/providers/payload-ecommerce/cart";
+import { getProducts } from "@/lib/commerce/providers/payload-ecommerce/products";
+import { getCollections } from "@/lib/commerce/providers/payload-ecommerce/collections";
+import { preventCategoryCycles } from "../apps/cms/src/collections/categoryHierarchy.ts";
+import { normalizeProductCategories } from "../apps/cms/src/collections/productClassificationHooks.ts";
+import {
+  buildCategoryTree,
+  directChildCategories,
+} from "@/features/shop/category-hierarchy";
 
 test("saved cart absence is recoverable but backend failures are not", async () => {
   transport({});
@@ -140,7 +148,7 @@ afterEach(() => {
 const simple = {
   id: 1,
   title: { es: "Taza", en: "Mug" },
-  slug: { es: "taza", en: "mug" },
+  slug: "taza",
   enableVariants: false,
   priceInARS: 250000,
   inventory: 7,
@@ -242,11 +250,11 @@ test("disabled variants ignore stale joined rows; missing enabled variants never
   );
 });
 
-test("localized names and slugs change without changing entity, merchandise, or option IDs", () => {
+test("localized names change while shared slugs and stable identities do not", () => {
   const spanish = mapProduct(simple, "es"),
     english = mapProduct(simple, "en");
   assert.equal(spanish.handle, "taza");
-  assert.equal(english.handle, "mug");
+  assert.equal(english.handle, "taza");
   assert.equal(spanish.id, english.id);
   assert.equal(spanish.variants[0].id, english.variants[0].id);
   const a = mapProduct({ ...parent, variants: [variant] }, "es");
@@ -260,6 +268,185 @@ test("localized names and slugs change without changing entity, merchandise, or 
   assert.equal(a.options[0].id, b.options[0].id);
   assert.equal(a.options[0].choices[0].id, b.options[0].choices[0].id);
   assert.notEqual(a.options[0].name, b.options[0].name);
+});
+
+test("structured classification localizes labels while preserving stable identities", () => {
+  const classified = {
+    ...simple,
+    category: {
+      id: 10,
+      slug: "rituales",
+      title: { es: "Rituales", en: "Rituals" },
+      isVisible: true,
+      parent: {
+        id: 9,
+        slug: "bienestar",
+        title: { es: "Bienestar", en: "Wellness" },
+        isVisible: true,
+      },
+    },
+    additionalCategories: [
+      {
+        id: 10,
+        slug: "rituales",
+        title: { es: "Rituales", en: "Rituals" },
+        isVisible: true,
+      },
+      {
+        id: 11,
+        slug: "montana",
+        title: { es: "Montaña", en: "Mountain" },
+        isVisible: true,
+      },
+    ],
+    brand: {
+      id: 20,
+      slug: "pueblo-magico",
+      name: "Pueblo Mágico",
+      isActive: true,
+      website: "javascript:alert(1)",
+    },
+    taxonomyTags: [
+      {
+        id: 30,
+        slug: "regenerativo",
+        label: { es: "Regenerativo", en: "Regenerative" },
+        isVisible: true,
+      },
+      {
+        id: 31,
+        slug: "privado",
+        label: "Private",
+        isVisible: false,
+      },
+    ],
+  };
+  const spanish = mapProduct(classified, "es");
+  const english = mapProduct(classified, "en");
+
+  assert.equal(spanish.classification.primaryCategory.handle, "rituales");
+  assert.equal(english.classification.primaryCategory.title, "Rituals");
+  assert.equal(english.classification.primaryCategory.parent.title, "Wellness");
+  assert.deepEqual(
+    english.classification.additionalCategories.map((item) => item.id),
+    ["11"],
+  );
+  assert.deepEqual(english.tags, ["Regenerative"]);
+  assert.equal(english.classification.tags[0].id, "30");
+  assert.equal(english.classification.brand.website, null);
+});
+
+test("category browsing includes primary and additional membership and requests only visible ordered categories", async () => {
+  const calls = transport({
+    "GET /api/categories": {
+      docs: [{ id: 10, slug: "rituales", title: "Rituals" }],
+      hasNextPage: false,
+      hasPrevPage: false,
+    },
+    "GET /api/products": {
+      docs: [],
+      hasNextPage: false,
+      hasPrevPage: false,
+    },
+  });
+
+  await Promise.all([
+    getProducts({ collection: "rituales", locale: "en" }),
+    getCollections({ locale: "en" }),
+  ]);
+
+  const categoryListCall = calls.find(
+    (call) =>
+      call.url.pathname === "/api/categories" &&
+      call.url.searchParams.get("sort") === "displayOrder",
+  );
+  assert.equal(
+    categoryListCall.url.searchParams.get("where[isVisible][equals]"),
+    "true",
+  );
+  const productCall = calls.find(
+    (call) => call.url.pathname === "/api/products",
+  );
+  assert.equal(
+    productCall.url.searchParams.get(
+      "where[and][0][or][2][additionalCategories][contains]",
+    ),
+    "10",
+  );
+});
+
+test("CMS category hierarchy rejects self-parenting and descendant cycles", async () => {
+  const req = {
+    payload: {
+      findByID: async ({ id }) =>
+        ({
+          2: { id: 2, parent: 3 },
+          3: { id: 3, parent: 1 },
+        })[id],
+    },
+  };
+  await assert.rejects(
+    preventCategoryCycles({ data: { parent: 1 }, originalDoc: { id: 1 }, req }),
+    /own parent/,
+  );
+  await assert.rejects(
+    preventCategoryCycles({ data: { parent: 2 }, originalDoc: { id: 1 }, req }),
+    /category cycle/,
+  );
+});
+
+test("CMS product classification removes primary and duplicate additional categories", () => {
+  const data = normalizeProductCategories({
+    data: {
+      category: 1,
+      additionalCategories: [1, { id: 2 }, 2, 3],
+    },
+  });
+  assert.deepEqual(data.additionalCategories, [{ id: 2 }, 3]);
+});
+
+test("category navigation nests children and exposes direct child cards in configured order", () => {
+  const parent = {
+    id: "1",
+    handle: "rituales",
+    title: "Rituals",
+    description: "",
+    image: null,
+    parent: null,
+    displayOrder: 10,
+  };
+  const categories = [
+    {
+      ...parent,
+      id: "3",
+      handle: "otro",
+      title: "Other",
+      displayOrder: 20,
+    },
+    {
+      ...parent,
+      id: "2",
+      handle: "descanso",
+      title: "Rest",
+      parent,
+      displayOrder: 2,
+    },
+    parent,
+  ];
+
+  const tree = buildCategoryTree(categories);
+  assert.deepEqual(
+    tree.map((node) => node.category.id),
+    ["1", "3"],
+  );
+  assert.deepEqual(
+    tree[0].children.map((node) => node.category.id),
+    ["2"],
+  );
+  assert.deepEqual(
+    directChildCategories(categories, "1").map((category) => category.id),
+    ["2"],
+  );
 });
 
 test("missing translation falls back to Spanish; shared legacy strings remain compatible", () => {

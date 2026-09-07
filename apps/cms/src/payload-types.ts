@@ -79,6 +79,8 @@ export interface Config {
     testimonials: Testimonial;
     faqs: Faq;
     categories: Category;
+    brands: Brand;
+    tags: Tag;
     addresses: Address;
     variants: Variant;
     variantTypes: VariantType;
@@ -108,6 +110,8 @@ export interface Config {
     testimonials: TestimonialsSelect<false> | TestimonialsSelect<true>;
     faqs: FaqsSelect<false> | FaqsSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
+    brands: BrandsSelect<false> | BrandsSelect<true>;
+    tags: TagsSelect<false> | TagsSelect<true>;
     addresses: AddressesSelect<false> | AddressesSelect<true>;
     variants: VariantsSelect<false> | VariantsSelect<true>;
     variantTypes: VariantTypesSelect<false> | VariantTypesSelect<true>;
@@ -561,7 +565,22 @@ export interface Product {
         id?: string | null;
       }[]
     | null;
+  /**
+   * Primary category. It owns the storefront breadcrumb path.
+   */
   category?: (number | null) | Category;
+  /**
+   * Optional extra browsing categories. Do not repeat the primary category.
+   */
+  additionalCategories?: (number | Category)[] | null;
+  brand?: (number | null) | Brand;
+  /**
+   * Reusable public labels. Operational labels do not belong here.
+   */
+  taxonomyTags?: (number | Tag)[] | null;
+  /**
+   * Legacy free-text tags preserved for migration review. Assign reusable Public tags above.
+   */
   tags?:
     | {
         tag: string;
@@ -611,6 +630,55 @@ export interface Category {
   slug: string;
   description?: string | null;
   image?: (number | null) | Media;
+  /**
+   * Optional parent used for category context and breadcrumbs.
+   */
+  parent?: (number | null) | Category;
+  displayOrder: number;
+  isVisible: boolean;
+  seo?: {
+    title?: string | null;
+    description?: string | null;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "brands".
+ */
+export interface Brand {
+  id: number;
+  name: string;
+  /**
+   * Stable identity shared between EN and ES.
+   */
+  slug: string;
+  logo?: (number | null) | Media;
+  description?: string | null;
+  /**
+   * Optional ISO 3166-1 alpha-2 code, for example AR.
+   */
+  countryCode?: string | null;
+  website?: string | null;
+  isActive: boolean;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tags".
+ */
+export interface Tag {
+  id: number;
+  label: string;
+  /**
+   * Stable identity shared between EN and ES.
+   */
+  slug: string;
+  description?: string | null;
+  group?: string | null;
+  isVisible: boolean;
   updatedAt: string;
   createdAt: string;
 }
@@ -973,6 +1041,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'categories';
         value: number | Category;
+      } | null)
+    | ({
+        relationTo: 'brands';
+        value: number | Brand;
+      } | null)
+    | ({
+        relationTo: 'tags';
+        value: number | Tag;
       } | null)
     | ({
         relationTo: 'addresses';
@@ -1370,6 +1446,43 @@ export interface CategoriesSelect<T extends boolean = true> {
   slug?: T;
   description?: T;
   image?: T;
+  parent?: T;
+  displayOrder?: T;
+  isVisible?: T;
+  seo?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "brands_select".
+ */
+export interface BrandsSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  logo?: T;
+  description?: T;
+  countryCode?: T;
+  website?: T;
+  isActive?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tags_select".
+ */
+export interface TagsSelect<T extends boolean = true> {
+  label?: T;
+  slug?: T;
+  description?: T;
+  group?: T;
+  isVisible?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1450,6 +1563,9 @@ export interface ProductsSelect<T extends boolean = true> {
         id?: T;
       };
   category?: T;
+  additionalCategories?: T;
+  brand?: T;
+  taxonomyTags?: T;
   tags?:
     | T
     | {
