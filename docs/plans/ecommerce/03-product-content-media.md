@@ -4,6 +4,16 @@ Status: in progress — content-rendering and public catalog-read foundations im
 
 ## Implementation progress
 
+### Avance: imagen principal consistente en la tienda
+
+Las tarjetas, la ficha y las proyecciones del carrito reutilizan la selección
+ordenada de medios del adaptador. La marca de medio principal tiene prioridad;
+los videos aportan su poster o miniatura de YouTube, nunca el archivo de video
+como fuente de una imagen. Un video sin poster se omite al seleccionar imágenes.
+Se conservan las fuentes antiguas como fallback. Este cambio no modifica el
+esquema ni requiere migración. Pruebas de catálogo: 38 aprobadas; queda pendiente
+verificar visualmente las tarjetas y el carrito con contenido real en ES/EN.
+
 ### Avance: descripción enriquecida en la ficha de producto
 
 Se conectó el resumen del CMS con los controles de compra y la descripción
@@ -28,9 +38,9 @@ fallback configurado, descarta filas ocultas/vacías y entrega únicamente conte
 público al acordeón compartido de la ficha. Cambiar una clave ya guardada se
 rechaza para preservar referencias estables; cambiar su título no.
 
-No requiere migración: el campo se agrega al esquema y Payload persiste la matriz
-localizada. La generación de tipos queda pendiente de ejecutar con el entorno CMS
-configurado.
+La matriz localizada requiere persistencia propia en PostgreSQL. La migración de
+Task 03 agrega sus tablas para productos y versiones; los tipos y el snapshot del
+esquema se generan con Payload.
 
 ### Avance: galería de imágenes y videos
 
@@ -40,20 +50,19 @@ editorial, poster y texto alternativo; el storefront muestra miniaturas y un
 reproductor de video con controles, `preload="metadata"` y sin autoplay. No se
 aceptan URLs `data:` o `blob:` ni tipos MIME fuera de la lista.
 
-Verificación: 35 pruebas de catálogo, TypeScript, formato y diff pasan. La
+Verificación: 38 pruebas de catálogo, TypeScript, formato y diff pasan. La
 validación de contenido real, errores de reproducción y verificación manual
-responsive/teclado siguen pendientes. La migración de columnas adicionales del
-array de galería queda pendiente antes de aplicar este esquema a una base existente.
+responsive/teclado siguen pendientes.
 
 También se admiten videos externos de YouTube mediante una URL HTTPS validada
 (`youtube.com`, `youtu.be` o Shorts). El adaptador genera únicamente el embed de
 `youtube-nocookie.com`; no se aceptan iframes arbitrarios ni autoplay. Si la fila
 no tiene imagen, el storefront genera la miniatura desde `i.ytimg.com`; una imagen
 opcional de la fila funciona como poster/miniatura editorial y tiene prioridad.
-Las imágenes de la galería se presentan con alineación superior. Agregar estas
-columnas requiere una migración antes de guardar en una base existente.
+Las imágenes de la galería se presentan con alineación superior. Las columnas y
+tablas necesarias forman parte de la migración de Task 03.
 
-Verificación adicional: 35 pruebas de catálogo pasan; el build de storefront,
+Verificación adicional: 38 pruebas de catálogo pasan; el build de storefront,
 TypeScript y el formato de los archivos modificados pasan. La prueba en el
 navegador y la administración para editar/reordenar secciones aún queda pendiente.
 
@@ -61,9 +70,23 @@ navegador y la administración para editar/reordenar secciones aún queda pendie
 
 - The Payload commerce adapter now reuses the canonical CMS rich-text serializer. Plain strings are escaped, supported Lexical formatting is retained, unsafe link protocols are omitted, and inline text preserves word spacing.
 - Product list, slug, ID, and category product projections require explicit published status, including when upstream requests authenticate with an API key. Missing status fails closed. Product ID lookup preserves operational failures instead of treating them as missing content.
-- Automated coverage: catalog suite passes 35 tests. Storefront lint passes with existing warnings; TypeScript validation and production build pass.
-- La galería ya incluye campos de media, validación de videos externos y miniaturas de YouTube generadas; la migración y la verificación end-to-end del CMS siguen pendientes.
+- Automated coverage: catalog suite passes 38 tests. Storefront lint passes with existing warnings; TypeScript validation and production build pass.
+- La galería ya incluye campos de media, validación de videos externos y miniaturas de YouTube generadas; la verificación end-to-end del CMS sigue pendiente.
 - Manual verification instructions: [Task 03 manual test](03-product-content-media-manual-test.md). These tests have not yet been executed against a live CMS.
+
+### Avance: migración de contenido y media
+
+`20260908_041909_task_03_product_content_media` registra captions localizados,
+secciones editables, prioridad de media y URLs externas tanto en productos como
+en sus versiones. Conserva las filas existentes y deja `isPrimary` en falso, de
+modo que el primer medio continúa como fallback. El rollback elimina los datos de
+estos campos y conserva los productos y su galería original; por eso solo debe
+probarse sobre una base descartable respaldada. El snapshot generado queda como
+base para futuras migraciones. La migración aparece pendiente en `migrate:status`;
+no se aplicó automáticamente sobre la base local. La cadena completa y el rollback
+de Task 03 se verificaron en bases PostgreSQL descartables; productos y taxonomía
+permanecieron después del rollback. También se corrigió el orden de migraciones
+para crear el enum ARS antes de asignarlo como valor por defecto en bases nuevas.
 
 ## Codex implementation prompt
 

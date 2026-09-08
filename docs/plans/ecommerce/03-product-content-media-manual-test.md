@@ -4,7 +4,16 @@ Status: not run. Task 03 is partially implemented; this checklist currently cove
 
 ## Setup
 
-Use a local/test CMS and storefront, never production content. This foundation step has no database migration. Keep any existing taxonomy migrations applied. Use an existing published fixture and a separate draft fixture, with distinct slugs and recognizable EN/ES titles. Do not share API keys, cookies, or customer data in test results.
+Usá un CMS y storefront local o de prueba, nunca contenido de producción. Respaldá
+PostgreSQL y aplicá primero las migraciones anteriores, incluida la de taxonomía.
+Luego aplicá `20260908_041909_task_03_product_content_media` antes de iniciar el CMS
+con este esquema. Usá un producto publicado y otro borrador, con slugs distintos y
+títulos reconocibles en ES/EN. No compartas claves, cookies ni datos personales en
+los resultados.
+
+La migración conserva productos y filas existentes. Las filas antiguas no quedan
+marcadas como principales, por lo que la tienda continúa usando el primer medio.
+No crea secciones ni inventa traducciones para productos existentes.
 
 Product responses retain the existing 60-second revalidation policy. After publishing or changing publication status, wait at least 60 seconds and request the page again; a subsequent request may be needed after background revalidation. Restarting the local server alone is not evidence that the production cache refresh policy works.
 
@@ -104,6 +113,27 @@ Resultado: no ejecutado todavía. La proyección automatizada de imágenes, vide
 poster y caption está cubierta por la suite de catálogo; la carga real, los fallos
 de reproducción y la matriz responsive/teclado requieren ejecución manual.
 
+### Migración y rollback
+
+- [ ] En una base descartable que tenga las migraciones anteriores, ejecutá la
+      migración y confirmá que el CMS inicia sin activar `push` de esquema.
+- [ ] Abrí un producto anterior: debe conservar medios, slug y estado; sin una marca
+      principal, el primer medio debe seguir siendo el fallback.
+- [ ] Guardá captions ES/EN, secciones, prioridad y un video externo; reiniciá CMS y
+      storefront y confirmá que persisten.
+- [ ] Hacé backup de esa base descartable y ejecutá el rollback. Confirmá que elimina
+      secciones, captions, prioridad y URLs externas, pero conserva los productos y
+      la galería de imágenes original.
+- [ ] Volvé a aplicar la migración y repetí una lectura pública. Nunca pruebes el
+      rollback sobre datos que necesites conservar.
+
+Resultado automatizado: la cadena completa se aplicó en una base PostgreSQL
+descartable. Se verificaron tablas, columnas y registro de Task 03. En una segunda
+base descartable se ejecutó su rollback aislado y se confirmó que productos y
+taxonomía permanecen mientras las estructuras de Task 03 se eliminan. Ambas bases
+de prueba se borraron. Sigue pendiente la comprobación humana del contenido antes
+y después de reiniciar los servicios.
+
 ### Verificación de la ficha de producto
 
 1. En un producto de prueba, completá **Descripción corta** con una frase y
@@ -139,15 +169,19 @@ The automated catalog suite covers the unsafe URL/string fixtures without requir
 - [ ] Verify Tambor in EN/ES on desktop/mobile: “Product unavailable” / “Producto no disponible”, disabled purchase button, no misleading cart configuration warning when cart is configured.
 
 Automated hook checks: `node --test tests/product-publication.test.mjs`.
-No migration or automatic change to existing products is made.
+El guard de publicación no migra ni modifica productos automáticamente; la
+migración de contenido/media descripta arriba es un cambio separado.
 
-Verification: four hook tests and 31 catalog tests pass; storefront and CMS
+Verification: four hook tests and 38 catalog tests pass; storefront and CMS
 production builds pass. Storefront lint passes with existing warnings. Full CMS
 lint retains two existing anchor-element errors in its frontend page and 13
 warnings. HTTP checks observed the new unavailable message on EN; the ES response
 showed an add-to-cart state instead, so it did not verify the unavailable case.
 Admin mutation and desktop/mobile keyboard tests above remain unexecuted.
 
-## Still to add when implementation lands
+## Funcionalidad todavía pendiente
 
-CMS tabs, short/full description presentation, translation readiness, editable ordered sections, origin data, primary-image selection, supported videos/posters, upload policy, lifecycle purchase enforcement, migrations and rollback, and desktop/mobile keyboard/failure-state checks.
+Organización del editor en pestañas, preparación de traducciones, datos públicos
+de origen, ciclo activo/discontinuado, límites de tamaño de uploads y estados de
+carga/error. También queda ejecutar la prueba de migración/rollback y completar
+la matriz manual de escritorio, móvil, teclado y ambos idiomas.

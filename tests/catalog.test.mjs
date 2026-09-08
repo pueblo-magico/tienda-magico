@@ -361,6 +361,67 @@ test("la galería proyecta imágenes y videos públicos en orden, con poster y p
   );
 });
 
+test("la ficha y las tarjetas comparten la imagen principal sin usar archivos de video como imágenes", () => {
+  const doc = {
+    ...simple,
+    gallery: [
+      { image: { url: "/media/video.mp4", mimeType: "video/mp4" } },
+      { image: { url: "/media/secondary.jpg", mimeType: "image/jpeg" } },
+      {
+        image: { url: "/media/primary.jpg", mimeType: "image/jpeg" },
+        isPrimary: true,
+      },
+    ],
+  };
+  for (const locale of ["es", "en"]) {
+    const detail = mapProduct(doc, locale);
+    assert.equal(
+      detail.featuredImage.url,
+      "http://catalog.test/media/primary.jpg",
+    );
+    assert.equal(
+      mapProductSummary(doc, locale).featuredImage.url,
+      detail.media[0].url,
+    );
+    assert.deepEqual(
+      detail.images.map((image) => image.url),
+      [
+        "http://catalog.test/media/primary.jpg",
+        "http://catalog.test/media/secondary.jpg",
+      ],
+    );
+  }
+});
+
+test("un video principal aporta su miniatura a las tarjetas y conserva el reproductor en la ficha", () => {
+  const doc = {
+    ...simple,
+    gallery: [
+      { externalVideoUrl: "https://youtu.be/abc123_XY", isPrimary: true },
+    ],
+  };
+  assert.equal(mapProduct(doc, "es").media[0].kind, "video");
+  assert.equal(
+    mapProductSummary(doc, "en").featuredImage.url,
+    "https://i.ytimg.com/vi/abc123_XY/hqdefault.jpg",
+  );
+});
+
+test("una galería vacía conserva la imagen del campo multimedia heredado", () => {
+  const product = mapProductSummary(
+    {
+      ...simple,
+      gallery: [],
+      media: [{ url: "/media/legacy.jpg", mimeType: "image/jpeg" }],
+    },
+    "es",
+  );
+  assert.equal(
+    product.featuredImage.url,
+    "http://catalog.test/media/legacy.jpg",
+  );
+});
+
 test("la galería convierte solo URLs permitidas de YouTube en embeds privacy-enhanced", () => {
   const product = mapProduct(
     {

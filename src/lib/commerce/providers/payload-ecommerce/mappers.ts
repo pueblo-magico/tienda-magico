@@ -93,7 +93,7 @@ export function enrichCartWithProducts(
     const title = productTitle(doc, locale);
     const handle = productHandle(doc, locale);
     const image =
-      collectImages(doc)[0] ?? line.merchandise.product.featuredImage;
+      collectImages(doc, locale)[0] ?? line.merchandise.product.featuredImage;
     const amountRaw = readAmount(doc as Record<string, unknown>, currency);
     const hasLinePrice =
       Number.parseFloat(line.cost.amountPerQuantity.amount) > 0;
@@ -300,7 +300,11 @@ function mapProductMedia(
     const [item] = mapped.splice(primary, 1);
     mapped.unshift(item);
   }
-  return mapped.map(({ isPrimary: _isPrimary, ...item }) => item);
+  return mapped.map((item) => {
+    const media = { ...item };
+    delete media.isPrimary;
+    return media;
+  });
 }
 
 function youtubeEmbedUrl(value: string): string | null {
@@ -366,15 +370,27 @@ function mapMedia(value: unknown): CommerceImage | null {
   };
 }
 
-function collectImages(product: PayloadProductDoc): CommerceImage[] {
-  const buckets = [
-    product.media,
-    product.gallery,
-    product.images,
-    product.image,
-    product.featuredImage,
-  ];
-  const images: CommerceImage[] = [];
+function collectImages(
+  product: PayloadProductDoc,
+  locale?: string | null,
+): CommerceImage[] {
+  const config = getPayloadEcommerceConfig();
+  const source =
+    Array.isArray(product.gallery) && product.gallery.length === 0
+      ? product.media
+      : (product.gallery ?? product.media);
+  const entries = Array.isArray(source) ? source : source ? [source] : [];
+  const galleryImages = mapProductMedia(
+    entries.map((entry) =>
+      typeof entry === "string" ? { url: entry } : entry,
+    ),
+    locale ?? config.defaultLocale,
+    config.fallbackLocale,
+  ).flatMap((media): CommerceImage[] =>
+    media.kind === "image" ? [media] : media.poster ? [media.poster] : [],
+  );
+  const buckets = [product.images, product.image, product.featuredImage];
+  const images: CommerceImage[] = [...galleryImages];
 
   for (const bucket of buckets) {
     if (!bucket) continue;
@@ -766,7 +782,7 @@ export function mapProductSummary(
   locale?: string | null,
 ): ProductSummary {
   const config = getPayloadEcommerceConfig();
-  const images = collectImages(product);
+  const images = collectImages(product, locale);
   const variants = variantDocs(product).map((variant) =>
     mapVariant(variant, undefined, locale),
   );
@@ -833,7 +849,7 @@ export function mapProduct(
   locale?: string | null,
 ): Product {
   const summary = mapProductSummary(product, locale);
-  const images = collectImages(product);
+  const images = collectImages(product, locale);
   const variants = variantDocs(product).map((variant) =>
     mapVariant(variant, undefined, locale),
   );

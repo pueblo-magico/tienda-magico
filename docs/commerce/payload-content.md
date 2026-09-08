@@ -10,14 +10,28 @@ Developer/adapter reference: [payload-ecommerce.md](./payload-ecommerce.md)
 
 ## Before you start
 
-1. CMS is running (`npm run dev:cms` from repo root)
-2. You have an **admin** user
-3. Storefront points at Payload:
+1. PostgreSQL está respaldado y tiene aplicadas las migraciones registradas.
+2. CMS is running (`npm run dev:cms` from repo root)
+3. You have an **admin** user
+4. Storefront points at Payload:
 
 ```bash
 COMMERCE_PROVIDER=payload
 PAYLOAD_ECOMMERCE_URL=http://localhost:4000
 ```
+
+En una base nueva o con historial de migraciones vigente, ejecutá desde `apps/cms`:
+
+```bash
+npm run payload -- migrate
+```
+
+La migración de Task 03 conserva productos y medios existentes. Su rollback
+elimina captions, secciones, prioridad de media y URLs externas creadas con estos
+campos. Usalo solamente sobre una base descartable respaldada. Si una base local
+fue creada mediante sincronización automática de esquema y no registra las
+migraciones anteriores, no ejecutes toda la cadena sobre ella: recreala desde las
+migraciones o conciliá su baseline antes de continuar.
 
 ---
 
