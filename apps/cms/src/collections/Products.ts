@@ -83,8 +83,8 @@ export const productsCollectionOverride: CollectionOverride = ({ defaultCollecti
           relationTo: 'media',
           admin: {
             description: {
-              es: 'Imagen o poster opcional si la fila es un video externo.',
-              en: 'Optional image or poster when this row is an external video.',
+              es: 'Imagen o poster editorial opcional para un video externo. Si queda vacío, se genera una miniatura de YouTube.',
+              en: 'Optional editorial image or poster for an external video. If empty, a YouTube thumbnail is generated.',
             },
           },
         },

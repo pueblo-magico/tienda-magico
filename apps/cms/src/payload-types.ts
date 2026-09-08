@@ -562,7 +562,7 @@ export interface Product {
   gallery?:
     | {
         /**
-         * Optional image or poster when this row is an external video.
+         * Optional editorial image or poster for an external video. If empty, a YouTube thumbnail is generated.
          */
         image?: (number | null) | Media;
         /**

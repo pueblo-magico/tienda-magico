@@ -187,7 +187,7 @@ export function resolveLocalizedText(
 }
 
 function absoluteMediaUrl(url: string): string {
-  if (url.startsWith("http://") || url.startsWith("https://") || false) {
+  if (url.startsWith("http://") || url.startsWith("https://")) {
     return url;
   }
 
@@ -214,7 +214,9 @@ function mapProductMedia(
           ? youtubeEmbedUrl(row.externalVideoUrl)
           : null;
       if (externalUrl) {
-        const poster = mapMedia(row.poster ?? row.image);
+        const poster =
+          mapMedia(row.poster ?? row.image) ??
+          youtubeThumbnail(externalUrl, locale);
         return [
           {
             kind: "video",
@@ -246,16 +248,17 @@ function mapProductMedia(
       const url =
         typeof media.url === "string" ? absoluteMediaUrl(media.url) : "";
       if (!url) return [];
-      const captionValue = media.caption;
+      const captionValue = row.caption ?? media.caption;
+      const captionRecord = asRecord(captionValue);
       const caption =
         typeof captionValue === "string"
           ? captionValue
-          : captionValue && typeof captionValue === "object"
+          : captionRecord
             ? String(
-                captionValue[
+                captionRecord[
                   locale === "en" || locale === "es" ? locale : "es"
                 ] ??
-                  captionValue[
+                  captionRecord[
                     fallback === "en" || fallback === "es" ? fallback : "es"
                   ] ??
                   "",
@@ -319,6 +322,24 @@ function youtubeEmbedUrl(value: string): string | null {
   } catch {
     return null;
   }
+}
+
+function youtubeThumbnail(
+  embedUrl: string,
+  locale: string,
+): CommerceImage | null {
+  const id = embedUrl.match(/\/embed\/([A-Za-z0-9_-]{6,20})/i)?.[1];
+  if (!id) return null;
+
+  return {
+    url: `https://i.ytimg.com/vi/${id}/hqdefault.jpg`,
+    altText:
+      locale === "en"
+        ? "YouTube video thumbnail"
+        : "Miniatura del video de YouTube",
+    width: 480,
+    height: 360,
+  };
 }
 
 function mapMedia(value: unknown): CommerceImage | null {

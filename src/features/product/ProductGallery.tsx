@@ -44,7 +44,7 @@ export function ProductGallery({ title, images, media = [], labels }: Props) {
       aria-label={labels.gallery}
     >
       {list.length > 1 ? (
-        <ul className="order-2 grid grid-cols-4 gap-2 sm:order-1 sm:grid-cols-1">
+        <ul className="order-2 grid grid-cols-4 content-start gap-2 sm:order-1 sm:grid-cols-1">
           {list.slice(0, 5).map((image, index) => (
             <li key={`${image.url}-${index}`}>
               <button
@@ -60,19 +60,28 @@ export function ProductGallery({ title, images, media = [], labels }: Props) {
                 aria-current={index === active}
               >
                 {image.kind === "video" ? (
-                  <video
-                    src={image.url}
-                    poster={image.poster?.url ?? undefined}
-                    muted
-                    playsInline
-                    className="h-full w-full object-cover"
-                  />
+                  image.poster ? (
+                    <Image
+                      src={image.poster.url}
+                      alt={image.poster.altText || image.altText || title}
+                      fill
+                      className="object-cover object-top"
+                      sizes="84px"
+                    />
+                  ) : (
+                    <video
+                      src={image.url}
+                      muted
+                      playsInline
+                      className="h-full w-full object-cover object-top"
+                    />
+                  )
                 ) : (
                   <Image
                     src={image.url || PLACEHOLDER}
                     alt={image.altText || title}
                     fill
-                    className="object-cover"
+                    className="object-cover object-top"
                     sizes="84px"
                   />
                 )}
@@ -86,7 +95,7 @@ export function ProductGallery({ title, images, media = [], labels }: Props) {
           current.embedUrl ? (
             <iframe
               src={current.embedUrl}
-              title={current.altText || title}
+              title={title}
               loading="lazy"
               allow="fullscreen; picture-in-picture"
               className="h-full w-full border-0"
@@ -98,7 +107,7 @@ export function ProductGallery({ title, images, media = [], labels }: Props) {
               controls
               preload="metadata"
               playsInline
-              className="h-full w-full object-cover"
+              className="h-full w-full object-cover object-top"
               aria-label={current.altText || title}
             />
           )
@@ -108,7 +117,7 @@ export function ProductGallery({ title, images, media = [], labels }: Props) {
             alt={current.altText || title}
             fill
             priority
-            className="object-cover"
+            className="object-cover object-top"
             sizes="(max-width: 1024px) 100vw, 50vw"
           />
         )}

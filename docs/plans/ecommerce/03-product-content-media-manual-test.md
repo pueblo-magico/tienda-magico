@@ -33,7 +33,7 @@ Product responses retain the existing 60-second revalidation policy. After publi
 - [ ] En una fila de galería sin imagen, ingresá una URL HTTPS de `youtube.com/watch?v=...`, `youtu.be/...` o `youtube.com/shorts/...`.
 - [ ] Guardá y publicá; el CMS debe aceptar el enlace y rechazar hosts externos, HTTP sin TLS, código `<iframe>`, URLs `javascript:` o URLs sin ID.
 - [ ] Abrí la ficha y seleccioná la miniatura: debe mostrarse el reproductor embebido de `youtube-nocookie.com`, con título accesible y sin autoplay.
-- [ ] Si agregaste una imagen en la misma fila, comprobá que se use como poster o miniatura editorial. El caption debe respetar ES/EN.
+- [ ] Sin cargar ninguna imagen en la fila, comprobá que aparezca automáticamente la miniatura generada por YouTube. Si agregaste una imagen en la misma fila, comprobá que se use como poster o miniatura editorial en su lugar. El caption debe respetar ES/EN.
 - [ ] Verificá que los parámetros de la URL original no habiliten autoplay ni cambien el host permitido. No se deben renderizar iframes arbitrarios.
 - [ ] Con una URL borrada o un video privado, la ficha debe conservar su estructura y mostrar el error propio del reproductor; no debe romper la página ni ocultar otras imágenes.
 
@@ -41,8 +41,9 @@ Product responses retain the existing 60-second revalidation policy. After publi
 
 - [ ] Usá un entorno local o de prueba y contenido que no incluya datos privados.
 - [ ] Prepará una imagen JPG o WebP, una segunda imagen PNG, un video MP4 o WebM
-      corto y una imagen JPG para usar como poster. No uses archivos con información
-      personal ni material sujeto a derechos que no correspondan.
+      corto y, opcionalmente, una imagen JPG para usar como poster editorial. Para
+      YouTube no hace falta preparar ni cargar una miniatura: se genera automáticamente.
+      No uses archivos con información personal ni material sujeto a derechos que no correspondan.
 - [ ] Confirmá que el CMS y el storefront estén configurados y que el producto de
       prueba tenga un slug compartido válido. Publicá el producto después de guardar.
 
@@ -71,6 +72,9 @@ Product responses retain the existing 60-second revalidation policy. After publi
       medio activo debe cambiar y el foco debe permanecer visible.
 - [ ] La imagen muestra su texto alternativo; el pie de foto coincide con el
       idioma activo. No debe mostrarse información de proveedor, costo o notas internas.
+- [ ] En imágenes recortadas o con distintas proporciones, la parte superior del
+      medio queda alineada con el borde superior de la galería, tanto en miniaturas
+      como en el medio principal.
 - [ ] Seleccioná el video: no debe reproducirse automáticamente ni emitir sonido.
       Debe mostrar el poster antes de reproducir y ofrecer controles nativos de pausa,
       volumen y pantalla completa.

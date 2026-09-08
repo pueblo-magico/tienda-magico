@@ -381,6 +381,14 @@ test("la galería convierte solo URLs permitidas de YouTube en embeds privacy-en
     product.media?.[0]?.embedUrl,
     "https://www.youtube-nocookie.com/embed/abc123_XY?rel=0",
   );
+  assert.equal(
+    product.media?.[0]?.poster?.url,
+    "https://i.ytimg.com/vi/abc123_XY/hqdefault.jpg",
+  );
+  assert.equal(
+    product.media?.[0]?.poster?.altText,
+    "Miniatura del video de YouTube",
+  );
 });
 
 test("public catalog excludes drafts even when an authenticated backend returns them", async () => {

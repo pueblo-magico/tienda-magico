@@ -40,27 +40,29 @@ editorial, poster y texto alternativo; el storefront muestra miniaturas y un
 reproductor de video con controles, `preload="metadata"` y sin autoplay. No se
 aceptan URLs `data:` o `blob:` ni tipos MIME fuera de la lista.
 
-Verificación: 34 pruebas de catálogo, TypeScript, formato y diff pasan. La
+Verificación: 35 pruebas de catálogo, TypeScript, formato y diff pasan. La
 validación de contenido real, errores de reproducción y verificación manual
 responsive/teclado siguen pendientes. La migración de columnas adicionales del
 array de galería queda pendiente antes de aplicar este esquema a una base existente.
 
 También se admiten videos externos de YouTube mediante una URL HTTPS validada
 (`youtube.com`, `youtu.be` o Shorts). El adaptador genera únicamente el embed de
-`youtube-nocookie.com`; no se aceptan iframes arbitrarios ni autoplay. La imagen
-opcional de la fila sirve como poster/miniatura. Agregar estas columnas requiere
-una migración antes de guardar en una base existente.
+`youtube-nocookie.com`; no se aceptan iframes arbitrarios ni autoplay. Si la fila
+no tiene imagen, el storefront genera la miniatura desde `i.ytimg.com`; una imagen
+opcional de la fila funciona como poster/miniatura editorial y tiene prioridad.
+Las imágenes de la galería se presentan con alineación superior. Agregar estas
+columnas requiere una migración antes de guardar en una base existente.
 
-Verificación adicional: 33 pruebas de catálogo pasan; los builds de storefront y
-CMS, TypeScript y el formato de los archivos modificados pasan. La prueba de
-browser y administración para editar/reordenar secciones aún queda pendiente.
+Verificación adicional: 35 pruebas de catálogo pasan; el build de storefront,
+TypeScript y el formato de los archivos modificados pasan. La prueba en el
+navegador y la administración para editar/reordenar secciones aún queda pendiente.
 
 - Follow-up: CMS publication guards require an eligible published variant for variant-enabled products and protect the last eligible variant from removal/invalidation. Simple publication requires valid enabled ARS pricing. Zero stock is allowed. Four hook regression tests pass; no schema migration or automatic data update. Product-page missing-variant copy now says product unavailable in EN/ES rather than blaming cart configuration. Live admin/browser verification remains pending.
 
 - The Payload commerce adapter now reuses the canonical CMS rich-text serializer. Plain strings are escaped, supported Lexical formatting is retained, unsafe link protocols are omitted, and inline text preserves word spacing.
 - Product list, slug, ID, and category product projections require explicit published status, including when upstream requests authenticate with an API key. Missing status fails closed. Product ID lookup preserves operational failures instead of treating them as missing content.
-- Automated coverage: catalog suite passes 31 tests, including seven new content/publication tests. Storefront lint passes with existing warnings; TypeScript validation and production build pass.
-- No schema, migration, slugs, editor UI, media policy, or purchase flow changed in this foundation step. CMS tabs/fields, translation readiness, editable sections, gallery/video presentation, lifecycle enforcement, and their migrations and end-to-end verification remain outstanding.
+- Automated coverage: catalog suite passes 35 tests. Storefront lint passes with existing warnings; TypeScript validation and production build pass.
+- La galería ya incluye campos de media, validación de videos externos y miniaturas de YouTube generadas; la migración y la verificación end-to-end del CMS siguen pendientes.
 - Manual verification instructions: [Task 03 manual test](03-product-content-media-manual-test.md). These tests have not yet been executed against a live CMS.
 
 ## Codex implementation prompt
@@ -80,7 +82,7 @@ Implement shared-structure accordion entries with stable key, localized editable
 ### Required storefront representation
 
 - Product detail: show localized name and short description near the purchase controls, comprehensive content in the main description area, and public origin/region/community information in an appropriate information section. Avoid repeating the same story in multiple blocks; never show purchasing/internal fields.
-- Media gallery: render the CMS-defined order and primary image, allow image/video selection, and use localized alt text/captions and video posters. Include keyboard controls, responsive layouts, loading/failure placeholders, and a deliberate no-media fallback. No autoplay with sound.
+- Media gallery: render the CMS-defined order and primary image, allow image/video selection, and use localized alt text/captions and video posters (including generated YouTube thumbnails). Align cropped media to the top. Include keyboard controls, responsive layouts, loading/failure placeholders, and a deliberate no-media fallback. No autoplay with sound.
 - Information accordions: render visible, non-empty CMS sections in their configured order using stable keys and the shared accordion component. Edited titles, custom sections, and localized bodies must appear without hard-coded section lists. Define emptiness after the documented locale fallback is applied.
 - Product cards/listings: reflect the published product name and selected primary image, not an independent image source. Reflect lifecycle visibility consistently with product detail and purchase eligibility.
 - Discontinued products: a published page may retain its story/media with a localized unavailable message and no purchase action. Until task 08 provides related products, link to an existing shop/category destination; do not add placeholder recommendations. Draft/unpublished content must not leak through public pages or metadata.
