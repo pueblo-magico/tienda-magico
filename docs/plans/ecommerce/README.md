@@ -65,8 +65,8 @@ end-to-end completion. Private fields must remain absent from public output rath
 than receive a storefront representation. Record human test instructions alongside
 each task and distinguish implemented code from unexecuted verification.
 
-Tasks 01–06 explicitly specify their storefront representation or private-data
-implications, including UI acceptance flows for tasks 04–06. Task 01 now has
+Tasks 01–07 explicitly specify their storefront representation or private-data
+implications, including UI acceptance flows for tasks 04–07. Task 01 now has
 implemented storefront consumers, 19 passing tests, live local cart/image checks,
 and user-confirmed mobile, EN/ES, and cart-reload acceptance. Its task document
 records remaining unreported checks; do not equate them with failed tests or mark
