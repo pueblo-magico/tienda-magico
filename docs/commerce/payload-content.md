@@ -150,6 +150,9 @@ Simple products (no variants): storefront can use the **product id**.
 
 - Upload under **Media**
 - Fill **Alt** (accessibility + SEO)
+- Allowed files: JPG, PNG, WebP, AVIF, MP4 and WebM. Product gallery rows may
+  mark one item as **Imagen principal** and add a localized caption. Videos should
+  include an image poster; the storefront never autoplays them.
 - Prefer web-friendly sizes; CMS can use Sharp for transforms when configured
 
 Public URL pattern (local):

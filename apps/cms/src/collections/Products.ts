@@ -82,6 +82,18 @@ export const productsCollectionOverride: CollectionOverride = ({ defaultCollecti
           relationTo: 'media',
           required: true,
         },
+        {
+          name: 'isPrimary',
+          type: 'checkbox',
+          defaultValue: false,
+          label: { es: 'Imagen principal', en: 'Primary media' },
+        },
+        {
+          name: 'caption',
+          type: 'text',
+          localized: true,
+          label: { es: 'Pie de foto', en: 'Caption' },
+        },
       ],
     },
     {
@@ -175,6 +187,10 @@ export const productsCollectionOverride: CollectionOverride = ({ defaultCollecti
         validateInformationSections,
       ],
     },
-    fields: [...catalogueFields, informationSectionsField, ...clarifyVariantFields(defaultCollection.fields ?? [])],
+    fields: [
+      ...catalogueFields,
+      informationSectionsField,
+      ...clarifyVariantFields(defaultCollection.fields ?? []),
+    ],
   }
 }

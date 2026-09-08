@@ -32,6 +32,19 @@ No requiere migración: el campo se agrega al esquema y Payload persiste la matr
 localizada. La generación de tipos queda pendiente de ejecutar con el entorno CMS
 configurado.
 
+### Avance: galería de imágenes y videos
+
+La galería del CMS ahora acepta imágenes JPG/PNG/WebP/AVIF y videos MP4/WebM,
+con pie localizado y marca de medio principal. El adaptador proyecta el orden
+editorial, poster y texto alternativo; el storefront muestra miniaturas y un
+reproductor de video con controles, `preload="metadata"` y sin autoplay. No se
+aceptan URLs `data:` o `blob:` ni tipos MIME fuera de la lista.
+
+Verificación: 34 pruebas de catálogo, TypeScript, formato y diff pasan. La
+validación de contenido real, errores de reproducción y verificación manual
+responsive/teclado siguen pendientes. La migración de columnas adicionales del
+array de galería queda pendiente antes de aplicar este esquema a una base existente.
+
 Verificación adicional: 33 pruebas de catálogo pasan; los builds de storefront y
 CMS, TypeScript y el formato de los archivos modificados pasan. La prueba de
 browser y administración para editar/reordenar secciones aún queda pendiente.

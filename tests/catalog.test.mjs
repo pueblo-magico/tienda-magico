@@ -319,6 +319,48 @@ test("las secciones de información conservan orden, claves y fallback sin expon
   assert.equal(product.informationSections?.[1]?.title, "Ritual");
 });
 
+test("la galería proyecta imágenes y videos públicos en orden, con poster y pie localizado", () => {
+  const product = mapProduct(
+    {
+      ...simple,
+      gallery: [
+        {
+          image: {
+            url: "/media/cacao.jpg",
+            mimeType: "image/jpeg",
+            alt: "Cacao",
+          },
+          isPrimary: true,
+        },
+        {
+          image: {
+            url: "/media/ritual.mp4",
+            mimeType: "video/mp4",
+            alt: "Ritual",
+            poster: {
+              url: "/media/poster.jpg",
+              mimeType: "image/jpeg",
+              alt: "Poster",
+            },
+            caption: { es: "Ritual" },
+          },
+        },
+      ],
+    },
+    "es",
+  );
+  assert.deepEqual(
+    product.media?.map((item) => item.kind),
+    ["image", "video"],
+  );
+  assert.equal(product.media?.[1]?.kind, "video");
+  assert.equal(product.media?.[1]?.caption, "Ritual");
+  assert.equal(
+    product.media?.[1]?.poster?.url,
+    "http://catalog.test/media/poster.jpg",
+  );
+});
+
 test("public catalog excludes drafts even when an authenticated backend returns them", async () => {
   process.env.PAYLOAD_ECOMMERCE_API_KEY = "test-only-key";
   const calls = transport({

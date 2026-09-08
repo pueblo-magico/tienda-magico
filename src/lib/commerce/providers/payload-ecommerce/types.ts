@@ -28,6 +28,9 @@ export type PayloadMedia = {
   filename?: string | null;
   width?: number | null;
   height?: number | null;
+  mimeType?: string | null;
+  caption?: PayloadLocalizedText | null;
+  poster?: unknown;
   sizes?: Record<
     string,
     { url?: string | null; width?: number | null; height?: number | null }

@@ -107,6 +107,7 @@ export function ProductPageView({ locale, product, related, labels }: Props) {
             <ProductGallery
               title={product.title}
               images={images}
+              media={product.media}
               labels={{ gallery: labels.gallery }}
             />
 
@@ -208,29 +209,31 @@ export function ProductPageView({ locale, product, related, labels }: Props) {
             </div>
           </div>
 
-          {product.description.trim() || product.informationSections?.length ? <Accordion
-            className="bg-card rounded-xl"
-            items={[
-              ...(product.description.trim()
-                ? [
-                    {
-                      id: "description",
-                      title: labels.description,
-                      content: product.descriptionContent ? (
-                        <RichText html={product.descriptionContent} />
-                      ) : (
-                        <RichText value={product.description} />
-                      ),
-                    },
-                  ]
-                : []),
-              ...(product.informationSections ?? []).map((section) => ({
-                id: `section-${section.key}`,
-                title: section.title,
-                content: <RichText html={section.content} />,
-              })),
-            ]}
-          /> : null}
+          {product.description.trim() || product.informationSections?.length ? (
+            <Accordion
+              className="bg-card rounded-xl"
+              items={[
+                ...(product.description.trim()
+                  ? [
+                      {
+                        id: "description",
+                        title: labels.description,
+                        content: product.descriptionContent ? (
+                          <RichText html={product.descriptionContent} />
+                        ) : (
+                          <RichText value={product.description} />
+                        ),
+                      },
+                    ]
+                  : []),
+                ...(product.informationSections ?? []).map((section) => ({
+                  id: `section-${section.key}`,
+                  title: section.title,
+                  content: <RichText html={section.content} />,
+                })),
+              ]}
+            />
+          ) : null}
         </Container>
       </Section>
 

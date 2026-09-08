@@ -26,6 +26,71 @@ Product responses retain the existing 60-second revalidation policy. After publi
 - [ ] Cambiá solo el título o el orden; debe guardarse sin modificar el identificador.
 - [ ] Confirmá que notas internas, costos y datos de proveedores no estén dentro del contenido público.
 
+## Galería de imágenes y videos
+
+### Preparación
+
+- [ ] Usá un entorno local o de prueba y contenido que no incluya datos privados.
+- [ ] Prepará una imagen JPG o WebP, una segunda imagen PNG, un video MP4 o WebM
+      corto y una imagen JPG para usar como poster. No uses archivos con información
+      personal ni material sujeto a derechos que no correspondan.
+- [ ] Confirmá que el CMS y el storefront estén configurados y que el producto de
+      prueba tenga un slug compartido válido. Publicá el producto después de guardar.
+
+### CMS: carga y configuración
+
+- [ ] En **Media**, cargá los formatos permitidos: JPG, PNG, WebP, AVIF, MP4 y WebM.
+- [ ] Verificá que el CMS rechace al menos un formato no permitido (por ejemplo,
+      SVG, GIF, MOV o un archivo ejecutable). No fuerces la carga mediante la API.
+- [ ] En la galería del producto, agregá dos imágenes y un video. Ordenalos en un
+      orden reconocible, marcá una imagen que no sea la primera como **Imagen principal**
+      y guardá.
+- [ ] Completá pies de foto distintos en ES y EN. En el video asigná el poster y
+      completá texto alternativo localizado para cada medio.
+- [ ] Guardá sin marcar ningún medio como principal y comprobá que el primer medio
+      publicado se use como fallback. No marques más de uno como principal; si el CMS
+      permite guardarlo, registrá el comportamiento como un defecto para corregir.
+- [ ] Publicá el producto. Un producto borrador y sus metadatos no deben aparecer
+      en la tienda pública.
+
+### Storefront: orden, selección y accesibilidad
+
+- [ ] Abrí la ficha en ES y en EN después del intervalo de revalidación documentado.
+      La miniatura/medio principal debe ser el marcado en el CMS y el resto debe
+      conservar el orden configurado.
+- [ ] Seleccioná cada miniatura con el mouse y con `Tab` + `Enter` o `Space`. El
+      medio activo debe cambiar y el foco debe permanecer visible.
+- [ ] La imagen muestra su texto alternativo; el pie de foto coincide con el
+      idioma activo. No debe mostrarse información de proveedor, costo o notas internas.
+- [ ] Seleccioná el video: no debe reproducirse automáticamente ni emitir sonido.
+      Debe mostrar el poster antes de reproducir y ofrecer controles nativos de pausa,
+      volumen y pantalla completa.
+- [ ] Reproducí el video y verificá que la navegación por teclado del navegador y
+      los controles nativos funcionen. Al volver a una imagen, esta debe recuperar su
+      texto alternativo y pie correcto.
+- [ ] Simulá un video inaccesible o quitá temporalmente el archivo en el entorno de
+      prueba: la ficha debe conservar la galería y mostrar un estado de error/reintento
+      comprensible, sin romper el resto de la página. Registrá si el backend devuelve
+      un 404 o un MIME inválido.
+- [ ] Probá un producto sin medios: debe aparecer el fallback deliberado y la ficha
+      debe seguir siendo usable.
+- [ ] Probá escritorio y móvil, orientación vertical y horizontal, sin desbordes ni
+      miniaturas inaccesibles. Repetí la selección completa con teclado.
+
+### Caché y seguridad
+
+- [ ] Cambiá el orden, el principal y un pie en el CMS; verificá que el storefront
+      refleje cada cambio después de la revalidación. No concluyas que reiniciar el
+      navegador prueba la invalidación de producción.
+- [ ] Inspeccioná la respuesta pública y el HTML: solo aparecen URL, alt, poster,
+      caption y datos necesarios para presentar el medio. No aparecen tokens, rutas
+      privadas, facturas ni credenciales.
+- [ ] Confirmá que una URL `data:` o `blob:` no se renderice como fuente de media.
+
+Resultado: no ejecutado todavía. La proyección automatizada de imágenes, videos,
+poster y caption está cubierta por la suite de catálogo; la carga real, los fallos
+de reproducción y la matriz responsive/teclado requieren ejecución manual.
+
 ### Verificación de la ficha de producto
 
 1. En un producto de prueba, completá **Descripción corta** con una frase y

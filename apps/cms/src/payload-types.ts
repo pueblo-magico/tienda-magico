@@ -562,6 +562,8 @@ export interface Product {
   gallery?:
     | {
         image: number | Media;
+        isPrimary?: boolean | null;
+        caption?: string | null;
         id?: string | null;
       }[]
     | null;
@@ -1589,6 +1591,8 @@ export interface ProductsSelect<T extends boolean = true> {
     | T
     | {
         image?: T;
+        isPrimary?: T;
+        caption?: T;
         id?: T;
       };
   category?: T;

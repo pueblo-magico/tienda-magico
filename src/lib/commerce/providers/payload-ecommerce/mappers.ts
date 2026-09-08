@@ -3,6 +3,7 @@ import type {
   BrandReference,
   CategoryReference,
   CartLine,
+  CommerceMedia,
   Collection,
   CollectionSummary,
   CommerceImage,
@@ -15,7 +16,7 @@ import type {
   TagReference,
 } from "@/types/commerce";
 import { CommerceError } from "@/types/commerce";
-import { mapInformationSections } from './information-sections';
+import { mapInformationSections } from "./information-sections";
 import { richTextToHtml, richTextToPlain } from "@/lib/cms/richtext";
 import { getPayloadEcommerceConfig } from "./config";
 import { merchandiseRef } from "./merchandise";
@@ -186,12 +187,7 @@ export function resolveLocalizedText(
 }
 
 function absoluteMediaUrl(url: string): string {
-  if (
-    url.startsWith("http://") ||
-    url.startsWith("https://") ||
-    url.startsWith("data:") ||
-    url.startsWith("blob:")
-  ) {
+  if (url.startsWith("http://") || url.startsWith("https://") || false) {
     return url;
   }
 
@@ -201,6 +197,76 @@ function absoluteMediaUrl(url: string): string {
   } catch {
     return url;
   }
+}
+
+function mapProductMedia(
+  value: unknown,
+  locale: string,
+  fallback: string,
+): CommerceMedia[] {
+  if (!Array.isArray(value)) return [];
+  const mapped = value.flatMap(
+    (entry): Array<CommerceMedia & { isPrimary?: boolean }> => {
+      if (!entry || typeof entry !== "object") return [];
+      const row = entry as Record<string, unknown>;
+      const raw = row.image ?? row.media ?? row.video ?? row;
+      if (!raw || typeof raw !== "object") return [];
+      const media = raw as PayloadMedia;
+      const url =
+        typeof media.url === "string" ? absoluteMediaUrl(media.url) : "";
+      if (!url) return [];
+      const captionValue = media.caption;
+      const caption =
+        typeof captionValue === "string"
+          ? captionValue
+          : captionValue && typeof captionValue === "object"
+            ? String(
+                captionValue[
+                  locale === "en" || locale === "es" ? locale : "es"
+                ] ??
+                  captionValue[
+                    fallback === "en" || fallback === "es" ? fallback : "es"
+                  ] ??
+                  "",
+              )
+            : null;
+      if (media.mimeType?.toLowerCase().startsWith("video/")) {
+        return [
+          {
+            kind: "video",
+            url,
+            poster: mapMedia(media.poster),
+            altText: media.alt ?? media.filename ?? null,
+            caption,
+            isPrimary: row.isPrimary === true,
+          },
+        ];
+      }
+      if (
+        !media.mimeType ||
+        media.mimeType.toLowerCase().startsWith("image/")
+      ) {
+        const image = mapMedia(media);
+        return image
+          ? [
+              {
+                ...image,
+                kind: "image",
+                caption,
+                isPrimary: row.isPrimary === true,
+              },
+            ]
+          : [];
+      }
+      return [];
+    },
+  );
+  const primary = mapped.findIndex((item) => item.isPrimary);
+  if (primary > 0) {
+    const [item] = mapped.splice(primary, 1);
+    mapped.unshift(item);
+  }
+  return mapped.map(({ isPrimary: _isPrimary, ...item }) => item);
 }
 
 function mapMedia(value: unknown): CommerceImage | null {
@@ -699,6 +765,11 @@ export function mapProduct(
     mapVariant(variant, undefined, locale),
   );
   const config = getPayloadEcommerceConfig();
+  const media = mapProductMedia(
+    product.gallery ?? product.media,
+    locale ?? config.defaultLocale,
+    config.fallbackLocale,
+  );
 
   // Presentation-only simple item: never insert a hidden variant into Payload.
   const normalizedVariants =
@@ -725,8 +796,13 @@ export function mapProduct(
 
   return {
     ...summary,
+    media,
     description,
-    informationSections: mapInformationSections(product.informationSections, locale ?? config.defaultLocale, config.fallbackLocale),
+    informationSections: mapInformationSections(
+      product.informationSections,
+      locale ?? config.defaultLocale,
+      config.fallbackLocale,
+    ),
     shortDescription: resolveLocalizedText(product.summary, [
       locale ?? config.defaultLocale,
       config.fallbackLocale,

@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import type { CommerceImage } from "@/types/commerce";
+import type { CommerceImage, CommerceMedia } from "@/types/commerce";
 import { cn } from "@/lib/utils/cn";
 
 const PLACEHOLDER =
@@ -11,16 +11,27 @@ const PLACEHOLDER =
 type Props = {
   title: string;
   images: CommerceImage[];
+  media?: CommerceMedia[];
   labels: {
     gallery: string;
   };
 };
 
-export function ProductGallery({ title, images, labels }: Props) {
+export function ProductGallery({ title, images, media = [], labels }: Props) {
   const list =
-    images.length > 0
-      ? images
-      : [{ url: PLACEHOLDER, altText: title, width: null, height: null }];
+    media.length > 0
+      ? media
+      : images.length > 0
+        ? images.map((image) => ({ ...image, kind: "image" as const }))
+        : [
+            {
+              kind: "image" as const,
+              url: PLACEHOLDER,
+              altText: title,
+              width: null,
+              height: null,
+            },
+          ];
   const [active, setActive] = useState(0);
   const current = list[Math.min(active, list.length - 1)] ?? list[0];
 
@@ -48,27 +59,54 @@ export function ProductGallery({ title, images, labels }: Props) {
                 aria-label={`${title} ${index + 1}`}
                 aria-current={index === active}
               >
-                <Image
-                  src={image.url || PLACEHOLDER}
-                  alt={image.altText || title}
-                  fill
-                  className="object-cover"
-                  sizes="84px"
-                />
+                {image.kind === "video" ? (
+                  <video
+                    src={image.url}
+                    poster={image.poster?.url ?? undefined}
+                    muted
+                    playsInline
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <Image
+                    src={image.url || PLACEHOLDER}
+                    alt={image.altText || title}
+                    fill
+                    className="object-cover"
+                    sizes="84px"
+                  />
+                )}
               </button>
             </li>
           ))}
         </ul>
       ) : null}
       <div className="bg-warm relative order-1 aspect-[4/5] overflow-hidden rounded-2xl sm:order-2">
-        <Image
-          src={current.url || PLACEHOLDER}
-          alt={current.altText || title}
-          fill
-          priority
-          className="object-cover"
-          sizes="(max-width: 1024px) 100vw, 50vw"
-        />
+        {current.kind === "video" ? (
+          <video
+            src={current.url}
+            poster={current.poster?.url ?? undefined}
+            controls
+            preload="metadata"
+            playsInline
+            className="h-full w-full object-cover"
+            aria-label={current.altText || title}
+          />
+        ) : (
+          <Image
+            src={current.url || PLACEHOLDER}
+            alt={current.altText || title}
+            fill
+            priority
+            className="object-cover"
+            sizes="(max-width: 1024px) 100vw, 50vw"
+          />
+        )}
+        {"caption" in current && current.caption ? (
+          <p className="bg-card/90 absolute inset-x-0 bottom-0 px-3 py-2 text-xs">
+            {current.caption}
+          </p>
+        ) : null}
       </div>
     </div>
   );

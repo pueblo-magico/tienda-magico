@@ -12,6 +12,16 @@ export type CommerceImage = {
   height: number | null;
 };
 
+export type CommerceMedia =
+  | (CommerceImage & { kind: "image"; caption?: string | null })
+  | {
+      kind: "video";
+      url: string;
+      poster: CommerceImage | null;
+      altText: string | null;
+      caption?: string | null;
+    };
+
 export type CategoryReference = {
   id: string;
   handle: string;
@@ -75,6 +85,7 @@ export type ProductVariant = {
 };
 
 export type Product = {
+  media?: CommerceMedia[];
   informationSections?: ProductInformationSection[];
   shortDescription?: string;
   descriptionContent?: SafeRichTextHtml;
