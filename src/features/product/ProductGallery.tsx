@@ -83,15 +83,25 @@ export function ProductGallery({ title, images, media = [], labels }: Props) {
       ) : null}
       <div className="bg-warm relative order-1 aspect-[4/5] overflow-hidden rounded-2xl sm:order-2">
         {current.kind === "video" ? (
-          <video
-            src={current.url}
-            poster={current.poster?.url ?? undefined}
-            controls
-            preload="metadata"
-            playsInline
-            className="h-full w-full object-cover"
-            aria-label={current.altText || title}
-          />
+          current.embedUrl ? (
+            <iframe
+              src={current.embedUrl}
+              title={current.altText || title}
+              loading="lazy"
+              allow="fullscreen; picture-in-picture"
+              className="h-full w-full border-0"
+            />
+          ) : (
+            <video
+              src={current.url}
+              poster={current.poster?.url ?? undefined}
+              controls
+              preload="metadata"
+              playsInline
+              className="h-full w-full object-cover"
+              aria-label={current.altText || title}
+            />
+          )
         ) : (
           <Image
             src={current.url || PLACEHOLDER}

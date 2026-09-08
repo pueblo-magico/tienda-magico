@@ -24,6 +24,5 @@ export const Media: CollectionConfig = {
   upload: {
     staticDir: 'media',
     mimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/avif', 'video/mp4', 'video/webm'],
-    adminThumbnail: 'thumbnail',
   },
 }

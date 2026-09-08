@@ -153,6 +153,11 @@ Simple products (no variants): storefront can use the **product id**.
 - Allowed files: JPG, PNG, WebP, AVIF, MP4 and WebM. Product gallery rows may
   mark one item as **Imagen principal** and add a localized caption. Videos should
   include an image poster; the storefront never autoplays them.
+- A gallery row may instead use **Video externo (YouTube)** with an HTTPS
+  `youtube.com`, `youtu.be` or Shorts URL. Paste the URL only, never iframe HTML.
+  Other hosts and protocols are rejected; the storefront converts accepted links
+  to `youtube-nocookie.com` embeds without autoplay. An optional image in the row
+  is used as its poster/thumbnail.
 - Prefer web-friendly sizes; CMS can use Sharp for transforms when configured
 
 Public URL pattern (local):

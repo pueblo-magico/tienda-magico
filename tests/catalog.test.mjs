@@ -361,6 +361,28 @@ test("la galería proyecta imágenes y videos públicos en orden, con poster y p
   );
 });
 
+test("la galería convierte solo URLs permitidas de YouTube en embeds privacy-enhanced", () => {
+  const product = mapProduct(
+    {
+      ...simple,
+      gallery: [
+        {
+          externalVideoUrl: "https://www.youtube.com/watch?v=abc123_XY",
+          isPrimary: true,
+        },
+        { externalVideoUrl: "https://youtu.be/abc123_XY" },
+        { externalVideoUrl: "https://evil.example/video.mp4" },
+      ],
+    },
+    "es",
+  );
+  assert.equal(product.media?.length, 2);
+  assert.equal(
+    product.media?.[0]?.embedUrl,
+    "https://www.youtube-nocookie.com/embed/abc123_XY?rel=0",
+  );
+});
+
 test("public catalog excludes drafts even when an authenticated backend returns them", async () => {
   process.env.PAYLOAD_ECOMMERCE_API_KEY = "test-only-key";
   const calls = transport({

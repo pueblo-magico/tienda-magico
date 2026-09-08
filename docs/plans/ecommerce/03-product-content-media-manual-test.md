@@ -28,6 +28,15 @@ Product responses retain the existing 60-second revalidation policy. After publi
 
 ## Galería de imágenes y videos
 
+### Video externo de YouTube
+
+- [ ] En una fila de galería sin imagen, ingresá una URL HTTPS de `youtube.com/watch?v=...`, `youtu.be/...` o `youtube.com/shorts/...`.
+- [ ] Guardá y publicá; el CMS debe aceptar el enlace y rechazar hosts externos, HTTP sin TLS, código `<iframe>`, URLs `javascript:` o URLs sin ID.
+- [ ] Abrí la ficha y seleccioná la miniatura: debe mostrarse el reproductor embebido de `youtube-nocookie.com`, con título accesible y sin autoplay.
+- [ ] Si agregaste una imagen en la misma fila, comprobá que se use como poster o miniatura editorial. El caption debe respetar ES/EN.
+- [ ] Verificá que los parámetros de la URL original no habiliten autoplay ni cambien el host permitido. No se deben renderizar iframes arbitrarios.
+- [ ] Con una URL borrada o un video privado, la ficha debe conservar su estructura y mostrar el error propio del reproductor; no debe romper la página ni ocultar otras imágenes.
+
 ### Preparación
 
 - [ ] Usá un entorno local o de prueba y contenido que no incluya datos privados.

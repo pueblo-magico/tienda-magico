@@ -45,6 +45,12 @@ validación de contenido real, errores de reproducción y verificación manual
 responsive/teclado siguen pendientes. La migración de columnas adicionales del
 array de galería queda pendiente antes de aplicar este esquema a una base existente.
 
+También se admiten videos externos de YouTube mediante una URL HTTPS validada
+(`youtube.com`, `youtu.be` o Shorts). El adaptador genera únicamente el embed de
+`youtube-nocookie.com`; no se aceptan iframes arbitrarios ni autoplay. La imagen
+opcional de la fila sirve como poster/miniatura. Agregar estas columnas requiere
+una migración antes de guardar en una base existente.
+
 Verificación adicional: 33 pruebas de catálogo pasan; los builds de storefront y
 CMS, TypeScript y el formato de los archivos modificados pasan. La prueba de
 browser y administración para editar/reordenar secciones aún queda pendiente.

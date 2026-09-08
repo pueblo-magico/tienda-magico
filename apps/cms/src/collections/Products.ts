@@ -4,6 +4,7 @@ import { clarifyVariantFields } from './variantEditorGuidance'
 import { normalizeProductCategories } from './productClassificationHooks'
 import { validateProductPublication } from './productPublication'
 import { informationSectionsField, validateInformationSections } from './productSections'
+import { validateProductMedia } from './productMediaValidation'
 import {
   FixedToolbarFeature,
   HeadingFeature,
@@ -80,7 +81,23 @@ export const productsCollectionOverride: CollectionOverride = ({ defaultCollecti
           name: 'image',
           type: 'upload',
           relationTo: 'media',
-          required: true,
+          admin: {
+            description: {
+              es: 'Imagen o poster opcional si la fila es un video externo.',
+              en: 'Optional image or poster when this row is an external video.',
+            },
+          },
+        },
+        {
+          name: 'externalVideoUrl',
+          type: 'text',
+          label: { es: 'Video externo (YouTube)', en: 'External video (YouTube)' },
+          admin: {
+            description: {
+              es: 'Acepta solo enlaces youtube.com o youtu.be. No pegues código iframe.',
+              en: 'Only youtube.com or youtu.be links are accepted. Do not paste iframe code.',
+            },
+          },
         },
         {
           name: 'isPrimary',
@@ -185,6 +202,7 @@ export const productsCollectionOverride: CollectionOverride = ({ defaultCollecti
         ...(defaultCollection.hooks?.beforeValidate ?? []),
         normalizeProductCategories,
         validateInformationSections,
+        validateProductMedia,
       ],
     },
     fields: [

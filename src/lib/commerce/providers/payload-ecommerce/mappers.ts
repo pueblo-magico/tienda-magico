@@ -209,6 +209,37 @@ function mapProductMedia(
     (entry): Array<CommerceMedia & { isPrimary?: boolean }> => {
       if (!entry || typeof entry !== "object") return [];
       const row = entry as Record<string, unknown>;
+      const externalUrl =
+        typeof row.externalVideoUrl === "string"
+          ? youtubeEmbedUrl(row.externalVideoUrl)
+          : null;
+      if (externalUrl) {
+        const poster = mapMedia(row.poster ?? row.image);
+        return [
+          {
+            kind: "video",
+            url: externalUrl,
+            embedUrl: externalUrl,
+            poster,
+            altText: poster?.altText ?? null,
+            caption: (() => {
+              if (typeof row.caption === "string") return row.caption;
+              const captionRecord = asRecord(row.caption);
+              if (!captionRecord) return null;
+              return String(
+                captionRecord[
+                  locale === "en" || locale === "es" ? locale : "es"
+                ] ??
+                  captionRecord[
+                    fallback === "en" || fallback === "es" ? fallback : "es"
+                  ] ??
+                  "",
+              );
+            })(),
+            isPrimary: row.isPrimary === true,
+          },
+        ];
+      }
       const raw = row.image ?? row.media ?? row.video ?? row;
       if (!raw || typeof raw !== "object") return [];
       const media = raw as PayloadMedia;
@@ -267,6 +298,27 @@ function mapProductMedia(
     mapped.unshift(item);
   }
   return mapped.map(({ isPrimary: _isPrimary, ...item }) => item);
+}
+
+function youtubeEmbedUrl(value: string): string | null {
+  try {
+    const parsed = new URL(value.trim());
+    const host = parsed.hostname.toLowerCase().replace(/^www\./, "");
+    const id =
+      host === "youtu.be"
+        ? parsed.pathname.split("/").filter(Boolean)[0]
+        : (parsed.searchParams.get("v") ??
+          parsed.pathname.match(/^\/shorts\/([^/]+)/)?.[1]);
+    if (
+      (host !== "youtube.com" && host !== "youtu.be") ||
+      !id ||
+      !/^[A-Za-z0-9_-]{6,20}$/.test(id)
+    )
+      return null;
+    return `https://www.youtube-nocookie.com/embed/${id}?rel=0`;
+  } catch {
+    return null;
+  }
 }
 
 function mapMedia(value: unknown): CommerceImage | null {

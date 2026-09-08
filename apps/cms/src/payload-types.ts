@@ -561,7 +561,14 @@ export interface Product {
   summary?: string | null;
   gallery?:
     | {
-        image: number | Media;
+        /**
+         * Optional image or poster when this row is an external video.
+         */
+        image?: (number | null) | Media;
+        /**
+         * Only youtube.com or youtu.be links are accepted. Do not paste iframe code.
+         */
+        externalVideoUrl?: string | null;
         isPrimary?: boolean | null;
         caption?: string | null;
         id?: string | null;
@@ -1591,6 +1598,7 @@ export interface ProductsSelect<T extends boolean = true> {
     | T
     | {
         image?: T;
+        externalVideoUrl?: T;
         isPrimary?: T;
         caption?: T;
         id?: T;

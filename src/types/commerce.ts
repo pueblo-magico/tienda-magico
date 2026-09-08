@@ -17,6 +17,7 @@ export type CommerceMedia =
   | {
       kind: "video";
       url: string;
+      embedUrl?: string;
       poster: CommerceImage | null;
       altText: string | null;
       caption?: string | null;
