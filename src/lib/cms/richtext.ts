@@ -1,3 +1,5 @@
+import type { SafeRichTextHtml } from "@/types/content";
+
 /** Minimal Lexical JSON → plain text (safe for cards / meta). */
 export function richTextToPlain(value: unknown): string {
   if (value == null) return "";
@@ -26,7 +28,12 @@ export function richTextToPlain(value: unknown): string {
 }
 
 /** Very small Lexical → HTML for body copy (paragraphs + basic marks). */
-export function richTextToHtml(value: unknown): string {
+export function richTextToHtml(value: unknown): SafeRichTextHtml {
+  // La marca se aplica solo después de escapar texto y serializar nodos permitidos.
+  return serializeRichText(value) as SafeRichTextHtml;
+}
+
+function serializeRichText(value: unknown): string {
   if (value == null) return "";
   if (typeof value === "string") {
     // Strings are plain text, never trusted HTML from the CMS.

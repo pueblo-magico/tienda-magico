@@ -114,6 +114,16 @@ Treat the existing design system as application architecture, not optional styli
 
 ### Localization
 
+#### Idioma del proyecto
+
+- El idioma principal del proyecto es el español de Argentina. Usá vocabulario local y voseo cuando corresponda, con un tono claro y consistente.
+- La conversación con el usuario se mantiene en inglés por su preferencia, incluidos los avances y resúmenes de trabajo. Esto no cambia el idioma español de los entregables del proyecto indicado abajo.
+- Escribí en español los títulos y cuerpos de los commits, las descripciones de tareas, los planes de implementación, los criterios de aceptación y las instrucciones de prueba. Conservá las referencias de Jira y los prefijos técnicos de Conventional Commits cuando se utilicen; por ejemplo: `fix(catalog): validar variantes antes de publicar (PMG-220)`.
+- Cuando no se requiera soporte multilingüe, implementá los textos de interfaz, etiquetas del CMS, mensajes de validación, documentación y comentarios nuevos en español argentino. No uses inglés como idioma predeterminado del contenido nuevo.
+- Conservá el soporte EN/ES donde ya sea requerido: actualizá ambas traducciones y mantené el español como idioma principal. Esta convención no cambia los códigos de locale existentes ni los slugs compartidos.
+- Respetá los nombres de APIs, campos persistidos, identificadores y convenciones técnicas existentes. No traduzcas contratos ni renombres código existente solo por este cambio de idioma.
+- Aplicá estas reglas al trabajo futuro; no reescribas commits anteriores ni traduzcas documentación ajena al alcance de la tarea.
+
 - All customer-visible storefront copy must use `next-intl`; do not hard-code English or Spanish text in reusable storefront components.
 - Add corresponding keys to both `messages/en.json` and `messages/es.json` in the same change.
 - Preserve the locale in internal links and pass it through commerce/CMS queries where localized content is expected.

@@ -720,12 +720,16 @@ export function mapProduct(
   const description =
     richTextToPlain(product.description) ||
     richTextToPlain(product.richText) ||
-    product.summary ||
     "";
 
   return {
     ...summary,
     description,
+    shortDescription: resolveLocalizedText(product.summary, [
+      locale ?? config.defaultLocale,
+      config.fallbackLocale,
+    ]),
+    descriptionContent: richTextToHtml(product.description ?? product.richText),
     descriptionHtml:
       richTextToHtml(product.description) ||
       richTextToHtml(product.richText) ||

@@ -556,7 +556,7 @@ export interface Product {
     [k: string]: unknown;
   } | null;
   /**
-   * Short plain-text blurb for cards and listings.
+   * Short copy beside the price and purchase controls. The full description appears in the accordion.
    */
   summary?: string | null;
   gallery?:

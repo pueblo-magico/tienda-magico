@@ -1,3 +1,5 @@
+import type { SafeRichTextHtml } from "@/types/content";
+
 export type Money = {
   amount: string;
   currencyCode: string;
@@ -73,6 +75,8 @@ export type ProductVariant = {
 };
 
 export type Product = {
+  shortDescription?: string;
+  descriptionContent?: SafeRichTextHtml;
   id: string;
   handle: string;
   title: string;

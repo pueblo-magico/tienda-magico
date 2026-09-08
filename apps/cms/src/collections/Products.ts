@@ -43,6 +43,7 @@ export const productsCollectionOverride: CollectionOverride = ({ defaultCollecti
     },
     {
       name: 'description',
+      label: { es: 'Descripción completa', en: 'Full description' },
       type: 'richText',
       localized: true,
       editor: lexicalEditor({
@@ -56,10 +57,14 @@ export const productsCollectionOverride: CollectionOverride = ({ defaultCollecti
     },
     {
       name: 'summary',
+      label: { es: 'Descripción corta', en: 'Short description' },
       type: 'textarea',
       localized: true,
       admin: {
-        description: 'Short plain-text blurb for cards and listings.',
+        description: {
+          es: 'Texto breve junto al precio y los controles de compra. La descripción completa se muestra en el acordeón.',
+          en: 'Short copy beside the price and purchase controls. The full description appears in the accordion.',
+        },
       },
     },
     {

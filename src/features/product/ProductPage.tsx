@@ -6,6 +6,7 @@ import { Accordion } from "@/components/ui/Accordion";
 import { Container } from "@/components/layout/Container";
 import { Section } from "@/components/layout/Section";
 import { Body, Eyebrow, PageTitle } from "@/components/typography";
+import { RichText } from "@/components/typography/RichText";
 import type {
   CategoryReference,
   Product,
@@ -54,6 +55,12 @@ type Props = {
 };
 
 export function ProductPageView({ locale, product, related, labels }: Props) {
+  // Los proveedores sin resumen separado conservan su presentación anterior.
+  const shortDescription =
+    product.shortDescription ??
+    (product.description.length > 280
+      ? `${product.description.slice(0, 277)}…`
+      : product.description);
   const images = getGalleryImages(product);
   const impact = impactItemsFromProduct(product);
   const classification = product.classification;
@@ -159,12 +166,8 @@ export function ProductPageView({ locale, product, related, labels }: Props) {
                 </div>
               ) : null}
 
-              {product.description ? (
-                <Body className="text-forest/80">
-                  {product.description.length > 280
-                    ? `${product.description.slice(0, 277)}…`
-                    : product.description}
-                </Body>
+              {shortDescription ? (
+                <Body className="text-forest/80">{shortDescription}</Body>
               ) : null}
 
               <AddToCartForm
@@ -209,11 +212,19 @@ export function ProductPageView({ locale, product, related, labels }: Props) {
           <Accordion
             className="bg-card rounded-xl"
             items={[
-              {
-                id: "description",
-                title: labels.description,
-                content: product.description || "—",
-              },
+              ...(product.description.trim()
+                ? [
+                    {
+                      id: "description",
+                      title: labels.description,
+                      content: product.descriptionContent ? (
+                        <RichText html={product.descriptionContent} />
+                      ) : (
+                        <RichText value={product.description} />
+                      ),
+                    },
+                  ]
+                : []),
               {
                 id: "ingredients",
                 title: labels.ingredients,

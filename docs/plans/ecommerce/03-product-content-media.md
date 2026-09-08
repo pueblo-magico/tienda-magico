@@ -4,6 +4,20 @@ Status: in progress — content-rendering and public catalog-read foundations im
 
 ## Implementation progress
 
+### Avance: descripción enriquecida en la ficha de producto
+
+Se conectó el resumen del CMS con los controles de compra y la descripción
+completa con el acordeón, usando un único componente compartido de tipografía.
+El HTML permitido se genera en el adaptador y se identifica con un tipo específico;
+el componente no acepta cadenas HTML arbitrarias. Los campos vacíos se omiten y
+el resumen no sustituye la descripción completa. Se agregó un ejemplo al sistema
+de diseño y etiquetas más claras en el CMS. No requiere migración.
+
+Verificación: 32 pruebas de catálogo y TypeScript pasan. En el navegador integrado
+se abrió el acordeón de Tambor en ES y EN y se confirmó la estructura de párrafos
+y títulos del contenido existente. Quedan pendientes la matriz de anchos de
+pantalla, navegación completa por teclado y las demás funcionalidades de esta tarea.
+
 - Follow-up: CMS publication guards require an eligible published variant for variant-enabled products and protect the last eligible variant from removal/invalidation. Simple publication requires valid enabled ARS pricing. Zero stock is allowed. Four hook regression tests pass; no schema migration or automatic data update. Product-page missing-variant copy now says product unavailable in EN/ES rather than blaming cart configuration. Live admin/browser verification remains pending.
 
 - The Payload commerce adapter now reuses the canonical CMS rich-text serializer. Plain strings are escaped, supported Lexical formatting is retained, unsafe link protocols are omitted, and inline text preserves word spacing.

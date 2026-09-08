@@ -223,6 +223,47 @@ test("rich-text links reject executable and browser-normalized URLs", () => {
   }
 });
 
+test("el resumen y la descripción enriquecida mantienen fuentes separadas", () => {
+  const body = {
+    root: {
+      type: "root",
+      children: [
+        {
+          type: "paragraph",
+          children: [{ type: "text", text: "Hecho a mano", format: 1 }],
+        },
+      ],
+    },
+  };
+  const mapped = mapProduct({
+    ...simple,
+    summary: "Para tus ceremonias.",
+    description: body,
+  });
+  assert.equal(mapped.shortDescription, "Para tus ceremonias.");
+  assert.equal(
+    mapProduct({ ...simple, summary: "Solo resumen" }).description,
+    "",
+  );
+  assert.equal(
+    mapped.descriptionContent,
+    "<p><strong>Hecho a mano</strong></p>",
+  );
+  assert.equal(
+    mapProduct({ ...simple, description: body }).shortDescription,
+    "",
+  );
+  assert.equal(
+    mapProduct({ ...simple, description: null }).descriptionContent,
+    "",
+  );
+  assert.equal(
+    mapProduct({ ...simple, description: "<script>alert(1)</script>" })
+      .descriptionContent,
+    "<p>&lt;script&gt;alert(1)&lt;/script&gt;</p>",
+  );
+});
+
 test("public catalog excludes drafts even when an authenticated backend returns them", async () => {
   process.env.PAYLOAD_ECOMMERCE_API_KEY = "test-only-key";
   const calls = transport({

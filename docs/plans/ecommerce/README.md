@@ -55,7 +55,7 @@ Every task prompt below incorporates these requirements:
 
 ## Shared completion standard
 
-A feature is done only when its CMS editing workflow, persistence, API permissions, storefront/domain integration where applicable, migrations, regression coverage, and operator documentation work together. A new collection or attractive UI alone is not completion.
+A feature covers the whole program: CMS/operator UI, persistence, API permissions, domain/provider integration, storefront UI and interactions, migrations, regression coverage, and operator documentation must work together before it is done. Implement affected UI in the same task; do not defer it to an unspecified frontend follow-up. For private operational features, completion includes the authorized CMS UI and verification that storefront flows work without receiving private data. A new collection, API, mapping, or attractive UI alone is not completion.
 
 For customer-facing CMS data, every task must name the storefront surfaces that
 consume it and implement those consumers in the same feature. Verify a CMS edit
@@ -65,7 +65,8 @@ end-to-end completion. Private fields must remain absent from public output rath
 than receive a storefront representation. Record human test instructions alongside
 each task and distinguish implemented code from unexecuted verification.
 
-Tasks 01–03 explicitly specify their storefront representation. Task 01 now has
+Tasks 01–06 explicitly specify their storefront representation or private-data
+implications, including UI acceptance flows for tasks 04–06. Task 01 now has
 implemented storefront consumers, 19 passing tests, live local cart/image checks,
 and user-confirmed mobile, EN/ES, and cart-reload acceptance. Its task document
 records remaining unreported checks; do not equate them with failed tests or mark

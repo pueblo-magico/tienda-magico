@@ -1,12 +1,13 @@
 import { Container } from "@/components/layout/Container";
 import { Section } from "@/components/layout/Section";
 import { Eyebrow, SectionTitle } from "@/components/typography";
-import { cn } from "@/lib/utils/cn";
+import { RichText } from "@/components/typography/RichText";
+import type { SafeRichTextHtml } from "@/types/content";
 
 type Props = {
   title: string;
   eyebrow: string;
-  descriptionHtml?: string;
+  descriptionHtml?: SafeRichTextHtml;
   description?: string;
 };
 
@@ -16,7 +17,7 @@ export function ProductStory({
   descriptionHtml,
   description,
 }: Props) {
-  const html = descriptionHtml?.trim();
+  const html = descriptionHtml;
   const text = description?.trim();
   if (!html && !text) return null;
 
@@ -25,19 +26,7 @@ export function ProductStory({
       <Container className="mx-auto max-w-3xl space-y-4">
         <Eyebrow>{eyebrow}</Eyebrow>
         <SectionTitle>{title}</SectionTitle>
-        {html ? (
-          <div
-            className={cn(
-              "prose prose-forest text-forest/85 max-w-none text-base leading-relaxed",
-              "prose-headings:font-serif prose-headings:font-normal prose-a:text-brand",
-            )}
-            dangerouslySetInnerHTML={{ __html: html }}
-          />
-        ) : (
-          <p className="text-forest/85 text-base leading-relaxed whitespace-pre-line">
-            {text}
-          </p>
-        )}
+        {html ? <RichText html={html} /> : <RichText value={text} />}
       </Container>
     </Section>
   );

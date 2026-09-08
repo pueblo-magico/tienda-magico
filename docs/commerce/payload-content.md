@@ -68,6 +68,17 @@ Used by the storefront as “collections” (`PAYLOAD_ECOMMERCE_COLLECTIONS_SLUG
 
 ## Products
 
+### Descripción corta y descripción completa
+
+- **Descripción corta** (`summary`): texto sin formato junto al precio y los controles de compra. Si está vacía, se omite; no se recorta automáticamente la descripción completa.
+- **Descripción completa** (`description`): contenido enriquecido dentro del acordeón **Descripción**. Conserva párrafos, títulos, listas, énfasis y enlaces permitidos. Si está vacía, se omite ese acordeón.
+- Completá ambos campos en ES y EN. Se mantiene el fallback configurado del proveedor (español por defecto); no se cambia el slug al traducir.
+- Publicá los cambios y esperá el intervalo de caché de productos de 60 segundos. Puede ser necesaria otra visita después de la revalidación en segundo plano.
+- El ejemplo `/ui-system/typography` muestra el componente compartido. Los textos que contienen etiquetas HTML literales se escapan: no son una alternativa al editor enriquecido.
+
+No se requiere migración: estos campos ya existían. Los proveedores sin un
+resumen separado conservan la presentación breve anterior como compatibilidad.
+
 ### Required for a usable storefront card/PDP
 
 | Field       | Notes                                                                      |

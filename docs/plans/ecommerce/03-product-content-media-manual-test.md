@@ -18,6 +18,22 @@ Product responses retain the existing 60-second revalidation policy. After publi
 
 ## Rich-text rendering
 
+### Verificación de la ficha de producto
+
+1. En un producto de prueba, completá **Descripción corta** con una frase y
+   **Descripción completa** con dos párrafos, un título, una lista, negrita,
+   cursiva y un enlace HTTPS. Publicá.
+2. Después de la revalidación, comprobá que junto al precio aparezca solo la frase.
+3. Abrí **Descripción**: debe mostrar la estructura y los estilos del texto completo.
+4. Repetí en ES y EN. Si falta EN, comprobá el fallback configurado a ES.
+5. Vaciar el resumen debe quitar solo el texto junto al precio. Vaciar la
+   descripción completa debe quitar solo su acordeón, sin repetir el resumen.
+6. Repetí en escritorio y móvil, abriendo y cerrando el acordeón con teclado.
+
+Resultado ejecutado: acordeón de Tambor abierto en ambos idiomas en el navegador
+integrado; se confirmó el título enriquecido y los párrafos existentes. No se
+modificó el producto. La matriz completa anterior sigue pendiente.
+
 - [ ] On a CMS-driven page using the shared rich-text renderer, verify paragraphs, headings, lists, bold, italic, and ordinary HTTPS links still render.
 - [ ] Text containing `<script>` or `<img onerror=...>` as plain text is displayed literally, not interpreted as HTML. Use only harmless test text; do not execute attack scripts.
 - [ ] In a test-only Lexical fixture, a link with a `javascript:` or `data:` URL renders its label without an actionable link. HTTPS, same-origin absolute paths, anchor links, email and telephone links remain supported.
