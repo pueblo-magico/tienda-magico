@@ -264,6 +264,61 @@ test("el resumen y la descripción enriquecida mantienen fuentes separadas", () 
   );
 });
 
+test("las secciones de información conservan orden, claves y fallback sin exponer filas vacías", () => {
+  const product = mapProduct(
+    {
+      ...simple,
+      informationSections: [
+        {
+          key: "ingredients",
+          title: { es: "Ingredientes", en: "Ingredients" },
+          body: {
+            es: {
+              root: {
+                type: "root",
+                children: [
+                  {
+                    type: "paragraph",
+                    children: [{ type: "text", text: "Cacao" }],
+                  },
+                ],
+              },
+            },
+            en: null,
+          },
+          isVisible: true,
+        },
+        {
+          key: "hidden",
+          title: { es: "Oculto" },
+          body: { es: "No mostrar" },
+          isVisible: false,
+        },
+        {
+          key: "empty",
+          title: { es: "Vacío" },
+          body: { es: "" },
+          isVisible: true,
+        },
+        {
+          key: "custom",
+          title: { es: "Ritual" },
+          body: { es: "Usalo con intención." },
+          isVisible: true,
+        },
+      ],
+    },
+    "en",
+  );
+  assert.deepEqual(
+    product.informationSections?.map((section) => section.key),
+    ["ingredients", "custom"],
+  );
+  assert.equal(product.informationSections?.[0]?.title, "Ingredients");
+  assert.equal(product.informationSections?.[0]?.content, "<p>Cacao</p>");
+  assert.equal(product.informationSections?.[1]?.title, "Ritual");
+});
+
 test("public catalog excludes drafts even when an authenticated backend returns them", async () => {
   process.env.PAYLOAD_ECOMMERCE_API_KEY = "test-only-key";
   const calls = transport({

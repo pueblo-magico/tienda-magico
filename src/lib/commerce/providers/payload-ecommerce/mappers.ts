@@ -15,6 +15,7 @@ import type {
   TagReference,
 } from "@/types/commerce";
 import { CommerceError } from "@/types/commerce";
+import { mapInformationSections } from './information-sections';
 import { richTextToHtml, richTextToPlain } from "@/lib/cms/richtext";
 import { getPayloadEcommerceConfig } from "./config";
 import { merchandiseRef } from "./merchandise";
@@ -725,6 +726,7 @@ export function mapProduct(
   return {
     ...summary,
     description,
+    informationSections: mapInformationSections(product.informationSections, locale ?? config.defaultLocale, config.fallbackLocale),
     shortDescription: resolveLocalizedText(product.summary, [
       locale ?? config.defaultLocale,
       config.fallbackLocale,

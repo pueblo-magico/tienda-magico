@@ -588,6 +588,35 @@ export interface Product {
       }[]
     | null;
   /**
+   * Drag sections to reorder. Translate title and content in each locale. Hidden or empty sections do not appear in the shop. Public information only.
+   */
+  informationSections?:
+    | {
+        /**
+         * Unique identifier, e.g. care. It cannot change after saving; the title can.
+         */
+        key: string;
+        title?: string | null;
+        body?: {
+          root: {
+            type: string;
+            children: {
+              type: any;
+              version: number;
+              [k: string]: unknown;
+            }[];
+            direction: ('ltr' | 'rtl') | null;
+            format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+            indent: number;
+            version: number;
+          };
+          [k: string]: unknown;
+        } | null;
+        isVisible?: boolean | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
    * Stock for this sellable item. Zero means sold out. For variant products, edit stock on each variant.
    */
   inventory?: number | null;
@@ -1570,6 +1599,15 @@ export interface ProductsSelect<T extends boolean = true> {
     | T
     | {
         tag?: T;
+        id?: T;
+      };
+  informationSections?:
+    | T
+    | {
+        key?: T;
+        title?: T;
+        body?: T;
+        isVisible?: T;
         id?: T;
       };
   inventory?: T;

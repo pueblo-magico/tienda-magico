@@ -18,6 +18,14 @@ Product responses retain the existing 60-second revalidation policy. After publi
 
 ## Rich-text rendering
 
+## Secciones de información
+
+- [ ] En un producto publicado, editá título y contenido de una sección en ES y EN; verificá que la misma clave conserve el orden.
+- [ ] Agregá una sección personalizada, ocultá otra y dejá una tercera vacía; después de la revalidación solo deben aparecer las visibles y completas.
+- [ ] Intentá repetir o cambiar una clave estable guardada; el CMS debe rechazarla con un mensaje localizado.
+- [ ] Cambiá solo el título o el orden; debe guardarse sin modificar el identificador.
+- [ ] Confirmá que notas internas, costos y datos de proveedores no estén dentro del contenido público.
+
 ### Verificación de la ficha de producto
 
 1. En un producto de prueba, completá **Descripción corta** con una frase y

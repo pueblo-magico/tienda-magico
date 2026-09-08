@@ -18,6 +18,24 @@ se abrió el acordeón de Tambor en ES y EN y se confirmó la estructura de pár
 y títulos del contenido existente. Quedan pendientes la matriz de anchos de
 pantalla, navegación completa por teclado y las demás funcionalidades de esta tarea.
 
+### Avance: secciones de información editables
+
+El CMS ahora ofrece una matriz bilingüe de secciones con clave estable, título,
+contenido enriquecido, visibilidad y orden. Las cuatro plantillas iniciales son
+ingredientes y materiales, cómo usar, origen e impacto y cuidados; también se
+pueden agregar claves personalizadas. El adaptador conserva el orden, aplica el
+fallback configurado, descarta filas ocultas/vacías y entrega únicamente contenido
+público al acordeón compartido de la ficha. Cambiar una clave ya guardada se
+rechaza para preservar referencias estables; cambiar su título no.
+
+No requiere migración: el campo se agrega al esquema y Payload persiste la matriz
+localizada. La generación de tipos queda pendiente de ejecutar con el entorno CMS
+configurado.
+
+Verificación adicional: 33 pruebas de catálogo pasan; los builds de storefront y
+CMS, TypeScript y el formato de los archivos modificados pasan. La prueba de
+browser y administración para editar/reordenar secciones aún queda pendiente.
+
 - Follow-up: CMS publication guards require an eligible published variant for variant-enabled products and protect the last eligible variant from removal/invalidation. Simple publication requires valid enabled ARS pricing. Zero stock is allowed. Four hook regression tests pass; no schema migration or automatic data update. Product-page missing-variant copy now says product unavailable in EN/ES rather than blaming cart configuration. Live admin/browser verification remains pending.
 
 - The Payload commerce adapter now reuses the canonical CMS rich-text serializer. Plain strings are escaped, supported Lexical formatting is retained, unsafe link protocols are omitted, and inline text preserves word spacing.

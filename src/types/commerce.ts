@@ -75,6 +75,7 @@ export type ProductVariant = {
 };
 
 export type Product = {
+  informationSections?: ProductInformationSection[];
   shortDescription?: string;
   descriptionContent?: SafeRichTextHtml;
   id: string;
@@ -102,6 +103,12 @@ export type Product = {
     title: string | null;
     description: string | null;
   };
+};
+
+export type ProductInformationSection = {
+  key: string;
+  title: string;
+  content: SafeRichTextHtml;
 };
 
 export type ProductSummary = Pick<

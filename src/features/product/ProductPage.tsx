@@ -15,7 +15,7 @@ import type {
 import { AddToCartForm } from "./AddToCartForm";
 import { ProductGallery } from "./ProductGallery";
 import { RelatedProducts } from "./RelatedProducts";
-import { getGalleryImages, impactItemsFromProduct } from "./utils";
+import { getGalleryImages } from "./utils";
 
 type Labels = {
   backToShop: string;
@@ -62,7 +62,6 @@ export function ProductPageView({ locale, product, related, labels }: Props) {
       ? `${product.description.slice(0, 277)}…`
       : product.description);
   const images = getGalleryImages(product);
-  const impact = impactItemsFromProduct(product);
   const classification = product.classification;
   const categoryPath: CategoryReference[] = [];
   let category = classification?.primaryCategory ?? null;
@@ -209,7 +208,7 @@ export function ProductPageView({ locale, product, related, labels }: Props) {
             </div>
           </div>
 
-          <Accordion
+          {product.description.trim() || product.informationSections?.length ? <Accordion
             className="bg-card rounded-xl"
             items={[
               ...(product.description.trim()
@@ -225,31 +224,13 @@ export function ProductPageView({ locale, product, related, labels }: Props) {
                     },
                   ]
                 : []),
-              {
-                id: "ingredients",
-                title: labels.ingredients,
-                content: product.tags.length ? product.tags.join(" · ") : "—",
-              },
-              {
-                id: "use",
-                title: labels.howToUse,
-                content:
-                  classification?.primaryCategory?.title ||
-                  product.productType ||
-                  product.vendor ||
-                  "—",
-              },
-              {
-                id: "impact",
-                title: labels.originImpact,
-                content: impact.length
-                  ? impact
-                      .map((item) => `${item.value} ${item.label}`)
-                      .join(" · ")
-                  : product.vendor || "Pueblo Mágico",
-              },
+              ...(product.informationSections ?? []).map((section) => ({
+                id: `section-${section.key}`,
+                title: section.title,
+                content: <RichText html={section.content} />,
+              })),
             ]}
-          />
+          /> : null}
         </Container>
       </Section>
 

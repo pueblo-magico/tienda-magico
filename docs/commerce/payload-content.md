@@ -79,6 +79,15 @@ Used by the storefront as “collections” (`PAYLOAD_ECOMMERCE_COLLECTIONS_SLUG
 No se requiere migración: estos campos ya existían. Los proveedores sin un
 resumen separado conservan la presentación breve anterior como compatibilidad.
 
+### Secciones de información
+
+En **Información adicional**, mantené las mismas claves y el mismo orden lógico
+en ES y EN. Completá título y contenido por idioma, activá **Visible en la tienda**
+solo para información pública y agregá filas personalizadas cuando haga falta.
+Las filas sin título o contenido, y las ocultas, no se renderizan. La clave estable
+(`ingredients`, `how-to-use`, `origin-impact`, `care`) identifica la sección; no la
+uses para guardar notas internas ni datos de proveedores.
+
 ### Required for a usable storefront card/PDP
 
 | Field       | Notes                                                                      |

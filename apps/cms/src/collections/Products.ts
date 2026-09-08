@@ -3,6 +3,7 @@ import type { Field } from 'payload'
 import { clarifyVariantFields } from './variantEditorGuidance'
 import { normalizeProductCategories } from './productClassificationHooks'
 import { validateProductPublication } from './productPublication'
+import { informationSectionsField, validateInformationSections } from './productSections'
 import {
   FixedToolbarFeature,
   HeadingFeature,
@@ -171,8 +172,9 @@ export const productsCollectionOverride: CollectionOverride = ({ defaultCollecti
       beforeValidate: [
         ...(defaultCollection.hooks?.beforeValidate ?? []),
         normalizeProductCategories,
+        validateInformationSections,
       ],
     },
-    fields: [...catalogueFields, ...clarifyVariantFields(defaultCollection.fields ?? [])],
+    fields: [...catalogueFields, informationSectionsField, ...clarifyVariantFields(defaultCollection.fields ?? [])],
   }
 }

@@ -71,6 +71,7 @@ export type PayloadProductDoc = PayloadDoc & {
   description?: unknown;
   richText?: unknown;
   summary?: string | null;
+  informationSections?: unknown;
   vendor?: string | null;
   brand?: string | number | PayloadBrandDoc | null;
   productType?: string | null;
