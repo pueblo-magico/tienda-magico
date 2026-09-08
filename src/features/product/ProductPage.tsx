@@ -27,6 +27,7 @@ type Labels = {
   increase: string;
   from: string;
   unavailable: string;
+  productUnavailable: string;
   addFailed: string;
   storyEyebrow: string;
   storyTitle: string;
@@ -177,6 +178,7 @@ export function ProductPageView({ locale, product, related, labels }: Props) {
                   increase: labels.increase,
                   from: labels.from,
                   unavailable: labels.unavailable,
+                  productUnavailable: labels.productUnavailable,
                   addFailed: labels.addFailed,
                 }}
               />

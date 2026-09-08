@@ -95,6 +95,25 @@ Used by the storefront as “collections” (`PAYLOAD_ECOMMERCE_COLLECTIONS_SLUG
 
 Always publish after reviews.
 
+Publishing a product with variants enabled requires at least one linked,
+published variant with ARS pricing enabled and a non-negative integer price in
+minor units. Stock may be zero: sold-out products can remain published. Save new
+products as drafts, create and publish their variants, then publish the parent.
+Simple products require their own enabled, valid ARS price.
+
+Deleting, unpublishing, moving, or invalidating the price of the last eligible
+variant is blocked while its parent is published. Publish a replacement first,
+or unpublish the parent. Switching to a simple product requires valid parent
+pricing. Validation applies to admin and API writes; no database migration is
+required. Existing misconfigured products are not automatically unpublished, but
+their next published save must pass validation. The storefront displays
+“Producto no disponible” / “Product unavailable” when no variant is selectable.
+
+These are request-level editorial guards, not database constraints or a checkout
+reservation mechanism. Simultaneous administrative edits are not serialized by
+these hooks; avoid concurrent variant removal/publication operations on one
+product. Checkout concurrency remains part of task 07.
+
 ### Variants
 
 If **Enable variants** is on:

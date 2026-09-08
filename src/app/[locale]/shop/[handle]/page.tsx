@@ -65,6 +65,7 @@ export default async function ProductRoutePage({ params }: Props) {
         increase: t("increase"),
         from: t("from"),
         unavailable: t("unavailable"),
+        productUnavailable: t("productUnavailable"),
         addFailed: t("addFailed"),
         storyEyebrow: t("storyEyebrow"),
         storyTitle: t("storyTitle"),

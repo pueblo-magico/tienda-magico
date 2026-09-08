@@ -100,6 +100,21 @@ Same VM is fine: two Node processes + one Postgres.
 
 ### Product fields mapped by the adapter
 
+Public product reads explicitly require `_status=published`; `draft=false` is not
+treated as authorization. The adapter also checks returned records, including ID
+lookups and category product relationships, because an optional upstream API key
+may grant administrative access. Records without publication status are excluded.
+This is defense in depth, not a replacement for CMS access rules. Product reads
+retain the existing 60-second cache revalidation interval; unpublishing is not
+an instantaneous purge of previously cached responses.
+
+Product and collection rich text uses `src/lib/cms/richtext.ts`, the same
+allowlisted Lexical serializer as CMS page content. Raw HTML strings are displayed
+as escaped text, not trusted markup. Supported links are HTTP(S), mail, telephone,
+same-origin absolute paths and anchors; unsafe links retain only their label.
+This intentionally removes the legacy raw-HTML passthrough. Convert any content
+that relied on raw HTML strings to supported Lexical nodes before publication.
+
 - identity: `title` / `name`, `slug` / `handle`, `id`
 - copy: `description` / `richText` / `summary`
 - media: `gallery`, `media`, `images`, `image`, `featuredImage`

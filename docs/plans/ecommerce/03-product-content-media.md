@@ -1,6 +1,16 @@
 # 03 — Product content, media, and editable information sections
 
-Status: planned. Depends on: 01, 02.
+Status: in progress — content-rendering and public catalog-read foundations implemented; the feature is not complete. Depends on: 01, 02.
+
+## Implementation progress
+
+- Follow-up: CMS publication guards require an eligible published variant for variant-enabled products and protect the last eligible variant from removal/invalidation. Simple publication requires valid enabled ARS pricing. Zero stock is allowed. Four hook regression tests pass; no schema migration or automatic data update. Product-page missing-variant copy now says product unavailable in EN/ES rather than blaming cart configuration. Live admin/browser verification remains pending.
+
+- The Payload commerce adapter now reuses the canonical CMS rich-text serializer. Plain strings are escaped, supported Lexical formatting is retained, unsafe link protocols are omitted, and inline text preserves word spacing.
+- Product list, slug, ID, and category product projections require explicit published status, including when upstream requests authenticate with an API key. Missing status fails closed. Product ID lookup preserves operational failures instead of treating them as missing content.
+- Automated coverage: catalog suite passes 31 tests, including seven new content/publication tests. Storefront lint passes with existing warnings; TypeScript validation and production build pass.
+- No schema, migration, slugs, editor UI, media policy, or purchase flow changed in this foundation step. CMS tabs/fields, translation readiness, editable sections, gallery/video presentation, lifecycle enforcement, and their migrations and end-to-end verification remain outstanding.
+- Manual verification instructions: [Task 03 manual test](03-product-content-media-manual-test.md). These tests have not yet been executed against a live CMS.
 
 ## Codex implementation prompt
 

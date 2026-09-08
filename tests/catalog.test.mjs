@@ -15,8 +15,15 @@ import {
   updateCartLines,
   removeCartLines,
 } from "@/lib/commerce/providers/payload-ecommerce/cart";
-import { getProducts } from "@/lib/commerce/providers/payload-ecommerce/products";
-import { getCollections } from "@/lib/commerce/providers/payload-ecommerce/collections";
+import {
+  getProduct,
+  getProducts,
+} from "@/lib/commerce/providers/payload-ecommerce/products";
+import {
+  getCollection,
+  getCollections,
+} from "@/lib/commerce/providers/payload-ecommerce/collections";
+import { richTextToHtml, richTextToPlain } from "@/lib/cms/richtext";
 import { preventCategoryCycles } from "../apps/cms/src/collections/categoryHierarchy.ts";
 import { normalizeProductCategories } from "../apps/cms/src/collections/productClassificationHooks.ts";
 import {
@@ -154,6 +161,135 @@ const simple = {
   inventory: 7,
   _status: "published",
 };
+
+test("rich text escapes HTML strings and preserves supported Lexical formatting", () => {
+  assert.equal(
+    richTextToHtml('<img src=x onerror="alert(1)">'),
+    "<p>&lt;img src=x onerror=&quot;alert(1)&quot;&gt;</p>",
+  );
+  const body = {
+    root: {
+      type: "root",
+      children: [
+        {
+          type: "paragraph",
+          children: [
+            { type: "text", text: "Cacao " },
+            { type: "text", text: "orgánico", format: 1 },
+          ],
+        },
+        {
+          type: "paragraph",
+          children: [{ type: "text", text: "From the mountains" }],
+        },
+      ],
+    },
+  };
+  assert.equal(richTextToPlain(body), "Cacao orgánico\nFrom the mountains");
+  assert.equal(
+    richTextToHtml(body),
+    "<p>Cacao <strong>orgánico</strong></p><p>From the mountains</p>",
+  );
+  assert.equal(
+    mapProduct({ ...simple, description: body }).descriptionHtml,
+    richTextToHtml(body),
+  );
+});
+
+test("rich-text links reject executable and browser-normalized URLs", () => {
+  const link = (url) => ({
+    type: "link",
+    fields: { url },
+    children: [{ type: "text", text: "Read more" }],
+  });
+  for (const url of [
+    "javascript:alert(1)",
+    "java\nscript:alert(1)",
+    "data:text/html,<script>",
+    "//evil.test",
+    "/\\evil.test",
+    "vbscript:msgbox(1)",
+  ]) {
+    assert.equal(richTextToHtml(link(url)), "Read more", url);
+  }
+  for (const url of [
+    "https://example.test/story",
+    "/es/shop",
+    "#ingredients",
+    "mailto:hello@example.test",
+    "tel:+54123456789",
+  ]) {
+    assert.match(richTextToHtml(link(url)), /^<a href=/, url);
+  }
+});
+
+test("public catalog excludes drafts even when an authenticated backend returns them", async () => {
+  process.env.PAYLOAD_ECOMMERCE_API_KEY = "test-only-key";
+  const calls = transport({
+    "GET /api/products": {
+      docs: [simple, { ...simple, id: 9, _status: "draft" }],
+      hasNextPage: false,
+    },
+  });
+  assert.deepEqual(
+    (await getProducts({ locale: "en" })).items.map((p) => p.id),
+    ["1"],
+  );
+  assert.equal(
+    calls[0].url.searchParams.get("where[_status][equals]"),
+    "published",
+  );
+});
+
+test("product slug and ID lookups never return drafts or records without publication status", async () => {
+  for (const status of ["draft", undefined]) {
+    mock.restoreAll();
+    transport({
+      "GET /api/products": { docs: [{ ...simple, _status: status }] },
+    });
+    assert.equal(await getProduct("taza"), null);
+    mock.restoreAll();
+    transport({
+      "GET /api/products": { docs: [] },
+      "GET /api/products/1": { ...simple, _status: status },
+    });
+    assert.equal(await getProduct("1"), null);
+  }
+});
+
+test("product ID lookup preserves operational errors instead of claiming missing content", async () => {
+  transport({
+    "GET /api/products": { docs: [] },
+    "GET /api/products/1": new Error("offline"),
+  });
+  await assert.rejects(getProduct("1"));
+});
+
+test("missing product slugs do not become invalid numeric-ID requests", async () => {
+  const calls = transport({ "GET /api/products": { docs: [] } });
+  assert.equal(await getProduct("missing-product"), null);
+  assert.equal(calls.length, 1);
+});
+
+test("category-populated product references exclude drafts", async () => {
+  transport({
+    "GET /api/categories": {
+      docs: [
+        {
+          id: 2,
+          slug: "ritual",
+          title: "Ritual",
+          isVisible: true,
+          products: [simple, { ...simple, id: 3, _status: "draft" }],
+        },
+      ],
+    },
+  });
+  assert.deepEqual(
+    (await getCollection("ritual")).products.map((p) => p.id),
+    ["1"],
+  );
+});
 const parent = {
   id: 2,
   title: "Cacao",

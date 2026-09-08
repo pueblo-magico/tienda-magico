@@ -3,7 +3,10 @@ export function richTextToPlain(value: unknown): string {
   if (value == null) return "";
   if (typeof value === "string") return value;
   if (Array.isArray(value)) {
-    return value.map((node) => richTextToPlain(node)).filter(Boolean).join("\n");
+    return value
+      .map((node) => richTextToPlain(node))
+      .filter(Boolean)
+      .join("\n");
   }
   if (typeof value !== "object") return "";
 
@@ -14,7 +17,7 @@ export function richTextToPlain(value: unknown): string {
     const joined = node.children
       .map((child) => richTextToPlain(child))
       .filter(Boolean)
-      .join(node.type === "paragraph" || node.type === "heading" ? "\n" : "");
+      .join(node.type === "root" || node.type === "list" ? "\n" : "");
     return joined;
   }
 
@@ -26,7 +29,7 @@ export function richTextToPlain(value: unknown): string {
 export function richTextToHtml(value: unknown): string {
   if (value == null) return "";
   if (typeof value === "string") {
-    if (/<\/?[a-z][\s\S]*>/i.test(value)) return value;
+    // Strings are plain text, never trusted HTML from the CMS.
     return value
       .split(/\n+/)
       .map((line) => `<p>${escapeHtml(line)}</p>`)
@@ -35,9 +38,7 @@ export function richTextToHtml(value: unknown): string {
 
   if (typeof value !== "object") return "";
   const root =
-    "root" in (value as object)
-      ? (value as { root: unknown }).root
-      : value;
+    "root" in (value as object) ? (value as { root: unknown }).root : value;
 
   return renderNode(root);
 }
@@ -49,7 +50,9 @@ function renderNode(node: unknown): string {
   if (typeof node !== "object") return "";
 
   const n = node as Record<string, unknown>;
-  const children = Array.isArray(n.children) ? n.children.map(renderNode).join("") : "";
+  const children = Array.isArray(n.children)
+    ? n.children.map(renderNode).join("")
+    : "";
 
   switch (n.type) {
     case "root":
@@ -57,7 +60,8 @@ function renderNode(node: unknown): string {
     case "paragraph":
       return children.trim() ? `<p>${children}</p>` : "<p></p>";
     case "heading": {
-      const tag = typeof n.tag === "string" && /^h[1-6]$/.test(n.tag) ? n.tag : "h2";
+      const tag =
+        typeof n.tag === "string" && /^h[1-6]$/.test(n.tag) ? n.tag : "h2";
       return `<${tag}>${children}</${tag}>`;
     }
     case "list": {
@@ -77,7 +81,8 @@ function renderNode(node: unknown): string {
               "url" in (n.fields as object)
             ? String((n.fields as { url: unknown }).url)
             : "#";
-      return `<a href="${escapeAttr(url)}">${children}</a>`;
+      const href = safeLinkUrl(url);
+      return href ? `<a href="${escapeAttr(href)}">${children}</a>` : children;
     }
     case "text": {
       let text = escapeHtml(String(n.text ?? ""));
@@ -93,6 +98,22 @@ function renderNode(node: unknown): string {
       return "<br />";
     default:
       return children;
+  }
+}
+
+function safeLinkUrl(value: string): string | null {
+  const url = value.trim();
+  // Reject browser-normalized control characters and backslashes before checking
+  // protocols. Relative links must be same-origin paths, not protocol-relative URLs.
+  if (/[\u0000-\u0020\u007f\\]/.test(url)) return null;
+  if (/^(\/(?!\/)|#)/.test(url)) return url;
+  try {
+    const parsed = new URL(url);
+    return ["https:", "http:", "mailto:", "tel:"].includes(parsed.protocol)
+      ? url
+      : null;
+  } catch {
+    return null;
   }
 }
 

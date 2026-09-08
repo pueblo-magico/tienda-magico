@@ -1,5 +1,6 @@
 import type { CollectionOverride } from '@payloadcms/plugin-ecommerce/types'
 import type { Field } from 'payload'
+import { protectPublishedVariant, protectDeletedVariant } from './productPublication'
 
 type Copy = { en: string; es: string }
 const guidance: Record<string, { label: Copy; description: Copy }> = {
@@ -76,6 +77,11 @@ export function clarifyVariantFields(fields: Field[]): Field[] {
 
 export const variantsCollectionOverride: CollectionOverride = ({ defaultCollection }) => ({
   ...defaultCollection,
+  hooks: {
+    ...defaultCollection.hooks,
+    beforeChange: [...(defaultCollection.hooks?.beforeChange ?? []), protectPublishedVariant],
+    beforeDelete: [...(defaultCollection.hooks?.beforeDelete ?? []), protectDeletedVariant],
+  },
   admin: {
     ...defaultCollection.admin,
     description: {

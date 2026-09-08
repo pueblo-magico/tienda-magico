@@ -98,6 +98,7 @@ export async function getProducts(
     limit,
     page,
     draft: false,
+    "where[_status][equals]": "published",
     ...locales,
   };
 
@@ -122,9 +123,9 @@ export async function getProducts(
   });
 
   return {
-    items: (data.docs ?? []).map((doc) =>
-      mapProductSummary(doc, params.locale),
-    ),
+    items: (data.docs ?? [])
+      .filter((doc) => doc._status === "published")
+      .map((doc) => mapProductSummary(doc, params.locale)),
     pageInfo: pageInfoFromPayload(data),
   };
 }
@@ -142,6 +143,7 @@ export async function getProduct(
       depth: config.depth,
       limit: 1,
       "where[slug][equals]": handle,
+      "where[_status][equals]": "published",
       draft: false,
       ...locales,
     },
@@ -157,9 +159,14 @@ export async function getProduct(
   });
 
   const doc = bySlug.docs?.[0];
-  if (doc) return mapProduct(doc, params.locale);
+  if (doc)
+    return doc._status === "published" ? mapProduct(doc, params.locale) : null;
 
-  // Fallback: treat handle as document id
+  // This Payload Postgres catalog uses numeric IDs. Do not send a missing slug
+  // to an ID endpoint, where it becomes a database validation error instead of 404.
+  if (!/^\d+$/.test(handle)) return null;
+
+  // Compatibility fallback for existing document-ID links.
   try {
     const byId = await payloadFetch<PayloadProductDoc>({
       path: collectionPath(config.productsSlug, handle),
@@ -174,8 +181,17 @@ export async function getProduct(
         ],
       },
     });
-    return mapProduct(byId, params.locale);
-  } catch {
-    return null;
+    return byId._status === "published"
+      ? mapProduct(byId, params.locale)
+      : null;
+  } catch (error) {
+    if (
+      error &&
+      typeof error === "object" &&
+      "status" in error &&
+      (error.status === 404 || error.status === 403)
+    )
+      return null;
+    throw error;
   }
 }

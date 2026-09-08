@@ -19,6 +19,7 @@ type Props = {
     increase: string;
     from: string;
     unavailable: string;
+    productUnavailable: string;
     addFailed: string;
   };
 };
@@ -70,7 +71,7 @@ export function AddToCartForm({ product, labels }: Props) {
         <p className="font-navigation text-text-black text-2xl">
           {product.variants.length
             ? formatMoney(price, locale)
-            : labels.unavailable}
+            : labels.productUnavailable}
         </p>
         {compareAt && Number(compareAt.amount) > Number(price.amount) ? (
           <p className="text-muted text-sm line-through">
@@ -207,7 +208,7 @@ export function AddToCartForm({ product, labels }: Props) {
         >
           {!available
             ? !variant
-              ? labels.unavailable
+              ? labels.productUnavailable
               : labels.soldOut
             : isMutating
               ? labels.adding

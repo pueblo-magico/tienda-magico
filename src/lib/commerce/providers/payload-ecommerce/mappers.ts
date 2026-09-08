@@ -15,6 +15,7 @@ import type {
   TagReference,
 } from "@/types/commerce";
 import { CommerceError } from "@/types/commerce";
+import { richTextToHtml, richTextToPlain } from "@/lib/cms/richtext";
 import { getPayloadEcommerceConfig } from "./config";
 import { merchandiseRef } from "./merchandise";
 import type {
@@ -148,44 +149,6 @@ function asRecord(value: unknown): Record<string, unknown> | null {
   return value && typeof value === "object"
     ? (value as Record<string, unknown>)
     : null;
-}
-
-function richTextToPlain(value: unknown): string {
-  if (value == null) return "";
-  if (typeof value === "string") return value;
-  if (Array.isArray(value)) {
-    return value
-      .map((node) => richTextToPlain(node))
-      .filter(Boolean)
-      .join("\n");
-  }
-
-  const node = asRecord(value);
-  if (!node) return "";
-
-  if (typeof node.text === "string") return node.text;
-
-  if (Array.isArray(node.children)) {
-    return richTextToPlain(node.children);
-  }
-
-  if (Array.isArray(node.root) || asRecord(node.root)) {
-    return richTextToPlain(node.root);
-  }
-
-  return "";
-}
-
-function richTextToHtml(value: unknown): string {
-  const plain = richTextToPlain(value).trim();
-  if (!plain) return "";
-  if (typeof value === "string" && /<\/?[a-z][\s\S]*>/i.test(value)) {
-    return value;
-  }
-  return plain
-    .split(/\n+/)
-    .map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`)
-    .join("");
 }
 
 function escapeHtml(value: string) {

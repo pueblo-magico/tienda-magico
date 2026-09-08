@@ -2,6 +2,7 @@ import type { CollectionOverride } from '@payloadcms/plugin-ecommerce/types'
 import type { Field } from 'payload'
 import { clarifyVariantFields } from './variantEditorGuidance'
 import { normalizeProductCategories } from './productClassificationHooks'
+import { validateProductPublication } from './productPublication'
 import {
   FixedToolbarFeature,
   HeadingFeature,
@@ -161,6 +162,7 @@ export const productsCollectionOverride: CollectionOverride = ({ defaultCollecti
     },
     hooks: {
       ...defaultCollection.hooks,
+      beforeChange: [...(defaultCollection.hooks?.beforeChange ?? []), validateProductPublication],
       beforeValidate: [
         ...(defaultCollection.hooks?.beforeValidate ?? []),
         normalizeProductCategories,

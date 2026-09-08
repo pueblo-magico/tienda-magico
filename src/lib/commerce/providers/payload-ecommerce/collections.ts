@@ -112,7 +112,7 @@ function extractRelatedProducts(
 
   return raw
     .map((item) => {
-      if (item && typeof item === "object") {
+      if (item && typeof item === "object" && item._status === "published") {
         return mapProductSummary(item as PayloadProductDoc, locale);
       }
       return null;
@@ -189,6 +189,7 @@ export async function getCollection(
         query: {
           depth: config.depth,
           limit: productsFirst,
+          "where[_status][equals]": "published",
           draft: false,
           ...locales,
           "where[or][0][category][equals]": toId(doc.id),
@@ -206,9 +207,9 @@ export async function getCollection(
           ],
         },
       });
-      products = (related.docs ?? []).map((product) =>
-        mapProductSummary(product, params.locale),
-      );
+      products = (related.docs ?? [])
+        .filter((product) => product._status === "published")
+        .map((product) => mapProductSummary(product, params.locale));
     }
 
     return mapCollection(doc, products, params.locale);
