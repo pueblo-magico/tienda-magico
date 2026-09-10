@@ -2,6 +2,10 @@ import type { CollectionConfig } from 'payload'
 
 import { adminOnly } from '../access/adminOnly'
 import { validateMediaUploadSize } from './mediaUploadValidation'
+import {
+  revalidateStorefrontMedia,
+  revalidateStorefrontMediaDelete,
+} from '../hooks/revalidateStorefrontCatalog'
 
 export const Media: CollectionConfig = {
   slug: 'media',
@@ -15,6 +19,8 @@ export const Media: CollectionConfig = {
     update: adminOnly,
   },
   hooks: {
+    afterChange: [revalidateStorefrontMedia],
+    afterDelete: [revalidateStorefrontMediaDelete],
     beforeValidate: [validateMediaUploadSize],
   },
   fields: [

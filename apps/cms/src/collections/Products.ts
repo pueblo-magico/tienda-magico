@@ -5,6 +5,10 @@ import { normalizeProductCategories } from './productClassificationHooks'
 import { validateProductPublication } from './productPublication'
 import { informationSectionsField, validateInformationSections } from './productSections'
 import { validateProductMedia } from './productMediaValidation'
+import {
+  revalidateStorefrontProduct,
+  revalidateStorefrontProductDelete,
+} from '../hooks/revalidateStorefrontCatalog'
 import { seoField } from '../fields/seo'
 import {
   FixedToolbarFeature,
@@ -284,6 +288,11 @@ export const productsCollectionOverride: CollectionOverride = ({ defaultCollecti
     },
     hooks: {
       ...defaultCollection.hooks,
+      afterChange: [...(defaultCollection.hooks?.afterChange ?? []), revalidateStorefrontProduct],
+      afterDelete: [
+        ...(defaultCollection.hooks?.afterDelete ?? []),
+        revalidateStorefrontProductDelete,
+      ],
       beforeChange: [...(defaultCollection.hooks?.beforeChange ?? []), validateProductPublication],
       beforeValidate: [
         ...(defaultCollection.hooks?.beforeValidate ?? []),

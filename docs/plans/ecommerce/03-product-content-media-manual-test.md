@@ -104,6 +104,7 @@ Product responses retain the existing 60-second revalidation policy. After publi
       el selector para crear o elegir un archivo. No debe aparecer el error
       `gallery.0`; después de seleccionar el archivo, la relación debe quedar visible.
 - [ ] En **Media**, cargá los formatos permitidos: JPG, PNG, WebP, AVIF, MP4 y WebM.
+
 - [ ] Confirmá que una imagen de hasta 10 MB y un video de hasta 100 MB se acepten.
       Intentá luego cargar archivos que superen cada límite: el CMS debe rechazarlos
       con un mensaje en el idioma activo y no debe crear un registro parcial.
@@ -119,6 +120,16 @@ Product responses retain the existing 60-second revalidation policy. After publi
       permite guardarlo, registrá el comportamiento como un defecto para corregir.
 - [ ] Publicá el producto. Un producto borrador y sus metadatos no deben aparecer
       en la tienda pública.
+
+### Revalidación del storefront
+
+- [ ] Configurá la misma clave aleatoria en `STOREFRONT_REVALIDATION_SECRET` para
+      ambas aplicaciones y la URL del endpoint en el CMS. Reiniciá ambos procesos.
+- [ ] Publicá o editá nombre, descripción o medios de un producto y recargá su ficha
+      y el listado. El cambio debe aparecer sin esperar el TTL de 60–120 segundos.
+- [ ] Cambiá temporalmente el secreto solo en el CMS. El guardado debe completarse,
+      debe registrarse un aviso sin incluir el secreto y el contenido debe actualizarse
+      al vencer el TTL. Restaurá la configuración al finalizar.
 
 ### Storefront: orden, selección y accesibilidad
 

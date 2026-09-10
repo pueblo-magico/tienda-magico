@@ -89,13 +89,19 @@ Las tarjetas del catálogo, productos relacionados y bloques destacados reutiliz
 el mismo estado vacío localizado; ningún listado sustituye medios ausentes con una
 fotografía genérica externa.
 
+Los cambios y eliminaciones de productos o archivos multimedia notifican un endpoint
+server-to-server del storefront. El endpoint valida un secreto compartido, deriva una
+lista cerrada de tags y vence inmediatamente las lecturas afectadas. Si no se configura
+o el storefront no responde, el guardado del CMS continúa y la vigencia máxima de
+60–120 segundos funciona como respaldo. El secreto nunca se expone al navegador.
+
 La galería del CMS ahora acepta imágenes JPG/PNG/WebP/AVIF y videos MP4/WebM,
 con pie localizado y marca de medio principal. El adaptador proyecta el orden
 editorial, poster y texto alternativo; el storefront muestra miniaturas y un
 reproductor de video con controles, `preload="metadata"` y sin autoplay. No se
 aceptan URLs `data:` o `blob:` ni tipos MIME fuera de la lista.
 
-Verificación: 44 pruebas de catálogo, TypeScript, lint focalizado, formato y diff
+Verificación: 45 pruebas de catálogo, TypeScript, lint focalizado, formato y diff
 pasan. La validación de contenido real, errores de reproducción y verificación
 manual responsive/teclado siguen pendientes.
 
@@ -115,7 +121,7 @@ opcional de la fila funciona como poster/miniatura editorial y tiene prioridad.
 Las imágenes de la galería se presentan con alineación superior. Las columnas y
 tablas necesarias forman parte de la migración de Task 03.
 
-Verificación adicional: 44 pruebas de catálogo pasan; el build de storefront,
+Verificación adicional: 45 pruebas de catálogo pasan; el build de storefront,
 TypeScript y el formato de los archivos modificados pasan. La prueba en el
 navegador y la administración para editar/reordenar secciones aún queda pendiente.
 
@@ -128,7 +134,7 @@ navegador y la administración para editar/reordenar secciones aún queda pendie
   solicita únicamente productos publicados y vuelve a validar `_status` antes de
   proyectar sus referencias de medios. Las pruebas cubren productos borrador,
   estados ausentes y relaciones de categoría pobladas con borradores.
-- Automated coverage: catalog suite passes 44 tests. Storefront lint passes with existing warnings; TypeScript validation and production build pass.
+- Automated coverage: catalog suite passes 45 tests. Storefront lint passes with existing warnings; TypeScript validation and production build pass.
 - La galería ya incluye campos de media, validación de videos externos y miniaturas de YouTube generadas; la verificación end-to-end del CMS sigue pendiente.
 - Manual verification instructions: [Task 03 manual test](03-product-content-media-manual-test.md). These tests have not yet been executed against a live CMS.
 

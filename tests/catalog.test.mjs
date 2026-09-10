@@ -43,6 +43,10 @@ import {
   productGalleryReducer,
 } from "@/features/product/product-gallery-state";
 import { ProductCard } from "@/components/cards/ProductCard";
+import {
+  catalogRevalidationTags,
+  parseCatalogRevalidationEvent,
+} from "@/lib/revalidation/catalog";
 
 test("saved cart absence is recoverable but backend failures are not", async () => {
   transport({});
@@ -168,6 +172,35 @@ test("la tarjeta de producto muestra el estado sin medios y no inventa una image
   );
   assert.doesNotMatch(html, /<img/);
   assert.doesNotMatch(html, /unsplash/);
+});
+
+test("la revalidación acepta solo eventos y tags de catálogo permitidos", () => {
+  const event = parseCatalogRevalidationEvent({
+    resource: "product",
+    slugs: ["tambor", "tambor", "cacao-ceremonial"],
+  });
+  assert.deepEqual(event, {
+    resource: "product",
+    slugs: ["tambor", "cacao-ceremonial"],
+  });
+  assert.deepEqual(catalogRevalidationTags(event), [
+    "products",
+    "payload-products",
+    "product:tambor",
+    "product:cacao-ceremonial",
+  ]);
+  assert.equal(
+    parseCatalogRevalidationEvent({ resource: "product", slugs: ["../admin"] }),
+    null,
+  );
+  assert.equal(
+    parseCatalogRevalidationEvent({ resource: "arbitrary", slugs: [] }),
+    null,
+  );
+  assert.deepEqual(catalogRevalidationTags({ resource: "media", slugs: [] }), [
+    "products",
+    "payload-products",
+  ]);
 });
 import { mapProductVariant as mapShopifyVariant } from "@/lib/commerce/providers/shopify/mappers";
 import { findVariant } from "@/features/product/utils";
