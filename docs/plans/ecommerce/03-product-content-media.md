@@ -77,6 +77,10 @@ esquema se generan con Payload.
 
 ### Avance: galería de imágenes y videos
 
+Las cargas del CMS tienen límites explícitos: 10 MB por imagen y 100 MB por
+video. La validación se ejecuta del lado del servidor tanto desde el editor como
+desde la API y devuelve un mensaje en el idioma activo.
+
 La galería del CMS ahora acepta imágenes JPG/PNG/WebP/AVIF y videos MP4/WebM,
 con pie localizado y marca de medio principal. El adaptador proyecta el orden
 editorial, poster y texto alternativo; el storefront muestra miniaturas y un

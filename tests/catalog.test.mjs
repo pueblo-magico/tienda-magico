@@ -27,6 +27,11 @@ import { richTextToHtml, richTextToPlain } from "@/lib/cms/richtext";
 import { preventCategoryCycles } from "../apps/cms/src/collections/categoryHierarchy.ts";
 import { normalizeProductCategories } from "../apps/cms/src/collections/productClassificationHooks.ts";
 import {
+  MAX_IMAGE_UPLOAD_BYTES,
+  MAX_VIDEO_UPLOAD_BYTES,
+  validateMediaUploadSize,
+} from "../apps/cms/src/collections/mediaUploadValidation.ts";
+import {
   buildCategoryTree,
   directChildCategories,
 } from "@/features/shop/category-hierarchy";
@@ -37,6 +42,25 @@ test("saved cart absence is recoverable but backend failures are not", async () 
   mock.restoreAll();
   transport({ "GET /api/carts/999": new Error("offline") });
   await assert.rejects(getCart("999::test-secret"));
+});
+
+test("el CMS aplica límites distintos para imágenes y videos", () => {
+  const validate = (mimetype, size, locale = "es") =>
+    validateMediaUploadSize({
+      data: {},
+      req: { file: { mimetype, size }, locale },
+    });
+
+  assert.doesNotThrow(() => validate("image/webp", MAX_IMAGE_UPLOAD_BYTES));
+  assert.doesNotThrow(() => validate("video/mp4", MAX_VIDEO_UPLOAD_BYTES));
+  assert.throws(
+    () => validate("image/jpeg", MAX_IMAGE_UPLOAD_BYTES + 1),
+    (error) => error.cause?.errors?.[0]?.message.includes("10 MB"),
+  );
+  assert.throws(
+    () => validate("video/webm", MAX_VIDEO_UPLOAD_BYTES + 1, "en"),
+    (error) => error.cause?.errors?.[0]?.message.includes("100 MB"),
+  );
 });
 import { mapProductVariant as mapShopifyVariant } from "@/lib/commerce/providers/shopify/mappers";
 import { findVariant } from "@/features/product/utils";

@@ -101,6 +101,9 @@ Product responses retain the existing 60-second revalidation policy. After publi
 ### CMS: carga y configuración
 
 - [ ] En **Media**, cargá los formatos permitidos: JPG, PNG, WebP, AVIF, MP4 y WebM.
+- [ ] Confirmá que una imagen de hasta 10 MB y un video de hasta 100 MB se acepten.
+      Intentá luego cargar archivos que superen cada límite: el CMS debe rechazarlos
+      con un mensaje en el idioma activo y no debe crear un registro parcial.
 - [ ] Verificá que el CMS rechace al menos un formato no permitido (por ejemplo,
       SVG, GIF, MOV o un archivo ejecutable). No fuerces la carga mediante la API.
 - [ ] En la galería del producto, agregá dos imágenes y un video. Ordenalos en un
