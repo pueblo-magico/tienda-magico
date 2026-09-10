@@ -49,6 +49,19 @@ export const Categories: CollectionConfig = {
       name: 'image',
       type: 'upload',
       relationTo: 'media',
+      admin: { description: 'Opcional. Se muestra antes que el icono.' },
+    },
+    {
+      name: 'icon',
+      type: 'select',
+      options: [
+        { label: '♧  Hoja', value: 'leaf' },
+        { label: '⌃  Montaña', value: 'mountain' },
+        { label: '☼  Sol', value: 'sun' },
+        { label: '♨  Ritual', value: 'ritual' },
+        { label: '♡  Corazón', value: 'heart' },
+      ],
+      admin: { description: 'Opcional. Se usa cuando no hay imagen.' },
     },
     {
       name: 'parent',

@@ -6,7 +6,8 @@ import { Section } from "@/components/layout/Section";
 import { Body, Eyebrow, SectionTitle } from "@/components/typography";
 import { commerce } from "@/lib/commerce";
 import type { FeaturedCategoriesBlockData } from "@/lib/cms";
-import type { CollectionSummary } from "@/types/commerce";
+import type { CategoryIcon as CategoryIconName, CollectionSummary } from "@/types/commerce";
+import { CategoryIcon } from "@/components/CategoryIcon";
 
 function refId(value: unknown): string | null {
   if (value == null) return null;
@@ -70,6 +71,7 @@ export async function FeaturedCategoriesBlockView({
               title: collection.title,
               description: collection.description,
               image: collection.image,
+              icon: collection.icon,
               parent: collection.parent,
               displayOrder: collection.displayOrder,
             });
@@ -113,6 +115,10 @@ export async function FeaturedCategoriesBlockView({
                       className="object-cover transition-transform duration-500 group-hover:scale-105"
                       sizes="(max-width: 768px) 50vw, 25vw"
                     />
+                  ) : category.icon ? (
+                    <div className="text-text-secondary flex size-full items-center justify-center">
+                      <CategoryIcon name={category.icon as CategoryIconName} />
+                    </div>
                   ) : null}
                 </div>
                 <div className="space-y-1 px-4 py-3">

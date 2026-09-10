@@ -12,6 +12,7 @@ import { ShopToolbar } from "./ShopToolbar";
 import type { ShopQuery } from "./search-params";
 import { buildShopHref } from "./search-params";
 import type { CategoryReference } from "@/types/commerce";
+import { CategoryIcon } from "@/components/CategoryIcon";
 import { directChildCategories } from "./category-hierarchy";
 
 type Labels = {
@@ -93,6 +94,11 @@ export async function ShopPage({ locale, query, labels }: Props) {
             </>
           ) : null}
           <div className="relative z-10 max-w-xl space-y-3">
+            {!catalog.selectedCollection?.image?.url && catalog.selectedCollection?.icon ? (
+              <div className="text-text-secondary" aria-hidden="true">
+                <CategoryIcon name={catalog.selectedCollection.icon} />
+              </div>
+            ) : null}
             {categoryParents.length ? (
               <nav
                 aria-label={labels.collections}
@@ -198,6 +204,10 @@ export async function ShopPage({ locale, query, labels }: Props) {
                           className="object-cover"
                           sizes="48px"
                         />
+                      ) : collection.icon ? (
+                        <span className="text-text-secondary flex size-full items-center justify-center">
+                          <CategoryIcon name={collection.icon} />
+                        </span>
                       ) : null}
                     </span>
                     <span className="font-serif text-lg">

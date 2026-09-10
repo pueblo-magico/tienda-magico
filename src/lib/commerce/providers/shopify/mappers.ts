@@ -169,6 +169,7 @@ export function mapCollectionSummary(collection: {
     title: collection.title,
     description: collection.description ?? "",
     image: mapImage(collection.image),
+    icon: null,
   };
 }
 
@@ -192,6 +193,7 @@ export function mapCollection(collection: {
     description: collection.description ?? "",
     descriptionHtml: collection.descriptionHtml ?? "",
     image: mapImage(collection.image),
+    icon: null,
     seo: {
       title: collection.seo?.title ?? null,
       description: collection.seo?.description ?? null,

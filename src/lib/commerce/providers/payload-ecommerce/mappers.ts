@@ -2,6 +2,7 @@ import type {
   Cart,
   BrandReference,
   CategoryReference,
+  CategoryIcon,
   CartLine,
   CommerceMedia,
   Collection,
@@ -494,6 +495,10 @@ function mapCategoryReference(
   const handle = typeof doc.slug === "string" ? doc.slug : "";
   const title = resolveLocalizedText(doc.title, preferred);
   if (!handle || !title) return null;
+  const allowedIcons = ["leaf", "mountain", "sun", "ritual", "heart"] as const;
+  const icon = allowedIcons.includes(doc.icon as (typeof allowedIcons)[number])
+    ? (doc.icon as CategoryIcon)
+    : null;
 
   return {
     id: toId(doc.id),
@@ -501,6 +506,7 @@ function mapCategoryReference(
     title,
     description: richTextToPlain(doc.description),
     image: mapMedia(doc.image),
+    icon,
     parent:
       depth < 8 ? mapCategoryReference(doc.parent, locale, depth + 1) : null,
   };
@@ -1004,6 +1010,9 @@ export function mapCollectionSummary(
       String(doc.summary ?? ""),
     image:
       collectImages(doc as PayloadProductDoc)[0] ?? mapMedia(doc.image) ?? null,
+    icon: ["leaf", "mountain", "sun", "ritual", "heart"].includes(category.icon ?? "")
+      ? (category.icon as CategoryIcon)
+      : null,
     parent: mapCategoryReference(category.parent, locale),
     displayOrder:
       typeof category.displayOrder === "number" ? category.displayOrder : 0,

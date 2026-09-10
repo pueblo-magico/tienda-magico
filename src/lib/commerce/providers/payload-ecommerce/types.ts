@@ -42,6 +42,7 @@ export type PayloadCategoryDoc = PayloadDoc & {
   slug?: string | null;
   description?: unknown;
   image?: unknown;
+  icon?: string | null;
   parent?: string | number | PayloadCategoryDoc | null;
   displayOrder?: number | null;
   isVisible?: boolean | null;

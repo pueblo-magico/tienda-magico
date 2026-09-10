@@ -29,8 +29,11 @@ export type CategoryReference = {
   title: string;
   description: string;
   image: CommerceImage | null;
+  icon: CategoryIcon | null;
   parent: CategoryReference | null;
 };
+
+export type CategoryIcon = "leaf" | "mountain" | "sun" | "ritual" | "heart";
 
 export type BrandReference = {
   id: string;
@@ -154,6 +157,7 @@ export type Collection = {
   description: string;
   descriptionHtml: string;
   image: CommerceImage | null;
+  icon: CategoryIcon | null;
   parent?: CategoryReference | null;
   displayOrder?: number;
   seo: {
@@ -170,6 +174,7 @@ export type CollectionSummary = Pick<
   | "title"
   | "description"
   | "image"
+  | "icon"
   | "parent"
   | "displayOrder"
 >;

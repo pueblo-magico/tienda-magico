@@ -703,7 +703,14 @@ export interface Category {
    */
   slug: string;
   description?: string | null;
+  /**
+   * Opcional. Se muestra antes que el icono.
+   */
   image?: (number | null) | Media;
+  /**
+   * Opcional. Se usa cuando no hay imagen.
+   */
+  icon?: ('leaf' | 'mountain' | 'sun' | 'ritual' | 'heart') | null;
   /**
    * Optional parent used for category context and breadcrumbs.
    */
@@ -1520,6 +1527,7 @@ export interface CategoriesSelect<T extends boolean = true> {
   slug?: T;
   description?: T;
   image?: T;
+  icon?: T;
   parent?: T;
   displayOrder?: T;
   isVisible?: T;
