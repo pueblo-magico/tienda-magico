@@ -61,7 +61,9 @@ export const Categories: CollectionConfig = {
         { label: '♨  Ritual', value: 'ritual' },
         { label: '♡  Corazón', value: 'heart' },
       ],
-      admin: { description: 'Opcional. Se usa cuando no hay imagen.' },
+      admin: {
+        description: 'Opcional. Se usa cuando no hay imagen.',
+      },
     },
     {
       name: 'parent',

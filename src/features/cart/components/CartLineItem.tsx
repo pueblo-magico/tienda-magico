@@ -7,6 +7,7 @@ import { localizePath } from "@/config/navigation";
 import type { CartLine } from "@/types/commerce";
 import { formatMoney } from "@/lib/commerce/utils/format";
 import { cn } from "@/lib/utils/cn";
+import { Minus, Plus } from "lucide-react";
 
 type Props = {
   line: CartLine;
@@ -92,7 +93,7 @@ export function CartLineItem({
               aria-label={labels.decrease}
               onClick={() => onQuantityChange(line.id, line.quantity - 1)}
             >
-              −
+              <Minus aria-hidden className="mx-auto size-3.5" />
             </button>
             <span className="min-w-6 text-center text-sm tabular-nums">
               {line.quantity}
@@ -104,7 +105,7 @@ export function CartLineItem({
               aria-label={labels.increase}
               onClick={() => onQuantityChange(line.id, line.quantity + 1)}
             >
-              +
+              <Plus aria-hidden className="mx-auto size-3.5" />
             </button>
           </div>
 

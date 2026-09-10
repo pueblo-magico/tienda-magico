@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { ShoppingBag } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 
 export type CartButtonProps = {
@@ -19,17 +20,7 @@ export function CartButton({
   const content = (
     <>
       <span className="sr-only">Open cart</span>
-      <svg
-        aria-hidden
-        viewBox="0 0 24 24"
-        className="h-5 w-5"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.6"
-      >
-        <path d="M6 7h12l-1 12H7L6 7Z" />
-        <path d="M9 7a3 3 0 0 1 6 0" />
-      </svg>
+      <ShoppingBag aria-hidden className="h-5 w-5" strokeWidth={1.6} />
       {count > 0 ? (
         <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-clay px-1 text-[10px] font-semibold text-brand-foreground">
           {count}

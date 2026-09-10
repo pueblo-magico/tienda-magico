@@ -13,6 +13,7 @@ import type { ShopQuery } from "./search-params";
 import { buildShopHref } from "./search-params";
 import type { CategoryReference } from "@/types/commerce";
 import { CategoryIcon } from "@/components/CategoryIcon";
+import { ArrowRight } from "lucide-react";
 import { directChildCategories } from "./category-hierarchy";
 
 type Labels = {
@@ -213,9 +214,7 @@ export async function ShopPage({ locale, query, labels }: Props) {
                     <span className="font-serif text-lg">
                       {collection.title}
                     </span>
-                    <span aria-hidden className="ml-auto">
-                      →
-                    </span>
+                    <ArrowRight aria-hidden className="ml-auto size-4" />
                   </Link>
                 </li>
               ))}
