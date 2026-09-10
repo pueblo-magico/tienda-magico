@@ -1,16 +1,9 @@
-import { timingSafeEqual } from "node:crypto";
 import { revalidateTag } from "next/cache";
 import {
   catalogRevalidationTags,
+  isRevalidationSecretValid,
   parseCatalogRevalidationEvent,
 } from "@/lib/revalidation/catalog";
-
-function secretsMatch(received: string | null, expected: string) {
-  if (!received) return false;
-  const left = Buffer.from(received);
-  const right = Buffer.from(expected);
-  return left.length === right.length && timingSafeEqual(left, right);
-}
 
 export async function POST(request: Request) {
   const secret = process.env.STOREFRONT_REVALIDATION_SECRET;
@@ -20,7 +13,12 @@ export async function POST(request: Request) {
       { status: 503 },
     );
   }
-  if (!secretsMatch(request.headers.get("x-revalidation-secret"), secret)) {
+  if (
+    !isRevalidationSecretValid(
+      request.headers.get("x-revalidation-secret"),
+      secret,
+    )
+  ) {
     return Response.json({ error: "No autorizado." }, { status: 401 });
   }
   const contentLength = Number(request.headers.get("content-length") ?? 0);

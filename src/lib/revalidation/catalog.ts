@@ -25,3 +25,14 @@ export function catalogRevalidationTags(event: CatalogRevalidationEvent) {
   }
   return [...tags];
 }
+
+export function isRevalidationSecretValid(
+  received: string | null,
+  expected: string,
+) {
+  if (!received) return false;
+  const left = Buffer.from(received);
+  const right = Buffer.from(expected);
+  return left.length === right.length && timingSafeEqual(left, right);
+}
+import { timingSafeEqual } from "node:crypto";

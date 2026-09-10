@@ -45,6 +45,7 @@ import {
 import { ProductCard } from "@/components/cards/ProductCard";
 import {
   catalogRevalidationTags,
+  isRevalidationSecretValid,
   parseCatalogRevalidationEvent,
 } from "@/lib/revalidation/catalog";
 
@@ -65,6 +66,21 @@ test("el CMS aplica límites distintos para imágenes y videos", () => {
 
   assert.doesNotThrow(() => validate("image/webp", MAX_IMAGE_UPLOAD_BYTES));
   assert.doesNotThrow(() => validate("video/mp4", MAX_VIDEO_UPLOAD_BYTES));
+  const smallImage = Buffer.alloc(24 * 1024);
+  assert.doesNotThrow(() =>
+    validateMediaUploadSize({
+      data: { alt: "Imagen pequeña" },
+      req: {
+        locale: "es",
+        file: {
+          data: smallImage,
+          mimetype: "image/jpeg",
+          name: "imagen-24-kb.jpg",
+          size: smallImage.byteLength,
+        },
+      },
+    }),
+  );
   assert.deepEqual(
     validateMediaUploadSize({ data: { alt: "Sin archivo" }, req: {} }),
     { alt: "Sin archivo" },
@@ -201,6 +217,15 @@ test("la revalidación acepta solo eventos y tags de catálogo permitidos", () =
     "products",
     "payload-products",
   ]);
+  assert.equal(
+    isRevalidationSecretValid("secreto-exacto", "secreto-exacto"),
+    true,
+  );
+  assert.equal(
+    isRevalidationSecretValid("secreto-distinto", "secreto-exacto"),
+    false,
+  );
+  assert.equal(isRevalidationSecretValid(null, "secreto-exacto"), false);
 });
 import { mapProductVariant as mapShopifyVariant } from "@/lib/commerce/providers/shopify/mappers";
 import { findVariant } from "@/features/product/utils";

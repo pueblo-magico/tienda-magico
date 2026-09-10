@@ -560,6 +560,10 @@ export interface Product {
    */
   summary?: string | null;
   /**
+   * System-managed date. It does not change when unpublishing or republishing.
+   */
+  firstPublishedAt?: string | null;
+  /**
    * Drag sections to reorder. Translate title and content in each locale. Hidden or empty sections do not appear in the shop. Public information only.
    */
   informationSections?:
@@ -1642,6 +1646,7 @@ export interface ProductsSelect<T extends boolean = true> {
   slug?: T;
   description?: T;
   summary?: T;
+  firstPublishedAt?: T;
   informationSections?:
     | T
     | {

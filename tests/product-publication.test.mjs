@@ -131,3 +131,46 @@ test("first publication requires both locales for critical editorial copy", asyn
     req: request(),
   });
 });
+
+test("first publication timestamp is system-owned and remains stable", async () => {
+  const draftWithoutHistory = await validateProductPublication({
+    data: { _status: "draft", firstPublishedAt: "malicious" },
+    req: request(),
+  });
+  assert.equal(draftWithoutHistory.firstPublishedAt, null);
+
+  const first = await validateProductPublication({
+    data: {
+      id: 9,
+      _status: "published",
+      enableVariants: false,
+      priceInARSEnabled: true,
+      priceInARS: 100,
+      title: { es: "Cacao", en: "Cacao" },
+      summary: { es: "Ceremonial", en: "Ceremonial" },
+      firstPublishedAt: "2000-01-01T00:00:00.000Z",
+    },
+    req: request(),
+  });
+  assert.equal(typeof first.firstPublishedAt, "string");
+  assert.notEqual(first.firstPublishedAt, "2000-01-01T00:00:00.000Z");
+  assert.equal(Number.isNaN(Date.parse(first.firstPublishedAt)), false);
+
+  const originalDoc = {
+    ...product,
+    firstPublishedAt: first.firstPublishedAt,
+  };
+  const draft = await validateProductPublication({
+    data: { _status: "draft", firstPublishedAt: "malicious" },
+    originalDoc,
+    req: request(),
+  });
+  assert.equal(draft.firstPublishedAt, first.firstPublishedAt);
+
+  const republished = await validateProductPublication({
+    data: { _status: "published", firstPublishedAt: "malicious" },
+    originalDoc: { ...originalDoc, _status: "draft" },
+    req: request([variant]),
+  });
+  assert.equal(republished.firstPublishedAt, first.firstPublishedAt);
+});

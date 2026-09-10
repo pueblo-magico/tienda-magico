@@ -13,6 +13,7 @@ type Item = {
   priceInARS?: unknown
   title?: unknown
   summary?: unknown
+  firstPublishedAt?: unknown
 }
 function idOf(value: unknown): string | number | null {
   if (typeof value === 'string' || typeof value === 'number') return value
@@ -97,7 +98,11 @@ export const validateProductPublication: CollectionBeforeChangeHook = async ({
   req,
 }) => {
   const next = { ...originalDoc, ...data }
-  if (next._status !== 'published') return data
+  const existingFirstPublication =
+    typeof originalDoc?.firstPublishedAt === 'string' ? originalDoc.firstPublishedAt : null
+  if (next._status !== 'published') {
+    return { ...data, firstPublishedAt: existingFirstPublication }
+  }
   const isFirstPublication = originalDoc?._status !== 'published'
   const hasEditorialFields = Object.hasOwn(next, 'title') || Object.hasOwn(next, 'summary')
   if (
@@ -110,7 +115,10 @@ export const validateProductPublication: CollectionBeforeChangeHook = async ({
     const id = idOf(originalDoc?.id)
     if (id == null || !(await hasVariant(req, id))) reject(req, 'enableVariants')
   } else if (!validPrice(next)) reject(req, 'priceInARS')
-  return data
+  return {
+    ...data,
+    firstPublishedAt: existingFirstPublication ?? new Date().toISOString(),
+  }
 }
 
 async function protectParent(req: PayloadRequest, original: Item, next?: Item) {

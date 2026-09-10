@@ -21,6 +21,13 @@ usan el fallback público configurado. La validación se ejecuta junto con las
 protecciones existentes de variantes y precio ARS; no cambia slugs ni datos
 persistidos.
 
+La fecha **Primera publicación** es metadata de solo lectura administrada por el
+CMS. Se asigna una única vez cuando la primera publicación supera todas las
+validaciones y se conserva al despublicar, republicar o editar. La migración
+`20260910_190000_task_03_first_publication` completa productos publicados existentes
+con `createdAt` como aproximación histórica, deja vacíos los borradores y elimina
+solo la nueva columna al revertirse. Este dato no forma parte del contrato público.
+
 ### Avance: editor organizado y origen/SEO públicos
 
 El editor de productos ahora agrupa los campos en pestañas de Contenido,
@@ -135,6 +142,10 @@ navegador y la administración para editar/reordenar secciones aún queda pendie
   proyectar sus referencias de medios. Las pruebas cubren productos borrador,
   estados ausentes y relaciones de categoría pobladas con borradores.
 - Automated coverage: catalog suite passes 45 tests. Storefront lint passes with existing warnings; TypeScript validation and production build pass.
+- La suite integral `npm run test:task-03` agrega 6 pruebas de publicación y 4 de
+  revalidación: cubre la fecha de primera publicación, intentos de sobrescritura,
+  creación sin documento anterior, configuración ausente, firma del evento y fallos
+  remotos sin bloquear el guardado ni exponer el secreto.
 - La galería ya incluye campos de media, validación de videos externos y miniaturas de YouTube generadas; la verificación end-to-end del CMS sigue pendiente.
 - Manual verification instructions: [Task 03 manual test](03-product-content-media-manual-test.md). These tests have not yet been executed against a live CMS.
 

@@ -4,14 +4,14 @@ type CatalogDocument = { slug?: unknown }
 
 async function notifyStorefront(
   resource: 'product' | 'media',
-  documents: CatalogDocument[],
+  documents: Array<CatalogDocument | null | undefined>,
   logger: { warn: (message: string) => void },
 ) {
   const url = process.env.STOREFRONT_REVALIDATION_URL
   const secret = process.env.STOREFRONT_REVALIDATION_SECRET
   if (!url || !secret) return
   const slugs = documents.flatMap((document) =>
-    typeof document.slug === 'string' && document.slug ? [document.slug] : [],
+    document && typeof document.slug === 'string' && document.slug ? [document.slug] : [],
   )
   try {
     const response = await fetch(url, {

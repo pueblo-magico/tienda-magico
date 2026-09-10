@@ -77,6 +77,18 @@ export const productsCollectionOverride: CollectionOverride = ({ defaultCollecti
         },
       },
     },
+    {
+      name: 'firstPublishedAt',
+      type: 'date',
+      label: { es: 'Primera publicación', en: 'First published' },
+      admin: {
+        readOnly: true,
+        description: {
+          es: 'Fecha administrada por el sistema. No cambia al despublicar o volver a publicar.',
+          en: 'System-managed date. It does not change when unpublishing or republishing.',
+        },
+      },
+    },
     informationSectionsField,
     seoField(),
   ] as Field[]

@@ -7,7 +7,8 @@ Status: not run. Task 03 is partially implemented; this checklist currently cove
 Usá un CMS y storefront local o de prueba, nunca contenido de producción. Respaldá
 PostgreSQL y aplicá primero las migraciones anteriores, incluida la de taxonomía.
 Luego aplicá `20260908_041909_task_03_product_content_media` antes de iniciar el CMS
-y `20260910_143311_task_03_origin_seo` antes de iniciar el CMS con este esquema.
+y `20260910_143311_task_03_origin_seo`, `20260910_170000_task_03_lifecycle` y
+`20260910_190000_task_03_first_publication` antes de iniciar el CMS con este esquema.
 Usá un producto publicado y otro borrador, con slugs distintos y
 títulos reconocibles en ES/EN. No compartas claves, cookies ni datos personales en
 los resultados.
@@ -16,7 +17,10 @@ La migración conserva productos y filas existentes. Las filas antiguas no queda
 marcadas como principales, por lo que la tienda continúa usando el primer medio.
 No crea secciones ni inventa traducciones para productos existentes.
 
-Product responses retain the existing 60-second revalidation policy. After publishing or changing publication status, wait at least 60 seconds and request the page again; a subsequent request may be needed after background revalidation. Restarting the local server alone is not evidence that the production cache refresh policy works.
+Con la revalidación server-to-server configurada, los cambios deben verse en la
+siguiente solicitud. Si el endpoint no está configurado o disponible, las respuestas
+conservan el respaldo de 60–120 segundos. Reiniciar el servidor local no demuestra
+por sí solo que la política de producción funcione.
 
 ## Public catalog and metadata
 
@@ -34,6 +38,9 @@ Product responses retain the existing 60-second revalidation policy. After publi
       vuelve a estar disponible después de la revalidación.
 - [ ] Un producto borrador no debe aparecer aunque su estado de ciclo de vida sea
       **Activo** o **Discontinuado**.
+- [ ] En un producto nuevo, confirmá que **Primera publicación** esté vacía mientras
+      sea borrador. Publicalo, anotá la fecha, volvé a borrador y republicalo: la fecha
+      debe mantenerse y el campo no debe poder editarse manualmente.
 
 ## Editor, origen público y SEO
 
