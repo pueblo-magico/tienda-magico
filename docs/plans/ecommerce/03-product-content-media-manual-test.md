@@ -248,14 +248,72 @@ Automated hook checks: `node --test tests/product-publication.test.mjs`.
 El guard de publicación no migra ni modifica productos automáticamente; la
 migración de contenido/media descripta arriba es un cambio separado.
 
-Verification: four hook tests and 38 catalog tests pass; storefront and CMS
-production builds pass. Storefront lint passes with existing warnings. Full CMS
-lint retains two existing anchor-element errors in its frontend page and 13
-warnings. HTTP checks observed the new unavailable message on EN; the ES response
-showed an add-to-cart state instead, so it did not verify the unavailable case.
-Admin mutation and desktop/mobile keyboard tests above remain unexecuted.
+La suite automatizada actual se ejecuta con `npm run test:task-03` y contiene 55
+pruebas: 45 de catálogo, 6 de publicación y 4 de revalidación. Estas pruebas no
+reemplazan las verificaciones humanas y de PostgreSQL detalladas a continuación.
 
-## Funcionalidad todavía pendiente
+## Readiness gate
 
-Queda ejecutar la prueba manual de migración/rollback y completar la matriz de
-escritorio, móvil, teclado y ambos idiomas.
+Estado: **abierto**. Task 03 se considera lista únicamente cuando todos los puntos
+estén marcados y la evidencia quede registrada en este archivo o vinculada desde él.
+
+### Base de datos y migraciones
+
+- [ ] Ejecutar la cadena completa de migraciones, incluida
+      `20260910_190000_task_03_first_publication`, sobre una copia o base descartable.
+- [ ] Confirmar que productos publicados existentes reciben `firstPublishedAt` desde
+      `createdAt`, que los borradores quedan vacíos y que no se pierden productos,
+      variantes, taxonomía, medios ni traducciones.
+- [ ] Ejecutar rollback y reaplicación en la base descartable; registrar comandos,
+      resultado y cualquier incompatibilidad. No probar rollback sobre datos únicos.
+
+### Upload real pendiente de diagnóstico
+
+- [ ] Repetir la carga del archivo pequeño reportado mediante `/api/media` y registrar
+      extensión, MIME detectado, tamaño en bytes, estado HTTP y mensaje seguro de la
+      respuesta. No adjuntar cookies, claves ni encabezados de autorización.
+- [ ] Confirmar con archivos reales que una imagen permitida de 24 KB y los límites
+      exactos de 10 MB/100 MB se aceptan, y que excederlos por un byte se rechaza.
+- [ ] Distinguir un rechazo de tamaño de uno por MIME/formato o por configuración de
+      la fila de galería. Si el archivo de 24 KB permitido aún falla, Task 03 sigue abierta.
+
+### Flujo editorial y storefront
+
+- [ ] Completar todas las casillas anteriores del CMS: contenido corto/enriquecido,
+      secciones, origen, SEO, galería, YouTube, ciclo de vida y primera publicación.
+- [ ] Completar el flujo en ES y EN, escritorio y móvil, con mouse y teclado; incluir
+      carga/error/reintento, ausencia de medios, traducción faltante y acordeón vacío.
+- [ ] Confirmar tarjetas, ficha y relacionados con la misma imagen principal o el mismo
+      placeholder sin medios, sin solicitudes a fotografías genéricas externas.
+- [ ] Verificar productos activos, discontinuados y borradores, incluida la imposibilidad
+      de comprar contenido discontinuado/borrador mediante UI o llamada directa.
+
+### Revalidación y fallos operativos
+
+- [ ] Con secreto correcto, confirmar que una publicación o edición aparece en la
+      siguiente solicitud sin esperar el TTL.
+- [ ] Con secreto incorrecto o storefront detenido, confirmar que el CMS guarda sin
+      filtrar secretos y que el contenido se actualiza mediante el respaldo de 60–120 s.
+- [ ] Confirmar el estado localizado y accionable cuando el backend no está disponible.
+
+### Seguridad y cierre
+
+- [ ] Revisar respuestas públicas y metadata para confirmar que no aparecen costos,
+      proveedor, notas internas, claves, borradores ni URLs de medios privados.
+- [ ] Ejecutar y registrar `npm run test:task-03`, TypeScript, lint y builds de storefront
+      y CMS sobre el commit candidato. Documentar cualquier verificación omitida.
+- [ ] Registrar fecha, ambiente, commit probado y responsable de la prueba; recién
+      entonces cambiar el estado de Task 03 a completada.
+
+### Evidencia de cierre
+
+- Fecha:
+- Ambiente:
+- Commit:
+- Responsable:
+- Resultado de migración/rollback:
+- Resultado del upload de 24 KB:
+- Resultado ES/EN, desktop/mobile y teclado:
+- Resultado de revalidación/TTL:
+- Comandos automáticos ejecutados:
+- Incidencias o riesgos restantes:

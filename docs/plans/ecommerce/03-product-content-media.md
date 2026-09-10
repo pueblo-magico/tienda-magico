@@ -189,6 +189,8 @@ Implement shared-structure accordion entries with stable key, localized editable
 
 ### Definition of done
 
+El cierre operativo se controla en [Task 03 — readiness gate](03-product-content-media-manual-test.md#readiness-gate). No marques esta tarea como terminada hasta completar y registrar allí todas las verificaciones abiertas.
+
 - [ ] CMS edits flow through the adapter/public contracts to product detail, with distinct short and comprehensive descriptions.
 - [ ] EN/ES accordions retain the same identity/order; incomplete translations and fallback behavior are explicit.
 - [ ] Images and videos render with valid accessibility metadata and responsive behavior.
