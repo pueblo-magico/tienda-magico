@@ -26,7 +26,10 @@ const groups = [
   },
   {
     title: "Actions",
-    items: [{ href: "/ui-system/button", label: "Button" }],
+    items: [
+      { href: "/ui-system/button", label: "Button" },
+      { href: "/ui-system/icons", label: "Iconos" },
+    ],
   },
   {
     title: "Forms",
