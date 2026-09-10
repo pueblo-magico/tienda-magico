@@ -4,6 +4,15 @@ Status: in progress — content-rendering and public catalog-read foundations im
 
 ## Implementation progress
 
+### Avance: preparación mínima de traducciones
+
+La primera publicación de productos nuevos valida que nombre y descripción
+corta estén completos en español e inglés. Los documentos antiguos sin esos
+campos conservan una política de compatibilidad: pueden seguir editándose y
+usan el fallback público configurado. La validación se ejecuta junto con las
+protecciones existentes de variantes y precio ARS; no cambia slugs ni datos
+persistidos.
+
 ### Avance: editor organizado y origen/SEO públicos
 
 El editor de productos ahora agrupa los campos en pestañas de Contenido,

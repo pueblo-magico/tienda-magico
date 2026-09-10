@@ -7,7 +7,7 @@ Status: not run. Task 03 is partially implemented; this checklist currently cove
 Usá un CMS y storefront local o de prueba, nunca contenido de producción. Respaldá
 PostgreSQL y aplicá primero las migraciones anteriores, incluida la de taxonomía.
 Luego aplicá `20260908_041909_task_03_product_content_media` antes de iniciar el CMS
- y `20260910_143311_task_03_origin_seo` antes de iniciar el CMS con este esquema.
+y `20260910_143311_task_03_origin_seo` antes de iniciar el CMS con este esquema.
 Usá un producto publicado y otro borrador, con slugs distintos y
 títulos reconocibles en ES/EN. No compartas claves, cookies ni datos personales en
 los resultados.
@@ -35,6 +35,16 @@ Product responses retain the existing 60-second revalidation policy. After publi
 - [ ] Completá título y descripción SEO distintos en ES/EN, una imagen OG y
       `noindex`; tras la revalidación, confirmá metadata, imagen y robots en
       cada locale.
+
+## Traducciones y primera publicación
+
+- [ ] Creá un producto nuevo y completá nombre o descripción corta en un solo
+      idioma; al intentar la primera publicación, el CMS debe solicitar ambos
+      idiomas con un mensaje localizado.
+- [ ] Completá nombre y descripción corta en ES y EN y publicá correctamente.
+- [ ] Editá después un producto ya publicado dejando una traducción vacía;
+      la compatibilidad de contenido legado debe mantenerse y la tienda debe
+      mostrar el fallback configurado sin inventar que la traducción está lista.
 
 - [ ] In both EN and ES, the published product appears in the shop and its category. Its shared slug resolves to the same product.
 - [ ] The draft product is absent from shop/category results. Its detail URL and document-ID URL do not expose its title, description, or SEO metadata.

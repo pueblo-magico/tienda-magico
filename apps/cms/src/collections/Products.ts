@@ -23,6 +23,10 @@ import {
  * Shared across locales: slug, gallery, classifications, and pricing.
  */
 export const productsCollectionOverride: CollectionOverride = ({ defaultCollection }) => {
+  const documentLocaleSwitcher = {
+    path: '@/components/DocumentLocaleSwitcher',
+    exportName: 'default',
+  }
   const contentFields = [
     {
       name: 'title',
@@ -237,6 +241,13 @@ export const productsCollectionOverride: CollectionOverride = ({ defaultCollecti
       useAsTitle: 'title',
       defaultColumns: ['title', 'slug', '_status', 'updatedAt'],
       group: 'Shop',
+      components: {
+        ...defaultCollection.admin?.components,
+        edit: {
+          ...defaultCollection.admin?.components?.edit,
+          beforeDocumentControls: [documentLocaleSwitcher],
+        },
+      },
     },
     defaultPopulate: {
       ...(defaultCollection.defaultPopulate ?? {}),

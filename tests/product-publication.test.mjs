@@ -101,3 +101,33 @@ test("ordinary stock edits, another eligible variant or draft parent allow chang
     req: request([], { ...product, _status: "draft" }),
   });
 });
+
+test("first publication requires both locales for critical editorial copy", async () => {
+  await assert.rejects(
+    validateProductPublication({
+      data: {
+        id: 9,
+        _status: "published",
+        enableVariants: false,
+        priceInARSEnabled: true,
+        priceInARS: 100,
+        title: { es: "Cacao", en: "" },
+        summary: { es: "Ceremonial", en: "Ceremonial" },
+      },
+      req: request(),
+    }),
+    { name: "ValidationError" },
+  );
+  await validateProductPublication({
+    data: {
+      id: 9,
+      _status: "published",
+      enableVariants: false,
+      priceInARSEnabled: true,
+      priceInARS: 100,
+      title: { es: "Cacao", en: "Cacao" },
+      summary: { es: "Ceremonial", en: "Ceremonial" },
+    },
+    req: request(),
+  });
+});

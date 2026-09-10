@@ -11,6 +11,8 @@ type Item = {
   _status?: unknown
   priceInARSEnabled?: unknown
   priceInARS?: unknown
+  title?: unknown
+  summary?: unknown
 }
 function idOf(value: unknown): string | number | null {
   if (typeof value === 'string' || typeof value === 'number') return value
@@ -36,6 +38,29 @@ function reject(req: PayloadRequest, path: string): never {
           req.locale === 'en'
             ? 'A published product needs a published variant with ARS enabled and a valid price. Save the product as a draft first, or publish another variant. Simple products need their own valid ARS price.'
             : 'Un producto publicado necesita una variante publicada con ARS activo y precio válido. Guardá primero el producto como borrador o publicá otra variante. Los productos simples necesitan su propio precio ARS válido.',
+      },
+    ],
+  })
+}
+
+function hasRequiredLocales(value: unknown): boolean {
+  if (typeof value === 'string') return Boolean(value.trim())
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false
+  const record = value as Record<string, unknown>
+  return ['es', 'en'].every(
+    (locale) => typeof record[locale] === 'string' && Boolean(record[locale].trim()),
+  )
+}
+
+function rejectTranslation(req: PayloadRequest, path: string): never {
+  throw new ValidationError({
+    errors: [
+      {
+        path,
+        message:
+          req.locale === 'en'
+            ? 'Spanish and English are required for the product name and short description before first publication.'
+            : 'Antes de publicar por primera vez, completá el nombre y la descripción corta en español e inglés.',
       },
     ],
   })
@@ -73,6 +98,14 @@ export const validateProductPublication: CollectionBeforeChangeHook = async ({
 }) => {
   const next = { ...originalDoc, ...data }
   if (next._status !== 'published') return data
+  const isFirstPublication = originalDoc?._status !== 'published'
+  const hasEditorialFields = Object.hasOwn(next, 'title') || Object.hasOwn(next, 'summary')
+  if (
+    isFirstPublication &&
+    hasEditorialFields &&
+    (!hasRequiredLocales(next.title) || !hasRequiredLocales(next.summary))
+  )
+    rejectTranslation(req, 'title')
   if (next.enableVariants === true) {
     const id = idOf(originalDoc?.id)
     if (id == null || !(await hasVariant(req, id))) reject(req, 'enableVariants')

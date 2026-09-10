@@ -1,0 +1,30 @@
+/* The product editor renders the locale popup beside Publish changes. */
+.document-locale-switcher {
+  display: inline-flex;
+  align-items: center;
+  margin-inline-end: 0.5rem;
+}
+
+.document-locale-switcher .localizer {
+  margin: 0;
+}
+
+.document-locale-switcher__label {
+  margin-inline-end: 0.35rem;
+  font-size: 0.75rem;
+}
+
+.document-locale-switcher select {
+  min-height: 2rem;
+  padding: 0.25rem 1.75rem 0.25rem 0.5rem;
+  border: 1px solid var(--theme-elevation-300);
+  border-radius: 0.25rem;
+  background: var(--theme-input-bg);
+  color: var(--theme-text);
+  cursor: pointer;
+}
+
+/* Avoid presenting the same locale control twice on product edit screens. */
+body:has(.collection-edit--products) .app-header__localizer {
+  display: none;
+}
