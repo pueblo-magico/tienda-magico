@@ -16,7 +16,8 @@ import type {
 import { AddToCartForm } from "./AddToCartForm";
 import { ProductGallery } from "./ProductGallery";
 import { RelatedProducts } from "./RelatedProducts";
-import { getGalleryImages } from "./utils";
+import { getGalleryImages, getDefaultVariant } from "./utils";
+import { ProductSelection } from "./ProductSelection";
 
 type Labels = {
   backToShop: string;
@@ -133,129 +134,139 @@ export function ProductPageView({ locale, product, related, labels }: Props) {
             <span className="text-text-black">{product.title}</span>
           </nav>
 
-          <div className="grid gap-10 lg:grid-cols-[1.08fr_.92fr] lg:items-start">
-            <ProductGallery
-              title={product.title}
-              images={images}
-              media={product.media}
-              labels={{
-                gallery: labels.gallery,
-                noMedia: labels.noMedia,
-                mediaError: labels.mediaError,
-                retry: labels.retryMedia,
-              }}
-            />
-
-            <div className="space-y-6 lg:sticky lg:top-28 lg:pt-4">
-              {classification?.brand ? (
-                <div className="flex items-center gap-3">
-                  {classification.brand.logo?.url ? (
-                    <span className="border-border bg-card relative h-10 w-10 overflow-hidden rounded-full border">
-                      <Image
-                        src={classification.brand.logo.url}
-                        alt={
-                          classification.brand.logo.altText ||
-                          classification.brand.name
-                        }
-                        fill
-                        className="object-contain p-1"
-                        sizes="40px"
-                      />
-                    </span>
-                  ) : null}
-                  {classification.brand.website ? (
-                    <a
-                      href={classification.brand.website}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="hover:text-text-accent transition-colors"
-                    >
-                      <Eyebrow>{classification.brand.name}</Eyebrow>
-                    </a>
-                  ) : (
-                    <Eyebrow>{classification.brand.name}</Eyebrow>
-                  )}
-                </div>
-              ) : product.vendor ? (
-                <Eyebrow>{product.vendor}</Eyebrow>
-              ) : null}
-              <PageTitle as="h1" className="text-4xl leading-tight sm:text-5xl">
-                {product.title}
-              </PageTitle>
-
-              {publicTags.length || product.tags.length ? (
-                <div className="flex flex-wrap gap-2" aria-label={labels.tags}>
-                  {(publicTags.length
-                    ? publicTags.map((tag) => ({
-                        id: tag.id,
-                        label: tag.label,
-                      }))
-                    : product.tags.map((tag) => ({ id: tag, label: tag }))
-                  )
-                    .slice(0, 6)
-                    .map((tag) => (
-                      <Badge key={tag.id} variant="outline">
-                        {tag.label}
-                      </Badge>
-                    ))}
-                </div>
-              ) : null}
-
-              {shortDescription ? (
-                <Body className="text-forest/80">{shortDescription}</Body>
-              ) : null}
-
-              <AddToCartForm
-                product={product}
+          <ProductSelection
+            key={product.updatedAt}
+            initialVariant={getDefaultVariant(product)}
+          >
+            <div className="grid gap-10 lg:grid-cols-[1.08fr_.92fr] lg:items-start">
+              <ProductGallery
+                title={product.title}
+                images={images}
+                media={product.media}
                 labels={{
-                  addToCart: labels.addToCart,
-                  adding: labels.adding,
-                  soldOut: labels.soldOut,
-                  quantity: labels.quantity,
-                  decrease: labels.decrease,
-                  increase: labels.increase,
-                  from: labels.from,
-                  unavailable: labels.unavailable,
-                  productUnavailable: labels.productUnavailable,
-                  addFailed: labels.addFailed,
+                  gallery: labels.gallery,
+                  noMedia: labels.noMedia,
+                  mediaError: labels.mediaError,
+                  retry: labels.retryMedia,
                 }}
               />
 
-              <div className="border-border text-muted grid grid-cols-3 gap-3 border-y py-5 text-center text-[11px] leading-snug">
-                <span>
-                  <Truck
-                    aria-hidden
-                    className="mx-auto size-4"
-                    strokeWidth={1.5}
-                  />
-                  <strong className="text-text-black mt-1 block font-medium">
-                    {labels.freeShipping}
-                  </strong>
-                </span>
-                <span>
-                  <LockKeyhole
-                    aria-hidden
-                    className="mx-auto size-4"
-                    strokeWidth={1.5}
-                  />
-                  <strong className="text-text-black mt-1 block font-medium">
-                    {labels.securePayment}
-                  </strong>
-                </span>
-                <span>
-                  <Sprout
-                    aria-hidden
-                    className="mx-auto size-4"
-                    strokeWidth={1.5}
-                  />
-                  <strong className="text-text-black mt-1 block font-medium">
-                    {labels.ethicallySourced}
-                  </strong>
-                </span>
+              <div className="space-y-6 lg:sticky lg:top-28 lg:pt-4">
+                {classification?.brand ? (
+                  <div className="flex items-center gap-3">
+                    {classification.brand.logo?.url ? (
+                      <span className="border-border bg-card relative h-10 w-10 overflow-hidden rounded-full border">
+                        <Image
+                          src={classification.brand.logo.url}
+                          alt={
+                            classification.brand.logo.altText ||
+                            classification.brand.name
+                          }
+                          fill
+                          className="object-contain p-1"
+                          sizes="40px"
+                        />
+                      </span>
+                    ) : null}
+                    {classification.brand.website ? (
+                      <a
+                        href={classification.brand.website}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="hover:text-text-accent transition-colors"
+                      >
+                        <Eyebrow>{classification.brand.name}</Eyebrow>
+                      </a>
+                    ) : (
+                      <Eyebrow>{classification.brand.name}</Eyebrow>
+                    )}
+                  </div>
+                ) : product.vendor ? (
+                  <Eyebrow>{product.vendor}</Eyebrow>
+                ) : null}
+                <PageTitle
+                  as="h1"
+                  className="text-4xl leading-tight sm:text-5xl"
+                >
+                  {product.title}
+                </PageTitle>
+
+                {publicTags.length || product.tags.length ? (
+                  <div
+                    className="flex flex-wrap gap-2"
+                    aria-label={labels.tags}
+                  >
+                    {(publicTags.length
+                      ? publicTags.map((tag) => ({
+                          id: tag.id,
+                          label: tag.label,
+                        }))
+                      : product.tags.map((tag) => ({ id: tag, label: tag }))
+                    )
+                      .slice(0, 6)
+                      .map((tag) => (
+                        <Badge key={tag.id} variant="outline">
+                          {tag.label}
+                        </Badge>
+                      ))}
+                  </div>
+                ) : null}
+
+                {shortDescription ? (
+                  <Body className="text-forest/80">{shortDescription}</Body>
+                ) : null}
+
+                <AddToCartForm
+                  product={product}
+                  labels={{
+                    addToCart: labels.addToCart,
+                    adding: labels.adding,
+                    soldOut: labels.soldOut,
+                    quantity: labels.quantity,
+                    decrease: labels.decrease,
+                    increase: labels.increase,
+                    from: labels.from,
+                    unavailable: labels.unavailable,
+                    productUnavailable: labels.productUnavailable,
+                    addFailed: labels.addFailed,
+                  }}
+                />
+
+                <div className="border-border text-muted grid grid-cols-3 gap-3 border-y py-5 text-center text-[11px] leading-snug">
+                  <span>
+                    <Truck
+                      aria-hidden
+                      className="mx-auto size-4"
+                      strokeWidth={1.5}
+                    />
+                    <strong className="text-text-black mt-1 block font-medium">
+                      {labels.freeShipping}
+                    </strong>
+                  </span>
+                  <span>
+                    <LockKeyhole
+                      aria-hidden
+                      className="mx-auto size-4"
+                      strokeWidth={1.5}
+                    />
+                    <strong className="text-text-black mt-1 block font-medium">
+                      {labels.securePayment}
+                    </strong>
+                  </span>
+                  <span>
+                    <Sprout
+                      aria-hidden
+                      className="mx-auto size-4"
+                      strokeWidth={1.5}
+                    />
+                    <strong className="text-text-black mt-1 block font-medium">
+                      {labels.ethicallySourced}
+                    </strong>
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
-
+          </ProductSelection>
           {product.description.trim() ||
           otherInformationSections?.length ||
           legacyOriginSection ||

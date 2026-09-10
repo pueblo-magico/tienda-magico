@@ -58,6 +58,11 @@ export async function loadShopCatalog(
       ).values(),
     ).slice(0, 8);
     const filteredItems = products.items.filter((product) => {
+      if (
+        (query.minPrice || query.maxPrice) &&
+        !product.priceRange.minVariantPrice.amount.trim()
+      )
+        return false;
       const price = Number(product.priceRange.minVariantPrice.amount);
       if (query.minPrice && Number.isFinite(minPrice) && price < minPrice)
         return false;

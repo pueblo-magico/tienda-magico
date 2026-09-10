@@ -6,6 +6,7 @@ import { ImageOff, LoaderCircle, RotateCcw } from "lucide-react";
 import { MediaPlaceholder } from "@/components/media/MediaPlaceholder";
 import type { CommerceImage, CommerceMedia } from "@/types/commerce";
 import { cn } from "@/lib/utils/cn";
+import { useProductSelection } from "./ProductSelection";
 import {
   createProductGalleryState,
   productGalleryReducer,
@@ -23,7 +24,21 @@ type Props = {
   };
 };
 
-export function ProductGallery({ title, images, media = [], labels }: Props) {
+export function ProductGallery(props: Props) {
+  const selection = useProductSelection();
+  const image = selection?.variant?.image;
+  const media = image
+    ? [
+        { ...image, kind: "image" as const },
+        ...(props.media ?? []).filter((entry) => entry.url !== image.url),
+      ]
+    : props.media;
+  return (
+    <GalleryContent key={image?.url ?? "product"} {...props} media={media} />
+  );
+}
+
+function GalleryContent({ title, images, media = [], labels }: Props) {
   const list =
     media.length > 0
       ? media

@@ -1,4 +1,23 @@
-import type { Cart, CartLineInput, CartLineUpdateInput } from "@/types/commerce";
+import type {
+  Cart,
+  CartLineInput,
+  CartLineUpdateInput,
+} from "@/types/commerce";
+
+export class CartRequestError extends Error {}
+
+export async function confirmCartPrices(
+  cartId: string,
+  locale: string,
+): Promise<CartResponse> {
+  return parseResponse(
+    await fetch("/api/cart", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "confirmPrices", cartId, locale }),
+    }),
+  );
+}
 
 type CartResponse = {
   cart: Cart;
@@ -13,7 +32,7 @@ type LocaleOption = {
 async function parseResponse(response: Response): Promise<CartResponse> {
   const data = (await response.json()) as CartResponse;
   if (!response.ok) {
-    throw new Error(data.error || `Cart request failed (${response.status})`);
+    throw new CartRequestError("cartRequestFailed");
   }
   return data;
 }

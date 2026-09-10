@@ -1,5 +1,6 @@
 import { createCheckoutProvider } from "./create-provider";
 import type { CheckoutProvider } from "./provider";
+import { validateCheckoutCart } from "./validate-cart";
 
 export type { CheckoutProvider } from "./provider";
 export {
@@ -30,7 +31,10 @@ export const checkout = {
   isConfigured: () => getCheckoutProvider().isConfigured(),
   createCheckoutSession: (
     ...args: Parameters<CheckoutProvider["createCheckoutSession"]>
-  ) => getCheckoutProvider().createCheckoutSession(...args),
+  ) => {
+    validateCheckoutCart(args[0].cart, args[0].locale);
+    return getCheckoutProvider().createCheckoutSession(...args);
+  },
   getPayment: (paymentId: string) => {
     const provider = getCheckoutProvider();
     if (!provider.getPayment) {

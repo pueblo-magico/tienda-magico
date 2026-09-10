@@ -70,6 +70,7 @@ export async function GET(request: Request) {
 }
 
 type CartBody =
+  | { action: "confirmPrices"; cartId: string; locale?: string }
   | {
       action: "create";
       lines?: CartLineInput[];
@@ -115,6 +116,18 @@ export async function POST(request: Request) {
     const cartParams = { locale };
 
     switch (body.action) {
+      case "confirmPrices": {
+        if (typeof body.cartId !== "string" || !body.cartId.trim())
+          return NextResponse.json(
+            { error: "cartId is required." },
+            { status: 400 },
+          );
+        const cart = await commerce.updateCartLines(body.cartId, [], {
+          ...cartParams,
+          acceptPriceChanges: true,
+        });
+        return NextResponse.json({ cart, configured: true });
+      }
       case "create": {
         const cart = await commerce.createCart({
           lines: body.lines,

@@ -1,6 +1,11 @@
 import type { CollectionOverride } from '@payloadcms/plugin-ecommerce/types'
 import type { Field } from 'payload'
 import { protectPublishedVariant, protectDeletedVariant } from './productPublication'
+import { sellableFields, validateSellableItem } from './sellableItems'
+import {
+  revalidateStorefrontProduct,
+  revalidateStorefrontProductDelete,
+} from '../hooks/revalidateStorefrontCatalog'
 
 type Copy = { en: string; es: string }
 const guidance: Record<string, { label: Copy; description: Copy }> = {
@@ -62,6 +67,8 @@ const guidance: Record<string, { label: Copy; description: Copy }> = {
 export function clarifyVariantFields(fields: Field[]): Field[] {
   return fields.map((original) => {
     let field = original
+    if ('name' in field && field.name === 'label' && field.type === 'text')
+      field = { ...field, localized: true }
     if ('fields' in field) field = { ...field, fields: clarifyVariantFields(field.fields) }
     if ('name' in field && field.name && guidance[field.name]) {
       const copy = guidance[field.name]
@@ -79,6 +86,12 @@ export const variantsCollectionOverride: CollectionOverride = ({ defaultCollecti
   ...defaultCollection,
   hooks: {
     ...defaultCollection.hooks,
+    beforeValidate: [...(defaultCollection.hooks?.beforeValidate ?? []), validateSellableItem],
+    afterChange: [...(defaultCollection.hooks?.afterChange ?? []), revalidateStorefrontProduct],
+    afterDelete: [
+      ...(defaultCollection.hooks?.afterDelete ?? []),
+      revalidateStorefrontProductDelete,
+    ],
     beforeChange: [...(defaultCollection.hooks?.beforeChange ?? []), protectPublishedVariant],
     beforeDelete: [...(defaultCollection.hooks?.beforeDelete ?? []), protectDeletedVariant],
   },
@@ -89,11 +102,44 @@ export const variantsCollectionOverride: CollectionOverride = ({ defaultCollecti
       es: 'Cada registro es una combinación comprable con precio ARS y stock propios. Guardá y publicá cada variante, no solo el producto principal.',
     },
   },
-  fields: clarifyVariantFields(defaultCollection.fields),
+  fields: [
+    ...clarifyVariantFields(defaultCollection.fields),
+    ...sellableFields,
+    {
+      name: 'lifecycleStatus',
+      type: 'select',
+      defaultValue: 'active',
+      options: [
+        { label: 'Activo', value: 'active' },
+        { label: 'Discontinuado', value: 'discontinued' },
+      ],
+    },
+    {
+      name: 'image',
+      type: 'upload',
+      relationTo: 'media',
+      label: { es: 'Imagen de variante', en: 'Variant image' },
+    },
+    {
+      name: 'combinationKey',
+      type: 'text',
+      unique: true,
+      admin: { hidden: true },
+      access: { read: () => false },
+    },
+  ],
 })
 
 export const variantOptionsCollectionOverride: CollectionOverride = ({ defaultCollection }) => ({
   ...defaultCollection,
+  hooks: {
+    ...defaultCollection.hooks,
+    afterChange: [...(defaultCollection.hooks?.afterChange ?? []), revalidateStorefrontProduct],
+    afterDelete: [
+      ...(defaultCollection.hooks?.afterDelete ?? []),
+      revalidateStorefrontProductDelete,
+    ],
+  },
   admin: {
     ...defaultCollection.admin,
     description: {
@@ -103,3 +149,17 @@ export const variantOptionsCollectionOverride: CollectionOverride = ({ defaultCo
   },
   fields: clarifyVariantFields(defaultCollection.fields),
 })
+
+export const variantTypesCollectionOverride: CollectionOverride = (args) => {
+  const collection = variantOptionsCollectionOverride(args)
+  return {
+    ...collection,
+    admin: {
+      ...collection.admin,
+      description: {
+        es: 'Tipos de opción reutilizables, como tamaño o color. Traducí sus etiquetas sin cambiar el código compartido.',
+        en: 'Reusable option types, such as size or color. Translate labels without changing the shared code.',
+      },
+    },
+  }
+}

@@ -109,7 +109,11 @@ export async function FeaturedProductsBlockView({
               <ProductCard
                 href={localizePath(locale, `/shop/${product.handle}`)}
                 title={product.title}
-                price={formatMoney(product.priceRange.minVariantPrice, locale)}
+                price={
+                  product.availableForSale
+                    ? formatMoney(product.priceRange.minVariantPrice, locale)
+                    : tProduct("productUnavailable")
+                }
                 imageSrc={product.featuredImage?.url}
                 imageAlt={product.featuredImage?.altText || product.title}
                 noMediaLabel={tProduct("noMedia")}

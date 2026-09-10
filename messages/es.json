@@ -1,4 +1,20 @@
 {
+  "commercial": {
+    "unitPrice": "Precio unitario: {price}",
+    "netContent": "Contenido neto: {quantity} {unit}",
+    "salesUnit": "Venta por {unit}",
+    "g": "g",
+    "ml": "ml",
+    "unit": "unidad",
+    "pack": "paquete",
+    "unpriced": "Este artículo todavía no tiene precio de venta.",
+    "soldOut": "Esta combinación está agotada.",
+    "unavailable": "Este artículo no está disponible. Quitalo del carrito para continuar.",
+    "priceChanged": "El precio cambió. Confirmá el precio actual para continuar.",
+    "quantityExceeded": "Esta cantidad no está disponible. Reducila o quitá el artículo.",
+    "confirmPrice": "Aceptar todos los precios actuales",
+    "requestFailed": "No pudimos actualizar tu carrito. Actualizalo, revisá los artículos y volvé a intentar."
+  },
   "meta": {
     "title": "Pueblo Mágico",
     "description": "Productos conscientes inspirados en las montañas, la comunidad y la vida regenerativa."

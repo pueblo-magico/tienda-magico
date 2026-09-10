@@ -9,11 +9,12 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import type { Cart, CartLineInput } from "@/types/commerce";
 import { createCheckoutSession } from "@/features/checkout";
 import {
   addCartLines,
+  confirmCartPrices,
   fetchCart,
   removeCartLines,
   updateCartLines,
@@ -55,6 +56,7 @@ type CartContextValue = {
   removeItem: (lineId: string) => Promise<Cart | null>;
   checkout: () => Promise<void>;
   clearError: () => void;
+  confirmPrices: () => Promise<void>;
 };
 
 const CartContext = createContext<CartContextValue | null>(null);
@@ -83,6 +85,7 @@ function writeStoredCartId(cartId: string | null) {
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const locale = useLocale();
+  const tCommercial = useTranslations("commercial");
   const [cart, setCart] = useState<Cart>(emptyCart);
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -106,13 +109,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
       if (cartId && !result.cart.id) {
         writeStoredCartId(null);
       }
-    } catch (err) {
+    } catch {
       // A transient fetch/pricing failure must not discard an existing cart.
-      setError(err instanceof Error ? err.message : "Failed to load cart.");
+      setError(tCommercial("requestFailed"));
     } finally {
       setIsLoading(false);
     }
-  }, [applyCart, locale]);
+  }, [applyCart, locale, tCommercial]);
 
   useEffect(() => {
     void refreshCart();
@@ -135,14 +138,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
         applyCart(result.cart, result.configured !== false);
         setIsOpen(true);
         return result.cart;
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to add to cart.");
+      } catch {
+        setError(tCommercial("requestFailed"));
         return null;
       } finally {
         setIsMutating(false);
       }
     },
-    [applyCart, locale],
+    [applyCart, locale, tCommercial],
   );
 
   const updateItemQuantity = useCallback(
@@ -166,14 +169,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
         );
         applyCart(result.cart, result.configured !== false);
         return result.cart;
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to update cart.");
+      } catch {
+        setError(tCommercial("requestFailed"));
         return null;
       } finally {
         setIsMutating(false);
       }
     },
-    [applyCart, cart.id, locale],
+    [applyCart, cart.id, locale, tCommercial],
   );
 
   const removeItem = useCallback(
@@ -187,15 +190,30 @@ export function CartProvider({ children }: { children: ReactNode }) {
         const result = await removeCartLines(cartId, [lineId], { locale });
         applyCart(result.cart, result.configured !== false);
         return result.cart;
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to remove item.");
+      } catch {
+        setError(tCommercial("requestFailed"));
         return null;
       } finally {
         setIsMutating(false);
       }
     },
-    [applyCart, cart.id, locale],
+    [applyCart, cart.id, locale, tCommercial],
   );
+
+  const confirmPrices = useCallback(async () => {
+    const cartId = readStoredCartId() || cart.id;
+    if (!cartId) return;
+    setIsMutating(true);
+    setError(null);
+    try {
+      const result = await confirmCartPrices(cartId, locale);
+      applyCart(result.cart, result.configured !== false);
+    } catch {
+      setError(tCommercial("requestFailed"));
+    } finally {
+      setIsMutating(false);
+    }
+  }, [applyCart, cart.id, locale, tCommercial]);
 
   const checkout = useCallback(async () => {
     const cartId = readStoredCartId() || cart.id;
@@ -244,6 +262,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       removeItem,
       checkout,
       clearError,
+      confirmPrices,
     }),
     [
       cart,
@@ -261,6 +280,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       removeItem,
       checkout,
       clearError,
+      confirmPrices,
     ],
   );
 

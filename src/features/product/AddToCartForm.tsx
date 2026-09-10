@@ -1,7 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+import { Minus, Plus } from "lucide-react";
+import { useProductSelection } from "./ProductSelection";
 import { Button } from "@/components/ui/Button";
 import { useCart } from "@/features/cart";
 import { formatMoney } from "@/lib/commerce/utils/format";
@@ -37,6 +39,8 @@ function initialSelection(product: Product): SelectedOption[] {
 
 export function AddToCartForm({ product, labels }: Props) {
   const locale = useLocale();
+  const t = useTranslations("commercial");
+  const productSelection = useProductSelection();
   const { addItem, isMutating, configured, error: cartError } = useCart();
   const [selection, setSelection] = useState<SelectedOption[]>(() =>
     initialSelection(product),
@@ -64,12 +68,18 @@ export function AddToCartForm({ product, labels }: Props) {
     );
 
   const merchandiseId = variant?.id || product.id;
+  const selectedQuantity = Math.min(
+    quantity,
+    variant?.maxPurchaseQuantity ?? Number.MAX_SAFE_INTEGER,
+  );
 
   return (
     <div className="space-y-5">
       <div className="border-border space-y-1 border-b pb-4">
         <p className="font-navigation text-text-black text-2xl">
-          {product.variants.length
+          {variant &&
+          price.amount.trim() &&
+          variant.purchaseStatus !== "unpriced"
             ? formatMoney(price, locale)
             : labels.productUnavailable}
         </p>
@@ -87,6 +97,33 @@ export function AddToCartForm({ product, labels }: Props) {
           </p>
         ) : null}
       </div>
+
+      {variant?.netContent ? (
+        <p className="text-text-primary text-sm">
+          {t("netContent", {
+            quantity: new Intl.NumberFormat(locale).format(
+              variant.netContent.quantity,
+            ),
+            unit: t(
+              variant.netContent.unit === "g"
+                ? "g"
+                : variant.netContent.unit === "ml"
+                  ? "ml"
+                  : "unit",
+            ),
+          })}
+        </p>
+      ) : null}
+      {variant?.salesUnit ? (
+        <p className="text-text-primary text-sm">
+          {t("salesUnit", { unit: t(variant.salesUnit) })}
+        </p>
+      ) : null}
+      {variant?.purchaseStatus && variant.purchaseStatus !== "available" ? (
+        <p role="status" className="text-text-primary text-sm">
+          {t(variant.purchaseStatus)}
+        </p>
+      ) : null}
 
       {showOptions
         ? product.options.map((option) => {
@@ -124,26 +161,20 @@ export function AddToCartForm({ product, labels }: Props) {
                           : {}),
                       },
                     ];
-                    const choiceAvailable = product.variants.some(
-                      (item) =>
-                        item.availableForSale &&
-                        item.selectedOptions.some((opt) =>
-                          usesIds
-                            ? opt.optionId === option.id &&
-                              opt.valueId === choice.id
-                            : opt.name === option.name && opt.value === value,
-                        ),
-                    );
                     return (
                       <Button
                         key={choice.id}
                         type="button"
                         variant={active ? "primary" : "secondary"}
                         aria-pressed={active}
-                        disabled={isMutating || !choiceAvailable}
+                        disabled={isMutating}
                         className="min-w-20 rounded-lg px-4 normal-case"
                         onClick={() => {
                           setSelection(candidate);
+                          productSelection?.select(
+                            findVariant(product, candidate),
+                          );
+                          setQuantity(1);
                           setMessage(null);
                         }}
                       >
@@ -167,20 +198,26 @@ export function AddToCartForm({ product, labels }: Props) {
               type="button"
               className="h-11 w-11 rounded-full text-lg disabled:opacity-40"
               aria-label={labels.decrease}
-              disabled={quantity <= 1 || isMutating}
+              disabled={selectedQuantity <= 1 || isMutating}
               onClick={() => setQuantity((value) => Math.max(1, value - 1))}
             >
-              −
+              <Minus aria-hidden className="mx-auto size-4" strokeWidth={2} />
             </button>
-            <span className="min-w-8 text-center tabular-nums">{quantity}</span>
+            <span className="min-w-8 text-center tabular-nums">
+              {selectedQuantity}
+            </span>
             <button
               type="button"
               className="h-11 w-11 rounded-full text-lg disabled:opacity-40"
               aria-label={labels.increase}
-              disabled={isMutating}
+              disabled={
+                isMutating ||
+                selectedQuantity >=
+                  (variant?.maxPurchaseQuantity ?? Number.MAX_SAFE_INTEGER)
+              }
               onClick={() => setQuantity((value) => value + 1)}
             >
-              +
+              <Plus aria-hidden className="mx-auto size-4" strokeWidth={2} />
             </button>
           </div>
         </div>
@@ -198,7 +235,7 @@ export function AddToCartForm({ product, labels }: Props) {
               }
               const cart = await addItem({
                 merchandiseId,
-                quantity,
+                quantity: selectedQuantity,
               });
               if (!cart) {
                 setMessage(labels.addFailed);

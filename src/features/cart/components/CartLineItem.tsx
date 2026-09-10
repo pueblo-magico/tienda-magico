@@ -2,12 +2,14 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+import { Button } from "@/components/ui/Button";
 import { localizePath } from "@/config/navigation";
 import type { CartLine } from "@/types/commerce";
 import { formatMoney } from "@/lib/commerce/utils/format";
 import { cn } from "@/lib/utils/cn";
 import { Minus, Plus } from "lucide-react";
+import { useCart } from "../CartProvider";
 
 type Props = {
   line: CartLine;
@@ -32,6 +34,8 @@ export function CartLineItem({
   className,
 }: Props) {
   const locale = useLocale();
+  const t = useTranslations("commercial");
+  const { confirmPrices } = useCart();
   const productHref = localizePath(
     locale,
     `/shop/${line.merchandise.product.handle}`,
@@ -81,6 +85,27 @@ export function CartLineItem({
           </p>
         </div>
 
+        {line.issue ? (
+          <p role="status" className="text-text-accent text-sm">
+            {t(line.issue)}
+          </p>
+        ) : null}
+        {line.issue !== "unavailable" ? (
+          <p className="text-text-primary text-xs">
+            {t("unitPrice", {
+              price: formatMoney(line.cost.amountPerQuantity, locale),
+            })}
+          </p>
+        ) : null}
+        {line.issue === "priceChanged" ? (
+          <Button
+            variant="secondary"
+            disabled={disabled}
+            onClick={() => void confirmPrices()}
+          >
+            {t("confirmPrice")}
+          </Button>
+        ) : null}
         <div className="flex items-center justify-between gap-3">
           <div
             className="border-border bg-background-primary inline-flex items-center rounded-lg border"
@@ -101,7 +126,12 @@ export function CartLineItem({
             <button
               type="button"
               className="h-8 w-8 rounded-full text-sm disabled:opacity-40"
-              disabled={disabled}
+              disabled={
+                disabled ||
+                Boolean(line.issue && line.issue !== "priceChanged") ||
+                line.quantity >=
+                  (line.maxPurchaseQuantity ?? Number.MAX_SAFE_INTEGER)
+              }
               aria-label={labels.increase}
               onClick={() => onQuantityChange(line.id, line.quantity + 1)}
             >

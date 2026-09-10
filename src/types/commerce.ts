@@ -83,6 +83,10 @@ export type SelectedOption = {
 };
 
 export type ProductVariant = {
+  purchaseStatus?: "available" | "unpriced" | "soldOut" | "unavailable";
+  maxPurchaseQuantity?: number | null;
+  netContent?: { quantity: number; unit: string } | null;
+  salesUnit?: "unit" | "pack";
   /** Opaque sellable reference; may represent a simple product, not a persisted variant. */
   id: string;
   title: string;
@@ -195,6 +199,8 @@ export type CartLineMerchandise = {
 };
 
 export type CartLine = {
+  issue?: "unavailable" | "priceChanged" | "quantityExceeded" | null;
+  maxPurchaseQuantity?: number | null;
   id: string;
   quantity: number;
   cost: {
@@ -230,6 +236,7 @@ export type CartLineUpdateInput = {
 /** Optional cart request context (locale for localized product titles/images). */
 export type CartParams = {
   locale?: string | null;
+  acceptPriceChanges?: boolean;
 };
 
 export type GetProductsParams = {

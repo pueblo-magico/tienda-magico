@@ -305,14 +305,12 @@ test("partial cart population never leaks private titles or substitutes parent p
     ],
   });
   assert.ok(!JSON.stringify(cart).includes("PRIVATE_ADMIN_TITLE"));
-  assert.throws(
-    () =>
-      mapCart({
-        id: 1,
-        items: [{ id: 1, product: parent, variant: 1, quantity: 1 }],
-      }),
-    (error) => error.status === 409,
-  );
+  const unavailable = mapCart({
+    id: 1,
+    items: [{ id: 1, product: parent, variant: 1, quantity: 1 }],
+  });
+  assert.equal(unavailable.lines[0].issue, "unavailable");
+  assert.equal(unavailable.lines[0].cost.amountPerQuantity.amount, "0.00");
 });
 
 const envKeys = [
@@ -342,6 +340,7 @@ afterEach(() => {
 });
 
 const simple = {
+  priceInARSEnabled: true,
   id: 1,
   title: { es: "Taza", en: "Mug" },
   slug: "taza",
@@ -773,6 +772,8 @@ const option = (locale, label, id = 10) => ({
   variantType: { id: 5, label: locale === "en" ? "Size" : "Tamaño" },
 });
 const variant = {
+  priceInARSEnabled: true,
+  _status: "published",
   id: 1,
   product: 2,
   priceInARS: 125050,
@@ -1178,7 +1179,13 @@ test("saved carts re-emit namespaced references while keeping cart secret and li
     {
       id: 8,
       items: [
-        { id: "line-old", product: 2, variant: 1, amount: 125050, quantity: 2 },
+        {
+          id: "line-old",
+          product: parent,
+          variant,
+          amount: 125050,
+          quantity: 2,
+        },
       ],
     },
     { secret: "fixture-secret" },

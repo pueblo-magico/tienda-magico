@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Eyebrow, SectionTitle } from "@/components/typography";
 import { formatMoney } from "@/lib/commerce/utils/format";
 import type { ProductSummary } from "@/types/commerce";
+import { useTranslations } from "next-intl";
 
 type Props = {
   locale: string;
@@ -22,6 +23,7 @@ export function RelatedProducts({
   products,
   noMediaLabel,
 }: Props) {
+  const t = useTranslations("product");
   if (!products.length) return null;
 
   return (
@@ -42,7 +44,11 @@ export function RelatedProducts({
               <ProductCard
                 href={localizePath(locale, `/shop/${product.handle}`)}
                 title={product.title}
-                price={formatMoney(product.priceRange.minVariantPrice, locale)}
+                price={
+                  product.availableForSale
+                    ? formatMoney(product.priceRange.minVariantPrice, locale)
+                    : t("productUnavailable")
+                }
                 imageSrc={product.featuredImage?.url}
                 imageAlt={product.featuredImage?.altText || product.title}
                 noMediaLabel={noMediaLabel}

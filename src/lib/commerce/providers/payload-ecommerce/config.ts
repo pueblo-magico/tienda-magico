@@ -42,14 +42,27 @@ export function getPayloadEcommerceConfig(): PayloadEcommerceConfig {
     readEnv("SITE_URL")?.replace(/\/$/, "") ??
     "http://localhost:3000";
 
-  const checkoutPath = readEnv("PAYLOAD_ECOMMERCE_CHECKOUT_PATH") ?? "/checkout";
+  const checkoutPath =
+    readEnv("PAYLOAD_ECOMMERCE_CHECKOUT_PATH") ?? "/checkout";
+  if (
+    (readEnv("PAYLOAD_ECOMMERCE_CURRENCY") ?? "ARS").toUpperCase() !== "ARS" ||
+    !readBool("PAYLOAD_ECOMMERCE_AMOUNT_IS_CENTS", true)
+  ) {
+    throw new CommerceConfigError(
+      "Payload requiere precios ARS en centavos.",
+      "payload",
+    );
+  }
 
   return {
     baseUrl,
     apiKey: readEnv("PAYLOAD_ECOMMERCE_API_KEY"),
-    apiKeyCollection: readEnv("PAYLOAD_ECOMMERCE_API_KEY_COLLECTION") ?? "users",
+    apiKeyCollection:
+      readEnv("PAYLOAD_ECOMMERCE_API_KEY_COLLECTION") ?? "users",
     apiPrefix: readEnv("PAYLOAD_ECOMMERCE_API_PREFIX") ?? "/api",
-    currencyCode: (readEnv("PAYLOAD_ECOMMERCE_CURRENCY") ?? "ARS").toUpperCase(),
+    currencyCode: (
+      readEnv("PAYLOAD_ECOMMERCE_CURRENCY") ?? "ARS"
+    ).toUpperCase(),
     amountIsCents: readBool("PAYLOAD_ECOMMERCE_AMOUNT_IS_CENTS", true),
     productsSlug: readEnv("PAYLOAD_ECOMMERCE_PRODUCTS_SLUG") ?? "products",
     variantsSlug: readEnv("PAYLOAD_ECOMMERCE_VARIANTS_SLUG") ?? "variants",
@@ -60,8 +73,12 @@ export function getPayloadEcommerceConfig(): PayloadEcommerceConfig {
       readEnv("PAYLOAD_ECOMMERCE_CHECKOUT_URL")?.replace(/\/$/, "") ??
       `${storefrontUrl}${checkoutPath.startsWith("/") ? checkoutPath : `/${checkoutPath}`}`,
     depth: Number.parseInt(readEnv("PAYLOAD_ECOMMERCE_DEPTH") ?? "2", 10) || 2,
-    defaultLocale: (readEnv("PAYLOAD_ECOMMERCE_DEFAULT_LOCALE") ?? "es").toLowerCase(),
-    fallbackLocale: (readEnv("PAYLOAD_ECOMMERCE_FALLBACK_LOCALE") ?? "es").toLowerCase(),
+    defaultLocale: (
+      readEnv("PAYLOAD_ECOMMERCE_DEFAULT_LOCALE") ?? "es"
+    ).toLowerCase(),
+    fallbackLocale: (
+      readEnv("PAYLOAD_ECOMMERCE_FALLBACK_LOCALE") ?? "es"
+    ).toLowerCase(),
   };
 }
 

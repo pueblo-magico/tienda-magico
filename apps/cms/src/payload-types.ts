@@ -694,6 +694,19 @@ export interface Product {
    * Selling price of this item. For products with variants, set the price inside each sellable variant; the parent price is not used.
    */
   priceInARS?: number | null;
+  /**
+   * Identificador único y estable del artículo vendible.
+   */
+  sku?: string | null;
+  barcode?: string | null;
+  oneOfAKind?: boolean | null;
+  netContent?: number | null;
+  netContentUnit?: ('g' | 'ml' | 'unit') | null;
+  salesUnit?: ('unit' | 'pack') | null;
+  packedWeightGrams?: number | null;
+  packageLengthMm?: number | null;
+  packageWidthMm?: number | null;
+  packageHeightMm?: number | null;
   updatedAt: string;
   createdAt: string;
   deletedAt?: string | null;
@@ -772,6 +785,8 @@ export interface Tag {
   createdAt: string;
 }
 /**
+ * Reusable option types, such as size or color. Translate labels without changing the shared code.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "variantTypes".
  */
@@ -779,6 +794,9 @@ export interface VariantType {
   id: number;
   label: string;
   name: string;
+  /**
+   * Choose one value per option type. Define the selling price separately below.
+   */
   options?: {
     docs?: (number | VariantOption)[];
     hasNextPage?: boolean;
@@ -833,6 +851,22 @@ export interface Variant {
    * Selling price of this item. For products with variants, set the price inside each sellable variant; the parent price is not used.
    */
   priceInARS?: number | null;
+  /**
+   * Identificador único y estable del artículo vendible.
+   */
+  sku?: string | null;
+  barcode?: string | null;
+  oneOfAKind?: boolean | null;
+  netContent?: number | null;
+  netContentUnit?: ('g' | 'ml' | 'unit') | null;
+  salesUnit?: ('unit' | 'pack') | null;
+  packedWeightGrams?: number | null;
+  packageLengthMm?: number | null;
+  packageWidthMm?: number | null;
+  packageHeightMm?: number | null;
+  lifecycleStatus?: ('active' | 'discontinued') | null;
+  image?: (number | null) | Media;
+  combinationKey?: string | null;
   updatedAt: string;
   createdAt: string;
   deletedAt?: string | null;
@@ -989,11 +1023,13 @@ export interface Address {
  */
 export interface Cart {
   id: number;
+  acceptCurrentPrices?: boolean | null;
   items?:
     | {
         product?: (number | null) | Product;
         variant?: (number | null) | Variant;
         quantity: number;
+        amount?: number | null;
         id?: string | null;
       }[]
     | null;
@@ -1607,6 +1643,19 @@ export interface VariantsSelect<T extends boolean = true> {
   inventory?: T;
   priceInARSEnabled?: T;
   priceInARS?: T;
+  sku?: T;
+  barcode?: T;
+  oneOfAKind?: T;
+  netContent?: T;
+  netContentUnit?: T;
+  salesUnit?: T;
+  packedWeightGrams?: T;
+  packageLengthMm?: T;
+  packageWidthMm?: T;
+  packageHeightMm?: T;
+  lifecycleStatus?: T;
+  image?: T;
+  combinationKey?: T;
   updatedAt?: T;
   createdAt?: T;
   deletedAt?: T;
@@ -1694,6 +1743,16 @@ export interface ProductsSelect<T extends boolean = true> {
   variants?: T;
   priceInARSEnabled?: T;
   priceInARS?: T;
+  sku?: T;
+  barcode?: T;
+  oneOfAKind?: T;
+  netContent?: T;
+  netContentUnit?: T;
+  salesUnit?: T;
+  packedWeightGrams?: T;
+  packageLengthMm?: T;
+  packageWidthMm?: T;
+  packageHeightMm?: T;
   updatedAt?: T;
   createdAt?: T;
   deletedAt?: T;
@@ -1704,12 +1763,14 @@ export interface ProductsSelect<T extends boolean = true> {
  * via the `definition` "carts_select".
  */
 export interface CartsSelect<T extends boolean = true> {
+  acceptCurrentPrices?: T;
   items?:
     | T
     | {
         product?: T;
         variant?: T;
         quantity?: T;
+        amount?: T;
         id?: T;
       };
   secret?: T;

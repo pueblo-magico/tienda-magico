@@ -1,6 +1,9 @@
 # 04 — Sellable items, variants, ARS prices, and fulfillment data
 
-Status: planned. Depends on: 01, 02.
+Estado: implementación en revisión; migración y aceptación integrada pendientes. Depende de: 01, 02.
+
+Implementación: [reglas comerciales y migración](../../commerce/sellable-items.md).
+Evidencia y pendientes: [checklist de verificación](04-sellable-items-pricing-manual-test.md).
 
 ## Codex implementation prompt
 

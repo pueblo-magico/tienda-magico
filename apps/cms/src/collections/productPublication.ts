@@ -26,7 +26,7 @@ function validPrice(item: Item): boolean {
     item.priceInARSEnabled === true &&
     typeof item.priceInARS === 'number' &&
     Number.isSafeInteger(item.priceInARS) &&
-    item.priceInARS >= 0
+    item.priceInARS > 0
   )
 }
 
@@ -84,7 +84,7 @@ async function hasVariant(
         { product: { equals: product } },
         { _status: { equals: 'published' } },
         { priceInARSEnabled: { equals: true } },
-        { priceInARS: { greater_than_equal: 0 } },
+        { priceInARS: { greater_than: 0 } },
         ...(exclude == null ? [] : [{ id: { not_equals: exclude } }]),
       ],
     },

@@ -29,6 +29,7 @@ type ResolvedMerchandise = {
 
 export type PayloadCartParams = {
   locale?: string | null;
+  acceptPriceChanges?: boolean;
 };
 
 function cartPath(cartId: string, action?: string) {
@@ -124,8 +125,9 @@ async function fetchProductDocsForCart(
           cache: "no-store",
         });
         map.set(toId(doc.id), doc);
-      } catch {
-        // skip missing products
+      } catch (error) {
+        if (!(error instanceof CommerceError && error.status === 404))
+          throw error;
       }
     }),
   );
@@ -263,12 +265,8 @@ async function resultToCart(
  * Re-fetch so line titles, handles, and unit prices are populated for the UI.
  */
 async function hydrateCart(cart: Cart, locale?: string | null): Promise<Cart> {
-  try {
-    const fresh = await getCart(cart.id, { locale });
-    return fresh ?? cart;
-  } catch {
-    return finalizeCart(cart, locale);
-  }
+  const fresh = await getCart(cart.id, { locale });
+  return fresh ?? cart;
 }
 
 export async function getCart(
@@ -438,6 +436,29 @@ export async function updateCartLines(
   const { cartId, secret } = decodeCartRef(cartRef);
   const locale = params.locale;
   let latest: Cart | null = null;
+
+  if (params.acceptPriceChanges) {
+    const stored = await fetchCartDocument(cartId, secret, locale);
+    const result = await payloadFetch<PayloadCartMutationResult>({
+      method: "PATCH",
+      path: cartPath(cartId),
+      query: { ...localeQuery(locale), ...(secret ? { secret } : {}) },
+      body: {
+        currency: "ARS",
+        acceptCurrentPrices: true,
+        items: (stored.items ?? []).map((item) => ({
+          id: item.id,
+          product: toPayloadRelationId(item.product),
+          ...(item.variant
+            ? { variant: toPayloadRelationId(item.variant) }
+            : {}),
+          quantity: item.quantity,
+        })),
+      },
+      cache: "no-store",
+    });
+    latest = await resultToCart(result, secret, locale);
+  }
 
   for (const line of lines) {
     const result = await payloadFetch<PayloadCartMutationResult>({

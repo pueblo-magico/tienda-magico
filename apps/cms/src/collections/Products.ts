@@ -1,4 +1,5 @@
 import type { CollectionOverride } from '@payloadcms/plugin-ecommerce/types'
+import { sellableFields, validateSellableItem } from './sellableItems'
 import type { Field } from 'payload'
 import { clarifyVariantFields } from './variantEditorGuidance'
 import { normalizeProductCategories } from './productClassificationHooks'
@@ -262,6 +263,7 @@ export const productsCollectionOverride: CollectionOverride = ({ defaultCollecti
       },
     },
     ...clarifyVariantFields(defaultCollection.fields ?? []),
+    ...sellableFields,
   ]
 
   return {
@@ -288,6 +290,11 @@ export const productsCollectionOverride: CollectionOverride = ({ defaultCollecti
       gallery: true,
       inventory: true,
       priceInARS: true,
+      priceInARSEnabled: true,
+      lifecycleStatus: true,
+      oneOfAKind: true,
+      sku: true,
+      _status: true,
       category: true,
       additionalCategories: true,
       brand: true,
@@ -311,6 +318,7 @@ export const productsCollectionOverride: CollectionOverride = ({ defaultCollecti
         normalizeProductCategories,
         validateInformationSections,
         validateProductMedia,
+        validateSellableItem,
       ],
     },
     fields: [

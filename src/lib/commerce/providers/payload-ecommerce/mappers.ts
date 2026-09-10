@@ -18,6 +18,7 @@ import type {
 } from "@/types/commerce";
 import { CommerceError } from "@/types/commerce";
 import { mapInformationSections } from "./information-sections";
+import { regularPrice, purchaseStatus, publicSellable } from "./sellable";
 import { richTextToHtml, richTextToPlain } from "@/lib/cms/richtext";
 import { getPayloadEcommerceConfig } from "./config";
 import { merchandiseRef } from "./merchandise";
@@ -94,14 +95,10 @@ export function enrichCartWithProducts(
     const title = productTitle(doc, locale);
     const handle = productHandle(doc, locale);
     const image =
-      collectImages(doc, locale)[0] ?? line.merchandise.product.featuredImage;
-    const amountRaw = readAmount(doc as Record<string, unknown>, currency);
-    const hasLinePrice =
-      Number.parseFloat(line.cost.amountPerQuantity.amount) > 0;
-    const unitMoney =
-      hasLinePrice || line.merchandise.id.startsWith("variant:")
-        ? line.cost.amountPerQuantity
-        : mapMoney(amountRaw ?? 0, currency);
+      line.merchandise.product.featuredImage ??
+      collectImages(doc, locale)[0] ??
+      null;
+    const unitMoney = line.cost.amountPerQuantity;
     const unitMajor = Number.parseFloat(unitMoney.amount);
     const lineMajor = unitMajor * line.quantity;
 
@@ -579,50 +576,6 @@ function mapClassification(product: PayloadProductDoc, locale?: string | null) {
   };
 }
 
-function priceKey(currencyCode: string) {
-  return `priceIn${currencyCode.toUpperCase()}`;
-}
-
-function readAmount(
-  source: Record<string, unknown> | null | undefined,
-  currencyCode: string,
-): number | null {
-  if (!source) return null;
-
-  const directKeys = [
-    priceKey(currencyCode),
-    "price",
-    "amount",
-    "unitPrice",
-    "basePrice",
-  ];
-
-  for (const key of directKeys) {
-    const value = source[key];
-    if (typeof value === "number" && Number.isFinite(value)) return value;
-    if (
-      typeof value === "string" &&
-      value.trim() &&
-      !Number.isNaN(Number(value))
-    ) {
-      return Number(value);
-    }
-  }
-
-  // prices group style: { priceInARS: 1200, priceInARSEnabled: true }
-  for (const [key, value] of Object.entries(source)) {
-    if (
-      key.toLowerCase().startsWith("pricein") &&
-      key.toLowerCase().includes(currencyCode.toLowerCase()) &&
-      typeof value === "number"
-    ) {
-      return value;
-    }
-  }
-
-  return null;
-}
-
 export function mapMoney(
   amount: number | null | undefined,
   currencyCode?: string,
@@ -630,10 +583,14 @@ export function mapMoney(
   const config = getPayloadEcommerceConfig();
   const code = (currencyCode ?? config.currencyCode).toUpperCase();
   const raw = amount ?? 0;
-  const normalized = config.amountIsCents ? raw / 100 : raw;
+  if (!Number.isSafeInteger(raw) || raw < 0)
+    throw new CommerceError("Importe ARS inválido.", {
+      provider: "payload",
+      status: 409,
+    });
 
   return {
-    amount: normalized.toFixed(2),
+    amount: `${Math.floor(raw / 100)}.${String(raw % 100).padStart(2, "0")}`,
     currencyCode: code,
   };
 }
@@ -730,23 +687,30 @@ export function mapVariant(
 ): ProductVariant {
   const config = getPayloadEcommerceConfig();
   const code = currencyCode ?? config.currencyCode;
-  const inventory =
-    typeof variant.inventory === "number" ? variant.inventory : null;
-  const amount = readAmount(variant as Record<string, unknown>, code);
+  const amount = regularPrice(variant);
   const selectedOptions = mapSelectedOptions(variant, locale);
+  const hasOptions =
+    selectedOptions.length > 0 &&
+    selectedOptions.length === variant.options?.length &&
+    selectedOptions.every((option) => option.optionId && option.valueId);
 
   return {
+    ...publicSellable(variant),
+    purchaseStatus: hasOptions ? purchaseStatus(variant) : "unavailable",
     id: merchandiseRef("variant", toId(variant.id)),
     // Payload's variant title is administrative; use public option labels instead.
     title:
       selectedOptions.map((option) => option.value).join(" / ") || "Default",
-    availableForSale: inventory == null ? true : inventory > 0,
+    availableForSale: hasOptions && purchaseStatus(variant) === "available",
     quantityAvailable: null,
     sku: variant.sku ?? null,
     selectedOptions,
-    price: mapMoney(amount, code),
+    price:
+      amount == null
+        ? { amount: "", currencyCode: code }
+        : mapMoney(amount, code),
     compareAtPrice: null,
-    image: null,
+    image: mapMedia(variant.image),
   };
 }
 
@@ -806,11 +770,11 @@ export function mapProductSummary(
 ): ProductSummary {
   const config = getPayloadEcommerceConfig();
   const images = collectImages(product, locale);
-  const variants = variantDocs(product).map((variant) =>
-    mapVariant(variant, undefined, locale),
-  );
+  const variants = variantDocs(product)
+    .map((variant) => mapVariant(variant, undefined, locale))
+    .filter((variant) => variant.availableForSale);
   const amount =
-    readAmount(product as Record<string, unknown>, config.currencyCode) ??
+    (product.enableVariants === true ? null : regularPrice(product)) ??
     (variants[0]
       ? Number.parseFloat(variants[0].price.amount) *
         (config.amountIsCents ? 100 : 1)
@@ -829,18 +793,15 @@ export function mapProductSummary(
       ? Math.max(...variantAmounts)
       : Number.parseFloat(mapMoney(amount).amount);
 
-  const inventory =
-    typeof product.inventory === "number" ? product.inventory : null;
   const availableForSale =
-    product.lifecycleStatus === "discontinued"
+    product.lifecycleStatus === "discontinued" ||
+    product._status !== "published"
       ? false
       : variants.length > 0
-      ? variants.some((variant) => variant.availableForSale)
-      : product.enableVariants === true
-        ? false
-        : inventory == null
-          ? product._status !== "draft"
-          : inventory > 0;
+        ? variants.some((variant) => variant.availableForSale)
+        : product.enableVariants === true
+          ? false
+          : purchaseStatus(product) === "available";
 
   const classification = mapClassification(product, locale);
   return {
@@ -860,11 +821,11 @@ export function mapProductSummary(
     featuredImage: images[0] ?? null,
     priceRange: {
       minVariantPrice: {
-        amount: minAmount.toFixed(2),
+        amount: availableForSale ? minAmount.toFixed(2) : "",
         currencyCode: config.currencyCode,
       },
       maxVariantPrice: {
-        amount: maxAmount.toFixed(2),
+        amount: availableForSale ? maxAmount.toFixed(2) : "",
         currencyCode: config.currencyCode,
       },
     },
@@ -897,13 +858,17 @@ export function mapProduct(
       ? variants
       : [
           {
+            ...publicSellable(product),
             id: merchandiseRef("product", toId(product.id)),
             title: "Default",
             availableForSale: summary.availableForSale,
             quantityAvailable: null,
-            sku: null,
+            sku: typeof product.sku === "string" ? product.sku : null,
             selectedOptions: [],
-            price: summary.priceRange.minVariantPrice,
+            price:
+              regularPrice(product) == null
+                ? { amount: "", currencyCode: config.currencyCode }
+                : mapMoney(regularPrice(product)),
             compareAtPrice: null,
             image: summary.featuredImage,
           } satisfies ProductVariant,
@@ -967,29 +932,7 @@ export function mapProduct(
       image: mapMedia(product.seo?.image),
       noIndex: product.seo?.noIndex === true,
     },
-    // ensure currency consistency
-    priceRange: {
-      minVariantPrice: {
-        amount: normalizedVariants.length
-          ? Math.min(
-              ...normalizedVariants.map((variant) =>
-                Number.parseFloat(variant.price.amount),
-              ),
-            ).toFixed(2)
-          : summary.priceRange.minVariantPrice.amount,
-        currencyCode: config.currencyCode,
-      },
-      maxVariantPrice: {
-        amount: normalizedVariants.length
-          ? Math.max(
-              ...normalizedVariants.map((variant) =>
-                Number.parseFloat(variant.price.amount),
-              ),
-            ).toFixed(2)
-          : summary.priceRange.maxVariantPrice.amount,
-        currencyCode: config.currencyCode,
-      },
-    },
+    priceRange: summary.priceRange,
   };
 }
 
@@ -1014,7 +957,9 @@ export function mapCollectionSummary(
       String(doc.summary ?? ""),
     image:
       collectImages(doc as PayloadProductDoc)[0] ?? mapMedia(doc.image) ?? null,
-    icon: ["leaf", "mountain", "sun", "ritual", "heart"].includes(category.icon ?? "")
+    icon: ["leaf", "mountain", "sun", "ritual", "heart"].includes(
+      category.icon ?? "",
+    )
       ? (category.icon as CategoryIcon)
       : null,
     parent: mapCategoryReference(category.parent, locale),
@@ -1090,7 +1035,7 @@ export function mapCart(
   const locale = options?.locale ?? null;
 
   const lines: CartLine[] = (cart.items ?? [])
-    .map((item) => {
+    .map((item): CartLine | null => {
       const lineId = toId(item.id);
       if (!lineId) return null;
 
@@ -1111,21 +1056,34 @@ export function mapCart(
         ? merchandiseRef("variant", variantId)
         : merchandiseRef("product", productId);
 
-      const unitAmountRaw =
-        typeof item.amount === "number"
-          ? item.amount
-          : variantDoc
-            ? readAmount(variantDoc as Record<string, unknown>, currency)
-            : !variantId && productDoc
-              ? readAmount(productDoc as Record<string, unknown>, currency)
-              : null;
-
-      if (unitAmountRaw == null) {
-        throw new CommerceError(
-          "Cart item pricing is unavailable. Refresh and try again.",
-          { provider: "payload", status: 409 },
-        );
-      }
+      const sellable = variantId ? variantDoc : productDoc;
+      const unitAmountRaw = sellable ? regularPrice(sellable) : null;
+      const isUnavailable =
+        !sellable ||
+        !productDoc ||
+        purchaseStatus(sellable) !== "available" ||
+        productDoc._status !== "published" ||
+        productDoc.lifecycleStatus === "discontinued" ||
+        Boolean(productDoc.enableVariants) !== Boolean(variantId) ||
+        Boolean(
+          variantDoc &&
+          !mapVariant(variantDoc, currency, locale).availableForSale,
+        ) ||
+        Boolean(variantDoc && toId(variantDoc.product) !== productId);
+      const maxPurchaseQuantity = sellable?.oneOfAKind === true ? 1 : null;
+      const exceedsQuantity =
+        !Number.isSafeInteger(quantity) ||
+        quantity <= 0 ||
+        (maxPurchaseQuantity != null && quantity > maxPurchaseQuantity) ||
+        (typeof sellable?.inventory === "number" &&
+          quantity > sellable.inventory);
+      const issue = isUnavailable
+        ? ("unavailable" as const)
+        : exceedsQuantity
+          ? ("quantityExceeded" as const)
+          : item.amount !== unitAmountRaw
+            ? ("priceChanged" as const)
+            : null;
 
       const unitMoney = mapMoney(unitAmountRaw ?? 0, currency);
       const unitMajor = Number.parseFloat(unitMoney.amount);
@@ -1138,12 +1096,14 @@ export function mapCart(
       const lineProductHandle = productDoc
         ? productHandle(productDoc, locale)
         : productId;
-      const featuredImage = productDoc
-        ? (collectImages(productDoc)[0] ?? null)
-        : null;
+      const featuredImage =
+        mapMedia(variantDoc?.image) ??
+        (productDoc ? (collectImages(productDoc)[0] ?? null) : null);
 
       return {
         id: lineId,
+        issue,
+        maxPurchaseQuantity,
         quantity,
         cost: {
           amountPerQuantity: unitMoney,
@@ -1172,10 +1132,13 @@ export function mapCart(
     0,
   );
 
-  const subtotal =
-    typeof cart.subtotal === "number"
-      ? mapMoney(cart.subtotal, currency)
-      : moneyFromMajor(subtotalFromLines, currency);
+  const subtotal = moneyFromMajor(subtotalFromLines, currency);
+  if (
+    typeof cart.subtotal === "number" &&
+    mapMoney(cart.subtotal, currency).amount !== subtotal.amount
+  ) {
+    for (const line of lines) if (!line.issue) line.issue = "priceChanged";
+  }
 
   const totalQuantity = lines.reduce((sum, line) => sum + line.quantity, 0);
   const checkoutBase = options?.checkoutBaseUrl ?? config.checkoutBaseUrl;

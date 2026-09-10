@@ -19,9 +19,11 @@ import { Media } from './collections/Media'
 import { Pages } from './collections/Pages'
 import { Posts } from './collections/Posts'
 import { productsCollectionOverride } from './collections/Products'
+import { cartsCollectionOverride } from './collections/cartCommercialValidation'
 import {
   variantsCollectionOverride,
   variantOptionsCollectionOverride,
+  variantTypesCollectionOverride,
 } from './collections/variantEditorGuidance'
 import { Testimonials } from './collections/Testimonials'
 import { Tags } from './collections/Tags'
@@ -124,6 +126,7 @@ export default buildConfig({
         ],
       },
       carts: {
+        cartsCollectionOverride,
         allowGuestCarts: true,
       },
       // Payments/transactions can be added later (Stripe adapter).
@@ -133,6 +136,7 @@ export default buildConfig({
         variants: {
           variantsCollectionOverride,
           variantOptionsCollectionOverride,
+          variantTypesCollectionOverride,
         },
       },
       addresses: true,

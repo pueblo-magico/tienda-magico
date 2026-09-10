@@ -49,7 +49,7 @@ test("publication rejects missing variants, permits drafts and sold-out variants
   });
 });
 test("simple publication requires enabled valid ARS pricing, not positive inventory", async () => {
-  for (const price of [undefined, -1, NaN, 1.5]) {
+  for (const price of [undefined, 0, -1, NaN, 1.5]) {
     await assert.rejects(
       validateProductPublication({
         data: {
@@ -67,7 +67,7 @@ test("simple publication requires enabled valid ARS pricing, not positive invent
       ...product,
       enableVariants: false,
       priceInARSEnabled: true,
-      priceInARS: 0,
+      priceInARS: 100,
       inventory: 0,
     },
     req: request(),

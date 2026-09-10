@@ -18,22 +18,22 @@ These are feature-based Codex prompts for the agreed Pueblo Mágico CMS and stor
 
 ## Task sequence and dependencies
 
-| Task                                     | Feature                                               | Depends on | Priority                    |
-| ---------------------------------------- | ----------------------------------------------------- | ---------- | --------------------------- |
-| [01](01-catalog-contracts.md)            | Catalog ownership and migration foundation            | —          | Foundation                  |
-| [02](02-taxonomy-brands.md)              | Bilingual categories, tags, brands                    | 01         | Launch                      |
-| [03](03-product-content-media.md)        | Product storytelling, media, accordions               | 01, 02     | Launch                      |
-| [04](04-sellable-items-pricing.md)       | SKU, variants, ARS pricing, fulfillment data          | 01, 02     | Launch                      |
-| [05](05-private-purchasing-data.md)      | Private supplier and cost management                  | 01, 04     | Launch, basic scope         |
-| [06](06-shared-inventory.md)             | Shared stock and manual channel adjustments           | 04, 05     | Launch                      |
-| [07](07-orders-checkout-stock-safety.md) | Order snapshots, payment reconciliation, reservations | 04, 06     | Launch blocker              |
-| [08](08-discovery-related-products.md)   | Search, filters, similar/complementary products       | 02, 03, 04 | Launch                      |
-| [09](09-promotions-campaigns.md)         | Offers, coupons, campaign presentation                | 04, 07, 08 | Merchandising               |
-| [10](10-product-reviews.md)              | Moderated reviews and verified guests                 | 03, 07     | Merchandising               |
-| [11](11-merchandising-badges.md)         | Newness, bestseller overrides and ranking             | 03, 07     | Merchandising               |
-| [12](12-launch-validation.md)            | Cross-feature release validation and operator handoff | 01–11      | Release gate                |
-| [13](13-deferred-bulk-purchasing.md)     | Bulk conversion and purchasing history                | 05, 06, 07 | Deferred; approval required |
-| [14](14-deferred-stock-locations.md)     | Physical locations and stock transfers                | 06, 07     | Deferred; approval required |
+| Task                                     | ES                                          | Feature                                               | Depends on | Priority                    |
+| ---------------------------------------- | ------------------------------------------- | ----------------------------------------------------- | ---------- | --------------------------- |
+| [01](01-catalog-contracts.md)            | —                                           | Catalog ownership and migration foundation            | —          | Foundation                  |
+| [02](02-taxonomy-brands.md)              | —                                           | Bilingual categories, tags, brands                    | 01         | Launch                      |
+| [03](03-product-content-media.md)        | —                                           | Product storytelling, media, accordions               | 01, 02     | Launch                      |
+| [04](04-sellable-items-pricing.md)       | [ES](04-sellable-items-pricing-es.md)       | SKU, variants, ARS pricing, fulfillment data          | 01, 02     | Launch                      |
+| [05](05-private-purchasing-data.md)      | [ES](05-private-purchasing-data-es.md)      | Private supplier and cost management                  | 01, 04     | Launch, basic scope         |
+| [06](06-shared-inventory.md)             | [ES](06-shared-inventory-es.md)             | Shared stock and manual channel adjustments           | 04, 05     | Launch                      |
+| [07](07-orders-checkout-stock-safety.md) | [ES](07-orders-checkout-stock-safety-es.md) | Order snapshots, payment reconciliation, reservations | 04, 06     | Launch blocker              |
+| [08](08-discovery-related-products.md)   | [ES](08-discovery-related-products-es.md)   | Search, filters, similar/complementary products       | 02, 03, 04 | Launch                      |
+| [09](09-promotions-campaigns.md)         | [ES](09-promotions-campaigns-es.md)         | Offers, coupons, campaign presentation                | 04, 07, 08 | Merchandising               |
+| [10](10-product-reviews.md)              | [ES](10-product-reviews-es.md)              | Moderated reviews and verified guests                 | 03, 07     | Merchandising               |
+| [11](11-merchandising-badges.md)         | [ES](11-merchandising-badges-es.md)         | Newness, bestseller overrides and ranking             | 03, 07     | Merchandising               |
+| [12](12-launch-validation.md)            | [ES](12-launch-validation-es.md)            | Cross-feature release validation and operator handoff | 01–11      | Release gate                |
+| [13](13-deferred-bulk-purchasing.md)     | [ES](13-deferred-bulk-purchasing-es.md)     | Bulk conversion and purchasing history                | 05, 06, 07 | Deferred; approval required |
+| [14](14-deferred-stock-locations.md)     | [ES](14-deferred-stock-locations-es.md)     | Physical locations and stock transfers                | 06, 07     | Deferred; approval required |
 
 A task may start only when its dependencies are implemented and verified, not merely documented. Tasks 09–11 may be postponed only through an explicit launch-scope decision; task 12 must then document disabled/unavailable features. Automatic ranking in task 11 may remain disabled until trustworthy paid-sales data exists. Tasks 13–14 are not launch commitments.
 

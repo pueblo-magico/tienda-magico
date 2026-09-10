@@ -1,4 +1,20 @@
 {
+  "commercial": {
+    "unitPrice": "Unit price: {price}",
+    "netContent": "Net content: {quantity} {unit}",
+    "salesUnit": "Sold per {unit}",
+    "g": "g",
+    "ml": "ml",
+    "unit": "unit",
+    "pack": "pack",
+    "unpriced": "This item has no selling price yet.",
+    "soldOut": "This combination is sold out.",
+    "unavailable": "This item is unavailable. Remove it from your cart to continue.",
+    "priceChanged": "The price changed. Confirm the current price to continue.",
+    "quantityExceeded": "This quantity is unavailable. Reduce it or remove the item.",
+    "confirmPrice": "Accept all current prices",
+    "requestFailed": "We could not update your cart. Refresh it, review your items and try again."
+  },
   "meta": {
     "title": "Pueblo Mágico",
     "description": "Conscious products inspired by the mountains, community, and regenerative living."
