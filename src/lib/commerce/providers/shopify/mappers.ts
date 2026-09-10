@@ -67,6 +67,7 @@ export function mapProductSummary(product: {
     title: product.title,
     vendor: product.vendor ?? "",
     availableForSale: Boolean(product.availableForSale),
+    lifecycleStatus: "active",
     tags: product.tags ?? [],
     featuredImage: mapImage(product.featuredImage),
     priceRange: {
@@ -135,6 +136,7 @@ export function mapProduct(product: {
     productType: product.productType ?? "",
     tags: product.tags ?? [],
     availableForSale: Boolean(product.availableForSale),
+    lifecycleStatus: "active",
     createdAt: product.createdAt ?? "",
     updatedAt: product.updatedAt ?? "",
     featuredImage: mapImage(product.featuredImage),

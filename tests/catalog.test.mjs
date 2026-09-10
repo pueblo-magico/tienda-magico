@@ -665,6 +665,23 @@ test("disabled variants ignore stale joined rows; missing enabled variants never
   );
 });
 
+test("los productos discontinuados conservan su contenido pero no se pueden comprar", () => {
+  const simpleDiscontinued = mapProduct(
+    { ...simple, lifecycleStatus: "discontinued" },
+    "es",
+  );
+  assert.equal(simpleDiscontinued.lifecycleStatus, "discontinued");
+  assert.equal(simpleDiscontinued.availableForSale, false);
+  assert.equal(simpleDiscontinued.variants[0].availableForSale, false);
+
+  const variantDiscontinued = mapProductSummary(
+    { ...parent, lifecycleStatus: "discontinued", variants: [variant] },
+    "es",
+  );
+  assert.equal(variantDiscontinued.lifecycleStatus, "discontinued");
+  assert.equal(variantDiscontinued.availableForSale, false);
+});
+
 test("localized names change while shared slugs and stable identities do not", () => {
   const spanish = mapProduct(simple, "es"),
     english = mapProduct(simple, "en");

@@ -20,6 +20,21 @@ Product responses retain the existing 60-second revalidation policy. After publi
 
 ## Public catalog and metadata
 
+## Ciclo de vida activo/discontinuado
+
+- [ ] En el CMS, confirmá que un producto nuevo tenga **Activo** como estado
+      predeterminado y que pueda cambiarse a **Discontinuado**.
+- [ ] Publicá un producto discontinuado. Después de la revalidación, la ficha,
+      imágenes, descripción y secciones deben seguir visibles en ES y EN.
+- [ ] Confirmá que el precio y las opciones se muestran, pero el botón de compra
+      está deshabilitado y aparece el mensaje localizado de producto no disponible.
+- [ ] Verificá que el producto discontinuado no se pueda agregar al carrito por
+      una llamada directa ni seleccionando otra variante.
+- [ ] Volvé a marcarlo como **Activo**, publicá el cambio y confirmá que la compra
+      vuelve a estar disponible después de la revalidación.
+- [ ] Un producto borrador no debe aparecer aunque su estado de ciclo de vida sea
+      **Activo** o **Discontinuado**.
+
 ## Editor, origen público y SEO
 
 - [ ] En el editor de un producto, confirmá las pestañas **Contenido**,

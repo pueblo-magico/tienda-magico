@@ -832,7 +832,9 @@ export function mapProductSummary(
   const inventory =
     typeof product.inventory === "number" ? product.inventory : null;
   const availableForSale =
-    variants.length > 0
+    product.lifecycleStatus === "discontinued"
+      ? false
+      : variants.length > 0
       ? variants.some((variant) => variant.availableForSale)
       : product.enableVariants === true
         ? false
@@ -849,6 +851,8 @@ export function mapProductSummary(
       classification.brand?.name ??
       (typeof product.vendor === "string" ? product.vendor : ""),
     availableForSale,
+    lifecycleStatus:
+      product.lifecycleStatus === "discontinued" ? "discontinued" : "active",
     tags: classification.tags.length
       ? classification.tags.map((tag) => tag.label)
       : mapTags(product.tags),

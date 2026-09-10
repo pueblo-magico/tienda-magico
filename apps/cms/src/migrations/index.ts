@@ -5,6 +5,7 @@ import * as migration_20260907_130000_taxonomy_brands from './20260907_130000_ta
 import * as migration_20260908_041909_task_03_product_content_media from './20260908_041909_task_03_product_content_media'
 import * as migration_20260910_143311_task_03_origin_seo from './20260910_143311_task_03_origin_seo'
 import * as migration_20260910_160000_category_icons from './20260910_160000_category_icons'
+import * as migration_20260910_170000_task_03_lifecycle from './20260910_170000_task_03_lifecycle'
 
 // El enum ARS debe existir antes de asignarlo como valor por defecto.
 export const migrations = [
@@ -42,5 +43,10 @@ export const migrations = [
     up: migration_20260910_160000_category_icons.up,
     down: migration_20260910_160000_category_icons.down,
     name: '20260910_160000_category_icons',
+  },
+  {
+    up: migration_20260910_170000_task_03_lifecycle.up,
+    down: migration_20260910_170000_task_03_lifecycle.down,
+    name: '20260910_170000_task_03_lifecycle',
   },
 ]

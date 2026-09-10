@@ -106,6 +106,7 @@ export type PayloadProductDoc = PayloadDoc & {
     noIndex?: boolean | null;
   } | null;
   _status?: "draft" | "published";
+  lifecycleStatus?: "active" | "discontinued" | null;
 };
 
 export type PayloadVariantDoc = PayloadDoc & {

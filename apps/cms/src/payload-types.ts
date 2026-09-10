@@ -662,6 +662,10 @@ export interface Product {
       }[]
     | null;
   /**
+   * Los productos discontinuados siguen visibles, pero no se pueden comprar.
+   */
+  lifecycleStatus?: ('active' | 'discontinued') | null;
+  /**
    * Stock for this sellable item. Zero means sold out. For variant products, edit stock on each variant.
    */
   inventory?: number | null;
@@ -1678,6 +1682,7 @@ export interface ProductsSelect<T extends boolean = true> {
         caption?: T;
         id?: T;
       };
+  lifecycleStatus?: T;
   inventory?: T;
   enableVariants?: T;
   variantTypes?: T;

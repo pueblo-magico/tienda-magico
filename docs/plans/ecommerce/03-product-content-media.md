@@ -2,6 +2,14 @@
 
 Status: in progress — content-rendering and public catalog-read foundations implemented; the feature is not complete. Depends on: 01, 02.
 
+### Avance: ciclo de vida activo/discontinuado
+
+El CMS permite marcar un producto como `Activo` o `Discontinuado`. Un producto
+discontinuado publicado conserva su ficha y contenido público, pero se expone
+como no comprable y los controles de compra quedan deshabilitados. La migración
+`20260910_170000_task_03_lifecycle` agrega el estado a productos y versiones,
+con `active` como valor compatible para registros existentes.
+
 ## Implementation progress
 
 ### Avance: preparación mínima de traducciones

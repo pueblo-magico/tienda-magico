@@ -232,7 +232,21 @@ export const productsCollectionOverride: CollectionOverride = ({ defaultCollecti
     },
   ] as Field[]
 
-  const merchandisingFields = clarifyVariantFields(defaultCollection.fields ?? [])
+  const merchandisingFields = [
+    {
+      name: 'lifecycleStatus',
+      type: 'select' as const,
+      defaultValue: 'active',
+      options: [
+        { label: 'Activo', value: 'active' },
+        { label: 'Discontinuado', value: 'discontinued' },
+      ],
+      admin: {
+        description: 'Los productos discontinuados siguen visibles, pero no se pueden comprar.',
+      },
+    },
+    ...clarifyVariantFields(defaultCollection.fields ?? []),
+  ]
 
   return {
     ...defaultCollection,

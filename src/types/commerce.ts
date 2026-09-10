@@ -96,6 +96,7 @@ export type ProductVariant = {
 };
 
 export type Product = {
+  lifecycleStatus: "active" | "discontinued";
   media?: CommerceMedia[];
   informationSections?: ProductInformationSection[];
   shortDescription?: string;
@@ -144,6 +145,7 @@ export type ProductSummary = Pick<
   | "title"
   | "vendor"
   | "availableForSale"
+  | "lifecycleStatus"
   | "featuredImage"
   | "priceRange"
   | "tags"
