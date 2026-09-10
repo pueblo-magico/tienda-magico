@@ -133,6 +133,9 @@
     "ingredients": "Ingredients & materials",
     "howToUse": "How to use",
     "originImpact": "Origin & impact",
+    "originCountry": "Country",
+    "originRegion": "Region",
+    "originCommunity": "Community",
     "freeShipping": "Free shipping over $120",
     "securePayment": "Secure payment",
     "ethicallySourced": "Ethically sourced"

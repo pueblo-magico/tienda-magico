@@ -319,6 +319,56 @@ test("las secciones de información conservan orden, claves y fallback sin expon
   assert.equal(product.informationSections?.[1]?.title, "Ritual");
 });
 
+test("el producto proyecta origen público localizado y SEO sin datos internos", () => {
+  const story = {
+    es: {
+      root: {
+        type: "root",
+        children: [
+          {
+            type: "paragraph",
+            children: [{ type: "text", text: "Cultivado por la comunidad." }],
+          },
+        ],
+      },
+    },
+    en: null,
+  };
+  const product = mapProduct(
+    {
+      ...simple,
+      countryOfOrigin: "AR",
+      region: { es: "Sierras de Córdoba", en: "Córdoba Hills" },
+      community: { es: "Comunidad serrana", en: null },
+      originStory: story,
+      cost: 1234,
+      supplierInfo: "privado",
+      seo: {
+        title: "Ritual de cacao",
+        description: "Cacao ceremonial de origen consciente.",
+        image: { url: "/media/cacao-seo.jpg", alt: "Cacao" },
+        noIndex: true,
+      },
+    },
+    "en",
+  );
+
+  assert.deepEqual(product.origin, {
+    countryCode: "AR",
+    region: "Córdoba Hills",
+    community: "Comunidad serrana",
+    story: "<p>Cultivado por la comunidad.</p>",
+  });
+  assert.equal(product.seo.title, "Ritual de cacao");
+  assert.equal(
+    product.seo.image?.url,
+    "http://catalog.test/media/cacao-seo.jpg",
+  );
+  assert.equal(product.seo.noIndex, true);
+  assert.equal("cost" in product, false);
+  assert.equal("supplierInfo" in product, false);
+});
+
 test("la galería proyecta imágenes y videos públicos en orden, con poster y pie localizado", () => {
   const product = mapProduct(
     {

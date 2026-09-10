@@ -5,6 +5,7 @@ import { normalizeProductCategories } from './productClassificationHooks'
 import { validateProductPublication } from './productPublication'
 import { informationSectionsField, validateInformationSections } from './productSections'
 import { validateProductMedia } from './productMediaValidation'
+import { seoField } from '../fields/seo'
 import {
   FixedToolbarFeature,
   HeadingFeature,
@@ -22,7 +23,7 @@ import {
  * Shared across locales: slug, gallery, classifications, and pricing.
  */
 export const productsCollectionOverride: CollectionOverride = ({ defaultCollection }) => {
-  const catalogueFields = [
+  const contentFields = [
     {
       name: 'title',
       type: 'text',
@@ -38,7 +39,6 @@ export const productsCollectionOverride: CollectionOverride = ({ defaultCollecti
       // Shared handle so /en and /es resolve the same product document
       localized: false,
       admin: {
-        position: 'sidebar',
         description:
           'URL estable, escrito principalmente en español y compartido entre idiomas (p. ej. cacao-de-montana).',
       },
@@ -69,6 +69,11 @@ export const productsCollectionOverride: CollectionOverride = ({ defaultCollecti
         },
       },
     },
+    informationSectionsField,
+    seoField(),
+  ] as Field[]
+
+  const mediaFields = [
     {
       name: 'gallery',
       type: 'array',
@@ -113,12 +118,14 @@ export const productsCollectionOverride: CollectionOverride = ({ defaultCollecti
         },
       ],
     },
+  ] as Field[]
+
+  const classificationFields = [
     {
       name: 'category',
       type: 'relationship',
       relationTo: 'categories',
       admin: {
-        position: 'sidebar',
         description: 'Primary category. It owns the storefront breadcrumb path.',
       },
     },
@@ -134,7 +141,6 @@ export const productsCollectionOverride: CollectionOverride = ({ defaultCollecti
         return primaryId ? { id: { not_equals: primaryId } } : true
       },
       admin: {
-        position: 'sidebar',
         description: 'Optional extra browsing categories. Do not repeat the primary category.',
       },
     },
@@ -142,7 +148,6 @@ export const productsCollectionOverride: CollectionOverride = ({ defaultCollecti
       name: 'brand',
       type: 'relationship',
       relationTo: 'brands',
-      admin: { position: 'sidebar' },
     },
     {
       name: 'taxonomyTags',
@@ -171,7 +176,59 @@ export const productsCollectionOverride: CollectionOverride = ({ defaultCollecti
         },
       ],
     },
+    {
+      name: 'countryOfOrigin',
+      type: 'text',
+      label: { es: 'País de origen (ISO)', en: 'Country of origin (ISO)' },
+      localized: false,
+      admin: {
+        description: {
+          es: 'Código ISO 3166-1 alpha-2 compartido entre idiomas, por ejemplo AR o BR.',
+          en: 'ISO 3166-1 alpha-2 code shared between locales, for example AR or BR.',
+        },
+      },
+      validate: (value: unknown) => {
+        if (value == null || value === '') return true
+        return typeof value === 'string' && /^[A-Z]{2}$/.test(value.trim())
+          ? true
+          : 'Usá un código ISO de dos letras mayúsculas, por ejemplo AR.'
+      },
+    },
+    {
+      name: 'region',
+      type: 'text',
+      localized: true,
+      label: { es: 'Región', en: 'Region' },
+    },
+    {
+      name: 'community',
+      type: 'text',
+      localized: true,
+      label: { es: 'Comunidad', en: 'Community' },
+    },
+    {
+      name: 'originStory',
+      type: 'richText',
+      localized: true,
+      label: { es: 'Historia pública de origen', en: 'Public origin story' },
+      editor: lexicalEditor({
+        features: ({ rootFeatures }) => [
+          ...rootFeatures,
+          HeadingFeature({ enabledHeadingSizes: ['h3', 'h4'] }),
+          FixedToolbarFeature(),
+          InlineToolbarFeature(),
+        ],
+      }),
+      admin: {
+        description: {
+          es: 'Contenido público. Cuando existe, reemplaza el cuerpo legado de la sección “Origen e impacto” para evitar duplicados.',
+          en: 'Public content. When present, it replaces the legacy Origin & impact section body to avoid duplication.',
+        },
+      },
+    },
   ] as Field[]
+
+  const merchandisingFields = clarifyVariantFields(defaultCollection.fields ?? [])
 
   return {
     ...defaultCollection,
@@ -194,6 +251,11 @@ export const productsCollectionOverride: CollectionOverride = ({ defaultCollecti
       additionalCategories: true,
       brand: true,
       taxonomyTags: true,
+      countryOfOrigin: true,
+      region: true,
+      community: true,
+      originStory: true,
+      seo: true,
     },
     hooks: {
       ...defaultCollection.hooks,
@@ -206,9 +268,27 @@ export const productsCollectionOverride: CollectionOverride = ({ defaultCollecti
       ],
     },
     fields: [
-      ...catalogueFields,
-      informationSectionsField,
-      ...clarifyVariantFields(defaultCollection.fields ?? []),
+      {
+        type: 'tabs',
+        tabs: [
+          {
+            label: { es: 'Contenido', en: 'Content' },
+            fields: contentFields,
+          },
+          {
+            label: { es: 'Clasificación y origen', en: 'Classification and origin' },
+            fields: classificationFields,
+          },
+          {
+            label: { es: 'Medios', en: 'Media' },
+            fields: mediaFields,
+          },
+          {
+            label: { es: 'Venta e inventario', en: 'Sales and inventory' },
+            fields: merchandisingFields,
+          },
+        ],
+      },
     ],
   }
 }

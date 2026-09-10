@@ -42,6 +42,9 @@ type Labels = {
   ingredients: string;
   howToUse: string;
   originImpact: string;
+  originCountry: string;
+  originRegion: string;
+  originCommunity: string;
   freeShipping: string;
   securePayment: string;
   ethicallySourced: string;
@@ -70,6 +73,29 @@ export function ProductPageView({ locale, product, related, labels }: Props) {
     category = category.parent;
   }
   const publicTags = classification?.tags ?? [];
+  const origin = product.origin;
+  const legacyOriginSection = product.informationSections?.find(
+    (section) => section.key === "origin-impact",
+  );
+  const otherInformationSections = product.informationSections?.filter(
+    (section) => section.key !== "origin-impact",
+  );
+  const countryName = origin?.countryCode
+    ? (() => {
+        try {
+          return (
+            new Intl.DisplayNames([locale], { type: "region" }).of(
+              origin.countryCode,
+            ) ?? origin.countryCode
+          );
+        } catch {
+          return origin.countryCode;
+        }
+      })()
+    : null;
+  const hasOrigin = Boolean(
+    countryName || origin?.region || origin?.community || origin?.story,
+  );
 
   return (
     <>
@@ -209,7 +235,10 @@ export function ProductPageView({ locale, product, related, labels }: Props) {
             </div>
           </div>
 
-          {product.description.trim() || product.informationSections?.length ? (
+          {product.description.trim() ||
+          otherInformationSections?.length ||
+          legacyOriginSection ||
+          hasOrigin ? (
             <Accordion
               className="bg-card rounded-xl"
               items={[
@@ -226,11 +255,65 @@ export function ProductPageView({ locale, product, related, labels }: Props) {
                       },
                     ]
                   : []),
-                ...(product.informationSections ?? []).map((section) => ({
+                ...(otherInformationSections ?? []).map((section) => ({
                   id: `section-${section.key}`,
                   title: section.title,
                   content: <RichText html={section.content} />,
                 })),
+                ...(hasOrigin || legacyOriginSection
+                  ? [
+                      {
+                        id: "section-origin-impact",
+                        title:
+                          legacyOriginSection?.title ?? labels.originImpact,
+                        content: (
+                          <div className="space-y-4">
+                            {countryName ||
+                            origin?.region ||
+                            origin?.community ? (
+                              <dl className="grid gap-3 sm:grid-cols-3">
+                                {countryName ? (
+                                  <div>
+                                    <dt className="text-text-primary text-xs tracking-wide uppercase">
+                                      {labels.originCountry}
+                                    </dt>
+                                    <dd className="text-text-black mt-1">
+                                      {countryName}
+                                    </dd>
+                                  </div>
+                                ) : null}
+                                {origin?.region ? (
+                                  <div>
+                                    <dt className="text-text-primary text-xs tracking-wide uppercase">
+                                      {labels.originRegion}
+                                    </dt>
+                                    <dd className="text-text-black mt-1">
+                                      {origin.region}
+                                    </dd>
+                                  </div>
+                                ) : null}
+                                {origin?.community ? (
+                                  <div>
+                                    <dt className="text-text-primary text-xs tracking-wide uppercase">
+                                      {labels.originCommunity}
+                                    </dt>
+                                    <dd className="text-text-black mt-1">
+                                      {origin.community}
+                                    </dd>
+                                  </div>
+                                ) : null}
+                              </dl>
+                            ) : null}
+                            {origin?.story ? (
+                              <RichText html={origin.story} />
+                            ) : legacyOriginSection ? (
+                              <RichText html={legacyOriginSection.content} />
+                            ) : null}
+                          </div>
+                        ),
+                      },
+                    ]
+                  : []),
               ]}
             />
           ) : null}

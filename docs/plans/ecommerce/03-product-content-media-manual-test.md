@@ -7,7 +7,8 @@ Status: not run. Task 03 is partially implemented; this checklist currently cove
 Usá un CMS y storefront local o de prueba, nunca contenido de producción. Respaldá
 PostgreSQL y aplicá primero las migraciones anteriores, incluida la de taxonomía.
 Luego aplicá `20260908_041909_task_03_product_content_media` antes de iniciar el CMS
-con este esquema. Usá un producto publicado y otro borrador, con slugs distintos y
+ y `20260910_143311_task_03_origin_seo` antes de iniciar el CMS con este esquema.
+Usá un producto publicado y otro borrador, con slugs distintos y
 títulos reconocibles en ES/EN. No compartas claves, cookies ni datos personales en
 los resultados.
 
@@ -18,6 +19,22 @@ No crea secciones ni inventa traducciones para productos existentes.
 Product responses retain the existing 60-second revalidation policy. After publishing or changing publication status, wait at least 60 seconds and request the page again; a subsequent request may be needed after background revalidation. Restarting the local server alone is not evidence that the production cache refresh policy works.
 
 ## Public catalog and metadata
+
+## Editor, origen público y SEO
+
+- [ ] En el editor de un producto, confirmá las pestañas **Contenido**,
+      **Clasificación y origen**, **Medios** y **Venta e inventario**. Guardá
+      el producto y comprobá que los valores existentes no cambiaron de ruta.
+- [ ] Completá país con un código ISO de dos mayúsculas (AR/BR), región,
+      comunidad e historia en ES y EN. Un código inválido debe rechazarse.
+- [ ] En la ficha ES y EN, verificá un solo acordeón **Origen e impacto** con
+      los datos públicos y la historia en el idioma activo (con fallback
+      documentado). No deben aparecer costos, proveedor ni notas internas.
+- [ ] Si existe una sección legada `origin-impact` y también una historia
+      nueva, confirmá que no se muestran dos historias separadas.
+- [ ] Completá título y descripción SEO distintos en ES/EN, una imagen OG y
+      `noindex`; tras la revalidación, confirmá metadata, imagen y robots en
+      cada locale.
 
 - [ ] In both EN and ES, the published product appears in the shop and its category. Its shared slug resolves to the same product.
 - [ ] The draft product is absent from shop/category results. Its detail URL and document-ID URL do not expose its title, description, or SEO metadata.

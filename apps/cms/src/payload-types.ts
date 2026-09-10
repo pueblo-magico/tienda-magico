@@ -559,43 +559,6 @@ export interface Product {
    * Short copy beside the price and purchase controls. The full description appears in the accordion.
    */
   summary?: string | null;
-  gallery?:
-    | {
-        /**
-         * Optional editorial image or poster for an external video. If empty, a YouTube thumbnail is generated.
-         */
-        image?: (number | null) | Media;
-        /**
-         * Only youtube.com or youtu.be links are accepted. Do not paste iframe code.
-         */
-        externalVideoUrl?: string | null;
-        isPrimary?: boolean | null;
-        caption?: string | null;
-        id?: string | null;
-      }[]
-    | null;
-  /**
-   * Primary category. It owns the storefront breadcrumb path.
-   */
-  category?: (number | null) | Category;
-  /**
-   * Optional extra browsing categories. Do not repeat the primary category.
-   */
-  additionalCategories?: (number | Category)[] | null;
-  brand?: (number | null) | Brand;
-  /**
-   * Reusable public labels. Operational labels do not belong here.
-   */
-  taxonomyTags?: (number | Tag)[] | null;
-  /**
-   * Legacy free-text tags preserved for migration review. Assign reusable Public tags above.
-   */
-  tags?:
-    | {
-        tag: string;
-        id?: string | null;
-      }[]
-    | null;
   /**
    * Drag sections to reorder. Translate title and content in each locale. Hidden or empty sections do not appear in the shop. Public information only.
    */
@@ -622,6 +585,79 @@ export interface Product {
           [k: string]: unknown;
         } | null;
         isVisible?: boolean | null;
+        id?: string | null;
+      }[]
+    | null;
+  seo?: {
+    /**
+     * Overrides document title in <title> / og:title when set.
+     */
+    title?: string | null;
+    description?: string | null;
+    /**
+     * Social share image (Open Graph).
+     */
+    image?: (number | null) | Media;
+    noIndex?: boolean | null;
+  };
+  /**
+   * Primary category. It owns the storefront breadcrumb path.
+   */
+  category?: (number | null) | Category;
+  /**
+   * Optional extra browsing categories. Do not repeat the primary category.
+   */
+  additionalCategories?: (number | Category)[] | null;
+  brand?: (number | null) | Brand;
+  /**
+   * Reusable public labels. Operational labels do not belong here.
+   */
+  taxonomyTags?: (number | Tag)[] | null;
+  /**
+   * Legacy free-text tags preserved for migration review. Assign reusable Public tags above.
+   */
+  tags?:
+    | {
+        tag: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * ISO 3166-1 alpha-2 code shared between locales, for example AR or BR.
+   */
+  countryOfOrigin?: string | null;
+  region?: string | null;
+  community?: string | null;
+  /**
+   * Public content. When present, it replaces the legacy Origin & impact section body to avoid duplication.
+   */
+  originStory?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  gallery?:
+    | {
+        /**
+         * Optional editorial image or poster for an external video. If empty, a YouTube thumbnail is generated.
+         */
+        image?: (number | null) | Media;
+        /**
+         * Only youtube.com or youtu.be links are accepted. Do not paste iframe code.
+         */
+        externalVideoUrl?: string | null;
+        isPrimary?: boolean | null;
+        caption?: string | null;
         id?: string | null;
       }[]
     | null;
@@ -1594,14 +1630,22 @@ export interface ProductsSelect<T extends boolean = true> {
   slug?: T;
   description?: T;
   summary?: T;
-  gallery?:
+  informationSections?:
     | T
     | {
-        image?: T;
-        externalVideoUrl?: T;
-        isPrimary?: T;
-        caption?: T;
+        key?: T;
+        title?: T;
+        body?: T;
+        isVisible?: T;
         id?: T;
+      };
+  seo?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+        noIndex?: T;
       };
   category?: T;
   additionalCategories?: T;
@@ -1613,13 +1657,17 @@ export interface ProductsSelect<T extends boolean = true> {
         tag?: T;
         id?: T;
       };
-  informationSections?:
+  countryOfOrigin?: T;
+  region?: T;
+  community?: T;
+  originStory?: T;
+  gallery?:
     | T
     | {
-        key?: T;
-        title?: T;
-        body?: T;
-        isVisible?: T;
+        image?: T;
+        externalVideoUrl?: T;
+        isPrimary?: T;
+        caption?: T;
         id?: T;
       };
   inventory?: T;

@@ -75,6 +75,10 @@ export type PayloadProductDoc = PayloadDoc & {
   richText?: unknown;
   summary?: string | null;
   informationSections?: unknown;
+  countryOfOrigin?: string | null;
+  region?: PayloadLocalizedText | null;
+  community?: PayloadLocalizedText | null;
+  originStory?: unknown;
   vendor?: string | null;
   brand?: string | number | PayloadBrandDoc | null;
   productType?: string | null;
@@ -97,6 +101,8 @@ export type PayloadProductDoc = PayloadDoc & {
   seo?: {
     title?: string | null;
     description?: string | null;
+    image?: unknown;
+    noIndex?: boolean | null;
   } | null;
   _status?: "draft" | "published";
 };

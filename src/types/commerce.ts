@@ -57,6 +57,13 @@ export type ProductClassification = {
   tags: TagReference[];
 };
 
+export type ProductOrigin = {
+  countryCode: string | null;
+  region: string | null;
+  community: string | null;
+  story: SafeRichTextHtml | null;
+};
+
 export type ProductOption = {
   id: string;
   name: string;
@@ -100,6 +107,8 @@ export type Product = {
   tags: string[];
   /** Structured, provider-independent public classification. */
   classification?: ProductClassification;
+  /** Public provenance only; supplier and purchasing data never cross this contract. */
+  origin?: ProductOrigin;
   availableForSale: boolean;
   createdAt: string;
   updatedAt: string;
@@ -114,6 +123,8 @@ export type Product = {
   seo: {
     title: string | null;
     description: string | null;
+    image?: CommerceImage | null;
+    noIndex?: boolean;
   };
 };
 

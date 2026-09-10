@@ -4,6 +4,22 @@ Status: in progress — content-rendering and public catalog-read foundations im
 
 ## Implementation progress
 
+### Avance: editor organizado y origen/SEO públicos
+
+El editor de productos ahora agrupa los campos en pestañas de Contenido,
+Clasificación y origen, Medios, y Venta e inventario. Las pestañas son solo de
+presentación: conservan las rutas existentes del plugin para no romper datos ni
+integraciones. Se agregaron código de país ISO compartido, región, comunidad e
+historia pública de origen localizados, además del grupo SEO localizado (título,
+descripción, imagen y noindex).
+
+La ficha muestra origen, región y comunidad dentro de un único acordeón de
+Origen e impacto. La historia nueva tiene prioridad sobre el cuerpo legado de
+esa sección para evitar duplicados. El SEO localizado alimenta metadata,
+Open Graph y noindex; costos, proveedores y otros campos operativos no cruzan
+el contrato público. La migración `20260910_143311_task_03_origin_seo` agrega
+las columnas y referencias necesarias para productos y versiones.
+
 ### Avance: imagen principal consistente en la tienda
 
 Las tarjetas, la ficha y las proyecciones del carrito reutilizan la selección

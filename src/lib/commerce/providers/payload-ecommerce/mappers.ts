@@ -186,6 +186,23 @@ export function resolveLocalizedText(
   return "";
 }
 
+function resolveLocalizedRichText(
+  value: unknown,
+  preferredLocales: string[],
+): unknown {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return value;
+  if ("root" in value || "type" in value) return value;
+
+  const record = value as Record<string, unknown>;
+  for (const locale of preferredLocales) {
+    const candidate = record[locale];
+    if (richTextToPlain(candidate).trim()) return candidate;
+  }
+  return Object.values(record).find((candidate) =>
+    Boolean(richTextToPlain(candidate).trim()),
+  );
+}
+
 function absoluteMediaUrl(url: string): string {
   if (url.startsWith("http://") || url.startsWith("https://")) {
     return url;
@@ -854,6 +871,10 @@ export function mapProduct(
     mapVariant(variant, undefined, locale),
   );
   const config = getPayloadEcommerceConfig();
+  const preferredLocales = [
+    locale ?? config.defaultLocale,
+    config.fallbackLocale,
+  ];
   const media = mapProductMedia(
     product.gallery ?? product.media,
     locale ?? config.defaultLocale,
@@ -896,6 +917,23 @@ export function mapProduct(
       locale ?? config.defaultLocale,
       config.fallbackLocale,
     ]),
+    origin: {
+      countryCode:
+        typeof product.countryOfOrigin === "string" &&
+        /^[A-Z]{2}$/.test(product.countryOfOrigin.trim())
+          ? product.countryOfOrigin.trim()
+          : null,
+      region: resolveLocalizedText(product.region, preferredLocales) || null,
+      community:
+        resolveLocalizedText(product.community, preferredLocales) || null,
+      story: (() => {
+        const value = resolveLocalizedRichText(
+          product.originStory,
+          preferredLocales,
+        );
+        return richTextToPlain(value).trim() ? richTextToHtml(value) : null;
+      })(),
+    },
     descriptionContent: richTextToHtml(product.description ?? product.richText),
     descriptionHtml:
       richTextToHtml(product.description) ||
@@ -916,6 +954,8 @@ export function mapProduct(
       title: product.meta?.title ?? product.seo?.title ?? null,
       description:
         product.meta?.description ?? product.seo?.description ?? null,
+      image: mapMedia(product.seo?.image),
+      noIndex: product.seo?.noIndex === true,
     },
     // ensure currency consistency
     priceRange: {
