@@ -21,6 +21,9 @@ import { getGalleryImages } from "./utils";
 type Labels = {
   backToShop: string;
   gallery: string;
+  noMedia: string;
+  mediaError: string;
+  retryMedia: string;
   addToCart: string;
   adding: string;
   soldOut: string;
@@ -135,7 +138,12 @@ export function ProductPageView({ locale, product, related, labels }: Props) {
               title={product.title}
               images={images}
               media={product.media}
-              labels={{ gallery: labels.gallery }}
+              labels={{
+                gallery: labels.gallery,
+                noMedia: labels.noMedia,
+                mediaError: labels.mediaError,
+                retry: labels.retryMedia,
+              }}
             />
 
             <div className="space-y-6 lg:sticky lg:top-28 lg:pt-4">
@@ -215,19 +223,31 @@ export function ProductPageView({ locale, product, related, labels }: Props) {
 
               <div className="border-border text-muted grid grid-cols-3 gap-3 border-y py-5 text-center text-[11px] leading-snug">
                 <span>
-                  <Truck aria-hidden className="mx-auto size-4" strokeWidth={1.5} />
+                  <Truck
+                    aria-hidden
+                    className="mx-auto size-4"
+                    strokeWidth={1.5}
+                  />
                   <strong className="text-text-black mt-1 block font-medium">
                     {labels.freeShipping}
                   </strong>
                 </span>
                 <span>
-                  <LockKeyhole aria-hidden className="mx-auto size-4" strokeWidth={1.5} />
+                  <LockKeyhole
+                    aria-hidden
+                    className="mx-auto size-4"
+                    strokeWidth={1.5}
+                  />
                   <strong className="text-text-black mt-1 block font-medium">
                     {labels.securePayment}
                   </strong>
                 </span>
                 <span>
-                  <Sprout aria-hidden className="mx-auto size-4" strokeWidth={1.5} />
+                  <Sprout
+                    aria-hidden
+                    className="mx-auto size-4"
+                    strokeWidth={1.5}
+                  />
                   <strong className="text-text-black mt-1 block font-medium">
                     {labels.ethicallySourced}
                   </strong>
@@ -326,6 +346,7 @@ export function ProductPageView({ locale, product, related, labels }: Props) {
         eyebrow={labels.relatedEyebrow}
         title={labels.relatedTitle}
         products={related}
+        noMediaLabel={labels.noMedia}
       />
     </>
   );

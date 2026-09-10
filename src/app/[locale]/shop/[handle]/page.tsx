@@ -58,6 +58,9 @@ export default async function ProductRoutePage({ params }: Props) {
       labels={{
         backToShop: t("backToShop"),
         gallery: t("gallery"),
+        noMedia: t("noMedia"),
+        mediaError: t("mediaError"),
+        retryMedia: t("retryMedia"),
         addToCart: t("addToCart"),
         adding: t("adding"),
         soldOut: t("soldOut"),

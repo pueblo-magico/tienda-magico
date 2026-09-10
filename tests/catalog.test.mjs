@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
 import { afterEach, beforeEach, test, mock } from "node:test";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { CommerceConfigError, CommerceError } from "@/types/commerce";
 import {
   mapProduct,
@@ -31,10 +33,16 @@ import {
   MAX_VIDEO_UPLOAD_BYTES,
   validateMediaUploadSize,
 } from "../apps/cms/src/collections/mediaUploadValidation.ts";
+import { validateProductMedia } from "../apps/cms/src/collections/productMediaValidation.ts";
 import {
   buildCategoryTree,
   directChildCategories,
 } from "@/features/shop/category-hierarchy";
+import {
+  createProductGalleryState,
+  productGalleryReducer,
+} from "@/features/product/product-gallery-state";
+import { ProductCard } from "@/components/cards/ProductCard";
 
 test("saved cart absence is recoverable but backend failures are not", async () => {
   transport({});
@@ -53,14 +61,113 @@ test("el CMS aplica límites distintos para imágenes y videos", () => {
 
   assert.doesNotThrow(() => validate("image/webp", MAX_IMAGE_UPLOAD_BYTES));
   assert.doesNotThrow(() => validate("video/mp4", MAX_VIDEO_UPLOAD_BYTES));
+  assert.deepEqual(
+    validateMediaUploadSize({ data: { alt: "Sin archivo" }, req: {} }),
+    { alt: "Sin archivo" },
+  );
   assert.throws(
     () => validate("image/jpeg", MAX_IMAGE_UPLOAD_BYTES + 1),
-    (error) => error.cause?.errors?.[0]?.message.includes("10 MB"),
+    (error) =>
+      error.cause?.errors?.[0]?.path === "file" &&
+      error.cause.errors[0].message === "El archivo supera el límite de 10 MB.",
   );
   assert.throws(
     () => validate("video/webm", MAX_VIDEO_UPLOAD_BYTES + 1, "en"),
-    (error) => error.cause?.errors?.[0]?.message.includes("100 MB"),
+    (error) =>
+      error.cause?.errors?.[0]?.path === "file" &&
+      error.cause.errors[0].message === "The file exceeds the 100 MB limit.",
   );
+});
+
+test("la galería conserva estados coherentes al cargar, fallar y reintentar medios", () => {
+  let state = createProductGalleryState("primera.jpg");
+  assert.equal(state.loadingSource, "primera.jpg");
+
+  state = productGalleryReducer(state, {
+    type: "select",
+    index: 1,
+    source: "video.mp4",
+  });
+  assert.equal(state.active, 1);
+  assert.equal(state.loadingSource, "video.mp4");
+
+  const afterStaleLoad = productGalleryReducer(state, {
+    type: "loaded",
+    source: "primera.jpg",
+  });
+  assert.strictEqual(afterStaleLoad, state);
+
+  state = productGalleryReducer(state, {
+    type: "failed",
+    source: "video.mp4",
+  });
+  assert.equal(state.failedSource, "video.mp4");
+  assert.equal(state.loadingSource, null);
+
+  state = productGalleryReducer(state, {
+    type: "thumbnailFailed",
+    source: "video.mp4",
+  });
+  assert.equal(state.failedThumbnails.has("video.mp4"), true);
+
+  state = productGalleryReducer(state, {
+    type: "retry",
+    source: "video.mp4",
+  });
+  assert.equal(state.failedSource, null);
+  assert.equal(state.loadingSource, "video.mp4");
+  assert.equal(state.retryCount, 1);
+
+  state = productGalleryReducer(state, {
+    type: "loaded",
+    source: "video.mp4",
+  });
+  assert.equal(state.loadingSource, null);
+});
+
+test("el editor permite crear una fila antes de seleccionar o cargar su medio", () => {
+  const validate = (gallery, locale = "es") =>
+    validateProductMedia({ data: { gallery }, req: { locale } });
+
+  assert.doesNotThrow(() => validate([{}]));
+  assert.doesNotThrow(() => validate([{ image: 12 }]));
+  assert.doesNotThrow(() => validate([{ image: { id: 12 } }]));
+  assert.doesNotThrow(() =>
+    validate([{ externalVideoUrl: "https://youtu.be/abc123" }]),
+  );
+  assert.throws(
+    () => validate([{ caption: "Sin medio" }]),
+    (error) =>
+      error.cause?.errors?.[0]?.path === "gallery.0.image" &&
+      error.cause.errors[0].message ===
+        "Cada fila de la galería necesita una imagen o una URL de YouTube.",
+  );
+  assert.throws(
+    () => validate([{ isPrimary: true }], "en"),
+    (error) =>
+      error.cause?.errors?.[0]?.path === "gallery.0.image" &&
+      error.cause.errors[0].message ===
+        "Each gallery row needs an image or a YouTube URL.",
+  );
+});
+
+test("la tarjeta de producto muestra el estado sin medios y no inventa una imagen", () => {
+  const html = renderToStaticMarkup(
+    createElement(ProductCard, {
+      href: "/es/shop/sin-medios",
+      title: "Producto sin medios",
+      price: "$28.000",
+      noMediaLabel: "Este producto todavía no tiene imágenes ni videos.",
+    }),
+  );
+
+  assert.match(html, /role="img"/);
+  assert.match(
+    html,
+    /aria-label="Este producto todavía no tiene imágenes ni videos\."/,
+  );
+  assert.doesNotMatch(html, /<img/);
+  assert.doesNotMatch(html, /unsplash/);
 });
 import { mapProductVariant as mapShopifyVariant } from "@/lib/commerce/providers/shopify/mappers";
 import { findVariant } from "@/features/product/utils";

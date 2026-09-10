@@ -44,7 +44,7 @@ ordenada de medios del adaptador. La marca de medio principal tiene prioridad;
 los videos aportan su poster o miniatura de YouTube, nunca el archivo de video
 como fuente de una imagen. Un video sin poster se omite al seleccionar imágenes.
 Se conservan las fuentes antiguas como fallback. Este cambio no modifica el
-esquema ni requiere migración. Pruebas de catálogo: 38 aprobadas; queda pendiente
+esquema ni requiere migración. Pruebas de catálogo: 44 aprobadas; queda pendiente
 verificar visualmente las tarjetas y el carrito con contenido real en ES/EN.
 
 ### Avance: descripción enriquecida en la ficha de producto
@@ -81,15 +81,31 @@ Las cargas del CMS tienen límites explícitos: 10 MB por imagen y 100 MB por
 video. La validación se ejecuta del lado del servidor tanto desde el editor como
 desde la API y devuelve un mensaje en el idioma activo.
 
+La galería pública ya no inventa una imagen externa cuando el producto no tiene
+medios: muestra un estado vacío localizado. Las imágenes y videos muestran un
+indicador de carga; ante un fallo del archivo principal conservan el espacio de
+la ficha, explican el problema y permiten reintentar sin recargar la página.
+Las tarjetas del catálogo, productos relacionados y bloques destacados reutilizan
+el mismo estado vacío localizado; ningún listado sustituye medios ausentes con una
+fotografía genérica externa.
+
 La galería del CMS ahora acepta imágenes JPG/PNG/WebP/AVIF y videos MP4/WebM,
 con pie localizado y marca de medio principal. El adaptador proyecta el orden
 editorial, poster y texto alternativo; el storefront muestra miniaturas y un
 reproductor de video con controles, `preload="metadata"` y sin autoplay. No se
 aceptan URLs `data:` o `blob:` ni tipos MIME fuera de la lista.
 
-Verificación: 38 pruebas de catálogo, TypeScript, formato y diff pasan. La
-validación de contenido real, errores de reproducción y verificación manual
-responsive/teclado siguen pendientes.
+Verificación: 44 pruebas de catálogo, TypeScript, lint focalizado, formato y diff
+pasan. La validación de contenido real, errores de reproducción y verificación
+manual responsive/teclado siguen pendientes.
+
+La cobertura automatizada de la galería verifica selección, carga, fallo de medio
+principal, miniatura fallida y reintento. También protege contra eventos tardíos de
+un medio anterior para que no oculten el indicador del medio activo. Los límites de
+carga se prueban en el valor exacto y al superarlo, sin archivo y con mensajes ES/EN.
+El editor admite la fila vacía transitoria que Payload crea antes de abrir el selector
+de uploads. Una fila parcialmente configurada sigue siendo inválida, pero el error se
+asocia al campo de imagen en vez de bloquear la creación con un error genérico de fila.
 
 También se admiten videos externos de YouTube mediante una URL HTTPS validada
 (`youtube.com`, `youtu.be` o Shorts). El adaptador genera únicamente el embed de
@@ -99,7 +115,7 @@ opcional de la fila funciona como poster/miniatura editorial y tiene prioridad.
 Las imágenes de la galería se presentan con alineación superior. Las columnas y
 tablas necesarias forman parte de la migración de Task 03.
 
-Verificación adicional: 38 pruebas de catálogo pasan; el build de storefront,
+Verificación adicional: 44 pruebas de catálogo pasan; el build de storefront,
 TypeScript y el formato de los archivos modificados pasan. La prueba en el
 navegador y la administración para editar/reordenar secciones aún queda pendiente.
 
@@ -107,7 +123,12 @@ navegador y la administración para editar/reordenar secciones aún queda pendie
 
 - The Payload commerce adapter now reuses the canonical CMS rich-text serializer. Plain strings are escaped, supported Lexical formatting is retained, unsafe link protocols are omitted, and inline text preserves word spacing.
 - Product list, slug, ID, and category product projections require explicit published status, including when upstream requests authenticate with an API key. Missing status fails closed. Product ID lookup preserves operational failures instead of treating them as missing content.
-- Automated coverage: catalog suite passes 38 tests. Storefront lint passes with existing warnings; TypeScript validation and production build pass.
+- La colección Media funciona como repositorio público de archivos y no tiene
+  borradores propios. La política editorial se aplica al producto: el storefront
+  solicita únicamente productos publicados y vuelve a validar `_status` antes de
+  proyectar sus referencias de medios. Las pruebas cubren productos borrador,
+  estados ausentes y relaciones de categoría pobladas con borradores.
+- Automated coverage: catalog suite passes 44 tests. Storefront lint passes with existing warnings; TypeScript validation and production build pass.
 - La galería ya incluye campos de media, validación de videos externos y miniaturas de YouTube generadas; la verificación end-to-end del CMS sigue pendiente.
 - Manual verification instructions: [Task 03 manual test](03-product-content-media-manual-test.md). These tests have not yet been executed against a live CMS.
 

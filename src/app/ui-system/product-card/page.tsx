@@ -9,7 +9,7 @@ export default function ProductCardPage() {
         title="ProductCard"
         description="Product teaser used in collections and best-seller grids."
       />
-      <DocsSection title="Example" className="w-full max-w-xs">
+      <DocsSection title="Con imagen" className="w-full max-w-xs">
         <ProductCard
           href="/en/shop/organic-mountain-cacao"
           title="Organic Mountain Cacao"
@@ -18,6 +18,16 @@ export default function ProductCardPage() {
           category="Wellness rituals"
           imageLoading="eager"
           imageSrc="https://images.unsplash.com/photo-1511381939415-e44015466834?auto=format&fit=crop&w=800&q=80"
+          noMediaLabel="Este producto todavía no tiene imágenes ni videos."
+        />
+      </DocsSection>
+      <DocsSection title="Sin medios" className="w-full max-w-xs">
+        <ProductCard
+          href="/es/shop/producto-sin-medios"
+          title="Producto sin medios"
+          price="$28.000"
+          category="Rituales de bienestar"
+          noMediaLabel="Este producto todavía no tiene imágenes ni videos."
         />
       </DocsSection>
     </>

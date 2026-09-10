@@ -110,6 +110,9 @@
   "product": {
     "backToShop": "Volver a la tienda",
     "gallery": "Galería del producto",
+    "noMedia": "Este producto todavía no tiene imágenes ni videos.",
+    "mediaError": "No pudimos cargar este contenido multimedia.",
+    "retryMedia": "Reintentar",
     "addToCart": "Añadir al carrito",
     "adding": "Añadiendo…",
     "soldOut": "Agotado",

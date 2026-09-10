@@ -1,14 +1,16 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "@/components/ui/Badge";
+import { MediaPlaceholder } from "@/components/media/MediaPlaceholder";
 import { cn } from "@/lib/utils/cn";
 
 export type ProductCardProps = {
   href: string;
   title: string;
   price: string;
-  imageSrc: string;
+  imageSrc?: string | null;
   imageAlt?: string;
+  noMediaLabel: string;
   badge?: string;
   category?: string;
   imageLoading?: "eager" | "lazy";
@@ -21,6 +23,7 @@ export function ProductCard({
   price,
   imageSrc,
   imageAlt = "",
+  noMediaLabel,
   badge,
   category,
   imageLoading = "lazy",
@@ -35,14 +38,18 @@ export function ProductCard({
     >
       <Link href={href} className="block">
         <div className="bg-card-hover relative aspect-[4/5] overflow-hidden">
-          <Image
-            src={imageSrc}
-            alt={imageAlt || title}
-            fill
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
-            sizes="(max-width: 768px) 50vw, 25vw"
-            loading={imageLoading}
-          />
+          {imageSrc ? (
+            <Image
+              src={imageSrc}
+              alt={imageAlt || title}
+              fill
+              className="object-cover object-top transition-transform duration-500 group-hover:scale-105"
+              sizes="(max-width: 768px) 50vw, 25vw"
+              loading={imageLoading}
+            />
+          ) : (
+            <MediaPlaceholder label={noMediaLabel} />
+          )}
           {badge ? (
             <Badge className="absolute top-3 left-3" variant="forest">
               {badge}

@@ -19,11 +19,18 @@ export const validateProductMedia: CollectionBeforeValidateHook = ({ data, req }
   }
   data.gallery.forEach((row: Record<string, unknown>, index: number) => {
     const external = typeof row.externalVideoUrl === 'string' ? row.externalVideoUrl.trim() : ''
+    const caption = typeof row.caption === 'string' ? row.caption.trim() : ''
+    const isEmptyRow = !external && !row.image && !caption && row.isPrimary !== true
+
+    // Payload inserts an empty array row before opening the upload selector. It must
+    // remain valid long enough for editors to create or choose the related media.
+    if (isEmptyRow) return
+
     if (!external && !row.image) {
       throw new ValidationError({
         errors: [
           {
-            path: `gallery.${index}`,
+            path: `gallery.${index}.image`,
             message:
               req.locale === 'en'
                 ? 'Each gallery row needs an image or a YouTube URL.'

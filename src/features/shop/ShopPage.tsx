@@ -46,6 +46,7 @@ type Labels = {
   next: string;
   pagination: string;
   subcategories: string;
+  noMedia: string;
 };
 
 type Props = {
@@ -95,7 +96,8 @@ export async function ShopPage({ locale, query, labels }: Props) {
             </>
           ) : null}
           <div className="relative z-10 max-w-xl space-y-3">
-            {!catalog.selectedCollection?.image?.url && catalog.selectedCollection?.icon ? (
+            {!catalog.selectedCollection?.image?.url &&
+            catalog.selectedCollection?.icon ? (
               <div className="text-text-secondary" aria-hidden="true">
                 <CategoryIcon name={catalog.selectedCollection.icon} />
               </div>
@@ -285,6 +287,7 @@ export async function ShopPage({ locale, query, labels }: Props) {
                 <ProductGrid
                   locale={locale}
                   products={catalog.products.items}
+                  noMediaLabel={labels.noMedia}
                 />
               )}
 

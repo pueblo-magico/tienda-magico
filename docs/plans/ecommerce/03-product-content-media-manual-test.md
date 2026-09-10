@@ -100,6 +100,9 @@ Product responses retain the existing 60-second revalidation policy. After publi
 
 ### CMS: carga y configuración
 
+- [ ] Agregá una fila nueva en **Medios** y, sin guardar primero el producto, abrí
+      el selector para crear o elegir un archivo. No debe aparecer el error
+      `gallery.0`; después de seleccionar el archivo, la relación debe quedar visible.
 - [ ] En **Media**, cargá los formatos permitidos: JPG, PNG, WebP, AVIF, MP4 y WebM.
 - [ ] Confirmá que una imagen de hasta 10 MB y un video de hasta 100 MB se acepten.
       Intentá luego cargar archivos que superen cada límite: el CMS debe rechazarlos
@@ -141,6 +144,16 @@ Product responses retain the existing 60-second revalidation policy. After publi
       un 404 o un MIME inválido.
 - [ ] Probá un producto sin medios: debe aparecer el fallback deliberado y la ficha
       debe seguir siendo usable.
+- [ ] Durante la carga de una imagen o video principal, comprobá que aparezca un
+      indicador visual sin modificar el tamaño reservado de la galería.
+- [ ] Interrumpí una imagen o un video local desde las herramientas de red. Debe
+      aparecer el mensaje localizado y el botón **Reintentar**; activalo con mouse
+      y con teclado después de restaurar la red y confirmá que el medio reaparece.
+- [ ] Repetí el estado vacío y el fallo en ES y EN. No debe solicitarse una imagen
+      externa de relleno ni desaparecer el título, las opciones o el botón de compra.
+- [ ] Localizá un producto sin medios en el listado principal, productos relacionados
+      y un bloque destacado. Cada tarjeta debe mostrar el mismo estado vacío localizado
+      que la ficha y no debe solicitar una fotografía genérica externa.
 - [ ] Probá escritorio y móvil, orientación vertical y horizontal, sin desbordes ni
       miniaturas inaccesibles. Repetí la selección completa con teclado.
 
@@ -226,7 +239,5 @@ Admin mutation and desktop/mobile keyboard tests above remain unexecuted.
 
 ## Funcionalidad todavía pendiente
 
-Organización del editor en pestañas, preparación de traducciones, datos públicos
-de origen, ciclo activo/discontinuado, límites de tamaño de uploads y estados de
-carga/error. También queda ejecutar la prueba de migración/rollback y completar
-la matriz manual de escritorio, móvil, teclado y ambos idiomas.
+Queda ejecutar la prueba manual de migración/rollback y completar la matriz de
+escritorio, móvil, teclado y ambos idiomas.

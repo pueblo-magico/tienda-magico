@@ -21,7 +21,10 @@ export default async function ShopRoutePage({ params, searchParams }: Props) {
   const raw = await searchParams;
   setRequestLocale(locale);
 
-  const t = await getTranslations("shop");
+  const [t, tProduct] = await Promise.all([
+    getTranslations("shop"),
+    getTranslations("product"),
+  ]);
   const query = parseShopQuery(raw);
 
   return (
@@ -58,6 +61,7 @@ export default async function ShopRoutePage({ params, searchParams }: Props) {
         next: t("next"),
         pagination: t("pagination"),
         subcategories: t("subcategories"),
+        noMedia: tProduct("noMedia"),
       }}
     />
   );
