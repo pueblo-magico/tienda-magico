@@ -76,7 +76,7 @@ test("el CMS aplica límites distintos para imágenes y videos", () => {
           data: smallImage,
           mimetype: "image/jpeg",
           name: "imagen-24-kb.jpg",
-          size: smallImage.byteLength,
+          size: MAX_IMAGE_UPLOAD_BYTES + 1,
         },
       },
     }),

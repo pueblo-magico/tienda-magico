@@ -9,8 +9,9 @@ export const validateMediaUploadSize: CollectionBeforeValidateHook = ({ data, re
   if (!file) return data
 
   const limit = file.mimetype.startsWith('video/') ? MAX_VIDEO_UPLOAD_BYTES : MAX_IMAGE_UPLOAD_BYTES
+  const fileSize = file.data?.byteLength ?? file.size
 
-  if (file.size <= limit) return data
+  if (fileSize <= limit) return data
 
   const limitInMb = limit / 1024 / 1024
   throw new ValidationError({
