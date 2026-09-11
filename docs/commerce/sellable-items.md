@@ -140,6 +140,13 @@ destructivo en datos reales sin respaldo y aprobación.
 
 ## Verificación
 
+PMG-359 extiende `apps/cms/scripts/test-task-04.mjs` para pasar carritos persistidos
+en ES/EN al mapeador real del storefront, la validación de checkout y la conversión
+de importes para Mercado Pago. Verifica identidad, cantidades, precio confirmado,
+cambio de precio y discontinuación. Se ejecuta en la base descartable y no envía
+solicitudes de pago. Esta prueba de contrato no reemplaza el recorrido del navegador
+ni la verificación de imágenes, teclado, móvil o entrega al proveedor de pago.
+
 Ejecutá `npm run test:task-04`, los builds y lint de ambas aplicaciones, y el
 chequeo de formato de los archivos modificados. La checklist de aceptación está
 en `docs/plans/ecommerce/04-sellable-items-pricing-manual-test.md`. La implementación

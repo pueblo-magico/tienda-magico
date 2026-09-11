@@ -1,4 +1,5 @@
 import React from 'react'
+import Link from 'next/link'
 import './styles.css'
 
 export default function HomePage() {
@@ -7,16 +8,16 @@ export default function HomePage() {
       <div className="content">
         <h1>Pueblo Mágico CMS</h1>
         <p>
-          Payload Ecommerce backend for the storefront. Manage products, categories,
-          media, and carts here.
+          Payload Ecommerce backend for the storefront. Manage products, categories, media, and
+          carts here.
         </p>
         <div className="links">
-          <a className="admin" href="/admin">
+          <Link className="admin" href="/admin">
             Open admin
-          </a>
-          <a className="docs" href="/api" rel="noreferrer">
+          </Link>
+          <Link className="docs" href="/api" prefetch={false}>
             REST API
-          </a>
+          </Link>
         </div>
       </div>
     </div>

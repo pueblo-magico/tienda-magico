@@ -2,6 +2,8 @@ import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import { randomBytes } from 'node:crypto'
+import { spawnSync } from 'node:child_process'
+import { fileURLToPath } from 'node:url'
 
 const require = createRequire(new URL('../package.json', import.meta.url))
 const { parse } = require('dotenv')
@@ -255,6 +257,16 @@ try {
   })
   assert.equal(cart.subtotal, 1000100)
   assert.equal(cart.items[0].amount, 500050)
+  const readLocalizedCart = async () =>
+    Object.fromEntries(
+      await Promise.all(
+        ['es', 'en'].map(async (locale) => [
+          locale,
+          await payload.findByID({ collection: 'carts', id: cart.id, locale, depth: 3 }),
+        ]),
+      ),
+    )
+  const acceptedSnapshot = await readLocalizedCart()
   console.log('PASS: carrito persiste identidad, subtotal y snapshot ARS')
   await payload.update({ collection: 'variants', id: variant.id, data: { priceInARS: 600050 } })
   const changed = await payload.update({
@@ -264,12 +276,43 @@ try {
   })
   assert.equal(changed.items[0].amount, 500050)
   assert.equal(changed.subtotal, 600050)
+  const changedSnapshot = await readLocalizedCart()
   const confirmed = await payload.update({
     collection: 'carts',
     id: cart.id,
     data: { acceptCurrentPrices: true, items: changed.items },
   })
   assert.equal(confirmed.items[0].amount, 600050)
+  const confirmedSnapshot = await readLocalizedCart()
+  await payload.update({
+    collection: 'variants',
+    id: variant.id,
+    data: { lifecycleStatus: 'discontinued' },
+  })
+  const discontinuedSnapshot = await readLocalizedCart()
+  const verification = spawnSync(
+    process.execPath,
+    ['--import', './tests/register.mjs', 'tests/verify-persisted-commerce.mjs'],
+    {
+      cwd: fileURLToPath(new URL('../../../', import.meta.url)),
+      input: JSON.stringify({
+        accepted: acceptedSnapshot,
+        changed: changedSnapshot,
+        confirmed: confirmedSnapshot,
+        discontinued: discontinuedSnapshot,
+        variantID: variant.id,
+      }),
+      encoding: 'utf8',
+      timeout: 30000,
+    },
+  )
+  assert.equal(verification.status, 0, verification.stderr || verification.error?.message)
+  process.stdout.write(verification.stdout)
+  await payload.update({
+    collection: 'variants',
+    id: variant.id,
+    data: { lifecycleStatus: 'active' },
+  })
   console.log('PASS: cambiar cantidad conserva el precio aceptado; confirmar lo actualiza')
   await assert.rejects(
     payload.update({

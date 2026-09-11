@@ -147,6 +147,70 @@ Registrá commit, migraciones ejecutadas, IDs descartables y resultados reales.
 El script aislado se ejecuta desde `apps/cms` con
 `node --import tsx scripts/test-task-04.mjs`; no reemplaza la revisión del editor.
 
+### Hito 4 — Aceptación integrada (PMG-359)
+
+Estado: en curso; no habilita cerrar PMG-221. Evidencia inicial del 11/09/2026;
+los bloqueos de esta tabla se actualizaron en la sección de correcciones más abajo:
+
+| Verificación                       | Resultado                   | Alcance                                                                                                                               |
+| ---------------------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Build storefront                   | Aprobado                    | Compilación de producción, TypeScript y generación de rutas.                                                                          |
+| Build CMS                          | Aprobado                    | Compilación de producción, TypeScript y generación de rutas.                                                                          |
+| Lint storefront                    | Aprobado con 7 advertencias | Sin errores; advertencias preexistentes.                                                                                              |
+| Lint CMS                           | Bloqueado                   | 2 errores preexistentes de enlaces en `apps/cms/src/app/(frontend)/page.tsx`, además de 17 advertencias.                              |
+| PostgreSQL → storefront → checkout | Aprobado                    | Datos persistidos reales, mapeo de carrito y validación local, ES/EN, identidad exacta, cantidad y ARS. Sin solicitud a Mercado Pago. |
+| Precio modificado                  | Aprobado en integración     | El snapshot anterior conserva precio; checkout rechaza hasta confirmar el precio nuevo.                                               |
+| Variante discontinuada             | Aprobado en integración     | Conserva la línea y su identidad; checkout rechaza la compra.                                                                         |
+| Tienda EN en navegador             | Parcial                     | Renderiza navegación, filtros y aviso de error; la API CMS configurada no está disponible. No se verificó compra de productos.        |
+| Tienda ES en navegador             | Bloqueado                   | `/es/shop` redirige a `/es/tienda`; `/es/tienda` responde 308 hacia sí misma. Reproducido con localhost y 127.0.0.1.                  |
+| Móvil, teclado y pago de prueba    | Pendiente                   | No hay aceptación integrada completa ni evidencia visual de las variantes.                                                            |
+
+El script de integración ahora obtiene carritos persistidos con profundidad 3 en
+ES/EN antes y después de cambiar precio, confirmar y discontinuar. Los envía por
+stdin a `tests/verify-persisted-commerce.mjs`, ejecutado con el entorno TypeScript
+del storefront. No guarda snapshots con secretos en archivos ni realiza pagos.
+Ejecutá desde `apps/cms`: `node --import tsx scripts/test-task-04.mjs`.
+
+Para completar este hito:
+
+1. Mantener el hostname local coherente según las instrucciones siguientes.
+2. Levantar un CMS con datos descartables y conectar el storefront sin migrar
+   automáticamente la base habitual. Crear variantes con precio, stock y medios distintos.
+3. Ejecutar el recorrido visual completo de la siguiente sección en ambos idiomas
+   y anchos. Registrar capturas y resultados de teclado, selección, carrito y recuperación.
+4. Verificar la entrega al checkout con credenciales de prueba, sin cobros reales.
+5. Registrar las advertencias preexistentes de lint antes del cierre.
+
+#### Correcciones verificadas
+
+- Ambos builds de producción volvieron a pasar. Lint CMS ahora termina sin errores,
+  con 17 advertencias, después de usar Link en los enlaces de su portada.
+- El bucle era del entorno de prueba, no del código de rutas: al enlazar el servidor
+  a `127.0.0.1`, las reescrituras hacia `localhost` se trataban como externas y volvían
+  a ejecutar Proxy. Se verificó el código original con el servidor en `localhost`.
+- La API CMS y `/admin` responden 200. Se inició desarrollo con
+  `PAYLOAD_MIGRATING=true` para impedir schema push; no se aplicaron migraciones a
+  la base habitual. Esta opción no reemplaza las migraciones de producción.
+- La tienda ES mostró 7 productos en navegador. Se usó una URL nueva porque el
+  navegador conservaba el 308 anterior. Usá un perfil limpio o quitá esa caché para repetir.
+
+Inicio del storefront de producción local desde la raíz:
+
+```powershell
+node node_modules/next/dist/bin/next start --hostname localhost --port 3000
+```
+
+Prueba de regresión en otra terminal, con ese servidor iniciado:
+
+```powershell
+$env:ROUTING_TEST_URL = 'http://localhost:3000'
+node --test tests/routing-http.test.mjs
+```
+
+Pasaron las seis rutas de tienda/carrito ES/EN, alias y conservación de la búsqueda.
+Sin la variable, la prueba se omite explícitamente. Esto no verifica selección de
+variantes, pago, imágenes ni accesibilidad: esos recorridos siguen pendientes.
+
 ### Aceptación general de la tarea 4
 
 Prepará una base descartable con las migraciones anteriores y un carrito existente.
