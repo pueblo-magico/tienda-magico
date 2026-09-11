@@ -163,7 +163,7 @@ export function ProductPageView({ locale, product, related, labels }: Props) {
                             classification.brand.name
                           }
                           fill
-                          className="object-contain p-1"
+                          className="object-cover"
                           sizes="40px"
                         />
                       </span>

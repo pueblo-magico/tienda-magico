@@ -296,6 +296,7 @@ export const productsCollectionOverride: CollectionOverride = ({ defaultCollecti
       title: true,
       slug: true,
       enableVariants: true,
+      variantTypes: true,
       variants: true,
       gallery: true,
       inventory: true,

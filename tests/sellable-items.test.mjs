@@ -70,6 +70,41 @@ test("ARS usa centavos enteros y excluye precios inválidos o desactivados", () 
   );
 });
 
+test("los tipos poblados del producto resuelven etiquetas de opciones superficiales en ficha y carrito", () => {
+  const product = {
+    ...parent,
+    variantTypes: [{ id: 5, label: { es: "Tamaño", en: "Size" } }],
+    variants: [
+      { ...variant, options: [{ id: 10, label: "100 g", variantType: 5 }] },
+    ],
+  };
+  for (const [locale, label] of [
+    ["es", "Tamaño"],
+    ["en", "Size"],
+  ]) {
+    const mapped = mapProduct(product, locale);
+    assert.equal(mapped.options[0].name, label);
+    assert.equal(mapped.variants[0].selectedOptions[0].optionId, "5");
+    const cart = mapCart(
+      {
+        id: 1,
+        currency: "ARS",
+        items: [
+          {
+            id: "line",
+            product,
+            variant: product.variants[0],
+            quantity: 1,
+            amount: variant.priceInARS,
+          },
+        ],
+      },
+      { locale },
+    );
+    assert.equal(cart.lines[0].merchandise.selectedOptions[0].name, label);
+  }
+});
+
 test("el rango solo incluye variantes comprables y mantiene identidad, medidas y medios", () => {
   const product = mapProduct({
     ...parent,

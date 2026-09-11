@@ -12,7 +12,7 @@ process.env.PAYLOAD_ECOMMERCE_CURRENCY = "ARS";
 process.env.PAYLOAD_ECOMMERCE_AMOUNT_IS_CENTS = "true";
 
 for (const locale of ["es", "en"]) {
-  const original = mapCart(accepted[locale]);
+  const original = mapCart(accepted[locale], { locale });
   validateCheckoutCart(original, locale);
   const originalPayment = cartToPreferenceItems(original)[0];
   assert.equal(originalPayment.id, `variant:${variantID}`);
@@ -24,17 +24,17 @@ for (const locale of ["es", "en"]) {
       (option) => option.value === "100 g",
     ),
   );
-  const stale = mapCart(changed[locale]);
+  const stale = mapCart(changed[locale], { locale });
   assert.equal(stale.lines[0].issue, "priceChanged");
   assert.throws(() => validateCheckoutCart(stale, locale), { status: 409 });
-  const current = mapCart(confirmed[locale]);
+  const current = mapCart(confirmed[locale], { locale });
   validateCheckoutCart(current, locale);
   const payment = cartToPreferenceItems(current)[0];
   assert.equal(payment.id, originalPayment.id);
   assert.equal(payment.currency_id, "ARS");
   assert.equal(payment.unit_price, 6000.5);
   assert.equal(payment.quantity, 1);
-  const unavailable = mapCart(discontinued[locale]);
+  const unavailable = mapCart(discontinued[locale], { locale });
   assert.equal(unavailable.lines.length, 1);
   assert.equal(unavailable.lines[0].issue, "unavailable");
   assert.equal(

@@ -609,6 +609,7 @@ function variantDocs(product: PayloadProductDoc): PayloadVariantDoc[] {
 function mapSelectedOptions(
   variant: PayloadVariantDoc,
   locale?: string | null,
+  product?: PayloadProductDoc | null,
 ): SelectedOption[] {
   const config = getPayloadEcommerceConfig();
   const preferred = [locale ?? config.defaultLocale, config.fallbackLocale];
@@ -627,7 +628,11 @@ function mapSelectedOptions(
         };
       }
 
-      const typeRecord = asRecord(option.variantType);
+      const typeRecord =
+        asRecord(option.variantType) ??
+        relationshipDocs<Record<string, unknown>>(product?.variantTypes).find(
+          (type) => toId(type.id) === toId(option.variantType),
+        );
       const name =
         (typeof option.variantType === "object" && option.variantType
           ? (option.variantType.label ??
@@ -684,11 +689,12 @@ export function mapVariant(
   variant: PayloadVariantDoc,
   currencyCode?: string,
   locale?: string | null,
+  product?: PayloadProductDoc | null,
 ): ProductVariant {
   const config = getPayloadEcommerceConfig();
   const code = currencyCode ?? config.currencyCode;
   const amount = regularPrice(variant);
-  const selectedOptions = mapSelectedOptions(variant, locale);
+  const selectedOptions = mapSelectedOptions(variant, locale, product);
   const hasOptions =
     selectedOptions.length > 0 &&
     selectedOptions.length === variant.options?.length &&
@@ -839,7 +845,7 @@ export function mapProduct(
   const summary = mapProductSummary(product, locale);
   const images = collectImages(product, locale);
   const variants = variantDocs(product).map((variant) =>
-    mapVariant(variant, undefined, locale),
+    mapVariant(variant, undefined, locale, product),
   );
   const config = getPayloadEcommerceConfig();
   const preferredLocales = [
@@ -1113,7 +1119,7 @@ export function mapCart(
           id: merchandiseId,
           title: String(lineTitle),
           selectedOptions: variantDoc
-            ? mapSelectedOptions(variantDoc, locale)
+            ? mapSelectedOptions(variantDoc, locale, productDoc)
             : [],
           price: unitMoney,
           product: {
