@@ -7,6 +7,16 @@ lo completás. Ese borrador todavía no tiene una combinación vendible: para pu
 necesitás un valor por tipo, SKU y precio ARS válido. Una combinación ya asignada
 no se puede vaciar ni redefinir, aunque guardes como borrador.
 
+Los tipos de opción se toman siempre del producto: no se infieren de los valores
+seleccionados. Los borradores de variantes usan la última configuración editorial;
+al publicar una variante se consulta el producto sin superponer cambios en borrador,
+igual que en el carrito. Activá las variantes y guardá los tipos antes de completarlas.
+Si el producto ya está publicado, sus cambios de configuración deben publicarse
+primero. Para convertir un producto simple sin variantes publicadas, despublicalo,
+guardá la configuración, publicá las variantes y volvé a publicar el producto;
+durante esa preparación no estará disponible para comprar. Un producto nuevo
+puede permanecer en borrador mientras publicás sus primeras variantes.
+
 El precio regular sigue siendo `priceInARS` del plugin, en centavos enteros positivos
 (125050 representa ARS 1.250,50). Activá ARS antes de publicar. No se permiten
 artículos gratuitos ni precios alternativos en otras monedas. El idioma no cambia

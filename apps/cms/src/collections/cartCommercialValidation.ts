@@ -1,7 +1,7 @@
 import { ValidationError } from 'payload'
 import type { CollectionOverride } from '@payloadcms/plugin-ecommerce/types'
 import type { CollectionBeforeChangeHook, Field } from 'payload'
-import { relationID } from './sellableItems'
+import { configuredVariantTypes, hasCompleteVariantOptions, relationID } from './sellableItems'
 
 export const validateCartItems: CollectionBeforeChangeHook = async ({ data, originalDoc, req }) => {
   const next = { ...originalDoc, ...data }
@@ -72,14 +72,14 @@ export const validateCartItems: CollectionBeforeChangeHook = async ({ data, orig
           })
     if ('product' in item && String(relationID(item.product)) !== String(productID)) fail()
     if (variantID != null) {
-      const expected = (product.variantTypes ?? []).map(relationID).map(String).sort()
+      const expected = configuredVariantTypes(product.variantTypes)
       const options = 'options' in item && Array.isArray(item.options) ? item.options : []
       const actual = options
         .map((option) =>
           typeof option === 'object' && option ? String(relationID(option.variantType)) : '',
         )
         .sort()
-      if (!expected.length || JSON.stringify(actual) !== JSON.stringify(expected)) fail()
+      if (!hasCompleteVariantOptions(expected, actual)) fail()
     }
     const key = `${productID}:${variantID ?? ''}`
     const quantity = (quantities.get(key) ?? 0) + line.quantity

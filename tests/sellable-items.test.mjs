@@ -133,15 +133,12 @@ test("el CMS exige una opción por tipo y rechaza combinaciones repetidas", asyn
   });
   assert.equal(valid.combinationKey, "2:10");
   const legacyParent = { ...parent, variantTypes: [] };
-  assert.equal(
-    (
-      await validateSellableItem({
-        data: variant,
-        collection: { slug: "variants" },
-        req: req(legacyParent),
-      })
-    ).combinationKey,
-    "2:10",
+  await assert.rejects(
+    validateSellableItem({
+      data: variant,
+      collection: { slug: "variants" },
+      req: req(legacyParent),
+    }),
   );
   const duplicateTypeParent = { ...parent, variantTypes: [5, 5] };
   assert.equal(
@@ -187,6 +184,163 @@ test("el CMS permite guardar una variante nueva incompleta antes de publicarla",
     req: context,
   });
   assert.equal(complete.combinationKey, "2:10");
+});
+
+test("guardar y comprar comparten las reglas de tipos configurados", async () => {
+  for (const configuration of [
+    { enableVariants: true, variantTypes: [5] },
+    { enableVariants: true, variantTypes: [5, { id: 5 }] },
+    { enableVariants: true, variantTypes: [] },
+    { enableVariants: false, variantTypes: [5] },
+    { enableVariants: true, variantTypes: [6] },
+  ]) {
+    const product = { ...parent, ...configuration };
+    const context = req(product);
+    context.payload.findByID = async ({ collection, draft }) => {
+      assert.equal(draft, collection === "variantOptions" ? undefined : false);
+      return collection === "products"
+        ? product
+        : collection === "variants"
+          ? { ...variant, options: [{ id: 10, variantType: { id: 5 } }] }
+          : { id: 10, variantType: 5 };
+    };
+    const save = () =>
+      validateSellableItem({
+        data: variant,
+        collection: { slug: "variants" },
+        req: context,
+      });
+    const add = () =>
+      validateCartItems({
+        data: {
+          currency: "ARS",
+          items: [{ product: 2, variant: 3, quantity: 1 }],
+        },
+        req: context,
+      });
+    if (configuration.enableVariants && configuration.variantTypes[0] === 5) {
+      assert.equal((await save()).combinationKey, "2:10");
+      assert.equal((await add()).items[0].amount, variant.priceInARS);
+    } else {
+      await assert.rejects(save());
+      await assert.rejects(add());
+    }
+  }
+});
+
+test("el borrador usa la configuración editorial y publicar exige la configuración pública", async () => {
+  const context = req(parent);
+  let publicProduct = { ...parent, variantTypes: [] };
+  context.payload.findByID = async ({ collection, draft }) =>
+    collection === "products"
+      ? draft
+        ? parent
+        : publicProduct
+      : { id: 10, variantType: 5 };
+  const save = (status) =>
+    validateSellableItem({
+      data: { ...variant, _status: status },
+      collection: { slug: "variants" },
+      req: context,
+    });
+  assert.equal((await save("draft")).combinationKey, "2:10");
+  await assert.rejects(
+    save("published"),
+    (error) => error.data.errors[0].path === "product",
+  );
+  publicProduct = parent;
+  assert.equal((await save("published")).combinationKey, "2:10");
+  publicProduct = { ...parent, _status: "draft" };
+  assert.equal((await save("published")).combinationKey, "2:10");
+});
+
+test("las opciones sin tipo o repetidas no permiten publicar ni comprar", async () => {
+  for (const options of [
+    [{ id: 10, variantType: null }],
+    [
+      { id: 10, variantType: 5 },
+      { id: 11, variantType: 5 },
+    ],
+    [],
+  ]) {
+    const context = req(parent);
+    context.payload.findByID = async ({ collection, id }) =>
+      collection === "products"
+        ? parent
+        : collection === "variants"
+          ? { ...variant, options }
+          : options.find((option) => option.id === id);
+    await assert.rejects(
+      validateSellableItem({
+        data: { ...variant, options: options.map((option) => option.id) },
+        collection: { slug: "variants" },
+        req: context,
+      }),
+    );
+    await assert.rejects(
+      validateCartItems({
+        data: {
+          currency: "ARS",
+          items: [{ product: 2, variant: 3, quantity: 1 }],
+        },
+        req: context,
+      }),
+    );
+  }
+});
+
+test("dos tipos admiten borradores parciales y publican una combinación completa sin depender del orden", async () => {
+  const product = { ...parent, variantTypes: [6, 5] };
+  const options = [
+    { id: 10, variantType: 5 },
+    { id: 20, variantType: 6 },
+  ];
+  const context = req(product);
+  context.payload.findByID = async ({ collection, id }) =>
+    collection === "products"
+      ? product
+      : collection === "variants"
+        ? { ...variant, options: [...options].reverse() }
+        : options.find((option) => option.id === id);
+  const save = (selected, status = "draft", originalDoc = {}) =>
+    validateSellableItem({
+      data: { ...variant, options: selected, _status: status },
+      originalDoc,
+      collection: { slug: "variants" },
+      req: context,
+    });
+  assert.equal((await save([10])).combinationKey, null);
+  await assert.rejects(save([10], "published"));
+  await assert.rejects(save([10, 10]));
+  assert.equal((await save([20, 10], "published")).combinationKey, "2:10,20");
+  await assert.rejects(save([10], "draft", { combinationKey: "2:10,20" }));
+  const cart = await validateCartItems({
+    data: { currency: "ARS", items: [{ product: 2, variant: 3, quantity: 1 }] },
+    req: context,
+  });
+  assert.equal(cart.items[0].amount, variant.priceInARS);
+});
+
+test("la configuración ausente devuelve ayuda localizada en el campo producto", async () => {
+  for (const locale of ["es", "en"]) {
+    const context = { ...req({ ...parent, variantTypes: [] }), locale };
+    await assert.rejects(
+      validateSellableItem({
+        data: variant,
+        collection: { slug: "variants" },
+        req: context,
+      }),
+      (error) => {
+        const detail = error.data.errors[0];
+        assert.equal(detail.path, "product");
+        assert.match(
+          detail.message,
+          locale === "es" ? /Activá las variantes/ : /Enable variants/,
+        );
+        return true;
+      },
+    );
+  }
 });
 
 test("las medidas de envío quedan privadas para visitantes y clientes", () => {

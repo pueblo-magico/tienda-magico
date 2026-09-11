@@ -11,6 +11,23 @@ export function relationID(value: unknown): string | number | null {
   return null
 }
 
+export function configuredVariantTypes(values: unknown): string[] {
+  return Array.isArray(values)
+    ? [
+        ...new Set(
+          values
+            .map(relationID)
+            .filter((id) => id != null)
+            .map(String),
+        ),
+      ].sort()
+    : []
+}
+
+export function hasCompleteVariantOptions(expected: string[], actual: string[]): boolean {
+  return expected.length > 0 && JSON.stringify([...actual].sort()) === JSON.stringify(expected)
+}
+
 export const sellableFields: Field[] = [
   {
     name: 'sku',
@@ -186,18 +203,19 @@ export const validateSellableItem: CollectionBeforeValidateHook = async ({
       req,
       overrideAccess: true,
       depth: 0,
+      draft: next._status !== 'published',
     })
-    const configuredTypes = [
-      ...new Set(
-        (product.variantTypes ?? [])
-          .map(relationID)
-          .filter((id) => id != null)
-          .map(String),
-      ),
-    ].sort()
+    const expected = configuredVariantTypes(product.variantTypes)
     const options: unknown[] = Array.isArray(next.options) ? next.options : []
     if (!options.length && canSaveIncompleteDraft)
       return { ...data, sku: sku || null, combinationKey: null }
+    if (product.enableVariants !== true || !expected.length)
+      reject(
+        req,
+        'product',
+        'Activá las variantes y configurá sus tipos de opción en el producto. Si el producto ya está publicado, publicá esos cambios antes de publicar la variante.',
+        'Enable variants and configure their option types on the product. If the product is already published, publish those changes before publishing the variant.',
+      )
     const ids = options.map(relationID)
     const types: string[] = []
     for (const id of ids) {
@@ -210,21 +228,17 @@ export const validateSellableItem: CollectionBeforeValidateHook = async ({
         overrideAccess: true,
         depth: 0,
       })
-      types.push(String(relationID(option.variantType)))
+      const typeID = relationID(option.variantType)
+      if (typeID == null)
+        reject(
+          req,
+          'options',
+          'Seleccioná opciones con un tipo válido.',
+          'Select options with a valid type.',
+        )
+      types.push(String(typeID))
     }
-    const expected = configuredTypes.length ? configuredTypes : [...new Set(types)].sort()
-    if (!expected.length && next._status === 'published')
-      reject(
-        req,
-        'product',
-        'Configurá al menos un tipo de opción en el producto antes de publicar una variante.',
-        'Configure at least one product option type before publishing a variant.',
-      )
-    const normalizedTypes = [...new Set(types)].sort()
-    const hasCompleteOptions =
-      expected.length > 0 &&
-      options.length === expected.length &&
-      JSON.stringify(normalizedTypes) === JSON.stringify(expected)
+    const hasCompleteOptions = hasCompleteVariantOptions(expected, types)
     if (
       !hasCompleteOptions &&
       canSaveIncompleteDraft &&

@@ -4,6 +4,9 @@ Estado: implementación en revisión; aceptación integrada pendiente.
 
 ## Evidencia automática
 
+Las referencias a builds, migraciones e integración de esta sección son históricas;
+no certifican los cambios posteriores del hito 1. Su aceptación manual sigue pendiente.
+
 - Las pruebas de catálogo, publicación, revalidación y reglas comerciales pasan.
 - Build de CMS y storefront: ejecutados correctamente durante la implementación.
 - Lint CMS: mantiene los dos errores previos de enlaces en `src/app/(frontend)/page.tsx`.
@@ -15,6 +18,56 @@ Estado: implementación en revisión; aceptación integrada pendiente.
   siguen pendientes; las pruebas de persistencia no reemplazan ese recorrido.
 
 ## Pruebas pendientes
+
+### Hito 1 — Configuración de variantes
+
+Estado: pendiente de ejecución manual. Las pruebas unitarias simulan Payload;
+no verifican su persistencia ni la selección real de versiones en la base.
+
+Preparación:
+
+1. Usá CMS y storefront locales con una base descartable, nunca producción.
+2. Creá los tipos Tamaño/Size y Envase/Packaging, con valores 100 g, 500 g
+   y Bolsa/Bag. Anotá sus IDs y los IDs del producto y las variantes.
+3. Prepará un producto nuevo con nombre y resumen EN/ES. Activá variantes,
+   asigná ambos tipos y guardalo como borrador.
+4. Para cada variante completa usá un SKU nuevo, ARS activo, precio `125050`
+   centavos y stock `3`. No reutilices combinaciones eliminadas: eso pertenece al hito 3.
+
+Ejecutá estos casos en ES y EN; para los recorridos de interfaz repetí a 1440 px
+y 390 px, incluyendo Tab, Shift+Tab y Enter:
+
+| Caso                           | Pasos                                                                                                                                                                            | Resultado esperado                                                                                                                             |
+| ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Borrador vacío                 | Creá una variante sin opciones y guardá el borrador.                                                                                                                             | Se guarda sin combinación vendible; no se puede comprar.                                                                                       |
+| Borrador parcial               | Seleccioná solo Tamaño y guardá el borrador; después intentá publicar.                                                                                                           | El borrador se guarda; publicar señala que falta un valor por tipo.                                                                            |
+| Combinación completa           | Seleccioná Tamaño y Envase y publicá la variante; luego publicá el producto.                                                                                                     | Ambas publicaciones funcionan. Seleccioná esa variante en tienda y agregala: el carrito conserva sus IDs, opciones y precio ARS 1.250,50.      |
+| Edición estable                | Volvé a guardar la variante sin cambiar opciones; intentá vaciar una opción y guardar como borrador.                                                                             | El primer guardado funciona; el segundo rechaza redefinir una combinación asignada.                                                            |
+| Configuración ausente          | En otro producto sin tipos, intentá publicar una variante con opciones mediante una solicitud autenticada de prueba.                                                             | Error localizado en `product`; no infiere tipos a partir de las opciones.                                                                      |
+| Tipo incorrecto o repetido     | En una solicitud autenticada, enviá dos valores de Tamaño o un valor de un tipo no asignado al producto.                                                                         | Error en `options`; no se publica. No alteres permisos para ejecutar la prueba.                                                                |
+| Configuración solo en borrador | En un producto publicado, agregá un tipo únicamente al borrador. Creá una variante nueva con esa configuración y guardala como borrador; intentá publicarla.                     | El borrador usa la configuración editorial; publicar rechaza la combinación que no coincide con la configuración pública.                      |
+| Conversión de producto simple  | En un producto simple publicado de prueba, despublicá, activá variantes y guardá los tipos. Publicá una variante completa y después el producto.                                 | No hay bloqueo circular de publicación. El producto no se compra durante la preparación; al terminar se agrega la variante exacta.             |
+| Carrito obsoleto               | Agregá una variante y luego, en la base de prueba mediante el CMS, modificá la configuración pública para que ya no coincida. Intentá aumentar la cantidad del carrito anterior. | La mutación se rechaza sin sustituir la variante. Registrá cualquier bloqueo previo de publicación como resultado, no como prueba del carrito. |
+
+Si el editor impide enviar una combinación inválida, usá la solicitud de guardado
+capturada en DevTools sobre datos descartables, conservando autenticación y CSRF.
+No incluyas cookies, tokens ni cabeceras de autorización en la evidencia.
+
+Registrá por caso: fecha, commit, idioma, ancho, IDs de prueba, pasos, resultado
+real, aprobado/fallido/bloqueado y captura o respuesta sin secretos. No marques
+aprobado un caso que no ejecutaste. Para repetir las pruebas automáticas:
+
+```bash
+npm run test:task-04
+```
+
+Si el lanzador local de npm está roto, el comando equivalente es:
+
+```bash
+node --import ./tests/register.mjs --test tests/catalog.test.mjs tests/product-publication.test.mjs tests/catalog-revalidation.test.mjs tests/sellable-items.test.mjs
+```
+
+### Aceptación general de la tarea 4
 
 Prepará una base descartable con las migraciones anteriores y un carrito existente.
 Aplicá las migraciones nuevas; comprobá IDs, importes, relaciones, SKU, etiquetas
