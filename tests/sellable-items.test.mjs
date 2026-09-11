@@ -12,7 +12,6 @@ import {
   sellableFields,
 } from "../apps/cms/src/collections/sellableItems.ts";
 import { validateCartItems } from "../apps/cms/src/collections/cartCommercialValidation.ts";
-
 beforeEach(() => {
   process.env.PAYLOAD_ECOMMERCE_URL = "http://cms.test";
   process.env.PAYLOAD_ECOMMERCE_CURRENCY = "ARS";
@@ -133,6 +132,28 @@ test("el CMS exige una opción por tipo y rechaza combinaciones repetidas", asyn
     req: context,
   });
   assert.equal(valid.combinationKey, "2:10");
+  const legacyParent = { ...parent, variantTypes: [] };
+  assert.equal(
+    (
+      await validateSellableItem({
+        data: variant,
+        collection: { slug: "variants" },
+        req: req(legacyParent),
+      })
+    ).combinationKey,
+    "2:10",
+  );
+  const duplicateTypeParent = { ...parent, variantTypes: [5, 5] };
+  assert.equal(
+    (
+      await validateSellableItem({
+        data: variant,
+        collection: { slug: "variants" },
+        req: req(duplicateTypeParent),
+      })
+    ).combinationKey,
+    "2:10",
+  );
   await assert.rejects(
     validateSellableItem({
       data: { ...variant, options: [10, 10] },
@@ -150,6 +171,22 @@ test("el CMS exige una opción por tipo y rechaza combinaciones repetidas", asyn
       req: context,
     }),
   );
+});
+
+test("el CMS permite guardar una variante nueva incompleta antes de publicarla", async () => {
+  const context = req(parent);
+  const incomplete = await validateSellableItem({
+    data: { product: parent.id, options: [], sku: "CACAO-BORRADOR" },
+    collection: { slug: "variants" },
+    req: context,
+  });
+  assert.equal(incomplete.combinationKey, null);
+  const complete = await validateSellableItem({
+    data: { product: parent.id, options: [10], sku: "CACAO-PARCIAL" },
+    collection: { slug: "variants" },
+    req: context,
+  });
+  assert.equal(complete.combinationKey, "2:10");
 });
 
 test("las medidas de envío quedan privadas para visitantes y clientes", () => {

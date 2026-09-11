@@ -84,6 +84,15 @@ try {
       _status: 'draft',
     },
   })
+  const draftVariant = await payload.create({
+    collection: 'variants',
+    locale: 'es',
+    data: { product: parent.id },
+    draft: true,
+  })
+  assert.equal(draftVariant.product.id, parent.id)
+  await payload.delete({ collection: 'variants', id: draftVariant.id })
+  console.log('PASS: el editor puede crear un borrador de variante antes de completar opciones')
   const variant = await payload.create({
     collection: 'variants',
     locale: 'es',

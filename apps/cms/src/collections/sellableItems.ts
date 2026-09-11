@@ -16,8 +16,19 @@ export const sellableFields: Field[] = [
     name: 'sku',
     type: 'text',
     unique: true,
-    label: 'SKU',
-    admin: { description: 'Identificador único y estable del artículo vendible.' },
+    label: { es: 'SKU', en: 'SKU' },
+    admin: {
+      description: {
+        es: 'Identificador único y estable del artículo vendible. No se puede editar después de guardarlo.',
+        en: 'Unique, stable identifier for this sellable item. It cannot be edited after saving.',
+      },
+      components: {
+        Field: {
+          path: '@/components/StableSKUField',
+          exportName: 'default',
+        },
+      },
+    },
   },
   { name: 'barcode', type: 'text', label: { es: 'Código de barras', en: 'Barcode' } },
   {
@@ -164,7 +175,10 @@ export const validateSellableItem: CollectionBeforeValidateHook = async ({
     )
   let combinationKey: string | undefined
   if (isVariant) {
+    const canSaveIncompleteDraft = next._status !== 'published' && !originalDoc?.combinationKey
     const productID = relationID(next.product)
+    if (productID == null && canSaveIncompleteDraft)
+      return { ...data, sku: sku || null, combinationKey: null }
     if (productID == null) reject(req, 'product', 'Seleccioná un producto.', 'Select a product.')
     const product = await req.payload.findByID({
       collection: 'products',
@@ -173,8 +187,17 @@ export const validateSellableItem: CollectionBeforeValidateHook = async ({
       overrideAccess: true,
       depth: 0,
     })
-    const expected = (product.variantTypes ?? []).map(relationID).map(String).sort()
+    const configuredTypes = [
+      ...new Set(
+        (product.variantTypes ?? [])
+          .map(relationID)
+          .filter((id) => id != null)
+          .map(String),
+      ),
+    ].sort()
     const options: unknown[] = Array.isArray(next.options) ? next.options : []
+    if (!options.length && canSaveIncompleteDraft)
+      return { ...data, sku: sku || null, combinationKey: null }
     const ids = options.map(relationID)
     const types: string[] = []
     for (const id of ids) {
@@ -189,7 +212,27 @@ export const validateSellableItem: CollectionBeforeValidateHook = async ({
       })
       types.push(String(relationID(option.variantType)))
     }
-    if (!expected.length || JSON.stringify(types.sort()) !== JSON.stringify(expected))
+    const expected = configuredTypes.length ? configuredTypes : [...new Set(types)].sort()
+    if (!expected.length && next._status === 'published')
+      reject(
+        req,
+        'product',
+        'Configurá al menos un tipo de opción en el producto antes de publicar una variante.',
+        'Configure at least one product option type before publishing a variant.',
+      )
+    const normalizedTypes = [...new Set(types)].sort()
+    const hasCompleteOptions =
+      expected.length > 0 &&
+      options.length === expected.length &&
+      JSON.stringify(normalizedTypes) === JSON.stringify(expected)
+    if (
+      !hasCompleteOptions &&
+      canSaveIncompleteDraft &&
+      new Set(types).size === types.length &&
+      types.every((type) => expected.includes(type))
+    )
+      return { ...data, sku: sku || null, combinationKey: null }
+    if (!hasCompleteOptions)
       reject(
         req,
         'options',
@@ -213,6 +256,7 @@ export const validateSellableItem: CollectionBeforeValidateHook = async ({
       where: {
         and: [
           { combinationKey: { equals: combinationKey } },
+          { deletedAt: { equals: null } },
           ...(originalDoc?.id ? [{ id: { not_equals: originalDoc.id } }] : []),
         ],
       },

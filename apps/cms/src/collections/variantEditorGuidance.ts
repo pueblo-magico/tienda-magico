@@ -84,6 +84,16 @@ export function clarifyVariantFields(fields: Field[]): Field[] {
 
 export const variantsCollectionOverride: CollectionOverride = ({ defaultCollection }) => ({
   ...defaultCollection,
+  versions: {
+    ...(typeof defaultCollection.versions === 'object' ? defaultCollection.versions : {}),
+    drafts: {
+      ...(typeof defaultCollection.versions === 'object' &&
+      typeof defaultCollection.versions.drafts === 'object'
+        ? defaultCollection.versions.drafts
+        : {}),
+      autosave: false,
+    },
+  },
   hooks: {
     ...defaultCollection.hooks,
     beforeValidate: [...(defaultCollection.hooks?.beforeValidate ?? []), validateSellableItem],
@@ -150,8 +160,8 @@ export const variantOptionsCollectionOverride: CollectionOverride = ({ defaultCo
   fields: clarifyVariantFields(defaultCollection.fields),
 })
 
-export const variantTypesCollectionOverride: CollectionOverride = (args) => {
-  const collection = variantOptionsCollectionOverride(args)
+export const variantTypesCollectionOverride: CollectionOverride = async (args) => {
+  const collection = await variantOptionsCollectionOverride(args)
   return {
     ...collection,
     admin: {

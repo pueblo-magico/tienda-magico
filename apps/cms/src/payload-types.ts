@@ -695,7 +695,7 @@ export interface Product {
    */
   priceInARS?: number | null;
   /**
-   * Identificador único y estable del artículo vendible.
+   * Unique, stable identifier for this sellable item. It cannot be edited after saving.
    */
   sku?: string | null;
   barcode?: string | null;
@@ -852,7 +852,7 @@ export interface Variant {
    */
   priceInARS?: number | null;
   /**
-   * Identificador único y estable del artículo vendible.
+   * Unique, stable identifier for this sellable item. It cannot be edited after saving.
    */
   sku?: string | null;
   barcode?: string | null;

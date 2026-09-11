@@ -268,6 +268,16 @@ export const productsCollectionOverride: CollectionOverride = ({ defaultCollecti
 
   return {
     ...defaultCollection,
+    versions: {
+      ...(typeof defaultCollection.versions === 'object' ? defaultCollection.versions : {}),
+      drafts: {
+        ...(typeof defaultCollection.versions === 'object' &&
+        typeof defaultCollection.versions.drafts === 'object'
+          ? defaultCollection.versions.drafts
+          : {}),
+        autosave: false,
+      },
+    },
     admin: {
       ...defaultCollection.admin,
       useAsTitle: 'title',

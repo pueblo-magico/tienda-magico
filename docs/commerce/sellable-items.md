@@ -2,6 +2,11 @@
 
 ## Edición
 
+El editor puede guardar un borrador de variante sin opciones completas mientras
+lo completás. Ese borrador todavía no tiene una combinación vendible: para publicar
+necesitás un valor por tipo, SKU y precio ARS válido. Una combinación ya asignada
+no se puede vaciar ni redefinir, aunque guardes como borrador.
+
 El precio regular sigue siendo `priceInARS` del plugin, en centavos enteros positivos
 (125050 representa ARS 1.250,50). Activá ARS antes de publicar. No se permiten
 artículos gratuitos ni precios alternativos en otras monedas. El idioma no cambia
