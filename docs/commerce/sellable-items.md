@@ -85,6 +85,40 @@ recibir cambios editoriales. Las mutaciones y la lectura del carrito no usan esa
 
 ## Migración y rollback
 
+### Alineación del esquema (PMG-358)
+
+El hook `sellableSchema` define el índice único parcial de `combinationKey`:
+solo participan variantes sin `deletedAt` y con una combinación asignada. El campo
+Payload no declara unicidad global. Así, la generación de migraciones y el esquema
+de desarrollo comparten la misma regla. El estado comercial discontinuado no
+libera la combinación; enviarla a la papelera sí. Restaurarla falla si otra variante
+no eliminada ya ocupa esa combinación; no se fusionan ni cambian identidades.
+
+Autosave permanece desactivado en productos y variantes. El hook conserva las
+columnas históricas `autosave` de ambas tablas de versiones, sin exponerlas como
+campos ni reactivar guardados automáticos. La migración de alineación retira sus
+índices y el índice de combinación en versiones, pero no elimina columnas ni historial.
+
+La migración `20260911_142004_task_04_schema_alignment` incluye un snapshot generado
+con Payload. Su rollback restaura los índices secundarios y conserva la unicidad
+parcial, porque ya existía en la migración anterior. El generador no conocía esa
+migración SQL sin snapshot: por eso el rollback se ajustó al estado real anterior.
+No sustituyas ese rollback por el índice global sugerido por el snapshot viejo.
+
+Retroceder además `20260911_001000_task_04_active_combination_index` intenta volver
+a la unicidad global y falla si hay combinaciones reutilizadas en la papelera.
+Ejecutá siempre cada migración dentro de una transacción: ante el conflicto se
+conserva el índice parcial. Antes de ese rollback, exportá y conciliá los registros
+conflictivos con aprobación; nunca borres historial automáticamente para hacerlo pasar.
+Desplegá la configuración y las migraciones juntas, con respaldo previo. No ejecutes
+schema push sobre la base habitual para reemplazar el despliegue por migraciones.
+
+Verificación aislada: desde `apps/cms`, ejecutá
+`node --import tsx scripts/test-task-04.mjs`. Usa la conexión local de `.env.local`
+para crear una base nueva y elimina únicamente esa base al finalizar. Compara el
+snapshot con el esquema, verifica reutilización y restauración conflictiva, y
+ejercita rollback/reaplicación sin tocar registros de la base habitual.
+
 Aplicá las migraciones registradas en una copia descartable de la base y respaldá
 los datos antes de desplegar. La migración de esquema convierte los antiguos
 campos varchar de icono/ciclo de vida a sus enums sin borrar contenido. Las

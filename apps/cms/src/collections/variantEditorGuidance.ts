@@ -133,7 +133,6 @@ export const variantsCollectionOverride: CollectionOverride = ({ defaultCollecti
     {
       name: 'combinationKey',
       type: 'text',
-      unique: true,
       admin: { hidden: true },
       access: { read: () => false },
     },

@@ -103,6 +103,50 @@ Registrá fecha, commit, idioma, resultado real y evidencia sin credenciales.
 Las pruebas automatizadas del componente simulan el contexto de Payload; no
 reemplazan verificar el formulario real después de guardar y ante errores.
 
+### Hito 3 — Esquema y migraciones (PMG-358)
+
+Evidencia automática del 11/09/2026: cadena completa de migraciones, comparación
+sin diferencias entre snapshot y esquema, reutilización de combinaciones eliminadas,
+rechazo de restauración conflictiva por Payload y PostgreSQL, rollback/reaplicación
+de alineación y rollback fallido transaccional del índice global: aprobados en una
+base local descartable. La prueba también conservó IDs, precios y relaciones del
+carrito al revertir y reaplicar la tarea 4. Pasaron las 75 pruebas unitarias,
+TypeScript del CMS y lint de los archivos modificados. Los builds completos y
+la aceptación visual no se repitieron para este hito.
+
+Estado: verificación manual pendiente. Usá una copia descartable con respaldo;
+no pruebes rollback ni generación automática sobre producción.
+
+- [ ] Aplicá la cadena completa y verificá que no se pierdan IDs, SKU, precios ni versiones.
+- [ ] En un producto borrador, creá una variante completa, enviala a la papelera y
+      creá otra con las mismas opciones y otro SKU: debe guardarse.
+- [ ] Restaurá la primera mientras la segunda ocupa la combinación: debe rechazarse.
+      Eliminá definitivamente la segunda solo en la base de prueba y restaurá la primera.
+- [ ] Intentá crear dos variantes no eliminadas con iguales opciones: debe rechazarse,
+      también ante escrituras que lleguen directamente al índice PostgreSQL.
+- [ ] Guardá dos borradores sin opciones: ambos deben persistir sin combinación asignada.
+- [ ] Discontinuá una variante sin enviarla a la papelera: su combinación sigue ocupada.
+- [ ] Guardá productos y variantes manualmente y verificá sus versiones. Dejá el editor
+      abierto sin guardar: no debe emitir solicitudes de autosave.
+- [ ] Compará el esquema generado con el snapshot de alineación: sin diferencias.
+- [ ] Con una combinación reutilizada, revertí solo la alineación y reaplicala:
+      debe funcionar y conservar el índice parcial. Revertir además el índice parcial
+      debe fallar transaccionalmente, sin borrar registros ni dejar de proteger combinaciones.
+
+Antes del rollback de alineación, exportá las filas de versiones de los productos
+y variantes de prueba, incluidos los indicadores históricos de autosave. Compará
+el contenido completo después de revertir y reaplicar: debe permanecer idéntico.
+Después de un rollback fallido del índice parcial, verificá que ambas variantes
+sigan presentes, que solo una esté eliminada y que restaurarla aún se rechace.
+
+La prueba aislada cubre estos casos con aserciones de datos y del índice que causa
+el conflicto, no solo con la presencia de un error. Las operaciones SQL directas
+son pruebas de integridad únicamente sobre la base descartable; no son un flujo editorial.
+
+Registrá commit, migraciones ejecutadas, IDs descartables y resultados reales.
+El script aislado se ejecuta desde `apps/cms` con
+`node --import tsx scripts/test-task-04.mjs`; no reemplaza la revisión del editor.
+
 ### Aceptación general de la tarea 4
 
 Prepará una base descartable con las migraciones anteriores y un carrito existente.

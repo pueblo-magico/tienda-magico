@@ -33,6 +33,7 @@ import { Header } from './globals/Header'
 import { SEO } from './globals/SEO'
 import { SiteSettings } from './globals/SiteSettings'
 import { migrations } from './migrations'
+import { sellableSchema } from './utilities/sellableSchema'
 
 loadEnv()
 
@@ -84,6 +85,7 @@ export default buildConfig({
       connectionString: process.env.DATABASE_URL || '',
     },
     prodMigrations: migrations,
+    afterSchemaInit: [sellableSchema],
   }),
   cors: corsOrigins,
   csrf: corsOrigins,
