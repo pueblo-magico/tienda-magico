@@ -1,5 +1,8 @@
 import assert from "node:assert/strict";
 import { test, beforeEach } from "node:test";
+import { readFile } from "node:fs/promises";
+import { runInNewContext } from "node:vm";
+import ts from "typescript";
 import {
   mapProduct,
   mapCart,
@@ -121,6 +124,143 @@ test("el CMS valida SKU estable, duplicados y medidas sin cambiar precios existe
       collection: { slug: "products" },
       req: req(simple, [{ id: 9 }]),
     }),
+  );
+});
+
+test("el SKU persiste al activar variantes y no se puede cambiar ni vaciar por API", async () => {
+  for (const slug of ["products", "variants"]) {
+    const originalDoc = slug === "products" ? simple : variant;
+    const context = req(parent);
+    for (const sku of ["OTRO", "", null]) {
+      await assert.rejects(
+        validateSellableItem({
+          data: { sku, enableVariants: true },
+          originalDoc,
+          collection: { slug },
+          req: context,
+        }),
+        (error) => error.data.errors[0].path === "sku",
+      );
+    }
+    const saved = await validateSellableItem({
+      data: { inventory: 2, enableVariants: true },
+      originalDoc,
+      collection: { slug },
+      req: context,
+    });
+    assert.equal(saved.inventory, 2);
+    assert.equal(saved.sku, originalDoc.sku);
+    const normalized = await validateSellableItem({
+      data: { sku: ` ${originalDoc.sku.toLowerCase()} `, enableVariants: true },
+      originalDoc,
+      collection: { slug },
+      req: context,
+    });
+    assert.equal(normalized.sku, originalDoc.sku);
+  }
+  const saved = await validateSellableItem({
+    data: { sku: " nuevo-sku " },
+    originalDoc: { ...simple, sku: null },
+    collection: { slug: "products" },
+    req: req(),
+  });
+  assert.equal(saved.sku, "NUEVO-SKU");
+});
+
+test("un SKU nuevo de variante puede corregirse después de un error y queda estable al guardarlo", async () => {
+  const originalDoc = { ...variant, sku: null, _status: "draft" };
+  const context = req(parent);
+  const save = (data, original = originalDoc) =>
+    validateSellableItem({
+      data,
+      originalDoc: original,
+      collection: { slug: "variants" },
+      req: context,
+    });
+  await assert.rejects(save({ sku: "PRIMERO", netContent: -1 }));
+  const saved = await save({ sku: " corregido " });
+  assert.equal(saved.sku, "CORREGIDO");
+  await assert.rejects(save({ sku: "OTRO" }, { ...originalDoc, ...saved }));
+  for (const locale of ["es", "en"]) {
+    context.locale = locale;
+    await assert.rejects(
+      save({ sku: null }, { ...originalDoc, ...saved }),
+      (error) => {
+        assert.equal(error.data.errors[0].path, "sku");
+        assert.match(
+          error.data.errors[0].message,
+          locale === "es" ? /no se puede cambiar/ : /cannot be changed/,
+        );
+        return true;
+      },
+    );
+  }
+});
+
+test("el campo SKU delega en Payload y se bloquea solo con datos guardados o permisos", async () => {
+  const source = await readFile(
+    new URL("../apps/cms/src/components/StableSKUField.tsx", import.meta.url),
+    "utf8",
+  );
+  const compiled = ts.transpileModule(source, {
+    compilerOptions: {
+      module: ts.ModuleKind.CommonJS,
+      jsx: ts.JsxEmit.ReactJSX,
+    },
+  }).outputText;
+  let document = { id: 1, data: { sku: null } };
+  const TextField = () => null;
+  const exports = {};
+  runInNewContext(compiled, {
+    exports,
+    require: (name) => {
+      if (name === "@payloadcms/ui")
+        return { TextField, useDocumentInfo: () => document };
+      if (name === "react/jsx-runtime")
+        return { jsx: (type, props) => ({ type, props }) };
+      throw new Error(`Módulo inesperado: ${name}`);
+    },
+  });
+  const field = {
+    name: "sku",
+    label: { es: "SKU", en: "SKU" },
+    admin: { description: "Ayuda" },
+  };
+  const validate = () => true;
+  const props = { path: "sku", field, validate };
+  for (const value of ["", "N", "NUEVO-SKU"]) {
+    const rendered = exports.default({ ...props, value });
+    assert.equal(rendered.type, TextField);
+    assert.equal(rendered.props.readOnly, false);
+    assert.equal(rendered.props.field, field);
+    assert.equal(rendered.props.validate, validate);
+    assert.equal(rendered.props.path, "sku");
+  }
+  assert.equal(
+    exports.default({ ...props, readOnly: true }).props.readOnly,
+    true,
+  );
+  assert.equal(
+    exports.default({
+      ...props,
+      field: { ...field, admin: { readOnly: true } },
+    }).props.readOnly,
+    true,
+  );
+  document = { id: 1, data: { sku: "NUEVO-SKU" } };
+  assert.equal(exports.default(props).props.readOnly, true);
+  document = { data: { sku: "COPIA" } };
+  assert.equal(exports.default(props).props.readOnly, false);
+  for (const sku of [undefined, null, "", "   "]) {
+    document = { id: 1, data: { sku } };
+    assert.equal(exports.default(props).props.readOnly, false);
+  }
+  document = { id: 1 };
+  assert.equal(exports.default(props).props.readOnly, false);
+  document = { id: 0, data: { sku: "SKU-CERO" } };
+  assert.equal(
+    exports.default({ ...props, readOnly: false }).props.readOnly,
+    true,
   );
 });
 

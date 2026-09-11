@@ -1,24 +1,16 @@
 'use client'
 
-import { TextInput, useDocumentInfo, useField } from '@payloadcms/ui'
+import { TextField, useDocumentInfo } from '@payloadcms/ui'
 import type { TextFieldClientComponent } from 'payload'
-import type { ChangeEvent } from 'react'
 
-const StableSKUField: TextFieldClientComponent = ({ path, field }) => {
-  const { id } = useDocumentInfo()
-  const { setValue, value } = useField<string>({ path })
-  const hasSavedSKU = Boolean(id && typeof value === 'string' && value.trim())
-  const onChange = (event: ChangeEvent<HTMLInputElement>) => setValue(event.target.value)
+const StableSKUField: TextFieldClientComponent = (props) => {
+  const { id, data } = useDocumentInfo()
+  const hasSavedSKU = Boolean(id != null && typeof data?.sku === 'string' && data.sku.trim())
 
   return (
-    <TextInput
-      path={path}
-      label={field.label}
-      required={field.required}
-      description={field.admin?.description}
-      value={typeof value === 'string' ? value : ''}
-      readOnly={hasSavedSKU}
-      onChange={onChange}
+    <TextField
+      {...props}
+      readOnly={Boolean(props.readOnly || props.field.admin?.readOnly || hasSavedSKU)}
     />
   )
 }

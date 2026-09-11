@@ -31,6 +31,11 @@ slugs, importes ni relaciones de los carritos. Las combinaciones usan IDs de tip
 y valores, requieren exactamente un valor por tipo y no se pueden redefinir:
 creá otra variante y discontinuá la anterior.
 
+El campo SKU usa los datos guardados para quedar en solo lectura: un registro
+existente sin SKU permite escribirlo completo antes de guardar. Conserva etiqueta,
+ayuda, errores y restricciones de permisos del campo estándar de Payload. La API
+rechaza cambios o borrados del SKU asignado incluso al activar variantes.
+
 Traducí las etiquetas de tipos y valores en ES y EN. Sus códigos y relaciones
 siguen compartidos. La migración copia cada etiqueta anterior a ambos idiomas;
 la traducción editorial posterior puede cambiar cada copia.

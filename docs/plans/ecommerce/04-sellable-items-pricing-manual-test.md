@@ -67,6 +67,42 @@ Si el lanzador local de npm está roto, el comando equivalente es:
 node --import ./tests/register.mjs --test tests/catalog.test.mjs tests/product-publication.test.mjs tests/catalog-revalidation.test.mjs tests/sellable-items.test.mjs
 ```
 
+### Hito 2 — SKU estable (PMG-357)
+
+Estado: pendiente de ejecución manual. Usá datos descartables; repetí en productos
+simples y variantes, en ES/EN y con teclado.
+
+Preparación: anotá el commit, los IDs de prueba y el SKU original. Para variantes,
+configurá primero el producto según el hito 1. Probá a 1440 px y 390 px con Tab,
+Shift+Tab y pegado desde el portapapeles. No uses registros comerciales reales.
+
+- [ ] Creá un registro sin SKU y guardalo como borrador. Reabrilo, escribí un SKU
+      completo, corregí caracteres y pegá texto: no se bloquea con la primera letra.
+- [ ] Provocá un error de guardado en otro campo: el SKU no guardado sigue editable.
+      Corregí el error y guardá; el SKU normalizado queda en solo lectura, también al recargar.
+- [ ] Verificá que etiqueta SKU, ayuda y errores sean visibles. Con un SKU duplicado,
+      el error debe aparecer sin bloquear la corrección del valor todavía no guardado.
+- [ ] Con un usuario sin permiso de edición, verificá que el campo no permita cambios.
+- [ ] Mediante una solicitud autenticada de prueba, intentá cambiar y vaciar un SKU
+      persistido, también al activar variantes en el producto: error en `sku`, sin persistir cambios.
+- [ ] Editá stock sin enviar SKU: se conserva el identificador existente.
+- [ ] Al activar variantes, enviá el mismo SKU con minúsculas y espacios por API:
+      la respuesta y una lectura posterior conservan exactamente el SKU original.
+- [ ] Duplicá un registro desde el editor: antes del primer guardado, el SKU de
+      la copia debe poder reemplazarse por uno nuevo, sin modificar el original.
+- [ ] Tras el primer guardado exitoso, comprobá el bloqueo sin recargar la página;
+      después recargá y verificá que se mantenga. Un guardado fallido no debe bloquearlo.
+
+Para las pruebas de API, capturá una solicitud legítima de guardado en DevTools y
+modificá solo los campos indicados, conservando autenticación y CSRF. Después de
+cada rechazo, consultá el registro nuevamente: el SKU persistido no debe cambiar.
+Las pruebas de permisos deben usar una cuenta sin edición; una respuesta denegada
+es válida aunque el editor no permita abrir el formulario. No compartas tokens ni cookies.
+
+Registrá fecha, commit, idioma, resultado real y evidencia sin credenciales.
+Las pruebas automatizadas del componente simulan el contexto de Payload; no
+reemplazan verificar el formulario real después de guardar y ante errores.
+
 ### Aceptación general de la tarea 4
 
 Prepará una base descartable con las migraciones anteriores y un carrito existente.

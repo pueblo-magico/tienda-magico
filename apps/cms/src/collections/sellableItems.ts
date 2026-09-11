@@ -101,8 +101,16 @@ export const validateSellableItem: CollectionBeforeValidateHook = async ({
   if (!data) return data
   const next = { ...originalDoc, ...data }
   const isVariant = collection.slug === 'variants'
-  if (!isVariant && next.enableVariants === true) return data
   const sku = typeof next.sku === 'string' ? next.sku.trim().toUpperCase() : ''
+  if (originalDoc?.sku && sku !== originalDoc.sku)
+    reject(
+      req,
+      'sku',
+      'El SKU es estable y no se puede cambiar.',
+      'The SKU is stable and cannot be changed.',
+    )
+  if (!isVariant && next.enableVariants === true)
+    return { ...data, ...(originalDoc?.sku ? { sku: originalDoc.sku } : {}) }
   if (!sku && next._status === 'published')
     reject(req, 'sku', 'Ingresá un SKU antes de publicar.', 'Enter a SKU before publishing.')
   if (next._status === 'published' && (next.priceInARSEnabled !== true || next.priceInARS == null))
@@ -111,13 +119,6 @@ export const validateSellableItem: CollectionBeforeValidateHook = async ({
       'priceInARS',
       'Activá ARS y cargá un precio antes de publicar.',
       'Enable ARS and enter a price before publishing.',
-    )
-  if (originalDoc?.sku && sku !== originalDoc.sku)
-    reject(
-      req,
-      'sku',
-      'El SKU es estable y no se puede cambiar.',
-      'The SKU is stable and cannot be changed.',
     )
   if (sku) {
     for (const slug of ['products', 'variants'] as const) {
