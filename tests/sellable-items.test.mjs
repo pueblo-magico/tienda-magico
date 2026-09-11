@@ -232,6 +232,22 @@ test("un SKU nuevo de variante puede corregirse después de un error y queda est
   }
 });
 
+test("una actualización parcial de variante conserva producto y opciones para Payload", async () => {
+  const saved = await validateSellableItem({
+    data: { priceInARS: 600050 },
+    originalDoc: {
+      ...variant,
+      _status: "draft",
+      combinationKey: "2:10",
+    },
+    collection: { slug: "variants" },
+    req: req(parent),
+  });
+  assert.equal(saved.product, variant.product);
+  assert.deepEqual(saved.options, variant.options);
+  assert.equal(saved.combinationKey, "2:10");
+});
+
 test("el campo SKU delega en Payload y se bloquea solo con datos guardados o permisos", async () => {
   const source = await readFile(
     new URL("../apps/cms/src/components/StableSKUField.tsx", import.meta.url),

@@ -99,8 +99,20 @@ export const validateSellableItem: CollectionBeforeValidateHook = async ({
   req,
 }) => {
   if (!data) return data
-  const next = { ...originalDoc, ...data }
   const isVariant = collection.slug === 'variants'
+  const persistedVariantFields =
+    isVariant && originalDoc
+      ? {
+          ...(data.product === undefined && originalDoc.product !== undefined
+            ? { product: originalDoc.product }
+            : {}),
+          ...(data.options === undefined && originalDoc.options !== undefined
+            ? { options: originalDoc.options }
+            : {}),
+        }
+      : {}
+  const normalizedData = { ...data, ...persistedVariantFields }
+  const next = { ...originalDoc, ...normalizedData }
   const sku = typeof next.sku === 'string' ? next.sku.trim().toUpperCase() : ''
   if (originalDoc?.sku && sku !== originalDoc.sku)
     reject(
@@ -196,7 +208,7 @@ export const validateSellableItem: CollectionBeforeValidateHook = async ({
     const canSaveIncompleteDraft = next._status !== 'published' && !originalDoc?.combinationKey
     const productID = relationID(next.product)
     if (productID == null && canSaveIncompleteDraft)
-      return { ...data, sku: sku || null, combinationKey: null }
+      return { ...normalizedData, sku: sku || null, combinationKey: null }
     if (productID == null) reject(req, 'product', 'Seleccioná un producto.', 'Select a product.')
     const product = await req.payload.findByID({
       collection: 'products',
@@ -209,7 +221,7 @@ export const validateSellableItem: CollectionBeforeValidateHook = async ({
     const expected = configuredVariantTypes(product.variantTypes)
     const options: unknown[] = Array.isArray(next.options) ? next.options : []
     if (!options.length && canSaveIncompleteDraft)
-      return { ...data, sku: sku || null, combinationKey: null }
+      return { ...normalizedData, sku: sku || null, combinationKey: null }
     if (product.enableVariants !== true || !expected.length)
       reject(
         req,
@@ -246,7 +258,7 @@ export const validateSellableItem: CollectionBeforeValidateHook = async ({
       new Set(types).size === types.length &&
       types.every((type) => expected.includes(type))
     )
-      return { ...data, sku: sku || null, combinationKey: null }
+      return { ...normalizedData, sku: sku || null, combinationKey: null }
     if (!hasCompleteOptions)
       reject(
         req,
@@ -279,5 +291,5 @@ export const validateSellableItem: CollectionBeforeValidateHook = async ({
     if (duplicates.docs.length)
       reject(req, 'options', 'Esta combinación ya existe.', 'This combination already exists.')
   }
-  return { ...data, sku: sku || null, ...(isVariant ? { combinationKey } : {}) }
+  return { ...normalizedData, sku: sku || null, ...(isVariant ? { combinationKey } : {}) }
 }
