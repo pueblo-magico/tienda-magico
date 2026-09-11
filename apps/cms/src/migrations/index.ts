@@ -13,6 +13,7 @@ import * as migration_20260910_220000_task_04_identity_backfill from './20260910
 import * as migration_20260910_224721_task_04_cart_price_snapshot from './20260910_224721_task_04_cart_price_snapshot'
 import * as migration_20260911_001000_task_04_active_combination_index from './20260911_001000_task_04_active_combination_index'
 import * as migration_20260911_142004_task_04_schema_alignment from './20260911_142004_task_04_schema_alignment'
+import * as migration_20260911_213034_variant_sort_order from './20260911_213034_variant_sort_order'
 
 export const migrations = [
   {
@@ -89,5 +90,10 @@ export const migrations = [
     up: migration_20260911_142004_task_04_schema_alignment.up,
     down: migration_20260911_142004_task_04_schema_alignment.down,
     name: '20260911_142004_task_04_schema_alignment',
+  },
+  {
+    up: migration_20260911_213034_variant_sort_order.up,
+    down: migration_20260911_213034_variant_sort_order.down,
+    name: '20260911_213034_variant_sort_order',
   },
 ]

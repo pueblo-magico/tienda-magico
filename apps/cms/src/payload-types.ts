@@ -864,6 +864,10 @@ export interface Variant {
   packageLengthMm?: number | null;
   packageWidthMm?: number | null;
   packageHeightMm?: number | null;
+  /**
+   * Use lower values to display first. Ties preserve the current order.
+   */
+  sortOrder?: number | null;
   lifecycleStatus?: ('active' | 'discontinued') | null;
   image?: (number | null) | Media;
   combinationKey?: string | null;
@@ -1653,6 +1657,7 @@ export interface VariantsSelect<T extends boolean = true> {
   packageLengthMm?: T;
   packageWidthMm?: T;
   packageHeightMm?: T;
+  sortOrder?: T;
   lifecycleStatus?: T;
   image?: T;
   combinationKey?: T;

@@ -105,6 +105,21 @@ test("los tipos poblados del producto resuelven etiquetas de opciones superficia
   }
 });
 
+test("el storefront respeta el orden editorial de las variantes vendibles", () => {
+  const product = mapProduct({
+    ...parent,
+    variants: [
+      { ...variant, id: 3, sortOrder: 20 },
+      { ...variant, id: 4, options: [11], sortOrder: 10 },
+      { ...variant, id: 5, options: [12] },
+    ],
+  });
+  assert.deepEqual(
+    product.variants.map((item) => item.id),
+    ["variant:4", "variant:3", "variant:5"],
+  );
+});
+
 test("el rango solo incluye variantes comprables y mantiene identidad, medidas y medios", () => {
   const product = mapProduct({
     ...parent,

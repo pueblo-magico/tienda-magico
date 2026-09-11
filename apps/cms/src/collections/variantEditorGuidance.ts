@@ -116,6 +116,19 @@ export const variantsCollectionOverride: CollectionOverride = ({ defaultCollecti
     ...clarifyVariantFields(defaultCollection.fields),
     ...sellableFields,
     {
+      name: 'sortOrder',
+      type: 'number',
+      min: 0,
+      defaultValue: 0,
+      label: { es: 'Orden de exhibición', en: 'Display order' },
+      admin: {
+        description: {
+          es: 'Usá valores menores para mostrar primero. Los empates conservan el orden actual.',
+          en: 'Use lower values to display first. Ties preserve the current order.',
+        },
+      },
+    },
+    {
       name: 'lifecycleStatus',
       type: 'select',
       defaultValue: 'active',

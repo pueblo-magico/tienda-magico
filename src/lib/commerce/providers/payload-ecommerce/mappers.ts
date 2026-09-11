@@ -600,10 +600,26 @@ function variantDocs(product: PayloadProductDoc): PayloadVariantDoc[] {
   const variants = product.variants;
   if (!variants) return [];
   const docs = Array.isArray(variants) ? variants : (variants.docs ?? []);
-  return docs.filter((doc) => {
-    if (!doc || typeof doc !== "object" || doc.id == null) return false;
-    return doc.product == null || toId(doc.product) === toId(product.id);
-  });
+  return docs
+    .filter((doc) => {
+      if (!doc || typeof doc !== "object" || doc.id == null) return false;
+      return doc.product == null || toId(doc.product) === toId(product.id);
+    })
+    .map((doc, index) => ({ doc, index }))
+    .sort((left, right) => {
+      const leftOrder =
+        typeof left.doc.sortOrder === "number" &&
+        Number.isFinite(left.doc.sortOrder)
+          ? left.doc.sortOrder
+          : Number.POSITIVE_INFINITY;
+      const rightOrder =
+        typeof right.doc.sortOrder === "number" &&
+        Number.isFinite(right.doc.sortOrder)
+          ? right.doc.sortOrder
+          : Number.POSITIVE_INFINITY;
+      return leftOrder - rightOrder || left.index - right.index;
+    })
+    .map(({ doc }) => doc);
 }
 
 function mapSelectedOptions(

@@ -17,6 +17,10 @@ guardá la configuración, publicá las variantes y volvé a publicar el product
 durante esa preparación no estará disponible para comprar. Un producto nuevo
 puede permanecer en borrador mientras publicás sus primeras variantes.
 
+El campo **Orden de exhibición** de cada variante define el orden en el selector del
+storefront: los valores menores aparecen primero. Los empates conservan el orden
+actual; las variantes existentes reciben `0` por defecto mediante la migración.
+
 El precio regular sigue siendo `priceInARS` del plugin, en centavos enteros positivos
 (125050 representa ARS 1.250,50). Activá ARS antes de publicar. No se permiten
 artículos gratuitos ni precios alternativos en otras monedas. El idioma no cambia

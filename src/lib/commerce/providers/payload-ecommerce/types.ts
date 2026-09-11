@@ -112,6 +112,7 @@ export type PayloadProductDoc = PayloadDoc & {
 export type PayloadVariantDoc = PayloadDoc & {
   title?: PayloadLocalizedText | null;
   sku?: string | null;
+  sortOrder?: number | null;
   inventory?: number | null;
   options?: Array<
     | string
