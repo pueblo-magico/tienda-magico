@@ -6,7 +6,13 @@ import type {
   CartLineUpdateInput,
 } from "@/types/commerce";
 import { CommerceError } from "@/types/commerce";
-import type { FulfillmentMode } from "@/lib/commerce/local-purchase";
+import {
+  FulfillmentModeError,
+  parseFulfillmentMode,
+  type FulfillmentMode,
+} from "@/lib/commerce/local-purchase";
+import { getCommerceSettings } from "@/lib/cms";
+import { isFulfillmentModeEnabled } from "@/lib/commerce/commerce-settings";
 
 export const dynamic = "force-dynamic";
 
@@ -27,6 +33,10 @@ function emptyCart(): Cart {
 }
 
 function errorResponse(error: unknown, fallback = "Cart request failed.") {
+  if (error instanceof FulfillmentModeError) {
+    return NextResponse.json({ error: error.message }, { status: 400 });
+  }
+
   if (error instanceof CommerceError) {
     return NextResponse.json(
       {
@@ -49,8 +59,13 @@ function errorResponse(error: unknown, fallback = "Cart request failed.") {
 /** GET /api/cart?cartId=&locale= */
 export async function GET(request: Request) {
   try {
+    const commerceSettings = await getCommerceSettings();
     if (!commerce.isConfigured()) {
-      return NextResponse.json({ cart: emptyCart(), configured: false });
+      return NextResponse.json({
+        cart: emptyCart(),
+        configured: false,
+        commerceSettings,
+      });
     }
 
     const { searchParams } = new URL(request.url);
@@ -58,13 +73,18 @@ export async function GET(request: Request) {
     const locale = searchParams.get("locale")?.trim() || undefined;
 
     if (!cartId) {
-      return NextResponse.json({ cart: emptyCart(), configured: true });
+      return NextResponse.json({
+        cart: emptyCart(),
+        configured: true,
+        commerceSettings,
+      });
     }
 
     const cart = await commerce.getCart(cartId, { locale });
     return NextResponse.json({
       cart: cart ?? emptyCart(),
       configured: true,
+      commerceSettings,
     });
   } catch (error) {
     return errorResponse(error);
@@ -138,6 +158,16 @@ export async function POST(request: Request) {
         return NextResponse.json({ cart, configured: true });
       }
       case "create": {
+        if (body.fulfillmentMode) {
+          const fulfillmentMode = parseFulfillmentMode(
+            body.fulfillmentMode,
+            locale,
+          );
+          const commerceSettings = await getCommerceSettings();
+          if (!isFulfillmentModeEnabled(fulfillmentMode, commerceSettings)) {
+            throw new FulfillmentModeError(locale);
+          }
+        }
         const cart = await commerce.createCart({
           lines: body.lines,
           note: body.note,
@@ -190,6 +220,10 @@ export async function POST(request: Request) {
             { error: "cartId is required for fulfillment mode." },
             { status: 400 },
           );
+        }
+        const commerceSettings = await getCommerceSettings();
+        if (!isFulfillmentModeEnabled(body.fulfillmentMode, commerceSettings)) {
+          throw new FulfillmentModeError(locale);
         }
         const cart = await commerce.updateCartLines(body.cartId, [], {
           locale,

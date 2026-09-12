@@ -7,6 +7,8 @@ import {
   FulfillmentModeError,
   validateFulfillmentModeForCheckout,
 } from "@/lib/commerce/local-purchase";
+import { getCommerceSettings } from "@/lib/cms";
+import { isFulfillmentModeEnabled } from "@/lib/commerce/commerce-settings";
 
 export const dynamic = "force-dynamic";
 
@@ -139,6 +141,10 @@ export async function POST(request: Request) {
       cart.fulfillmentMode,
       locale,
     );
+    const commerceSettings = await getCommerceSettings();
+    if (!isFulfillmentModeEnabled(fulfillmentMode, commerceSettings)) {
+      throw new FulfillmentModeError(locale);
+    }
 
     const base = siteUrl(request);
     const returnUrls = {

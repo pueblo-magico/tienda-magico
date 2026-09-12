@@ -23,6 +23,7 @@ export function CartDrawer() {
     checkout,
     setFulfillmentMode,
     configured,
+    commerceSettings,
   } = useCart();
 
   const busy = isLoading || isMutating;
@@ -40,6 +41,7 @@ export function CartDrawer() {
           <div className="space-y-3">
             <CartSummary
               cart={cart}
+              commerceSettings={commerceSettings}
               disabled={busy}
               fulfillmentDisabled={isLoading}
               onCheckout={checkout}

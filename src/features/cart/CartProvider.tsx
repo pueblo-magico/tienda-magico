@@ -23,6 +23,10 @@ import {
   updateCartLines,
 } from "./api";
 import { CART_ID_STORAGE_KEY } from "./constants";
+import {
+  DEFAULT_COMMERCE_SETTINGS,
+  type CommerceSettings,
+} from "@/lib/commerce/commerce-settings";
 
 function emptyCart(): Cart {
   return {
@@ -47,6 +51,7 @@ type CartContextValue = {
   isMutating: boolean;
   error: string | null;
   configured: boolean;
+  commerceSettings: CommerceSettings;
   itemCount: number;
   openCart: () => void;
   closeCart: () => void;
@@ -97,6 +102,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [isMutating, setIsMutating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [configured, setConfigured] = useState(true);
+  const [commerceSettings, setCommerceSettings] = useState<CommerceSettings>(
+    DEFAULT_COMMERCE_SETTINGS,
+  );
   const persistedCartRef = useRef<Cart>(emptyCart());
   const fulfillmentModeRef = useRef<FulfillmentMode | null>(null);
   const fulfillmentMutationQueue = useRef<Promise<void>>(Promise.resolve());
@@ -117,6 +125,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setError(null);
     try {
       const result = await fetchCart(cartId, { locale });
+      if (result.commerceSettings) setCommerceSettings(result.commerceSettings);
       applyCart(result.cart, result.configured !== false);
       if (cartId && !result.cart.id) {
         writeStoredCartId(null);
@@ -301,6 +310,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       isMutating,
       error,
       configured,
+      commerceSettings,
       itemCount: cart.totalQuantity,
       openCart,
       closeCart,
@@ -321,6 +331,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       isMutating,
       error,
       configured,
+      commerceSettings,
       openCart,
       closeCart,
       toggleCart,

@@ -34,6 +34,7 @@ import { Footer } from './globals/Footer'
 import { Header } from './globals/Header'
 import { SEO } from './globals/SEO'
 import { SiteSettings } from './globals/SiteSettings'
+import { CommerceSettings } from './globals/CommerceSettings'
 import { migrations } from './migrations'
 import { sellableSchema } from './utilities/sellableSchema'
 
@@ -77,7 +78,7 @@ export default buildConfig({
     Brands,
     Tags,
   ],
-  globals: [Header, Footer, SiteSettings, SEO],
+  globals: [Header, Footer, SiteSettings, CommerceSettings, SEO],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {

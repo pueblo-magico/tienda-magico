@@ -135,12 +135,14 @@ export interface Config {
     header: Header;
     footer: Footer;
     'site-settings': SiteSetting;
+    'commerce-settings': CommerceSetting;
     seo: Seo;
   };
   globalsSelect: {
     header: HeaderSelect<false> | HeaderSelect<true>;
     footer: FooterSelect<false> | FooterSelect<true>;
     'site-settings': SiteSettingsSelect<false> | SiteSettingsSelect<true>;
+    'commerce-settings': CommerceSettingsSelect<false> | CommerceSettingsSelect<true>;
     seo: SeoSelect<false> | SeoSelect<true>;
   };
   locale: 'en' | 'es';
@@ -2145,6 +2147,23 @@ export interface SiteSetting {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "commerce-settings".
+ */
+export interface CommerceSetting {
+  id: number;
+  /**
+   * Permite que clientes elijan retirar su compra localmente.
+   */
+  localCollectionEnabled: boolean;
+  /**
+   * Permite que clientes elijan recibir su compra mediante entrega.
+   */
+  deliveryEnabled: boolean;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "seo".
  */
 export interface Seo {
@@ -2273,6 +2292,17 @@ export interface SiteSettingsSelect<T extends boolean = true> {
         id?: T;
       };
   defaultLocale?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "commerce-settings_select".
+ */
+export interface CommerceSettingsSelect<T extends boolean = true> {
+  localCollectionEnabled?: T;
+  deliveryEnabled?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

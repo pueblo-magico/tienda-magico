@@ -4,6 +4,7 @@ import type {
   CartLineUpdateInput,
 } from "@/types/commerce";
 import type { FulfillmentMode } from "@/lib/commerce/local-purchase";
+import type { CommerceSettings } from "@/lib/commerce/commerce-settings";
 
 export class CartRequestError extends Error {}
 
@@ -22,6 +23,7 @@ export async function confirmCartPrices(
 
 type CartResponse = {
   cart: Cart;
+  commerceSettings?: CommerceSettings;
   configured?: boolean;
   error?: string;
 };

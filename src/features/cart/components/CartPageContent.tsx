@@ -22,6 +22,7 @@ export function CartPageContent() {
     removeItem,
     checkout,
     setFulfillmentMode,
+    commerceSettings,
   } = useCart();
 
   const busy = isLoading || isMutating;
@@ -99,6 +100,7 @@ export function CartPageContent() {
             </h2>
             <CartSummary
               cart={cart}
+              commerceSettings={commerceSettings}
               disabled={busy}
               fulfillmentDisabled={isLoading}
               onCheckout={checkout}

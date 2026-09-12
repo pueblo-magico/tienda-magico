@@ -18,10 +18,75 @@ import {
 } from "../src/lib/commerce/providers/payload-ecommerce/orders.ts";
 import { ShopifyCommerceProvider } from "../src/lib/commerce/providers/shopify/provider.ts";
 import { MercadoPagoCheckoutProvider } from "../src/lib/checkout/providers/mercado-pago/provider.ts";
+import { CommerceSettings } from "../apps/cms/src/globals/CommerceSettings.ts";
+import {
+  DEFAULT_COMMERCE_SETTINGS,
+  isFulfillmentModeEnabled,
+  parseCommerceSettings,
+} from "../src/lib/commerce/commerce-settings.ts";
 
 process.env.PAYLOAD_ECOMMERCE_URL = "http://cms.test";
 process.env.PAYLOAD_ECOMMERCE_CURRENCY = "ARS";
 process.env.PAYLOAD_ECOMMERCE_AMOUNT_IS_CENTS = "true";
+
+test("commerce settings default to local collection without delivery", () => {
+  assert.deepEqual(DEFAULT_COMMERCE_SETTINGS, {
+    localCollectionEnabled: true,
+    deliveryEnabled: false,
+  });
+  assert.deepEqual(parseCommerceSettings({}), DEFAULT_COMMERCE_SETTINGS);
+  assert.equal(
+    isFulfillmentModeEnabled(LOCAL_COLLECTION, DEFAULT_COMMERCE_SETTINGS),
+    true,
+  );
+  assert.equal(
+    isFulfillmentModeEnabled(DELIVERY, DEFAULT_COMMERCE_SETTINGS),
+    false,
+  );
+});
+
+test("the CMS exposes admin-managed storefront commerce settings", () => {
+  assert.equal(CommerceSettings.slug, "commerce-settings");
+  assert.equal(CommerceSettings.access?.read?.({ req: { user: null } }), true);
+  assert.equal(
+    CommerceSettings.access?.update?.({ req: { user: null } }),
+    false,
+  );
+
+  const fields = CommerceSettings.fields.filter((field) => "name" in field);
+  assert.deepEqual(
+    fields.map((field) => ({
+      name: field.name,
+      defaultValue: field.defaultValue,
+    })),
+    [
+      { name: "localCollectionEnabled", defaultValue: true },
+      { name: "deliveryEnabled", defaultValue: false },
+    ],
+  );
+});
+
+test("disabled fulfillment modes are hidden and rejected by server routes", async () => {
+  const [summary, cartRoute, checkoutRoute] = await Promise.all([
+    readFile(
+      new URL(
+        "../src/features/cart/components/CartSummary.tsx",
+        import.meta.url,
+      ),
+      "utf8",
+    ),
+    readFile(new URL("../src/app/api/cart/route.ts", import.meta.url), "utf8"),
+    readFile(
+      new URL("../src/app/api/checkout/route.ts", import.meta.url),
+      "utf8",
+    ),
+  ]);
+
+  assert.match(summary, /commerceSettings\.localCollectionEnabled/);
+  assert.match(summary, /commerceSettings\.deliveryEnabled/);
+  assert.match(cartRoute, /isFulfillmentModeEnabled/);
+  assert.match(checkoutRoute, /isFulfillmentModeEnabled/);
+});
 
 test("accepts the two explicit fulfillment modes", () => {
   assert.equal(parseFulfillmentMode(LOCAL_COLLECTION), LOCAL_COLLECTION);
