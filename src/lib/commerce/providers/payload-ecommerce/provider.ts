@@ -25,6 +25,7 @@ import {
 import { getCollection, getCollections } from "./collections";
 import { isPayloadEcommerceConfigured } from "./config";
 import { getProduct, getProducts } from "./products";
+import { createCheckoutOrder } from "./orders";
 
 export class PayloadEcommerceProvider implements CommerceProvider {
   readonly name = "payload" as const;
@@ -37,7 +38,10 @@ export class PayloadEcommerceProvider implements CommerceProvider {
     return getProducts(params);
   }
 
-  getProduct(handle: string, params?: GetProductParams): Promise<Product | null> {
+  getProduct(
+    handle: string,
+    params?: GetProductParams,
+  ): Promise<Product | null> {
     return getProduct(handle, params);
   }
 
@@ -98,6 +102,8 @@ export class PayloadEcommerceProvider implements CommerceProvider {
   ): Promise<Cart> {
     return removeCartLines(cartId, lineIds, params);
   }
+
+  createCheckoutOrder = createCheckoutOrder;
 }
 
 export const payloadEcommerceProvider = new PayloadEcommerceProvider();

@@ -97,7 +97,9 @@ export function mapProductVariant(variant: {
     sku: variant.sku ?? null,
     selectedOptions: variant.selectedOptions ?? [],
     price: mapMoney(variant.price),
-    compareAtPrice: variant.compareAtPrice ? mapMoney(variant.compareAtPrice) : null,
+    compareAtPrice: variant.compareAtPrice
+      ? mapMoney(variant.compareAtPrice)
+      : null,
     image: mapImage(variant.image),
   };
 }
@@ -141,7 +143,9 @@ export function mapProduct(product: {
     createdAt: product.createdAt ?? "",
     updatedAt: product.updatedAt ?? "",
     featuredImage: mapImage(product.featuredImage),
-    images: nodesFromConnection(product.images).map((image) => mapImage(image)!).filter(Boolean),
+    images: nodesFromConnection(product.images)
+      .map((image) => mapImage(image)!)
+      .filter(Boolean),
     options: (product.options ?? []).map((option) => ({
       id: option.id,
       name: option.name,
@@ -214,6 +218,7 @@ export function mapCartLine(line: {
   } | null;
   merchandise?: {
     id: string;
+    sku?: string | null;
     title: string;
     selectedOptions?: Array<{ name: string; value: string }> | null;
     price?: Maybe<Money>;
@@ -238,6 +243,7 @@ export function mapCartLine(line: {
     },
     merchandise: {
       id: line.merchandise.id,
+      sku: line.merchandise.sku ?? null,
       title: line.merchandise.title,
       selectedOptions: line.merchandise.selectedOptions ?? [],
       price: mapMoney(line.merchandise.price),
@@ -256,7 +262,7 @@ export function mapCart(cart: {
   checkoutUrl: string;
   totalQuantity?: number | null;
   note?: string | null;
-    attributes?: Array<{ key: string; value: string }> | null;
+  attributes?: Array<{ key: string; value: string }> | null;
   cost?: {
     subtotalAmount?: Maybe<Money>;
     totalAmount?: Maybe<Money>;
@@ -289,7 +295,8 @@ export function mapCart(cart: {
 }
 
 export function assertNoUserErrors(
-  userErrors: Array<{ message: string; field?: string[] | null }> | null | undefined,
+  userErrors:
+    Array<{ message: string; field?: string[] | null }> | null | undefined,
   action: string,
 ) {
   if (userErrors?.length) {

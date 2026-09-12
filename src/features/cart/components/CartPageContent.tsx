@@ -100,6 +100,7 @@ export function CartPageContent() {
             <CartSummary
               cart={cart}
               disabled={busy}
+              fulfillmentDisabled={isLoading}
               onCheckout={checkout}
               onFulfillmentModeChange={setFulfillmentMode}
               labels={{
@@ -141,7 +142,11 @@ export function CartPageContent() {
             </strong>
           </p>
           <p>
-            <LockKeyhole aria-hidden className="mx-auto size-4" strokeWidth={1.5} />
+            <LockKeyhole
+              aria-hidden
+              className="mx-auto size-4"
+              strokeWidth={1.5}
+            />
             <strong className="text-text-black block">
               {t("paymentBenefit")}
             </strong>

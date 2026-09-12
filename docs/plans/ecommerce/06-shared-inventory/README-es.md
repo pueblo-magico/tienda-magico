@@ -7,7 +7,8 @@ los controles de inventario compartido y los flujos de eventos.
 
 ## Hitos
 
-1. [Compra local en el webshop](01-webshop-local-purchase-es.md)
+1. [Compra local en el webshop](01-webshop-local-purchase-es.md) —
+   [guía de prueba manual](01-webshop-local-purchase-manual-test-es.md)
 2. [Descubrimiento de productos mediante cámara](02-camera-product-discovery-es.md)
 3. [Ventas locales asistidas por personal](03-staff-assisted-local-sales-es.md)
 4. [Operaciones de inventario compartido](04-shared-inventory-operations-es.md)

@@ -46,7 +46,7 @@ PAYLOAD_ECOMMERCE_CURRENCY=ARS
 PAYLOAD_ECOMMERCE_AMOUNT_IS_CENTS=true
 PAYLOAD_ECOMMERCE_COLLECTIONS_SLUG=categories
 
-# Optional API key (Users → enable API key in admin)
+# Required for checkout order creation (Users → enable API key in admin)
 # PAYLOAD_ECOMMERCE_API_KEY=...
 # PAYLOAD_ECOMMERCE_API_KEY_COLLECTION=users
 

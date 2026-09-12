@@ -1134,6 +1134,7 @@ export function mapCart(
         },
         merchandise: {
           id: merchandiseId,
+          sku: variantDoc?.sku ?? null,
           title: String(lineTitle),
           selectedOptions: variantDoc
             ? mapSelectedOptions(variantDoc, locale, productDoc)

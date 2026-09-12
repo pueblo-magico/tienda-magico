@@ -6,6 +6,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -96,9 +97,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [isMutating, setIsMutating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [configured, setConfigured] = useState(true);
+  const persistedCartRef = useRef<Cart>(emptyCart());
+  const fulfillmentModeRef = useRef<FulfillmentMode | null>(null);
+  const fulfillmentMutationQueue = useRef<Promise<void>>(Promise.resolve());
+  const pendingFulfillmentMutations = useRef(0);
 
   const applyCart = useCallback((next: Cart, isConfigured = true) => {
-    setCart(next.id ? next : emptyCart());
+    const normalized = next.id ? next : emptyCart();
+    persistedCartRef.current = normalized;
+    fulfillmentModeRef.current = normalized.fulfillmentMode;
+    setCart(normalized);
     setConfigured(isConfigured);
     writeStoredCartId(next.id || null);
   }, []);
@@ -223,15 +231,34 @@ export function CartProvider({ children }: { children: ReactNode }) {
     async (mode: FulfillmentMode) => {
       const cartId = readStoredCartId() || cart.id;
       if (!cartId) return;
+
+      fulfillmentModeRef.current = mode;
+      setCart((current) => ({ ...current, fulfillmentMode: mode }));
+      pendingFulfillmentMutations.current += 1;
       setIsMutating(true);
       setError(null);
-      try {
+
+      const request = fulfillmentMutationQueue.current.then(async () => {
         const result = await setCartFulfillmentMode(cartId, mode, locale);
-        applyCart(result.cart, result.configured !== false);
+        persistedCartRef.current = result.cart;
+        if (fulfillmentModeRef.current === mode) {
+          applyCart(result.cart, result.configured !== false);
+        }
+      });
+      fulfillmentMutationQueue.current = request.catch(() => undefined);
+
+      try {
+        await request;
       } catch {
-        setError(tCommercial("requestFailed"));
+        if (fulfillmentModeRef.current === mode) {
+          applyCart(persistedCartRef.current);
+          setError(tCommercial("requestFailed"));
+        }
       } finally {
-        setIsMutating(false);
+        pendingFulfillmentMutations.current -= 1;
+        if (pendingFulfillmentMutations.current === 0) {
+          setIsMutating(false);
+        }
       }
     },
     [applyCart, cart.id, locale, tCommercial],

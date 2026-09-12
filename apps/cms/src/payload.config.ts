@@ -21,6 +21,7 @@ import { Pages } from './collections/Pages'
 import { Posts } from './collections/Posts'
 import { productsCollectionOverride } from './collections/Products'
 import { cartsCollectionOverride } from './collections/cartCommercialValidation'
+import { ordersCollectionOverride } from './collections/orderCommercialSnapshot'
 import {
   variantsCollectionOverride,
   variantOptionsCollectionOverride,
@@ -144,7 +145,7 @@ export default buildConfig({
         },
       },
       addresses: true,
-      orders: true,
+      orders: { ordersCollectionOverride },
     }),
   ],
 })

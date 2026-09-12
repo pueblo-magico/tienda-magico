@@ -324,6 +324,27 @@ export interface Order {
   status?: OrderStatus;
   amount?: number | null;
   currency?: 'ARS' | null;
+  checkoutKey?: string | null;
+  cartReference?: string | null;
+  fulfillmentMode?: ('local_collection' | 'delivery') | null;
+  buyerContact?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  commercialSnapshot?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1903,6 +1924,11 @@ export interface OrdersSelect<T extends boolean = true> {
   status?: T;
   amount?: T;
   currency?: T;
+  checkoutKey?: T;
+  cartReference?: T;
+  fulfillmentMode?: T;
+  buyerContact?: T;
+  commercialSnapshot?: T;
   updatedAt?: T;
   createdAt?: T;
 }

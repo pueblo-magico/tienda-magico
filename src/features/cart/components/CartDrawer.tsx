@@ -41,6 +41,7 @@ export function CartDrawer() {
             <CartSummary
               cart={cart}
               disabled={busy}
+              fulfillmentDisabled={isLoading}
               onCheckout={checkout}
               onFulfillmentModeChange={setFulfillmentMode}
               labels={{
@@ -68,20 +69,20 @@ export function CartDrawer() {
       }
     >
       {!configured ? (
-        <p className="mb-3 text-sm text-muted">{t("notConfigured")}</p>
+        <p className="text-muted mb-3 text-sm">{t("notConfigured")}</p>
       ) : null}
 
       {error ? (
-        <p className="mb-3 rounded-lg border border-clay/30 bg-clay/10 px-3 py-2 text-sm text-forest">
+        <p className="border-clay/30 bg-clay/10 text-forest mb-3 rounded-lg border px-3 py-2 text-sm">
           {error}
         </p>
       ) : null}
 
       {isLoading ? (
-        <p className="text-sm text-muted">{t("loading")}</p>
+        <p className="text-muted text-sm">{t("loading")}</p>
       ) : !hasLines ? (
         <div className="space-y-4 py-6">
-          <p className="text-sm text-muted">{t("empty")}</p>
+          <p className="text-muted text-sm">{t("empty")}</p>
           <Button
             href={localizePath(locale, "/shop")}
             variant="secondary"

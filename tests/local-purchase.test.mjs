@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 import {
   LOCAL_COLLECTION,
@@ -10,6 +11,12 @@ import { mapCart } from "../src/lib/commerce/providers/payload-ecommerce/mappers
 import { mapCart as mapShopifyCart } from "../src/lib/commerce/providers/shopify/mappers.ts";
 import { cartsCollectionOverride } from "../apps/cms/src/collections/cartCommercialValidation.ts";
 import { LocalSales } from "../apps/cms/src/collections/LocalSales.ts";
+import { ordersCollectionOverride } from "../apps/cms/src/collections/orderCommercialSnapshot.ts";
+import {
+  buildCheckoutOrderInput,
+  createCheckoutOrder,
+} from "../src/lib/commerce/providers/payload-ecommerce/orders.ts";
+import { ShopifyCommerceProvider } from "../src/lib/commerce/providers/shopify/provider.ts";
 
 process.env.PAYLOAD_ECOMMERCE_URL = "http://cms.test";
 process.env.PAYLOAD_ECOMMERCE_CURRENCY = "ARS";
@@ -136,4 +143,193 @@ test("the local-sale collection stores an order-linked operational snapshot priv
       `${name} must not be editable after creation`,
     );
   }
+});
+
+test("builds an immutable ecommerce order snapshot from the priced cart", () => {
+  const order = buildCheckoutOrderInput(
+    {
+      id: "cart-7",
+      checkoutUrl: "https://shop.test/checkout",
+      fulfillmentMode: LOCAL_COLLECTION,
+      totalQuantity: 2,
+      note: null,
+      cost: {
+        subtotalAmount: { amount: "20.00", currencyCode: "ARS" },
+        totalAmount: { amount: "20.00", currencyCode: "ARS" },
+        totalTaxAmount: null,
+      },
+      lines: [
+        {
+          id: "line-1",
+          quantity: 2,
+          cost: {
+            amountPerQuantity: { amount: "10.00", currencyCode: "ARS" },
+            totalAmount: { amount: "20.00", currencyCode: "ARS" },
+          },
+          merchandise: {
+            id: "variant:4",
+            title: "200 g",
+            selectedOptions: [{ name: "Peso", value: "200 g" }],
+            price: { amount: "10.00", currencyCode: "ARS" },
+            product: {
+              id: "8",
+              handle: "cacao",
+              title: "Cacao",
+              featuredImage: null,
+            },
+          },
+        },
+      ],
+    },
+    { email: "buyer@example.com", name: "Ada" },
+  );
+
+  assert.equal(order.checkoutKey, "checkout:cart-7");
+  assert.equal(order.amount, 2000);
+  assert.deepEqual(order.items, [{ product: 8, variant: 4, quantity: 2 }]);
+  assert.deepEqual(order.commercialSnapshot.items[0], {
+    productId: "8",
+    merchandiseId: "variant:4",
+    sku: null,
+    title: "Cacao — 200 g",
+    options: [{ name: "Peso", value: "200 g" }],
+    quantity: 2,
+    unitPrice: { amount: "10.00", currencyCode: "ARS" },
+    total: { amount: "20.00", currencyCode: "ARS" },
+  });
+});
+
+test("maps a qualified simple-product reference without inventing a variant", () => {
+  const order = buildCheckoutOrderInput(
+    {
+      id: "cart-8",
+      checkoutUrl: "https://shop.test/checkout",
+      fulfillmentMode: DELIVERY,
+      totalQuantity: 1,
+      note: null,
+      cost: {
+        subtotalAmount: { amount: "10.00", currencyCode: "ARS" },
+        totalAmount: { amount: "10.00", currencyCode: "ARS" },
+        totalTaxAmount: null,
+      },
+      lines: [
+        {
+          id: "line-1",
+          quantity: 1,
+          cost: {
+            amountPerQuantity: { amount: "10.00", currencyCode: "ARS" },
+            totalAmount: { amount: "10.00", currencyCode: "ARS" },
+          },
+          merchandise: {
+            id: "product:8",
+            title: "Cacao",
+            selectedOptions: [],
+            price: { amount: "10.00", currencyCode: "ARS" },
+            product: {
+              id: "8",
+              handle: "cacao",
+              title: "Cacao",
+              featuredImage: null,
+            },
+          },
+        },
+      ],
+    },
+    {},
+  );
+
+  assert.deepEqual(order.items, [{ product: 8, quantity: 1 }]);
+});
+
+test("fails checkout order creation clearly when the Payload API key is missing", async () => {
+  const previousApiKey = process.env.PAYLOAD_ECOMMERCE_API_KEY;
+  delete process.env.PAYLOAD_ECOMMERCE_API_KEY;
+
+  await assert.rejects(
+    createCheckoutOrder({
+      id: "1::secret",
+      checkoutUrl: "https://shop.test/checkout",
+      fulfillmentMode: LOCAL_COLLECTION,
+      totalQuantity: 0,
+      note: null,
+      cost: {
+        subtotalAmount: { amount: "0", currencyCode: "ARS" },
+        totalAmount: { amount: "0", currencyCode: "ARS" },
+        totalTaxAmount: null,
+      },
+      lines: [],
+    }),
+    /PAYLOAD_ECOMMERCE_API_KEY/,
+  );
+
+  if (previousApiKey) process.env.PAYLOAD_ECOMMERCE_API_KEY = previousApiKey;
+});
+
+test("the order schema creates one linked local-sale record after local checkout", () => {
+  const collection = ordersCollectionOverride({
+    defaultCollection: { fields: [], hooks: {} },
+  });
+  const names = new Set(
+    collection.fields
+      .filter((field) => "name" in field)
+      .map((field) => field.name),
+  );
+
+  for (const name of [
+    "checkoutKey",
+    "cartReference",
+    "fulfillmentMode",
+    "commercialSnapshot",
+  ]) {
+    assert.ok(names.has(name), `missing order field: ${name}`);
+  }
+  assert.equal(collection.hooks?.afterChange?.length, 1);
+});
+
+test("Shopify keeps native delivery orders and rejects unsupported local pickup", async () => {
+  const provider = new ShopifyCommerceProvider();
+  const cart = {
+    id: "gid://shopify/Cart/1",
+    checkoutUrl: "https://shop.test/checkout",
+    fulfillmentMode: DELIVERY,
+    totalQuantity: 0,
+    note: null,
+    cost: {
+      subtotalAmount: { amount: "0", currencyCode: "ARS" },
+      totalAmount: { amount: "0", currencyCode: "ARS" },
+      totalTaxAmount: null,
+    },
+    lines: [],
+  };
+
+  assert.equal(await provider.createCheckoutOrder(cart), null);
+  await assert.rejects(
+    provider.createCheckoutOrder({
+      ...cart,
+      fulfillmentMode: LOCAL_COLLECTION,
+    }),
+    /retiro local/i,
+  );
+});
+
+test("fulfillment radios remain interactive while their serialized request is pending", async () => {
+  const [summary, provider] = await Promise.all([
+    readFile(
+      new URL(
+        "../src/features/cart/components/CartSummary.tsx",
+        import.meta.url,
+      ),
+      "utf8",
+    ),
+    readFile(
+      new URL("../src/features/cart/CartProvider.tsx", import.meta.url),
+      "utf8",
+    ),
+  ]);
+
+  assert.match(summary, /disabled=\{fulfillmentDisabled\}/);
+  assert.match(summary, /useId\(\)/);
+  assert.match(summary, /name=\{fulfillmentGroupName\}/);
+  assert.match(provider, /fulfillmentMutationQueue/);
+  assert.match(provider, /setCart\(\(current\).*fulfillmentMode: mode/s);
 });

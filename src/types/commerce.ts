@@ -189,6 +189,7 @@ export type CollectionSummary = Pick<
 
 export type CartLineMerchandise = {
   id: string;
+  sku?: string | null;
   title: string;
   selectedOptions: SelectedOption[];
   product: {
@@ -199,6 +200,8 @@ export type CartLineMerchandise = {
   };
   price: Money;
 };
+
+export type CheckoutOrder = { id: string };
 
 export type CartLine = {
   issue?: "unavailable" | "priceChanged" | "quantityExceeded" | null;

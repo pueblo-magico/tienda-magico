@@ -1,5 +1,6 @@
 "use client";
 
+import { useId } from "react";
 import { useLocale } from "next-intl";
 import type { Cart } from "@/types/commerce";
 import {
@@ -14,6 +15,7 @@ import { cn } from "@/lib/utils/cn";
 type Props = {
   cart: Cart;
   disabled?: boolean;
+  fulfillmentDisabled?: boolean;
   onCheckout: () => void | Promise<void>;
   labels: {
     subtotal: string;
@@ -33,12 +35,14 @@ type Props = {
 export function CartSummary({
   cart,
   disabled,
+  fulfillmentDisabled,
   onCheckout,
   labels,
   onFulfillmentModeChange,
   className,
 }: Props) {
   const locale = useLocale();
+  const fulfillmentGroupName = `fulfillment-mode-${useId()}`;
 
   return (
     <div className={cn("space-y-4", className)}>
@@ -58,10 +62,10 @@ export function CartSummary({
         <label className="border-border flex cursor-pointer gap-3 rounded-lg border p-3">
           <input
             type="radio"
-            name="fulfillment-mode"
+            name={fulfillmentGroupName}
             value={LOCAL_COLLECTION}
             checked={cart.fulfillmentMode === LOCAL_COLLECTION}
-            disabled={disabled}
+            disabled={fulfillmentDisabled}
             onChange={() => void onFulfillmentModeChange(LOCAL_COLLECTION)}
           />
           <span className="space-y-1">
@@ -76,10 +80,10 @@ export function CartSummary({
         <label className="border-border flex cursor-pointer gap-3 rounded-lg border p-3">
           <input
             type="radio"
-            name="fulfillment-mode"
+            name={fulfillmentGroupName}
             value={DELIVERY}
             checked={cart.fulfillmentMode === DELIVERY}
-            disabled={disabled}
+            disabled={fulfillmentDisabled}
             onChange={() => void onFulfillmentModeChange(DELIVERY)}
           />
           <span className="space-y-1">

@@ -7,7 +7,8 @@ and event workflows.
 
 ## Milestones
 
-1. [Webshop local purchase](01-webshop-local-purchase.md)
+1. [Webshop local purchase](01-webshop-local-purchase.md) —
+   [manual test guide](01-webshop-local-purchase-manual-test.md)
 2. [Camera product discovery](02-camera-product-discovery.md)
 3. [Staff-assisted local sales](03-staff-assisted-local-sales.md)
 4. [Shared inventory operations](04-shared-inventory-operations.md)

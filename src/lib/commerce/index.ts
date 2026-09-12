@@ -2,7 +2,10 @@ import { createCommerceProvider } from "./create-provider";
 import type { CommerceProvider } from "./provider";
 
 export type { CommerceProvider } from "./provider";
-export { createCommerceProvider, resolveCommerceProviderName } from "./create-provider";
+export {
+  createCommerceProvider,
+  resolveCommerceProviderName,
+} from "./create-provider";
 export { formatMoney } from "./utils/format";
 export { shopifyCommerceProvider } from "./providers/shopify";
 export { payloadEcommerceProvider } from "./providers/payload-ecommerce";
@@ -48,4 +51,7 @@ export const commerce = {
     getCommerceProvider().updateCartLines(...args),
   removeCartLines: (...args: Parameters<CommerceProvider["removeCartLines"]>) =>
     getCommerceProvider().removeCartLines(...args),
+  createCheckoutOrder: (
+    ...args: Parameters<CommerceProvider["createCheckoutOrder"]>
+  ) => getCommerceProvider().createCheckoutOrder(...args),
 };
