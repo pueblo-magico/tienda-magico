@@ -1,4 +1,5 @@
 import type { SafeRichTextHtml } from "@/types/content";
+import type { FulfillmentMode } from "@/lib/commerce/local-purchase";
 
 export type Money = {
   amount: string;
@@ -213,6 +214,7 @@ export type CartLine = {
 export type Cart = {
   id: string;
   checkoutUrl: string;
+  fulfillmentMode: FulfillmentMode | null;
   totalQuantity: number;
   note: string | null;
   cost: {
@@ -237,6 +239,7 @@ export type CartLineUpdateInput = {
 export type CartParams = {
   locale?: string | null;
   acceptPriceChanges?: boolean;
+  fulfillmentMode?: FulfillmentMode | null;
 };
 
 export type GetProductsParams = {

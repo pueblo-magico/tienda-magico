@@ -113,6 +113,21 @@ export const cartsCollectionOverride: CollectionOverride = ({ defaultCollection 
   ...defaultCollection,
   fields: [
     {
+      name: 'fulfillmentMode',
+      type: 'select',
+      required: false,
+      options: [
+        { label: { es: 'Retiro local', en: 'Local collection' }, value: 'local_collection' },
+        { label: { es: 'Entrega', en: 'Delivery' }, value: 'delivery' },
+      ],
+      admin: {
+        description: {
+          es: 'Elegí retiro local o entrega antes de iniciar el checkout.',
+          en: 'Choose local collection or delivery before starting checkout.',
+        },
+      },
+    },
+    {
       name: 'acceptCurrentPrices',
       type: 'checkbox',
       virtual: true,

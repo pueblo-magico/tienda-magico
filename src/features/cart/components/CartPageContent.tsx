@@ -21,6 +21,7 @@ export function CartPageContent() {
     updateItemQuantity,
     removeItem,
     checkout,
+    setFulfillmentMode,
   } = useCart();
 
   const busy = isLoading || isMutating;
@@ -100,10 +101,17 @@ export function CartPageContent() {
               cart={cart}
               disabled={busy}
               onCheckout={checkout}
+              onFulfillmentModeChange={setFulfillmentMode}
               labels={{
                 subtotal: t("subtotal"),
                 checkout: t("checkout"),
                 taxesNote: t("taxesNote"),
+                fulfillmentLegend: t("fulfillmentLegend"),
+                localCollection: t("localCollection"),
+                localCollectionHint: t("localCollectionHint"),
+                delivery: t("delivery"),
+                deliveryHint: t("deliveryHint"),
+                fulfillmentRequired: t("fulfillmentRequired"),
               }}
             />
             <div className="mt-3">

@@ -21,6 +21,7 @@ export function CartDrawer() {
     updateItemQuantity,
     removeItem,
     checkout,
+    setFulfillmentMode,
     configured,
   } = useCart();
 
@@ -41,10 +42,17 @@ export function CartDrawer() {
               cart={cart}
               disabled={busy}
               onCheckout={checkout}
+              onFulfillmentModeChange={setFulfillmentMode}
               labels={{
                 subtotal: t("subtotal"),
                 checkout: t("checkout"),
                 taxesNote: t("taxesNote"),
+                fulfillmentLegend: t("fulfillmentLegend"),
+                localCollection: t("localCollection"),
+                localCollectionHint: t("localCollectionHint"),
+                delivery: t("delivery"),
+                deliveryHint: t("deliveryHint"),
+                fulfillmentRequired: t("fulfillmentRequired"),
               }}
             />
             <Button

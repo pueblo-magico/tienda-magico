@@ -139,6 +139,10 @@ export const cartFragment = /* GraphQL */ `
     checkoutUrl
     totalQuantity
     note
+      attributes {
+        key
+        value
+      }
     cost {
       subtotalAmount {
         ...Money

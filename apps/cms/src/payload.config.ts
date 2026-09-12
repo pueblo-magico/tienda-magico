@@ -16,6 +16,7 @@ import { Categories } from './collections/Categories'
 import { Brands } from './collections/Brands'
 import { FAQs } from './collections/FAQs'
 import { Media } from './collections/Media'
+import { LocalSales } from './collections/LocalSales'
 import { Pages } from './collections/Pages'
 import { Posts } from './collections/Posts'
 import { productsCollectionOverride } from './collections/Products'
@@ -64,6 +65,7 @@ export default buildConfig({
   collections: [
     Users,
     Media,
+    LocalSales,
     // Content (Phase 6)
     Pages,
     Posts,

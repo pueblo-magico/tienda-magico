@@ -157,6 +157,16 @@ Treat the existing design system as application architecture, not optional styli
 
 ## Testing and verification
 
+### Desarrollo guiado por pruebas (TDD)
+
+- Para funcionalidades nuevas y correcciones de comportamiento, seguí el ciclo rojo → verde → refactorización. Antes de modificar la implementación, definí el comportamiento esperado y escribí la prueba automatizada más pequeña que lo demuestre.
+- Ejecutá primero esa prueba y verificá que falle por el comportamiento faltante o incorrecto. Un error de configuración, importación o conexión no demuestra la regresión. Si una prueba existente ya reproduce el problema, usala en lugar de duplicarla.
+- Implementá únicamente lo necesario para que la prueba pase. Después refactorizá dentro del alcance de la tarea, manteniendo las pruebas en verde; no debilites ni elimines aserciones para ocultar un defecto.
+- Avanzá en incrementos pequeños. Incluí el caso exitoso y los errores o límites relevantes; para bugs, conservá la prueba que reproduce el problema como cobertura de regresión.
+- Usá las herramientas y convenciones de prueba existentes. Verificá contratos observables y simulá solo límites externos. Cuando el defecto dependa de persistencia, migraciones, versiones del CMS o restricciones de base de datos, agregá la verificación de integración correspondiente en un entorno aislado; un mock no prueba esas garantías.
+- Después de cada incremento, ejecutá las pruebas específicas; antes de finalizar, ampliá a las suites y verificaciones relevantes. En el resumen, indicá qué fallo inicial observaste, qué comprobaciones pasaron y cuáles quedaron pendientes. No afirmes haber seguido TDD si escribiste la prueba después de la implementación.
+- Para cambios exclusivamente de documentación, formato o artefactos generados sin cambios de comportamiento, usá las verificaciones apropiadas en lugar de inventar una prueba fallida. Si no existe infraestructura de pruebas o una dependencia impide ejecutar el ciclo, documentá la limitación y el plan de verificación; no agregues un framework nuevo ni declares cobertura ejecutada sin evidencia.
+
 Test behavior at the narrowest useful layer and include regression coverage when fixing a bug. Prefer tests that assert public behavior over implementation details. Mock at external boundaries, not inside the unit under test.
 
 Run checks proportional to the files changed:

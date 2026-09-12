@@ -30,6 +30,7 @@ type ResolvedMerchandise = {
 export type PayloadCartParams = {
   locale?: string | null;
   acceptPriceChanges?: boolean;
+  fulfillmentMode?: import("@/lib/commerce/local-purchase").FulfillmentMode | null;
 };
 
 function cartPath(cartId: string, action?: string) {
@@ -308,6 +309,7 @@ export async function createCart(input?: {
   lines?: CartLineInput[];
   note?: string;
   locale?: string | null;
+  fulfillmentMode?: PayloadCartParams["fulfillmentMode"];
 }): Promise<Cart> {
   const config = getPayloadEcommerceConfig();
   const locale = input?.locale;
@@ -321,6 +323,9 @@ export async function createCart(input?: {
     body: {
       items: [],
       ...(input?.note ? { note: input.note } : {}),
+      ...(input?.fulfillmentMode !== undefined
+        ? { fulfillmentMode: input.fulfillmentMode }
+        : {}),
       currency: config.currencyCode,
     },
     cache: "no-store",
@@ -455,6 +460,17 @@ export async function updateCartLines(
           quantity: item.quantity,
         })),
       },
+      cache: "no-store",
+    });
+    latest = await resultToCart(result, secret, locale);
+  }
+
+  if (params.fulfillmentMode !== undefined) {
+    const result = await payloadFetch<PayloadCartMutationResult>({
+      method: "PATCH",
+      path: cartPath(cartId),
+      query: { ...localeQuery(locale), ...(secret ? { secret } : {}) },
+      body: { fulfillmentMode: params.fulfillmentMode },
       cache: "no-store",
     });
     latest = await resultToCart(result, secret, locale);

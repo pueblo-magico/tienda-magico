@@ -4,6 +4,7 @@ import {
   type CartLineInput,
   type CartLineUpdateInput,
 } from "@/types/commerce";
+import type { FulfillmentMode } from "@/lib/commerce/local-purchase";
 import { shopifyFetch } from "./client";
 import { cartFragment } from "./fragments";
 import { assertNoUserErrors, mapCart } from "./mappers";
@@ -18,8 +19,24 @@ const getCartQuery = /* GraphQL */ `
 `;
 
 const createCartMutation = /* GraphQL */ `
-  mutation CreateCart($lines: [CartLineInput!], $note: String) {
-    cartCreate(input: { lines: $lines, note: $note }) {
+  mutation CreateCart($lines: [CartLineInput!], $note: String, $attributes: [AttributeInput!]) {
+    cartCreate(input: { lines: $lines, note: $note, attributes: $attributes }) {
+      cart {
+        ...Cart
+      }
+      userErrors {
+        field
+        message
+        code
+      }
+    }
+  }
+  ${cartFragment}
+`;
+
+const updateCartAttributesMutation = /* GraphQL */ `
+  mutation UpdateCartAttributes($cartId: ID!, $attributes: [AttributeInput!]!) {
+    cartAttributesUpdate(cartId: $cartId, attributes: $attributes) {
       cart {
         ...Cart
       }
@@ -94,6 +111,10 @@ type CreateCartResponse = {
   cartCreate: CartPayload;
 };
 
+type UpdateCartAttributesResponse = {
+  cartAttributesUpdate: CartPayload;
+};
+
 type AddCartLinesResponse = {
   cartLinesAdd: CartPayload;
 };
@@ -123,12 +144,16 @@ export async function getCart(cartId: string): Promise<Cart | null> {
 export async function createCart(input?: {
   lines?: CartLineInput[];
   note?: string;
+  fulfillmentMode?: FulfillmentMode | null;
 }): Promise<Cart> {
   const data = await shopifyFetch<CreateCartResponse>({
     query: createCartMutation,
     variables: {
       lines: input?.lines,
       note: input?.note,
+      attributes: input?.fulfillmentMode
+        ? [{ key: "fulfillment_mode", value: input.fulfillmentMode }]
+        : undefined,
     },
     ...cartFetchOptions,
   });
@@ -172,7 +197,34 @@ export async function addCartLines(
 export async function updateCartLines(
   cartId: string,
   lines: CartLineUpdateInput[],
+  params?: { fulfillmentMode?: FulfillmentMode | null },
 ): Promise<Cart> {
+  if (params?.fulfillmentMode !== undefined) {
+    const data = await shopifyFetch<UpdateCartAttributesResponse>({
+      query: updateCartAttributesMutation,
+      variables: {
+        cartId,
+        attributes: params.fulfillmentMode
+          ? [{ key: "fulfillment_mode", value: params.fulfillmentMode }]
+          : [],
+      },
+      ...cartFetchOptions,
+    });
+
+    assertNoUserErrors(
+      data.cartAttributesUpdate.userErrors,
+      "updateCartAttributes",
+    );
+
+    if (!data.cartAttributesUpdate.cart) {
+      throw new CommerceError("updateCartAttributes failed: cart payload was empty.", {
+        provider: "shopify",
+      });
+    }
+
+    if (!lines.length) return mapCart(data.cartAttributesUpdate.cart);
+  }
+
   const data = await shopifyFetch<UpdateCartLinesResponse>({
     query: updateCartLinesMutation,
     variables: { cartId, lines },

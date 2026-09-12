@@ -2,6 +2,11 @@
 
 import { useLocale } from "next-intl";
 import type { Cart } from "@/types/commerce";
+import {
+  DELIVERY,
+  LOCAL_COLLECTION,
+  type FulfillmentMode,
+} from "@/lib/commerce/local-purchase";
 import { formatMoney } from "@/lib/commerce/utils/format";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils/cn";
@@ -14,7 +19,14 @@ type Props = {
     subtotal: string;
     checkout: string;
     taxesNote: string;
+    fulfillmentLegend: string;
+    localCollection: string;
+    localCollectionHint: string;
+    delivery: string;
+    deliveryHint: string;
+    fulfillmentRequired: string;
   };
+  onFulfillmentModeChange: (mode: FulfillmentMode) => void | Promise<void>;
   className?: string;
 };
 
@@ -23,6 +35,7 @@ export function CartSummary({
   disabled,
   onCheckout,
   labels,
+  onFulfillmentModeChange,
   className,
 }: Props) {
   const locale = useLocale();
@@ -38,11 +51,57 @@ export function CartSummary({
         </span>
       </div>
       <div className="bg-border h-px" />
+      <fieldset className="space-y-3">
+        <legend className="text-text-black text-sm font-semibold">
+          {labels.fulfillmentLegend}
+        </legend>
+        <label className="border-border flex cursor-pointer gap-3 rounded-lg border p-3">
+          <input
+            type="radio"
+            name="fulfillment-mode"
+            value={LOCAL_COLLECTION}
+            checked={cart.fulfillmentMode === LOCAL_COLLECTION}
+            disabled={disabled}
+            onChange={() => void onFulfillmentModeChange(LOCAL_COLLECTION)}
+          />
+          <span className="space-y-1">
+            <span className="text-text-black block text-sm font-medium">
+              {labels.localCollection}
+            </span>
+            <span className="text-muted block text-xs">
+              {labels.localCollectionHint}
+            </span>
+          </span>
+        </label>
+        <label className="border-border flex cursor-pointer gap-3 rounded-lg border p-3">
+          <input
+            type="radio"
+            name="fulfillment-mode"
+            value={DELIVERY}
+            checked={cart.fulfillmentMode === DELIVERY}
+            disabled={disabled}
+            onChange={() => void onFulfillmentModeChange(DELIVERY)}
+          />
+          <span className="space-y-1">
+            <span className="text-text-black block text-sm font-medium">
+              {labels.delivery}
+            </span>
+            <span className="text-muted block text-xs">
+              {labels.deliveryHint}
+            </span>
+          </span>
+        </label>
+      </fieldset>
+      {!cart.fulfillmentMode ? (
+        <p className="text-clay text-xs" role="status">
+          {labels.fulfillmentRequired}
+        </p>
+      ) : null}
       <p className="text-muted text-xs leading-relaxed">{labels.taxesNote}</p>
       <Button
         type="button"
         className="h-12 w-full"
-        disabled={disabled || cart.totalQuantity === 0}
+        disabled={disabled || cart.totalQuantity === 0 || !cart.fulfillmentMode}
         onClick={onCheckout}
       >
         {labels.checkout}

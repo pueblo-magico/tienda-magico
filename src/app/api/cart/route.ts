@@ -6,6 +6,7 @@ import type {
   CartLineUpdateInput,
 } from "@/types/commerce";
 import { CommerceError } from "@/types/commerce";
+import type { FulfillmentMode } from "@/lib/commerce/local-purchase";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +14,7 @@ function emptyCart(): Cart {
   return {
     id: "",
     checkoutUrl: "",
+    fulfillmentMode: null,
     totalQuantity: 0,
     note: null,
     cost: {
@@ -76,11 +78,18 @@ type CartBody =
       lines?: CartLineInput[];
       note?: string;
       locale?: string;
+      fulfillmentMode?: FulfillmentMode | null;
     }
   | {
       action: "add";
       cartId?: string;
       lines: CartLineInput[];
+      locale?: string;
+    }
+  | {
+      action: "setFulfillmentMode";
+      cartId: string;
+      fulfillmentMode: FulfillmentMode;
       locale?: string;
     }
   | {
@@ -132,6 +141,7 @@ export async function POST(request: Request) {
         const cart = await commerce.createCart({
           lines: body.lines,
           note: body.note,
+          fulfillmentMode: body.fulfillmentMode,
           locale,
         });
         return NextResponse.json({ cart, configured: true });
@@ -171,6 +181,20 @@ export async function POST(request: Request) {
           body.lines,
           cartParams,
         );
+        return NextResponse.json({ cart, configured: true });
+      }
+
+      case "setFulfillmentMode": {
+        if (!body.cartId?.trim()) {
+          return NextResponse.json(
+            { error: "cartId is required for fulfillment mode." },
+            { status: 400 },
+          );
+        }
+        const cart = await commerce.updateCartLines(body.cartId, [], {
+          locale,
+          fulfillmentMode: body.fulfillmentMode,
+        });
         return NextResponse.json({ cart, configured: true });
       }
 

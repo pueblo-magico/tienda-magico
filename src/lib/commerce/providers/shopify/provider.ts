@@ -3,6 +3,7 @@ import type {
   Cart,
   CartLineInput,
   CartLineUpdateInput,
+  CartParams,
   Collection,
   CollectionSummary,
   GetCollectionParams,
@@ -66,6 +67,7 @@ export class ShopifyCommerceProvider implements CommerceProvider {
     lines?: CartLineInput[];
     note?: string;
     locale?: string | null;
+    fulfillmentMode?: CartParams["fulfillmentMode"];
   }): Promise<Cart> {
     return createCart(input);
   }
@@ -73,15 +75,15 @@ export class ShopifyCommerceProvider implements CommerceProvider {
   updateCart(
     cartId: string,
     lines: CartLineUpdateInput[],
-    _params?: { locale?: string | null },
+    params?: CartParams,
   ): Promise<Cart> {
-    return updateCart(cartId, lines);
+    return updateCartLines(cartId, lines, params);
   }
 
   addCartLines(
     cartId: string,
     lines: CartLineInput[],
-    _params?: { locale?: string | null },
+    _params?: CartParams,
   ): Promise<Cart> {
     return addCartLines(cartId, lines);
   }
@@ -89,15 +91,15 @@ export class ShopifyCommerceProvider implements CommerceProvider {
   updateCartLines(
     cartId: string,
     lines: CartLineUpdateInput[],
-    _params?: { locale?: string | null },
+    params?: CartParams,
   ): Promise<Cart> {
-    return updateCartLines(cartId, lines);
+    return updateCartLines(cartId, lines, params);
   }
 
   removeCartLines(
     cartId: string,
     lineIds: string[],
-    _params?: { locale?: string | null },
+    _params?: CartParams,
   ): Promise<Cart> {
     return removeCartLines(cartId, lineIds);
   }

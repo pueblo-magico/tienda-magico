@@ -11,12 +11,14 @@ import {
 } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import type { Cart, CartLineInput } from "@/types/commerce";
+import type { FulfillmentMode } from "@/lib/commerce/local-purchase";
 import { createCheckoutSession } from "@/features/checkout";
 import {
   addCartLines,
   confirmCartPrices,
   fetchCart,
   removeCartLines,
+  setCartFulfillmentMode,
   updateCartLines,
 } from "./api";
 import { CART_ID_STORAGE_KEY } from "./constants";
@@ -25,6 +27,7 @@ function emptyCart(): Cart {
   return {
     id: "",
     checkoutUrl: "",
+    fulfillmentMode: null,
     totalQuantity: 0,
     note: null,
     cost: {
@@ -57,6 +60,7 @@ type CartContextValue = {
   checkout: () => Promise<void>;
   clearError: () => void;
   confirmPrices: () => Promise<void>;
+  setFulfillmentMode: (mode: FulfillmentMode) => Promise<void>;
 };
 
 const CartContext = createContext<CartContextValue | null>(null);
@@ -215,6 +219,24 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, [applyCart, cart.id, locale, tCommercial]);
 
+  const setFulfillment = useCallback(
+    async (mode: FulfillmentMode) => {
+      const cartId = readStoredCartId() || cart.id;
+      if (!cartId) return;
+      setIsMutating(true);
+      setError(null);
+      try {
+        const result = await setCartFulfillmentMode(cartId, mode, locale);
+        applyCart(result.cart, result.configured !== false);
+      } catch {
+        setError(tCommercial("requestFailed"));
+      } finally {
+        setIsMutating(false);
+      }
+    },
+    [applyCart, cart.id, locale, tCommercial],
+  );
+
   const checkout = useCallback(async () => {
     const cartId = readStoredCartId() || cart.id;
     if (!cartId || cart.totalQuantity <= 0) {
@@ -263,6 +285,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       checkout,
       clearError,
       confirmPrices,
+      setFulfillmentMode: setFulfillment,
     }),
     [
       cart,
@@ -281,6 +304,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       checkout,
       clearError,
       confirmPrices,
+      setFulfillment,
     ],
   );
 

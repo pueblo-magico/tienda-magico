@@ -74,6 +74,7 @@ export interface Config {
   collections: {
     users: User;
     media: Media;
+    localSales: LocalSale;
     pages: Page;
     posts: Post;
     testimonials: Testimonial;
@@ -105,6 +106,7 @@ export interface Config {
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    localSales: LocalSalesSelect<false> | LocalSalesSelect<true>;
     pages: PagesSelect<false> | PagesSelect<true>;
     posts: PostsSelect<false> | PostsSelect<true>;
     testimonials: TestimonialsSelect<false> | TestimonialsSelect<true>;
@@ -235,299 +237,95 @@ export interface Media {
   focalY?: number | null;
 }
 /**
+ * Private record of local sales operated from the CMS.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "pages".
+ * via the `definition` "localSales".
  */
-export interface Page {
+export interface LocalSale {
   id: number;
-  title: string;
+  order: number | Order;
   /**
-   * URL canónica en español, compartida entre idiomas (minúsculas-con-guiones).
+   * Prevents duplicate records for the same order and retry.
    */
-  slug: string;
-  layout: (
-    | HeroBlock
-    | CtaBlock
-    | InfoSectionBlock
-    | GalleryBlock
-    | TestimonialsBlock
-    | FaqBlock
-    | NewsletterBlock
-    | FeaturedProductsBlock
-    | FeaturedCategoriesBlock
-    | ImpactStatsBlock
-  )[];
-  seo?: {
-    /**
-     * Overrides document title in <title> / og:title when set.
-     */
+  idempotencyKey: string;
+  status: 'pending_payment' | 'paid' | 'cancelled' | 'conflict';
+  fulfillmentMode: 'local_collection' | 'delivery';
+  paymentStatus: 'pending' | 'approved' | 'rejected' | 'cancelled' | 'unverified';
+  /**
+   * Optional private data allowed by checkout.
+   */
+  buyerContact?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Immutable order identity, options, quantities, and amounts.
+   */
+  snapshot:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Never store gateway credentials or secrets.
+   */
+  paymentEvidence?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "orders".
+ */
+export interface Order {
+  id: number;
+  items?:
+    | {
+        product?: (number | null) | Product;
+        variant?: (number | null) | Variant;
+        quantity: number;
+        id?: string | null;
+      }[]
+    | null;
+  shippingAddress?: {
     title?: string | null;
-    description?: string | null;
-    /**
-     * Social share image (Open Graph).
-     */
-    image?: (number | null) | Media;
-    noIndex?: boolean | null;
+    firstName?: string | null;
+    lastName?: string | null;
+    company?: string | null;
+    addressLine1?: string | null;
+    addressLine2?: string | null;
+    city?: string | null;
+    state?: string | null;
+    postalCode?: string | null;
+    country?: string | null;
+    phone?: string | null;
   };
+  customer?: (number | null) | User;
+  customerEmail?: string | null;
+  transactions?: (number | Transaction)[] | null;
+  status?: OrderStatus;
+  amount?: number | null;
+  currency?: 'ARS' | null;
   updatedAt: string;
   createdAt: string;
-  _status?: ('draft' | 'published') | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "HeroBlock".
- */
-export interface HeroBlock {
-  eyebrow?: string | null;
-  title: string;
-  subtitle?: string | null;
-  body?: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
-  media?: (number | null) | Media;
-  mediaPosition?: ('background' | 'right' | 'left' | 'none') | null;
-  actions?:
-    | {
-        link?: {
-          type?: ('custom' | 'internal') | null;
-          label?: string | null;
-          /**
-           * Absolute URL or site path (e.g. https://… or /shop).
-           */
-          url?: string | null;
-          /**
-           * Locale-free path (e.g. /shop, /about). Storefront prefixes locale.
-           */
-          path?: string | null;
-          newTab?: boolean | null;
-          appearance?: ('primary' | 'secondary' | 'ghost' | 'link') | null;
-        };
-        id?: string | null;
-      }[]
-    | null;
-  id?: string | null;
-  blockName?: string | null;
-  blockType: 'hero';
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "CtaBlock".
- */
-export interface CtaBlock {
-  eyebrow?: string | null;
-  title: string;
-  description?: string | null;
-  actions?:
-    | {
-        link?: {
-          type?: ('custom' | 'internal') | null;
-          label?: string | null;
-          /**
-           * Absolute URL or site path (e.g. https://… or /shop).
-           */
-          url?: string | null;
-          /**
-           * Locale-free path (e.g. /shop, /about). Storefront prefixes locale.
-           */
-          path?: string | null;
-          newTab?: boolean | null;
-          appearance?: ('primary' | 'secondary' | 'ghost' | 'link') | null;
-        };
-        id?: string | null;
-      }[]
-    | null;
-  style?: ('brand' | 'sand' | 'outline') | null;
-  id?: string | null;
-  blockName?: string | null;
-  blockType: 'cta';
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "InfoSectionBlock".
- */
-export interface InfoSectionBlock {
-  eyebrow?: string | null;
-  title: string;
-  body?: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
-  media?: (number | null) | Media;
-  layout?: ('textMedia' | 'mediaText' | 'centered') | null;
-  link?: {
-    type?: ('custom' | 'internal') | null;
-    label?: string | null;
-    /**
-     * Absolute URL or site path (e.g. https://… or /shop).
-     */
-    url?: string | null;
-    /**
-     * Locale-free path (e.g. /shop, /about). Storefront prefixes locale.
-     */
-    path?: string | null;
-    newTab?: boolean | null;
-    appearance?: ('primary' | 'secondary' | 'ghost' | 'link') | null;
-  };
-  id?: string | null;
-  blockName?: string | null;
-  blockType: 'infoSection';
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "GalleryBlock".
- */
-export interface GalleryBlock {
-  title?: string | null;
-  images: {
-    image: number | Media;
-    caption?: string | null;
-    id?: string | null;
-  }[];
-  columns?: ('2' | '3' | '4') | null;
-  id?: string | null;
-  blockName?: string | null;
-  blockType: 'gallery';
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "TestimonialsBlock".
- */
-export interface TestimonialsBlock {
-  eyebrow?: string | null;
-  title?: string | null;
-  selection?: ('manual' | 'latest') | null;
-  items?: (number | Testimonial)[] | null;
-  limit?: number | null;
-  id?: string | null;
-  blockName?: string | null;
-  blockType: 'testimonials';
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "testimonials".
- */
-export interface Testimonial {
-  id: number;
-  quote: string;
-  name: string;
-  /**
-   * Title or context (e.g. Guest · Valle de Bravo).
-   */
-  role?: string | null;
-  avatar?: (number | null) | Media;
-  /**
-   * Optional 1–5 star rating.
-   */
-  rating?: number | null;
-  updatedAt: string;
-  createdAt: string;
-  _status?: ('draft' | 'published') | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "FaqBlock".
- */
-export interface FaqBlock {
-  eyebrow?: string | null;
-  title?: string | null;
-  selection?: ('manual' | 'category' | 'all') | null;
-  items?: (number | Faq)[] | null;
-  /**
-   * Matches FAQ category field (e.g. shipping).
-   */
-  category?: string | null;
-  id?: string | null;
-  blockName?: string | null;
-  blockType: 'faq';
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "faqs".
- */
-export interface Faq {
-  id: number;
-  question: string;
-  answer: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  };
-  /**
-   * Grouping key (e.g. shipping, products). Used by FAQ blocks.
-   */
-  category?: string | null;
-  sortOrder?: number | null;
-  updatedAt: string;
-  createdAt: string;
-  _status?: ('draft' | 'published') | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "NewsletterBlock".
- */
-export interface NewsletterBlock {
-  eyebrow?: string | null;
-  title: string;
-  description?: string | null;
-  placeholder?: string | null;
-  buttonLabel?: string | null;
-  successMessage?: string | null;
-  /**
-   * Optional external form/list id (provider-specific).
-   */
-  formId?: string | null;
-  id?: string | null;
-  blockName?: string | null;
-  blockType: 'newsletter';
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "FeaturedProductsBlock".
- */
-export interface FeaturedProductsBlock {
-  eyebrow?: string | null;
-  title?: string | null;
-  description?: string | null;
-  selection?: ('manual' | 'category') | null;
-  products?: (number | Product)[] | null;
-  category?: (number | null) | Category;
-  limit?: number | null;
-  id?: string | null;
-  blockName?: string | null;
-  blockType: 'featuredProducts';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -878,6 +676,367 @@ export interface Variant {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "transactions".
+ */
+export interface Transaction {
+  id: number;
+  items?:
+    | {
+        product?: (number | null) | Product;
+        variant?: (number | null) | Variant;
+        quantity: number;
+        id?: string | null;
+      }[]
+    | null;
+  billingAddress?: {
+    title?: string | null;
+    firstName?: string | null;
+    lastName?: string | null;
+    company?: string | null;
+    addressLine1?: string | null;
+    addressLine2?: string | null;
+    city?: string | null;
+    state?: string | null;
+    postalCode?: string | null;
+    country?: string | null;
+    phone?: string | null;
+  };
+  status: 'pending' | 'succeeded' | 'failed' | 'cancelled' | 'expired' | 'refunded';
+  customer?: (number | null) | User;
+  customerEmail?: string | null;
+  order?: (number | null) | Order;
+  cart?: (number | null) | Cart;
+  amount?: number | null;
+  currency?: 'ARS' | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "carts".
+ */
+export interface Cart {
+  id: number;
+  /**
+   * Choose local collection or delivery before starting checkout.
+   */
+  fulfillmentMode?: ('local_collection' | 'delivery') | null;
+  acceptCurrentPrices?: boolean | null;
+  items?:
+    | {
+        product?: (number | null) | Product;
+        variant?: (number | null) | Variant;
+        quantity: number;
+        amount?: number | null;
+        id?: string | null;
+      }[]
+    | null;
+  secret?: string | null;
+  customer?: (number | null) | User;
+  purchasedAt?: string | null;
+  status?: ('active' | 'purchased' | 'abandoned') | null;
+  subtotal?: number | null;
+  currency?: 'ARS' | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pages".
+ */
+export interface Page {
+  id: number;
+  title: string;
+  /**
+   * URL canónica en español, compartida entre idiomas (minúsculas-con-guiones).
+   */
+  slug: string;
+  layout: (
+    | HeroBlock
+    | CtaBlock
+    | InfoSectionBlock
+    | GalleryBlock
+    | TestimonialsBlock
+    | FaqBlock
+    | NewsletterBlock
+    | FeaturedProductsBlock
+    | FeaturedCategoriesBlock
+    | ImpactStatsBlock
+  )[];
+  seo?: {
+    /**
+     * Overrides document title in <title> / og:title when set.
+     */
+    title?: string | null;
+    description?: string | null;
+    /**
+     * Social share image (Open Graph).
+     */
+    image?: (number | null) | Media;
+    noIndex?: boolean | null;
+  };
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "HeroBlock".
+ */
+export interface HeroBlock {
+  eyebrow?: string | null;
+  title: string;
+  subtitle?: string | null;
+  body?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  media?: (number | null) | Media;
+  mediaPosition?: ('background' | 'right' | 'left' | 'none') | null;
+  actions?:
+    | {
+        link?: {
+          type?: ('custom' | 'internal') | null;
+          label?: string | null;
+          /**
+           * Absolute URL or site path (e.g. https://… or /shop).
+           */
+          url?: string | null;
+          /**
+           * Locale-free path (e.g. /shop, /about). Storefront prefixes locale.
+           */
+          path?: string | null;
+          newTab?: boolean | null;
+          appearance?: ('primary' | 'secondary' | 'ghost' | 'link') | null;
+        };
+        id?: string | null;
+      }[]
+    | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'hero';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "CtaBlock".
+ */
+export interface CtaBlock {
+  eyebrow?: string | null;
+  title: string;
+  description?: string | null;
+  actions?:
+    | {
+        link?: {
+          type?: ('custom' | 'internal') | null;
+          label?: string | null;
+          /**
+           * Absolute URL or site path (e.g. https://… or /shop).
+           */
+          url?: string | null;
+          /**
+           * Locale-free path (e.g. /shop, /about). Storefront prefixes locale.
+           */
+          path?: string | null;
+          newTab?: boolean | null;
+          appearance?: ('primary' | 'secondary' | 'ghost' | 'link') | null;
+        };
+        id?: string | null;
+      }[]
+    | null;
+  style?: ('brand' | 'sand' | 'outline') | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'cta';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "InfoSectionBlock".
+ */
+export interface InfoSectionBlock {
+  eyebrow?: string | null;
+  title: string;
+  body?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  media?: (number | null) | Media;
+  layout?: ('textMedia' | 'mediaText' | 'centered') | null;
+  link?: {
+    type?: ('custom' | 'internal') | null;
+    label?: string | null;
+    /**
+     * Absolute URL or site path (e.g. https://… or /shop).
+     */
+    url?: string | null;
+    /**
+     * Locale-free path (e.g. /shop, /about). Storefront prefixes locale.
+     */
+    path?: string | null;
+    newTab?: boolean | null;
+    appearance?: ('primary' | 'secondary' | 'ghost' | 'link') | null;
+  };
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'infoSection';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "GalleryBlock".
+ */
+export interface GalleryBlock {
+  title?: string | null;
+  images: {
+    image: number | Media;
+    caption?: string | null;
+    id?: string | null;
+  }[];
+  columns?: ('2' | '3' | '4') | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'gallery';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TestimonialsBlock".
+ */
+export interface TestimonialsBlock {
+  eyebrow?: string | null;
+  title?: string | null;
+  selection?: ('manual' | 'latest') | null;
+  items?: (number | Testimonial)[] | null;
+  limit?: number | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'testimonials';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "testimonials".
+ */
+export interface Testimonial {
+  id: number;
+  quote: string;
+  name: string;
+  /**
+   * Title or context (e.g. Guest · Valle de Bravo).
+   */
+  role?: string | null;
+  avatar?: (number | null) | Media;
+  /**
+   * Optional 1–5 star rating.
+   */
+  rating?: number | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "FaqBlock".
+ */
+export interface FaqBlock {
+  eyebrow?: string | null;
+  title?: string | null;
+  selection?: ('manual' | 'category' | 'all') | null;
+  items?: (number | Faq)[] | null;
+  /**
+   * Matches FAQ category field (e.g. shipping).
+   */
+  category?: string | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'faq';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "faqs".
+ */
+export interface Faq {
+  id: number;
+  question: string;
+  answer: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  /**
+   * Grouping key (e.g. shipping, products). Used by FAQ blocks.
+   */
+  category?: string | null;
+  sortOrder?: number | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "NewsletterBlock".
+ */
+export interface NewsletterBlock {
+  eyebrow?: string | null;
+  title: string;
+  description?: string | null;
+  placeholder?: string | null;
+  buttonLabel?: string | null;
+  successMessage?: string | null;
+  /**
+   * Optional external form/list id (provider-specific).
+   */
+  formId?: string | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'newsletter';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "FeaturedProductsBlock".
+ */
+export interface FeaturedProductsBlock {
+  eyebrow?: string | null;
+  title?: string | null;
+  description?: string | null;
+  selection?: ('manual' | 'category') | null;
+  products?: (number | Product)[] | null;
+  category?: (number | null) | Category;
+  limit?: number | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'featuredProducts';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "FeaturedCategoriesBlock".
  */
 export interface FeaturedCategoriesBlock {
@@ -1023,104 +1182,6 @@ export interface Address {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "carts".
- */
-export interface Cart {
-  id: number;
-  acceptCurrentPrices?: boolean | null;
-  items?:
-    | {
-        product?: (number | null) | Product;
-        variant?: (number | null) | Variant;
-        quantity: number;
-        amount?: number | null;
-        id?: string | null;
-      }[]
-    | null;
-  secret?: string | null;
-  customer?: (number | null) | User;
-  purchasedAt?: string | null;
-  status?: ('active' | 'purchased' | 'abandoned') | null;
-  subtotal?: number | null;
-  currency?: 'ARS' | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "orders".
- */
-export interface Order {
-  id: number;
-  items?:
-    | {
-        product?: (number | null) | Product;
-        variant?: (number | null) | Variant;
-        quantity: number;
-        id?: string | null;
-      }[]
-    | null;
-  shippingAddress?: {
-    title?: string | null;
-    firstName?: string | null;
-    lastName?: string | null;
-    company?: string | null;
-    addressLine1?: string | null;
-    addressLine2?: string | null;
-    city?: string | null;
-    state?: string | null;
-    postalCode?: string | null;
-    country?: string | null;
-    phone?: string | null;
-  };
-  customer?: (number | null) | User;
-  customerEmail?: string | null;
-  transactions?: (number | Transaction)[] | null;
-  status?: OrderStatus;
-  amount?: number | null;
-  currency?: 'ARS' | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "transactions".
- */
-export interface Transaction {
-  id: number;
-  items?:
-    | {
-        product?: (number | null) | Product;
-        variant?: (number | null) | Variant;
-        quantity: number;
-        id?: string | null;
-      }[]
-    | null;
-  billingAddress?: {
-    title?: string | null;
-    firstName?: string | null;
-    lastName?: string | null;
-    company?: string | null;
-    addressLine1?: string | null;
-    addressLine2?: string | null;
-    city?: string | null;
-    state?: string | null;
-    postalCode?: string | null;
-    country?: string | null;
-    phone?: string | null;
-  };
-  status: 'pending' | 'succeeded' | 'failed' | 'cancelled' | 'expired' | 'refunded';
-  customer?: (number | null) | User;
-  customerEmail?: string | null;
-  order?: (number | null) | Order;
-  cart?: (number | null) | Cart;
-  amount?: number | null;
-  currency?: 'ARS' | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -1150,6 +1211,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'media';
         value: number | Media;
+      } | null)
+    | ({
+        relationTo: 'localSales';
+        value: number | LocalSale;
       } | null)
     | ({
         relationTo: 'pages';
@@ -1297,6 +1362,22 @@ export interface MediaSelect<T extends boolean = true> {
   height?: T;
   focalX?: T;
   focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "localSales_select".
+ */
+export interface LocalSalesSelect<T extends boolean = true> {
+  order?: T;
+  idempotencyKey?: T;
+  status?: T;
+  fulfillmentMode?: T;
+  paymentStatus?: T;
+  buyerContact?: T;
+  snapshot?: T;
+  paymentEvidence?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1768,6 +1849,7 @@ export interface ProductsSelect<T extends boolean = true> {
  * via the `definition` "carts_select".
  */
 export interface CartsSelect<T extends boolean = true> {
+  fulfillmentMode?: T;
   acceptCurrentPrices?: T;
   items?:
     | T

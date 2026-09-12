@@ -1,3 +1,4 @@
+import { parseFulfillmentMode } from "@/lib/commerce/local-purchase";
 import {
   CommerceError,
   type Cart,
@@ -255,6 +256,7 @@ export function mapCart(cart: {
   checkoutUrl: string;
   totalQuantity?: number | null;
   note?: string | null;
+    attributes?: Array<{ key: string; value: string }> | null;
   cost?: {
     subtotalAmount?: Maybe<Money>;
     totalAmount?: Maybe<Money>;
@@ -265,6 +267,12 @@ export function mapCart(cart: {
   return {
     id: cart.id,
     checkoutUrl: cart.checkoutUrl,
+    fulfillmentMode: (() => {
+      const value = cart.attributes?.find(
+        (attribute) => attribute.key === "fulfillment_mode",
+      )?.value;
+      return value ? parseFulfillmentMode(value) : null;
+    })(),
     totalQuantity: cart.totalQuantity ?? 0,
     note: cart.note ?? null,
     cost: {

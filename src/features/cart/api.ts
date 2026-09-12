@@ -3,6 +3,7 @@ import type {
   CartLineInput,
   CartLineUpdateInput,
 } from "@/types/commerce";
+import type { FulfillmentMode } from "@/lib/commerce/local-purchase";
 
 export class CartRequestError extends Error {}
 
@@ -99,6 +100,25 @@ export async function updateCartLines(
     }),
   });
   return parseResponse(response);
+}
+
+export async function setCartFulfillmentMode(
+  cartId: string,
+  fulfillmentMode: FulfillmentMode,
+  locale: string,
+): Promise<CartResponse> {
+  return parseResponse(
+    await fetch("/api/cart", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "setFulfillmentMode",
+        cartId,
+        fulfillmentMode,
+        locale,
+      }),
+    }),
+  );
 }
 
 export async function removeCartLines(

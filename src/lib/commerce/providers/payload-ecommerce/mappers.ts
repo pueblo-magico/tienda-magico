@@ -22,6 +22,7 @@ import { regularPrice, purchaseStatus, publicSellable } from "./sellable";
 import { richTextToHtml, richTextToPlain } from "@/lib/cms/richtext";
 import { getPayloadEcommerceConfig } from "./config";
 import { merchandiseRef } from "./merchandise";
+import { parseFulfillmentMode } from "@/lib/commerce/local-purchase";
 import type {
   PayloadCartDoc,
   PayloadBrandDoc,
@@ -1169,6 +1170,10 @@ export function mapCart(
   return {
     id: cartRef,
     checkoutUrl,
+    fulfillmentMode:
+      cart.fulfillmentMode == null
+        ? null
+        : parseFulfillmentMode(cart.fulfillmentMode),
     totalQuantity,
     note: typeof cart.note === "string" ? cart.note : null,
     cost: {

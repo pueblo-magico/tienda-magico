@@ -148,6 +148,7 @@ export type PayloadCartItem = {
 
 export type PayloadCartDoc = PayloadDoc & {
   items?: PayloadCartItem[] | null;
+  fulfillmentMode?: string | null;
   secret?: string | null;
   subtotal?: number | null;
   currency?: string | null;

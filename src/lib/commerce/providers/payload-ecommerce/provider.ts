@@ -62,6 +62,7 @@ export class PayloadEcommerceProvider implements CommerceProvider {
     lines?: CartLineInput[];
     note?: string;
     locale?: string | null;
+    fulfillmentMode?: CartParams["fulfillmentMode"];
   }): Promise<Cart> {
     return createCart(input);
   }

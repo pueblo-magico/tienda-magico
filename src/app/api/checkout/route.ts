@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { commerce } from "@/lib/commerce";
 import { checkout } from "@/lib/checkout";
 import { CheckoutConfigError, CheckoutError } from "@/types/checkout";
+import {
+  FulfillmentModeError,
+  validateFulfillmentModeForCheckout,
+} from "@/lib/commerce/local-purchase";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +26,10 @@ function siteUrl(request: Request): string {
 }
 
 function errorResponse(error: unknown) {
+  if (error instanceof FulfillmentModeError) {
+    return NextResponse.json({ error: error.message }, { status: 400 });
+  }
+
   if (error instanceof CheckoutConfigError) {
     return NextResponse.json(
       {
@@ -106,6 +114,10 @@ export async function POST(request: Request) {
       );
     }
 
+    const fulfillmentMode = validateFulfillmentModeForCheckout(
+      cart.fulfillmentMode,
+    );
+
     const base = siteUrl(request);
     const returnUrls = {
       success: `${base}/${locale}/checkout/success`,
@@ -131,6 +143,7 @@ export async function POST(request: Request) {
         checkout.provider.name === "mercado-pago" ? notificationUrl : null,
       metadata: {
         locale,
+        fulfillment_mode: fulfillmentMode,
       },
     });
 
