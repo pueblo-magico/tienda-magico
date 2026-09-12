@@ -1,5 +1,7 @@
 # Task 06.1: webshop local purchase
 
+> JIRA: PMG-360
+
 ## Scope
 
 Enable a visitor to use the existing webshop and Mercado Pago checkout while

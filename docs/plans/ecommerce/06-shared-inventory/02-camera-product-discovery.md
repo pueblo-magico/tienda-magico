@@ -1,5 +1,7 @@
 # Task 06.2: camera-assisted product discovery
 
+> JIRA: PMG-361
+
 ## Scope
 
 Add an opt-in camera experience to the webshop after the local-purchase flow is

@@ -1,5 +1,7 @@
 # Task 06.5: events and retreats
 
+> JIRA: PMG-364
+
 ## Scope
 
 Add later operational workflows for event and retreat stock after the shared

@@ -1,5 +1,7 @@
 # Task 06.3: staff-assisted local sales
 
+> JIRA: PMG-362
+
 ## Scope
 
 Provide a private CMS workflow for staff-operated local sales after the

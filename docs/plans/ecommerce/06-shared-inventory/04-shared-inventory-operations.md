@@ -1,5 +1,7 @@
 # Task 06.4: shared inventory operations
 
+> JIRA: PMG-363
+
 ## Scope
 
 Implement one authoritative inventory pool for online purchases, Stage 1 local
