@@ -2152,11 +2152,11 @@ export interface SiteSetting {
 export interface CommerceSetting {
   id: number;
   /**
-   * Permite que clientes elijan retirar su compra localmente.
+   * Allows customers to collect their purchase locally.
    */
   localCollectionEnabled: boolean;
   /**
-   * Permite que clientes elijan recibir su compra mediante entrega.
+   * Allows customers to receive their purchase by delivery.
    */
   deliveryEnabled: boolean;
   updatedAt?: string | null;

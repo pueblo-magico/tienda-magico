@@ -4,8 +4,8 @@ import { adminOnly } from '../access/adminOnly'
 
 export const CommerceSettings: GlobalConfig = {
   slug: 'commerce-settings',
-  label: 'Configuración de comercio',
-  admin: { group: 'Configuración' },
+  label: { es: 'Configuración de comercio', en: 'Commerce settings' },
+  admin: { group: { es: 'Configuración', en: 'Settings' } },
   access: {
     read: () => true,
     update: adminOnly,
@@ -13,22 +13,28 @@ export const CommerceSettings: GlobalConfig = {
   fields: [
     {
       name: 'localCollectionEnabled',
-      label: 'Habilitar retiro local',
+      label: { es: 'Habilitar retiro local', en: 'Enable local collection' },
       type: 'checkbox',
       defaultValue: true,
       required: true,
       admin: {
-        description: 'Permite que clientes elijan retirar su compra localmente.',
+        description: {
+          es: 'Permite que clientes elijan retirar su compra localmente.',
+          en: 'Allows customers to collect their purchase locally.',
+        },
       },
     },
     {
       name: 'deliveryEnabled',
-      label: 'Habilitar entrega',
+      label: { es: 'Habilitar entrega', en: 'Enable delivery' },
       type: 'checkbox',
       defaultValue: false,
       required: true,
       admin: {
-        description: 'Permite que clientes elijan recibir su compra mediante entrega.',
+        description: {
+          es: 'Permite que clientes elijan recibir su compra mediante entrega.',
+          en: 'Allows customers to receive their purchase by delivery.',
+        },
       },
     },
   ],

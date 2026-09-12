@@ -1,6 +1,8 @@
 import { postgresAdapter } from '@payloadcms/db-postgres'
 import { ecommercePlugin } from '@payloadcms/plugin-ecommerce'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
+import { en } from '@payloadcms/translations/languages/en'
+import { es } from '@payloadcms/translations/languages/es'
 import path from 'path'
 import { buildConfig } from 'payload'
 import { fileURLToPath } from 'url'
@@ -55,6 +57,10 @@ const serverURL =
 
 export default buildConfig({
   serverURL,
+  i18n: {
+    fallbackLanguage: 'es',
+    supportedLanguages: { es, en },
+  },
   admin: {
     user: Users.slug,
     importMap: {

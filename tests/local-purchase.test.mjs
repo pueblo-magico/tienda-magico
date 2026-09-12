@@ -57,13 +57,40 @@ test("the CMS exposes admin-managed storefront commerce settings", () => {
   assert.deepEqual(
     fields.map((field) => ({
       name: field.name,
+      label: field.label,
       defaultValue: field.defaultValue,
     })),
     [
-      { name: "localCollectionEnabled", defaultValue: true },
-      { name: "deliveryEnabled", defaultValue: false },
+      {
+        name: "localCollectionEnabled",
+        label: { es: "Habilitar retiro local", en: "Enable local collection" },
+        defaultValue: true,
+      },
+      {
+        name: "deliveryEnabled",
+        label: { es: "Habilitar entrega", en: "Enable delivery" },
+        defaultValue: false,
+      },
     ],
   );
+});
+
+test("the Payload editor supports Spanish and English interface languages", async () => {
+  const config = await readFile(
+    new URL("../apps/cms/src/payload.config.ts", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(
+    config,
+    /import \{ en \} from '@payloadcms\/translations\/languages\/en'/,
+  );
+  assert.match(
+    config,
+    /import \{ es \} from '@payloadcms\/translations\/languages\/es'/,
+  );
+  assert.match(config, /i18n:\s*\{[\s\S]*fallbackLanguage:\s*'es'/);
+  assert.match(config, /supportedLanguages:\s*\{\s*es,\s*en\s*\}/);
 });
 
 test("disabled fulfillment modes are hidden and rejected by server routes", async () => {
