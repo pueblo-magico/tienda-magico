@@ -13,8 +13,7 @@ Project docs for engineers and content/commerce operators.
 | Content / merchandising | [Shopify content guide](./commerce/content.md) | Products & collections in Shopify |
 | Content / merchandising | [Payload catalog guide](./commerce/payload-content.md) | Products & categories in `apps/cms` |
 | Content / editors | [CMS homepage & pages guide](./cms/content.md) | Build the home page with layout blocks (EN/ES) |
-| Developers / DevOps | [Staging and production deployment](./deploy/github-actions.md) | Complete GCP, GitHub Environments, TLS, release, and rollback runbook |
-| Developers / DevOps | [GCE VM runtime reference](./deploy/gce.md) | Artifact-only Docker, nginx, Postgres, and persistent-state layout |
+| Developers / DevOps | [Automated staging deployment](./deploy/github-actions.md) | GitHub Environment, SSH, Caddy, release, and rollback runbook |
 | Developers / DevOps | [`apps/cms` README](../apps/cms/README.md) | Run Payload + Postgres locally, import map, and CMS development |
 
 Related:

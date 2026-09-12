@@ -164,6 +164,47 @@ jobs:
           rm -rf -- "$bundle"
           REMOTE
 
+      - name: Verify public staging endpoints
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          check_endpoint() {
+            local name="$1"
+            local url="$2"
+
+            for attempt in {1..12}; do
+              if curl --fail --silent --show-error --location \
+                --connect-timeout 10 --max-time 30 \
+                --output /dev/null "$url"; then
+                echo "$name is reachable at $url"
+                return 0
+              fi
+
+              echo "$name is not ready yet (attempt $attempt/12)."
+              sleep 10
+            done
+
+            echo "$name public smoke check failed: $url"
+            return 1
+          }
+
+          check_endpoint "Storefront" "$SHOP_URL/"
+          check_endpoint "CMS" "$CMS_URL/admin"
+
+      - name: Publish deployment summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "## Staging deployment"
+            echo ""
+            echo "- Commit: \`$GITHUB_SHA\`"
+            echo "- Image tag: \`${IMAGE_TAG:-not-created}\`"
+            echo "- Storefront: $SHOP_URL"
+            echo "- CMS: $CMS_URL/admin"
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Remove transferred release files
         if: success() && env.BUILD_RELEASE == 'true'
         shell: bash

@@ -17,7 +17,8 @@ sent to GitHub, used as Docker build arguments, or included in an image layer.
 
 ## Triggers and release tags
 
-- A push to `staging` builds and deploys the commit automatically.
+- Merging a pull request into `staging` produces a push event that builds and
+  deploys the merged commit automatically.
 - A manual run with `existing_tag` blank builds and deploys the selected commit.
 - A manual run with `existing_tag` set skips the build and activates that tag if
   both application images still exist on the VM.
@@ -108,7 +109,9 @@ query, or fragment. They must match the URLs already configured on the VM.
 ## 4. First automated release
 
 Commit the workflow, Dockerfiles, Payload migrations, and application changes.
-Push them to the `staging` branch:
+Open a pull request whose base branch is `staging`, wait for its required checks,
+and merge it. For an initial setup without branch protection, a direct push also
+triggers the workflow:
 
 ```bash
 git push origin staging
@@ -125,11 +128,15 @@ Follow **Actions -> Deploy staging**. A successful run will:
 7. Verify the checksum again on the VM.
 8. Load and activate the immutable images.
 9. Wait for the storefront and CMS health checks.
-10. Print deployment status and remove the transferred tar archive.
+10. Verify the public storefront and CMS endpoints through DNS and HTTPS.
+11. Print a deployment summary and remove the transferred tar archive.
 
 Payload production migrations are bundled into the CMS image and run before CMS
 initialization. A migration failure prevents the CMS health check from passing
 and therefore fails the deployment.
+
+For a concise operator checklist in Spanish, use
+[`docs/deploy/staging-es.md`](staging-es.md).
 
 ## 5. Verify staging
 
