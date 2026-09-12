@@ -6,10 +6,14 @@ import { preventCategoryCycles } from './categoryHierarchy'
 
 export const Categories: CollectionConfig = {
   slug: 'categories',
+  labels: {
+    singular: { es: 'Categoría', en: 'Category' },
+    plural: { es: 'Categorías', en: 'Categories' },
+  },
   admin: {
     useAsTitle: 'title',
     defaultColumns: ['title', 'slug', 'updatedAt'],
-    group: 'Shop',
+    group: { es: 'Tienda', en: 'Shop' },
   },
   access: {
     create: adminOnly,
@@ -37,7 +41,10 @@ export const Categories: CollectionConfig = {
       localized: false,
       admin: {
         position: 'sidebar',
-        description: 'URL canónica en español, compartida entre idiomas.',
+        description: {
+          es: 'URL canónica en español, compartida entre idiomas.',
+          en: 'Canonical Spanish URL shared between languages.',
+        },
       },
     },
     {
@@ -49,20 +56,28 @@ export const Categories: CollectionConfig = {
       name: 'image',
       type: 'upload',
       relationTo: 'media',
-      admin: { description: 'Opcional. Se muestra antes que el icono.' },
+      admin: {
+        description: {
+          es: 'Opcional. Se muestra antes que el icono.',
+          en: 'Optional. Displayed before the icon.',
+        },
+      },
     },
     {
       name: 'icon',
       type: 'select',
       options: [
-        { label: '♧  Hoja', value: 'leaf' },
-        { label: '⌃  Montaña', value: 'mountain' },
-        { label: '☼  Sol', value: 'sun' },
-        { label: '♨  Ritual', value: 'ritual' },
-        { label: '♡  Corazón', value: 'heart' },
+        { label: { es: '♧  Hoja', en: '♧  Leaf' }, value: 'leaf' },
+        { label: { es: '⌃  Montaña', en: '⌃  Mountain' }, value: 'mountain' },
+        { label: { es: '☼  Sol', en: '☼  Sun' }, value: 'sun' },
+        { label: { es: '♨  Ritual', en: '♨  Ritual' }, value: 'ritual' },
+        { label: { es: '♡  Corazón', en: '♡  Heart' }, value: 'heart' },
       ],
       admin: {
-        description: 'Opcional. Se usa cuando no hay imagen.',
+        description: {
+          es: 'Opcional. Se usa cuando no hay imagen.',
+          en: 'Optional. Used when no image is available.',
+        },
       },
     },
     {
@@ -71,7 +86,10 @@ export const Categories: CollectionConfig = {
       relationTo: 'categories',
       admin: {
         position: 'sidebar',
-        description: 'Optional parent used for category context and breadcrumbs.',
+        description: {
+          es: 'Categoría superior opcional para contexto y navegación.',
+          en: 'Optional parent used for category context and breadcrumbs.',
+        },
       },
     },
     {

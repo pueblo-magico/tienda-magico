@@ -132,7 +132,7 @@ export default buildConfig({
           {
             code: 'ARS',
             decimals: 2,
-            label: 'Peso argentino',
+            label: 'ARS — Peso argentino / Argentine peso',
             symbol: '$',
           },
         ],

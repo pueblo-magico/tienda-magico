@@ -4,9 +4,9 @@ import { adminOnly } from '../access/adminOnly'
 
 export const SiteSettings: GlobalConfig = {
   slug: 'site-settings',
-  label: 'Site settings',
+  label: { es: 'Configuración del sitio', en: 'Site settings' },
   admin: {
-    group: 'Globals',
+    group: { es: 'Globales', en: 'Globals' },
   },
   access: {
     read: () => true,
@@ -42,8 +42,8 @@ export const SiteSettings: GlobalConfig = {
       name: 'social',
       type: 'array',
       labels: {
-        singular: 'Social link',
-        plural: 'Social links',
+        singular: { es: 'Enlace social', en: 'Social link' },
+        plural: { es: 'Enlaces sociales', en: 'Social links' },
       },
       fields: [
         {
@@ -56,7 +56,7 @@ export const SiteSettings: GlobalConfig = {
             { label: 'YouTube', value: 'youtube' },
             { label: 'X / Twitter', value: 'x' },
             { label: 'TikTok', value: 'tiktok' },
-            { label: 'Other', value: 'other' },
+            { label: { es: 'Otra', en: 'Other' }, value: 'other' },
           ],
         },
         {
@@ -69,7 +69,10 @@ export const SiteSettings: GlobalConfig = {
           type: 'text',
           localized: true,
           admin: {
-            description: 'Accessible label override.',
+            description: {
+              es: 'Etiqueta accesible alternativa.',
+              en: 'Accessible label override.',
+            },
           },
         },
       ],
@@ -79,11 +82,14 @@ export const SiteSettings: GlobalConfig = {
       type: 'select',
       defaultValue: 'es',
       options: [
-        { label: 'English', value: 'en' },
-        { label: 'Español', value: 'es' },
+        { label: { es: 'Inglés', en: 'English' }, value: 'en' },
+        { label: { es: 'Español', en: 'Spanish' }, value: 'es' },
       ],
       admin: {
-        description: 'Informational; storefront routing still owns active locale.',
+        description: {
+          es: 'Informativo; el enrutamiento de la tienda controla el idioma activo.',
+          en: 'Informational; storefront routing still owns active locale.',
+        },
       },
     },
   ],

@@ -1,6 +1,6 @@
 import type { CollectionOverride } from '@payloadcms/plugin-ecommerce/types'
 import { sellableFields, validateSellableItem } from './sellableItems'
-import type { Field } from 'payload'
+import type { Field, PayloadRequest } from 'payload'
 import { clarifyVariantFields } from './variantEditorGuidance'
 import { normalizeProductCategories } from './productClassificationHooks'
 import { validateProductPublication } from './productPublication'
@@ -48,8 +48,10 @@ export const productsCollectionOverride: CollectionOverride = ({ defaultCollecti
       // Shared handle so /en and /es resolve the same product document
       localized: false,
       admin: {
-        description:
-          'URL estable, escrito principalmente en español y compartido entre idiomas (p. ej. cacao-de-montana).',
+        description: {
+          es: 'URL estable, escrita principalmente en español y compartida entre idiomas (p. ej. cacao-de-montana).',
+          en: 'Stable URL, primarily written in Spanish and shared between languages (e.g. cacao-de-montana).',
+        },
       },
     },
     {
@@ -99,8 +101,8 @@ export const productsCollectionOverride: CollectionOverride = ({ defaultCollecti
       name: 'gallery',
       type: 'array',
       labels: {
-        singular: 'Image',
-        plural: 'Gallery',
+        singular: { es: 'Imagen', en: 'Image' },
+        plural: { es: 'Galería', en: 'Gallery' },
       },
       fields: [
         {
@@ -147,7 +149,10 @@ export const productsCollectionOverride: CollectionOverride = ({ defaultCollecti
       type: 'relationship',
       relationTo: 'categories',
       admin: {
-        description: 'Primary category. It owns the storefront breadcrumb path.',
+        description: {
+          es: 'Categoría principal. Define la ruta de navegación de la tienda.',
+          en: 'Primary category. It owns the storefront breadcrumb path.',
+        },
       },
     },
     {
@@ -162,7 +167,10 @@ export const productsCollectionOverride: CollectionOverride = ({ defaultCollecti
         return primaryId ? { id: { not_equals: primaryId } } : true
       },
       admin: {
-        description: 'Optional extra browsing categories. Do not repeat the primary category.',
+        description: {
+          es: 'Categorías adicionales opcionales para explorar. No repitas la categoría principal.',
+          en: 'Optional extra browsing categories. Do not repeat the primary category.',
+        },
       },
     },
     {
@@ -172,12 +180,15 @@ export const productsCollectionOverride: CollectionOverride = ({ defaultCollecti
     },
     {
       name: 'taxonomyTags',
-      label: 'Public tags',
+      label: { es: 'Etiquetas públicas', en: 'Public tags' },
       type: 'relationship',
       relationTo: 'tags',
       hasMany: true,
       admin: {
-        description: 'Reusable public labels. Operational labels do not belong here.',
+        description: {
+          es: 'Etiquetas públicas reutilizables. Las etiquetas operativas no corresponden acá.',
+          en: 'Reusable public labels. Operational labels do not belong here.',
+        },
       },
     },
     {
@@ -186,8 +197,10 @@ export const productsCollectionOverride: CollectionOverride = ({ defaultCollecti
       localized: true,
       admin: {
         readOnly: true,
-        description:
-          'Legacy free-text tags preserved for migration review. Assign reusable Public tags above.',
+        description: {
+          es: 'Etiquetas de texto libre heredadas para revisar la migración. Asigná etiquetas públicas reutilizables arriba.',
+          en: 'Legacy free-text tags preserved for migration review. Assign reusable Public tags above.',
+        },
       },
       fields: [
         {
@@ -208,11 +221,13 @@ export const productsCollectionOverride: CollectionOverride = ({ defaultCollecti
           en: 'ISO 3166-1 alpha-2 code shared between locales, for example AR or BR.',
         },
       },
-      validate: (value: unknown) => {
+      validate: (value: unknown, { req }: { req: PayloadRequest }) => {
         if (value == null || value === '') return true
         return typeof value === 'string' && /^[A-Z]{2}$/.test(value.trim())
           ? true
-          : 'Usá un código ISO de dos letras mayúsculas, por ejemplo AR.'
+          : req.locale === 'en'
+            ? 'Use a two-letter uppercase ISO code, for example AR.'
+            : 'Usá un código ISO de dos letras mayúsculas, por ejemplo AR.'
       },
     },
     {
@@ -255,11 +270,14 @@ export const productsCollectionOverride: CollectionOverride = ({ defaultCollecti
       type: 'select' as const,
       defaultValue: 'active',
       options: [
-        { label: 'Activo', value: 'active' },
-        { label: 'Discontinuado', value: 'discontinued' },
+        { label: { es: 'Activo', en: 'Active' }, value: 'active' },
+        { label: { es: 'Discontinuado', en: 'Discontinued' }, value: 'discontinued' },
       ],
       admin: {
-        description: 'Los productos discontinuados siguen visibles, pero no se pueden comprar.',
+        description: {
+          es: 'Los productos discontinuados siguen visibles, pero no se pueden comprar.',
+          en: 'Discontinued products remain visible but cannot be purchased.',
+        },
       },
     },
     ...clarifyVariantFields(defaultCollection.fields ?? []),
@@ -282,7 +300,7 @@ export const productsCollectionOverride: CollectionOverride = ({ defaultCollecti
       ...defaultCollection.admin,
       useAsTitle: 'title',
       defaultColumns: ['title', 'slug', '_status', 'updatedAt'],
-      group: 'Shop',
+      group: { es: 'Tienda', en: 'Shop' },
       components: {
         ...defaultCollection.admin?.components,
         edit: {

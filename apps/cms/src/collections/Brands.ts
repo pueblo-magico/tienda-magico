@@ -1,14 +1,15 @@
-import type { CollectionConfig } from 'payload'
+import type { CollectionConfig, PayloadRequest } from 'payload'
 
 import { adminOnly } from '../access/adminOnly'
 import { publicVisibleOrAdmin } from '../access/publicOrAdmin'
 
 export const Brands: CollectionConfig = {
   slug: 'brands',
+  labels: { singular: { es: 'Marca', en: 'Brand' }, plural: { es: 'Marcas', en: 'Brands' } },
   admin: {
     useAsTitle: 'name',
     defaultColumns: ['name', 'countryCode', 'isActive', 'updatedAt'],
-    group: 'Shop',
+    group: { es: 'Tienda', en: 'Shop' },
   },
   access: {
     create: adminOnly,
@@ -27,7 +28,10 @@ export const Brands: CollectionConfig = {
       localized: false,
       admin: {
         position: 'sidebar',
-        description: 'Stable identity shared between EN and ES.',
+        description: {
+          es: 'Identidad estable compartida entre español e inglés.',
+          en: 'Stable identity shared between EN and ES.',
+        },
       },
     },
     { name: 'logo', type: 'upload', relationTo: 'media' },
@@ -35,21 +39,28 @@ export const Brands: CollectionConfig = {
     {
       name: 'countryCode',
       type: 'text',
-      admin: { description: 'Optional ISO 3166-1 alpha-2 code, for example AR.' },
+      admin: {
+        description: {
+          es: 'Código ISO 3166-1 alfa-2 opcional, por ejemplo AR.',
+          en: 'Optional ISO 3166-1 alpha-2 code, for example AR.',
+        },
+      },
     },
     {
       name: 'website',
       type: 'text',
-      validate: (value: unknown) => {
+      validate: (value: unknown, { req }: { req: PayloadRequest }) => {
+        const message = (es: string, en: string) => (req.locale === 'en' ? en : es)
         if (!value) return true
-        if (typeof value !== 'string') return 'Website must be a URL.'
+        if (typeof value !== 'string')
+          return message('El sitio web debe ser una URL.', 'Website must be a URL.')
         try {
           const url = new URL(value)
           return url.protocol === 'https:' || url.protocol === 'http:'
             ? true
-            : 'Website must use http or https.'
+            : message('El sitio web debe usar http o https.', 'Website must use http or https.')
         } catch {
-          return 'Website must be a valid URL.'
+          return message('El sitio web debe ser una URL válida.', 'Website must be a valid URL.')
         }
       },
     },

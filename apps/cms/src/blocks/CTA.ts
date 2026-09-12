@@ -6,8 +6,8 @@ export const CTA: Block = {
   slug: 'cta',
   interfaceName: 'CtaBlock',
   labels: {
-    singular: 'CTA',
-    plural: 'CTAs',
+    singular: { es: 'Llamado a la acción', en: 'CTA' },
+    plural: { es: 'Llamados a la acción', en: 'CTAs' },
   },
   fields: [
     {
@@ -37,9 +37,9 @@ export const CTA: Block = {
       type: 'select',
       defaultValue: 'brand',
       options: [
-        { label: 'Brand', value: 'brand' },
-        { label: 'Sand', value: 'sand' },
-        { label: 'Outline', value: 'outline' },
+        { label: { es: 'Marca', en: 'Brand' }, value: 'brand' },
+        { label: { es: 'Arena', en: 'Sand' }, value: 'sand' },
+        { label: { es: 'Contorno', en: 'Outline' }, value: 'outline' },
       ],
     },
   ],

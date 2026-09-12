@@ -133,8 +133,8 @@ export const variantsCollectionOverride: CollectionOverride = ({ defaultCollecti
       type: 'select',
       defaultValue: 'active',
       options: [
-        { label: 'Activo', value: 'active' },
-        { label: 'Discontinuado', value: 'discontinued' },
+        { label: { es: 'Activo', en: 'Active' }, value: 'active' },
+        { label: { es: 'Discontinuado', en: 'Discontinued' }, value: 'discontinued' },
       ],
     },
     {

@@ -9,8 +9,9 @@ import {
 
 export const Media: CollectionConfig = {
   slug: 'media',
+  labels: { singular: { es: 'Medio', en: 'Media item' }, plural: { es: 'Medios', en: 'Media' } },
   admin: {
-    group: 'Content',
+    group: { es: 'Contenido', en: 'Content' },
   },
   access: {
     create: adminOnly,

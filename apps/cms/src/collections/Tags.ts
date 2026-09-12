@@ -5,10 +5,11 @@ import { publicVisibleOrAdmin } from '../access/publicOrAdmin'
 
 export const Tags: CollectionConfig = {
   slug: 'tags',
+  labels: { singular: { es: 'Etiqueta', en: 'Tag' }, plural: { es: 'Etiquetas', en: 'Tags' } },
   admin: {
     useAsTitle: 'label',
     defaultColumns: ['label', 'slug', 'group', 'isVisible'],
-    group: 'Shop',
+    group: { es: 'Tienda', en: 'Shop' },
   },
   access: {
     create: adminOnly,
@@ -27,7 +28,10 @@ export const Tags: CollectionConfig = {
       localized: false,
       admin: {
         position: 'sidebar',
-        description: 'Stable identity shared between EN and ES.',
+        description: {
+          es: 'Identidad estable compartida entre español e inglés.',
+          en: 'Stable identity shared between EN and ES.',
+        },
       },
     },
     { name: 'description', type: 'textarea', localized: true },

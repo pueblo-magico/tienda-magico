@@ -5,9 +5,9 @@ import { linkField } from '../fields/link'
 
 export const Footer: GlobalConfig = {
   slug: 'footer',
-  label: 'Footer',
+  label: { es: 'Pie de página', en: 'Footer' },
   admin: {
-    group: 'Globals',
+    group: { es: 'Globales', en: 'Globals' },
   },
   access: {
     read: () => true,
@@ -46,8 +46,8 @@ export const Footer: GlobalConfig = {
       name: 'legalLinks',
       type: 'array',
       labels: {
-        singular: 'Legal link',
-        plural: 'Legal links',
+        singular: { es: 'Enlace legal', en: 'Legal link' },
+        plural: { es: 'Enlaces legales', en: 'Legal links' },
       },
       fields: [
         linkField({
@@ -61,7 +61,10 @@ export const Footer: GlobalConfig = {
       type: 'text',
       localized: true,
       admin: {
-        description: 'Optional override. Storefront can append the year.',
+        description: {
+          es: 'Reemplazo opcional. La tienda puede agregar el año.',
+          en: 'Optional override. Storefront can append the year.',
+        },
       },
     },
   ],

@@ -6,13 +6,13 @@ import { adminOrPublishedStatus } from '../access/adminOrPublishedStatus'
 export const Testimonials: CollectionConfig = {
   slug: 'testimonials',
   labels: {
-    singular: 'Testimonial',
-    plural: 'Testimonials',
+    singular: { es: 'Testimonio', en: 'Testimonial' },
+    plural: { es: 'Testimonios', en: 'Testimonials' },
   },
   admin: {
     useAsTitle: 'name',
     defaultColumns: ['name', 'role', '_status', 'updatedAt'],
-    group: 'Content',
+    group: { es: 'Contenido', en: 'Content' },
   },
   versions: {
     drafts: true,
@@ -40,7 +40,10 @@ export const Testimonials: CollectionConfig = {
       type: 'text',
       localized: true,
       admin: {
-        description: 'Title or context (e.g. Guest · Valle de Bravo).',
+        description: {
+          es: 'Título o contexto (p. ej. Huésped · Valle de Bravo).',
+          en: 'Title or context (e.g. Guest · Valle de Bravo).',
+        },
       },
     },
     {
@@ -55,7 +58,10 @@ export const Testimonials: CollectionConfig = {
       max: 5,
       admin: {
         step: 1,
-        description: 'Optional 1–5 star rating.',
+        description: {
+          es: 'Calificación opcional de 1 a 5 estrellas.',
+          en: 'Optional 1–5 star rating.',
+        },
       },
     },
   ],

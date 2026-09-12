@@ -9,13 +9,13 @@ import { slugField } from '../fields/slug'
 export const Pages: CollectionConfig = {
   slug: 'pages',
   labels: {
-    singular: 'Page',
-    plural: 'Pages',
+    singular: { es: 'Página', en: 'Page' },
+    plural: { es: 'Páginas', en: 'Pages' },
   },
   admin: {
     useAsTitle: 'title',
     defaultColumns: ['title', 'slug', '_status', 'updatedAt'],
-    group: 'Content',
+    group: { es: 'Contenido', en: 'Content' },
   },
   versions: {
     drafts: {

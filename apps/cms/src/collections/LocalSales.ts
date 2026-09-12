@@ -19,7 +19,7 @@ export const LocalSales: CollectionConfig = {
     plural: { es: 'Ventas locales', en: 'Local sales' },
   },
   admin: {
-    group: 'Shop',
+    group: { es: 'Tienda', en: 'Shop' },
     useAsTitle: 'idempotencyKey',
     description: {
       es: 'Registro privado de ventas locales operadas desde el CMS.',

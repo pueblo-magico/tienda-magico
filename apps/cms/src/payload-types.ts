@@ -195,6 +195,10 @@ export interface UserAuthOperations {
  */
 export interface User {
   id: number;
+  /**
+   * Preferred language for CMS administration.
+   */
+  editorLanguage: 'es' | 'en';
   roles: ('admin' | 'customer')[];
   name?: string | null;
   updatedAt: string;
@@ -358,7 +362,7 @@ export interface Product {
   id: number;
   title: string;
   /**
-   * URL estable, escrito principalmente en español y compartido entre idiomas (p. ej. cacao-de-montana).
+   * Stable URL, primarily written in Spanish and shared between languages (e.g. cacao-de-montana).
    */
   slug: string;
   description?: {
@@ -487,7 +491,7 @@ export interface Product {
       }[]
     | null;
   /**
-   * Los productos discontinuados siguen visibles, pero no se pueden comprar.
+   * Discontinued products remain visible but cannot be purchased.
    */
   lifecycleStatus?: ('active' | 'discontinued') | null;
   /**
@@ -541,16 +545,16 @@ export interface Category {
   id: number;
   title: string;
   /**
-   * URL canónica en español, compartida entre idiomas.
+   * Canonical Spanish URL shared between languages.
    */
   slug: string;
   description?: string | null;
   /**
-   * Opcional. Se muestra antes que el icono.
+   * Optional. Displayed before the icon.
    */
   image?: (number | null) | Media;
   /**
-   * Opcional. Se usa cuando no hay imagen.
+   * Optional. Used when no image is available.
    */
   icon?: ('leaf' | 'mountain' | 'sun' | 'ritual' | 'heart') | null;
   /**
@@ -771,7 +775,7 @@ export interface Page {
   id: number;
   title: string;
   /**
-   * URL canónica en español, compartida entre idiomas (minúsculas-con-guiones).
+   * Canonical Spanish URL shared between languages (lowercase-with-hyphens).
    */
   slug: string;
   layout: (
@@ -1101,7 +1105,7 @@ export interface Post {
   id: number;
   title: string;
   /**
-   * URL canónica en español, compartida entre idiomas (minúsculas-con-guiones).
+   * Canonical Spanish URL shared between languages (lowercase-with-hyphens).
    */
   slug: string;
   /**
@@ -1346,6 +1350,7 @@ export interface PayloadMigration {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
+  editorLanguage?: T;
   roles?: T;
   name?: T;
   updatedAt?: T;

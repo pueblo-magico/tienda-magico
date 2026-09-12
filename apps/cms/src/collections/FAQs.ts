@@ -7,13 +7,13 @@ import { richTextField } from '../fields/richText'
 export const FAQs: CollectionConfig = {
   slug: 'faqs',
   labels: {
-    singular: 'FAQ',
-    plural: 'FAQs',
+    singular: { es: 'Pregunta frecuente', en: 'FAQ' },
+    plural: { es: 'Preguntas frecuentes', en: 'FAQs' },
   },
   admin: {
     useAsTitle: 'question',
     defaultColumns: ['question', 'category', '_status', 'updatedAt'],
-    group: 'Content',
+    group: { es: 'Contenido', en: 'Content' },
   },
   versions: {
     drafts: true,
@@ -41,7 +41,10 @@ export const FAQs: CollectionConfig = {
       index: true,
       admin: {
         position: 'sidebar',
-        description: 'Grouping key (e.g. shipping, products). Used by FAQ blocks.',
+        description: {
+          es: 'Clave de agrupación (p. ej. envíos, productos). La usan los bloques de preguntas frecuentes.',
+          en: 'Grouping key (e.g. shipping, products). Used by FAQ blocks.',
+        },
       },
     },
     {

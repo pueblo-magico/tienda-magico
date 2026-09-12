@@ -4,8 +4,8 @@ export const Testimonials: Block = {
   slug: 'testimonials',
   interfaceName: 'TestimonialsBlock',
   labels: {
-    singular: 'Testimonials',
-    plural: 'Testimonials blocks',
+    singular: { es: 'Testimonios', en: 'Testimonials' },
+    plural: { es: 'Bloques de testimonios', en: 'Testimonials blocks' },
   },
   fields: [
     {
@@ -23,8 +23,8 @@ export const Testimonials: Block = {
       type: 'radio',
       defaultValue: 'manual',
       options: [
-        { label: 'Manual pick', value: 'manual' },
-        { label: 'Latest published', value: 'latest' },
+        { label: { es: 'Selección manual', en: 'Manual pick' }, value: 'manual' },
+        { label: { es: 'Últimos publicados', en: 'Latest published' }, value: 'latest' },
       ],
       admin: { layout: 'horizontal' },
     },

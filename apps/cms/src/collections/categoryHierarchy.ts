@@ -19,14 +19,22 @@ export const preventCategoryCycles: CollectionBeforeChangeHook = async ({
 
   if (!parentId || !categoryId) return data
   if (String(parentId) === String(categoryId)) {
-    throw new Error('A category cannot be its own parent.')
+    throw new Error(
+      req.locale === 'en'
+        ? 'A category cannot be its own parent.'
+        : 'Una categoría no puede ser su propia categoría superior.',
+    )
   }
 
   const visited = new Set([String(categoryId)])
   while (parentId) {
     const key = String(parentId)
     if (visited.has(key)) {
-      throw new Error('This parent would create a category cycle.')
+      throw new Error(
+        req.locale === 'en'
+          ? 'This parent would create a category cycle.'
+          : 'Esta categoría superior generaría un ciclo.',
+      )
     }
     visited.add(key)
 

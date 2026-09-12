@@ -4,14 +4,17 @@ import type { Field } from 'payload'
 export const seoField = (options?: { name?: string }): Field => ({
   name: options?.name ?? 'seo',
   type: 'group',
-  label: 'SEO',
+  label: { es: 'SEO', en: 'SEO' },
   fields: [
     {
       name: 'title',
       type: 'text',
       localized: true,
       admin: {
-        description: 'Overrides document title in <title> / og:title when set.',
+        description: {
+          es: 'Reemplaza el título del documento en <title> y og:title.',
+          en: 'Overrides document title in <title> / og:title when set.',
+        },
       },
     },
     {
@@ -24,14 +27,17 @@ export const seoField = (options?: { name?: string }): Field => ({
       type: 'upload',
       relationTo: 'media',
       admin: {
-        description: 'Social share image (Open Graph).',
+        description: {
+          es: 'Imagen para compartir en redes (Open Graph).',
+          en: 'Social share image (Open Graph).',
+        },
       },
     },
     {
       name: 'noIndex',
       type: 'checkbox',
       defaultValue: false,
-      label: 'Hide from search engines (noindex)',
+      label: { es: 'Ocultar de buscadores (noindex)', en: 'Hide from search engines (noindex)' },
     },
   ],
 })
