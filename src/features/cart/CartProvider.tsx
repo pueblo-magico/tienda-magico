@@ -6,24 +6,33 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import type { Cart, CartLineInput } from "@/types/commerce";
+import type { FulfillmentMode } from "@/lib/commerce/local-purchase";
 import { createCheckoutSession } from "@/features/checkout";
 import {
   addCartLines,
+  confirmCartPrices,
   fetchCart,
   removeCartLines,
+  setCartFulfillmentMode,
   updateCartLines,
 } from "./api";
 import { CART_ID_STORAGE_KEY } from "./constants";
+import {
+  DEFAULT_COMMERCE_SETTINGS,
+  type CommerceSettings,
+} from "@/lib/commerce/commerce-settings";
 
 function emptyCart(): Cart {
   return {
     id: "",
     checkoutUrl: "",
+    fulfillmentMode: null,
     totalQuantity: 0,
     note: null,
     cost: {
@@ -42,16 +51,22 @@ type CartContextValue = {
   isMutating: boolean;
   error: string | null;
   configured: boolean;
+  commerceSettings: CommerceSettings;
   itemCount: number;
   openCart: () => void;
   closeCart: () => void;
   toggleCart: () => void;
   refreshCart: () => Promise<void>;
   addItem: (input: CartLineInput | CartLineInput[]) => Promise<Cart | null>;
-  updateItemQuantity: (lineId: string, quantity: number) => Promise<Cart | null>;
+  updateItemQuantity: (
+    lineId: string,
+    quantity: number,
+  ) => Promise<Cart | null>;
   removeItem: (lineId: string) => Promise<Cart | null>;
   checkout: () => Promise<void>;
   clearError: () => void;
+  confirmPrices: () => Promise<void>;
+  setFulfillmentMode: (mode: FulfillmentMode) => Promise<void>;
 };
 
 const CartContext = createContext<CartContextValue | null>(null);
@@ -80,15 +95,26 @@ function writeStoredCartId(cartId: string | null) {
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const locale = useLocale();
+  const tCommercial = useTranslations("commercial");
   const [cart, setCart] = useState<Cart>(emptyCart);
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isMutating, setIsMutating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [configured, setConfigured] = useState(true);
+  const [commerceSettings, setCommerceSettings] = useState<CommerceSettings>(
+    DEFAULT_COMMERCE_SETTINGS,
+  );
+  const persistedCartRef = useRef<Cart>(emptyCart());
+  const fulfillmentModeRef = useRef<FulfillmentMode | null>(null);
+  const fulfillmentMutationQueue = useRef<Promise<void>>(Promise.resolve());
+  const pendingFulfillmentMutations = useRef(0);
 
   const applyCart = useCallback((next: Cart, isConfigured = true) => {
-    setCart(next.id ? next : emptyCart());
+    const normalized = next.id ? next : emptyCart();
+    persistedCartRef.current = normalized;
+    fulfillmentModeRef.current = normalized.fulfillmentMode;
+    setCart(normalized);
     setConfigured(isConfigured);
     writeStoredCartId(next.id || null);
   }, []);
@@ -99,19 +125,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setError(null);
     try {
       const result = await fetchCart(cartId, { locale });
+      if (result.commerceSettings) setCommerceSettings(result.commerceSettings);
       applyCart(result.cart, result.configured !== false);
       if (cartId && !result.cart.id) {
         writeStoredCartId(null);
       }
-    } catch (err) {
-      // Drop stale local cart ids so the next add can create a fresh cart.
-      writeStoredCartId(null);
-      setError(err instanceof Error ? err.message : "Failed to load cart.");
-      setCart(emptyCart());
+    } catch {
+      // A transient fetch/pricing failure must not discard an existing cart.
+      setError(tCommercial("requestFailed"));
     } finally {
       setIsLoading(false);
     }
-  }, [applyCart, locale]);
+  }, [applyCart, locale, tCommercial]);
 
   useEffect(() => {
     void refreshCart();
@@ -134,14 +159,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
         applyCart(result.cart, result.configured !== false);
         setIsOpen(true);
         return result.cart;
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to add to cart.");
+      } catch {
+        setError(tCommercial("requestFailed"));
         return null;
       } finally {
         setIsMutating(false);
       }
     },
-    [applyCart, locale],
+    [applyCart, locale, tCommercial],
   );
 
   const updateItemQuantity = useCallback(
@@ -165,14 +190,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
         );
         applyCart(result.cart, result.configured !== false);
         return result.cart;
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to update cart.");
+      } catch {
+        setError(tCommercial("requestFailed"));
         return null;
       } finally {
         setIsMutating(false);
       }
     },
-    [applyCart, cart.id, locale],
+    [applyCart, cart.id, locale, tCommercial],
   );
 
   const removeItem = useCallback(
@@ -186,14 +211,66 @@ export function CartProvider({ children }: { children: ReactNode }) {
         const result = await removeCartLines(cartId, [lineId], { locale });
         applyCart(result.cart, result.configured !== false);
         return result.cart;
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to remove item.");
+      } catch {
+        setError(tCommercial("requestFailed"));
         return null;
       } finally {
         setIsMutating(false);
       }
     },
-    [applyCart, cart.id, locale],
+    [applyCart, cart.id, locale, tCommercial],
+  );
+
+  const confirmPrices = useCallback(async () => {
+    const cartId = readStoredCartId() || cart.id;
+    if (!cartId) return;
+    setIsMutating(true);
+    setError(null);
+    try {
+      const result = await confirmCartPrices(cartId, locale);
+      applyCart(result.cart, result.configured !== false);
+    } catch {
+      setError(tCommercial("requestFailed"));
+    } finally {
+      setIsMutating(false);
+    }
+  }, [applyCart, cart.id, locale, tCommercial]);
+
+  const setFulfillment = useCallback(
+    async (mode: FulfillmentMode) => {
+      const cartId = readStoredCartId() || cart.id;
+      if (!cartId) return;
+
+      fulfillmentModeRef.current = mode;
+      setCart((current) => ({ ...current, fulfillmentMode: mode }));
+      pendingFulfillmentMutations.current += 1;
+      setIsMutating(true);
+      setError(null);
+
+      const request = fulfillmentMutationQueue.current.then(async () => {
+        const result = await setCartFulfillmentMode(cartId, mode, locale);
+        persistedCartRef.current = result.cart;
+        if (fulfillmentModeRef.current === mode) {
+          applyCart(result.cart, result.configured !== false);
+        }
+      });
+      fulfillmentMutationQueue.current = request.catch(() => undefined);
+
+      try {
+        await request;
+      } catch {
+        if (fulfillmentModeRef.current === mode) {
+          applyCart(persistedCartRef.current);
+          setError(tCommercial("requestFailed"));
+        }
+      } finally {
+        pendingFulfillmentMutations.current -= 1;
+        if (pendingFulfillmentMutations.current === 0) {
+          setIsMutating(false);
+        }
+      }
+    },
+    [applyCart, cart.id, locale, tCommercial],
   );
 
   const checkout = useCallback(async () => {
@@ -233,6 +310,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       isMutating,
       error,
       configured,
+      commerceSettings,
       itemCount: cart.totalQuantity,
       openCart,
       closeCart,
@@ -243,6 +321,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       removeItem,
       checkout,
       clearError,
+      confirmPrices,
+      setFulfillmentMode: setFulfillment,
     }),
     [
       cart,
@@ -251,6 +331,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       isMutating,
       error,
       configured,
+      commerceSettings,
       openCart,
       closeCart,
       toggleCart,
@@ -260,6 +341,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       removeItem,
       checkout,
       clearError,
+      confirmPrices,
+      setFulfillment,
     ],
   );
 

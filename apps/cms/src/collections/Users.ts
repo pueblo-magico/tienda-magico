@@ -5,6 +5,7 @@ import { checkRole } from '../access/utilities'
 
 export const Users: CollectionConfig = {
   slug: 'users',
+  labels: { singular: { es: 'Usuario', en: 'User' }, plural: { es: 'Usuarios', en: 'Users' } },
   admin: {
     useAsTitle: 'email',
     defaultColumns: ['email', 'roles', 'createdAt'],
@@ -41,13 +42,31 @@ export const Users: CollectionConfig = {
   },
   fields: [
     {
+      name: 'editorLanguage',
+      type: 'select',
+      label: { es: 'Idioma del editor', en: 'Editor language' },
+      defaultValue: 'es',
+      required: true,
+      options: [
+        { label: { es: 'Español', en: 'Spanish' }, value: 'es' },
+        { label: { es: 'Inglés', en: 'English' }, value: 'en' },
+      ],
+      admin: {
+        position: 'sidebar',
+        description: {
+          es: 'Idioma preferido para la administración del CMS.',
+          en: 'Preferred language for CMS administration.',
+        },
+      },
+    },
+    {
       name: 'roles',
       type: 'select',
       hasMany: true,
       defaultValue: ['admin'],
       options: [
-        { label: 'Admin', value: 'admin' },
-        { label: 'Customer', value: 'customer' },
+        { label: { es: 'Administrador', en: 'Admin' }, value: 'admin' },
+        { label: { es: 'Cliente', en: 'Customer' }, value: 'customer' },
       ],
       required: true,
       saveToJWT: true,

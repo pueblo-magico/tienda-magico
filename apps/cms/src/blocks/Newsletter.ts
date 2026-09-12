@@ -4,8 +4,8 @@ export const Newsletter: Block = {
   slug: 'newsletter',
   interfaceName: 'NewsletterBlock',
   labels: {
-    singular: 'Newsletter',
-    plural: 'Newsletters',
+    singular: { es: 'Boletín', en: 'Newsletter' },
+    plural: { es: 'Boletines', en: 'Newsletters' },
   },
   fields: [
     {
@@ -34,19 +34,23 @@ export const Newsletter: Block = {
       name: 'buttonLabel',
       type: 'text',
       localized: true,
-      defaultValue: 'Subscribe',
+      defaultValue: ({ locale }) => (locale === 'en' ? 'Subscribe' : 'Suscribirme'),
     },
     {
       name: 'successMessage',
       type: 'text',
       localized: true,
-      defaultValue: 'Thanks for subscribing.',
+      defaultValue: ({ locale }) =>
+        locale === 'en' ? 'Thanks for subscribing.' : 'Gracias por suscribirte.',
     },
     {
       name: 'formId',
       type: 'text',
       admin: {
-        description: 'Optional external form/list id (provider-specific).',
+        description: {
+          es: 'ID opcional de formulario o lista externa (específico del proveedor).',
+          en: 'Optional external form/list id (provider-specific).',
+        },
       },
     },
   ],

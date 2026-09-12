@@ -88,6 +88,7 @@ Treat the existing design system as application architecture, not optional styli
 - Jost is the canonical sans-serif family: use weight 300 for body copy and general interface labels, and weight 700 for sans-serif titles and buttons. Georgia remains the editorial serif at weight 400, while Marcellus remains reserved for the mobile navigation pattern.
 - `src/components/ui` is the source of truth for reusable controls and interaction primitives. Extend an existing component with a typed prop or variant when the requested behavior belongs to the same primitive; do not create a visually similar button, input, modal, drawer, tab, badge, or accordion in a feature directory.
 - `src/components/typography`, `src/components/layout`, and `src/components/cards` own their respective reusable patterns. Compose these components before introducing new wrappers with duplicated markup and classes.
+- `lucide-react` is the canonical storefront icon library. Reuse a Lucide icon before drawing inline SVG, using Unicode symbols, emoji, CSS shapes, or adding another icon package. Import icons by name so unused icons remain tree-shakeable. Use `currentColor` through semantic text utilities; default to `strokeWidth={1.5}` for informational or decorative icons and `strokeWidth={2}` for interactive controls unless an existing component defines the value. Decorative icons must use `aria-hidden`; meaningful icon-only controls require an accessible name on their button or link. Domain mappings, such as category icon keys, belong in one typed shared component rather than being repeated at call sites. Document newly adopted icon patterns in `/ui-system/icons`.
 - `src/app/ui-system` is the visual reference for supported tokens and reusable components. When adding or materially changing a shared token, component, state, or variant, update its UI-system example in the same change.
 - Shared application configuration, including navigation destinations and external-site URLs, belongs in the relevant module under `src/config`. Components consume configuration; they do not embed their own copy.
 - Before creating a component or style, search for an existing equivalent and inspect its supported variants. If a new abstraction is needed, place it at the narrowest shared layer that owns the pattern and migrate all in-scope duplicates to it.
@@ -113,6 +114,16 @@ Treat the existing design system as application architecture, not optional styli
 - Define timeout, retry, and idempotency behavior deliberately for network calls and payment/webhook flows. Do not retry non-idempotent operations blindly.
 
 ### Localization
+
+#### Idioma del proyecto
+
+- El idioma principal del proyecto es el español de Argentina. Usá vocabulario local y voseo cuando corresponda, con un tono claro y consistente.
+- La conversación con el usuario se mantiene en inglés por su preferencia, incluidos los avances y resúmenes de trabajo. Esto no cambia el idioma español de los entregables del proyecto indicado abajo.
+- Escribí en español los títulos y cuerpos de los commits, las descripciones de tareas, los planes de implementación, los criterios de aceptación y las instrucciones de prueba. Conservá las referencias de Jira y los prefijos técnicos de Conventional Commits cuando se utilicen; por ejemplo: `fix(catalog): validar variantes antes de publicar (PMG-220)`.
+- Cuando no se requiera soporte multilingüe, implementá los textos de interfaz, etiquetas del CMS, mensajes de validación, documentación y comentarios nuevos en español argentino. No uses inglés como idioma predeterminado del contenido nuevo.
+- Conservá el soporte EN/ES donde ya sea requerido: actualizá ambas traducciones y mantené el español como idioma principal. Esta convención no cambia los códigos de locale existentes ni los slugs compartidos.
+- Respetá los nombres de APIs, campos persistidos, identificadores y convenciones técnicas existentes. No traduzcas contratos ni renombres código existente solo por este cambio de idioma.
+- Aplicá estas reglas al trabajo futuro; no reescribas commits anteriores ni traduzcas documentación ajena al alcance de la tarea.
 
 - All customer-visible storefront copy must use `next-intl`; do not hard-code English or Spanish text in reusable storefront components.
 - Add corresponding keys to both `messages/en.json` and `messages/es.json` in the same change.
@@ -145,6 +156,16 @@ Treat the existing design system as application architecture, not optional styli
 - Before completing authentication work, test anonymous access, wrong-user/wrong-role access, expired or revoked sessions, CSRF and redirect validation, logout invalidation, missing configuration, and confirm that production builds and logs do not expose secrets.
 
 ## Testing and verification
+
+### Desarrollo guiado por pruebas (TDD)
+
+- Para funcionalidades nuevas y correcciones de comportamiento, seguí el ciclo rojo → verde → refactorización. Antes de modificar la implementación, definí el comportamiento esperado y escribí la prueba automatizada más pequeña que lo demuestre.
+- Ejecutá primero esa prueba y verificá que falle por el comportamiento faltante o incorrecto. Un error de configuración, importación o conexión no demuestra la regresión. Si una prueba existente ya reproduce el problema, usala en lugar de duplicarla.
+- Implementá únicamente lo necesario para que la prueba pase. Después refactorizá dentro del alcance de la tarea, manteniendo las pruebas en verde; no debilites ni elimines aserciones para ocultar un defecto.
+- Avanzá en incrementos pequeños. Incluí el caso exitoso y los errores o límites relevantes; para bugs, conservá la prueba que reproduce el problema como cobertura de regresión.
+- Usá las herramientas y convenciones de prueba existentes. Verificá contratos observables y simulá solo límites externos. Cuando el defecto dependa de persistencia, migraciones, versiones del CMS o restricciones de base de datos, agregá la verificación de integración correspondiente en un entorno aislado; un mock no prueba esas garantías.
+- Después de cada incremento, ejecutá las pruebas específicas; antes de finalizar, ampliá a las suites y verificaciones relevantes. En el resumen, indicá qué fallo inicial observaste, qué comprobaciones pasaron y cuáles quedaron pendientes. No afirmes haber seguido TDD si escribiste la prueba después de la implementación.
+- Para cambios exclusivamente de documentación, formato o artefactos generados sin cambios de comportamiento, usá las verificaciones apropiadas en lugar de inventar una prueba fallida. Si no existe infraestructura de pruebas o una dependencia impide ejecutar el ciclo, documentá la limitación y el plan de verificación; no agregues un framework nuevo ni declares cobertura ejecutada sin evidencia.
 
 Test behavior at the narrowest useful layer and include regression coverage when fixing a bug. Prefer tests that assert public behavior over implementation details. Mock at external boundaries, not inside the unit under test.
 

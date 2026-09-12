@@ -74,11 +74,14 @@ export interface Config {
   collections: {
     users: User;
     media: Media;
+    localSales: LocalSale;
     pages: Page;
     posts: Post;
     testimonials: Testimonial;
     faqs: Faq;
     categories: Category;
+    brands: Brand;
+    tags: Tag;
     addresses: Address;
     variants: Variant;
     variantTypes: VariantType;
@@ -103,11 +106,14 @@ export interface Config {
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    localSales: LocalSalesSelect<false> | LocalSalesSelect<true>;
     pages: PagesSelect<false> | PagesSelect<true>;
     posts: PostsSelect<false> | PostsSelect<true>;
     testimonials: TestimonialsSelect<false> | TestimonialsSelect<true>;
     faqs: FaqsSelect<false> | FaqsSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
+    brands: BrandsSelect<false> | BrandsSelect<true>;
+    tags: TagsSelect<false> | TagsSelect<true>;
     addresses: AddressesSelect<false> | AddressesSelect<true>;
     variants: VariantsSelect<false> | VariantsSelect<true>;
     variantTypes: VariantTypesSelect<false> | VariantTypesSelect<true>;
@@ -129,13 +135,17 @@ export interface Config {
     header: Header;
     footer: Footer;
     'site-settings': SiteSetting;
+    'commerce-settings': CommerceSetting;
     seo: Seo;
+    'cms-settings': CmsSetting;
   };
   globalsSelect: {
     header: HeaderSelect<false> | HeaderSelect<true>;
     footer: FooterSelect<false> | FooterSelect<true>;
     'site-settings': SiteSettingsSelect<false> | SiteSettingsSelect<true>;
+    'commerce-settings': CommerceSettingsSelect<false> | CommerceSettingsSelect<true>;
     seo: SeoSelect<false> | SeoSelect<true>;
+    'cms-settings': CmsSettingsSelect<false> | CmsSettingsSelect<true>;
   };
   locale: 'en' | 'es';
   widgets: {
@@ -187,6 +197,10 @@ export interface UserAuthOperations {
  */
 export interface User {
   id: number;
+  /**
+   * Preferred language for CMS administration.
+   */
+  editorLanguage: 'es' | 'en';
   roles: ('admin' | 'customer')[];
   name?: string | null;
   updatedAt: string;
@@ -231,6 +245,531 @@ export interface Media {
   focalY?: number | null;
 }
 /**
+ * Private record of local sales operated from the CMS.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "localSales".
+ */
+export interface LocalSale {
+  id: number;
+  order: number | Order;
+  /**
+   * Prevents duplicate records for the same order and retry.
+   */
+  idempotencyKey: string;
+  status: 'pending_payment' | 'paid' | 'cancelled' | 'conflict';
+  fulfillmentMode: 'local_collection' | 'delivery';
+  paymentStatus: 'pending' | 'approved' | 'rejected' | 'cancelled' | 'unverified';
+  /**
+   * Optional private data allowed by checkout.
+   */
+  buyerContact?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Immutable order identity, options, quantities, and amounts.
+   */
+  snapshot:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Never store gateway credentials or secrets.
+   */
+  paymentEvidence?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "orders".
+ */
+export interface Order {
+  id: number;
+  items?:
+    | {
+        product?: (number | null) | Product;
+        variant?: (number | null) | Variant;
+        quantity: number;
+        id?: string | null;
+      }[]
+    | null;
+  shippingAddress?: {
+    title?: string | null;
+    firstName?: string | null;
+    lastName?: string | null;
+    company?: string | null;
+    addressLine1?: string | null;
+    addressLine2?: string | null;
+    city?: string | null;
+    state?: string | null;
+    postalCode?: string | null;
+    country?: string | null;
+    phone?: string | null;
+  };
+  customer?: (number | null) | User;
+  customerEmail?: string | null;
+  transactions?: (number | Transaction)[] | null;
+  status?: OrderStatus;
+  amount?: number | null;
+  currency?: 'ARS' | null;
+  checkoutKey?: string | null;
+  cartReference?: string | null;
+  fulfillmentMode?: ('local_collection' | 'delivery') | null;
+  buyerContact?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  commercialSnapshot?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "products".
+ */
+export interface Product {
+  id: number;
+  title: string;
+  /**
+   * Stable URL, primarily written in Spanish and shared between languages (e.g. cacao-de-montana).
+   */
+  slug: string;
+  description?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * Short copy beside the price and purchase controls. The full description appears in the accordion.
+   */
+  summary?: string | null;
+  /**
+   * System-managed date. It does not change when unpublishing or republishing.
+   */
+  firstPublishedAt?: string | null;
+  /**
+   * Drag sections to reorder. Translate title and content in each locale. Hidden or empty sections do not appear in the shop. Public information only.
+   */
+  informationSections?:
+    | {
+        /**
+         * Unique identifier, e.g. care. It cannot change after saving; the title can.
+         */
+        key: string;
+        title?: string | null;
+        body?: {
+          root: {
+            type: string;
+            children: {
+              type: any;
+              version: number;
+              [k: string]: unknown;
+            }[];
+            direction: ('ltr' | 'rtl') | null;
+            format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+            indent: number;
+            version: number;
+          };
+          [k: string]: unknown;
+        } | null;
+        isVisible?: boolean | null;
+        id?: string | null;
+      }[]
+    | null;
+  seo?: {
+    /**
+     * Overrides document title in <title> / og:title when set.
+     */
+    title?: string | null;
+    description?: string | null;
+    /**
+     * Social share image (Open Graph).
+     */
+    image?: (number | null) | Media;
+    noIndex?: boolean | null;
+  };
+  /**
+   * Primary category. It owns the storefront breadcrumb path.
+   */
+  category?: (number | null) | Category;
+  /**
+   * Optional extra browsing categories. Do not repeat the primary category.
+   */
+  additionalCategories?: (number | Category)[] | null;
+  brand?: (number | null) | Brand;
+  /**
+   * Reusable public labels. Operational labels do not belong here.
+   */
+  taxonomyTags?: (number | Tag)[] | null;
+  /**
+   * Legacy free-text tags preserved for migration review. Assign reusable Public tags above.
+   */
+  tags?:
+    | {
+        tag: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * ISO 3166-1 alpha-2 code shared between locales, for example AR or BR.
+   */
+  countryOfOrigin?: string | null;
+  region?: string | null;
+  community?: string | null;
+  /**
+   * Public content. When present, it replaces the legacy Origin & impact section body to avoid duplication.
+   */
+  originStory?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  gallery?:
+    | {
+        /**
+         * Optional editorial image or poster for an external video. If empty, a YouTube thumbnail is generated.
+         */
+        image?: (number | null) | Media;
+        /**
+         * Only youtube.com or youtu.be links are accepted. Do not paste iframe code.
+         */
+        externalVideoUrl?: string | null;
+        isPrimary?: boolean | null;
+        caption?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Discontinued products remain visible but cannot be purchased.
+   */
+  lifecycleStatus?: ('active' | 'discontinued') | null;
+  /**
+   * Stock for this sellable item. Zero means sold out. For variant products, edit stock on each variant.
+   */
+  inventory?: number | null;
+  /**
+   * For sizes such as 15g / 20g. Select option types, then create and publish a sellable variant for each size. Options alone do not create stock or prices.
+   */
+  enableVariants?: boolean | null;
+  /**
+   * Reusable choices only. Save the product before creating its sellable variants below.
+   */
+  variantTypes?: (number | VariantType)[] | null;
+  /**
+   * Create one record per combination. Select its options, enable ARS, enter its price and stock, then Publish. An empty list or draft-only variants cannot be purchased.
+   */
+  variants?: {
+    docs?: (number | Variant)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  priceInARSEnabled?: boolean | null;
+  /**
+   * Selling price of this item. For products with variants, set the price inside each sellable variant; the parent price is not used.
+   */
+  priceInARS?: number | null;
+  /**
+   * Unique, stable identifier for this sellable item. It cannot be edited after saving.
+   */
+  sku?: string | null;
+  barcode?: string | null;
+  oneOfAKind?: boolean | null;
+  netContent?: number | null;
+  netContentUnit?: ('g' | 'ml' | 'unit') | null;
+  salesUnit?: ('unit' | 'pack') | null;
+  packedWeightGrams?: number | null;
+  packageLengthMm?: number | null;
+  packageWidthMm?: number | null;
+  packageHeightMm?: number | null;
+  updatedAt: string;
+  createdAt: string;
+  deletedAt?: string | null;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "categories".
+ */
+export interface Category {
+  id: number;
+  title: string;
+  /**
+   * Canonical Spanish URL shared between languages.
+   */
+  slug: string;
+  description?: string | null;
+  /**
+   * Optional. Displayed before the icon.
+   */
+  image?: (number | null) | Media;
+  /**
+   * Optional. Used when no image is available.
+   */
+  icon?: ('leaf' | 'mountain' | 'sun' | 'ritual' | 'heart') | null;
+  /**
+   * Optional parent used for category context and breadcrumbs.
+   */
+  parent?: (number | null) | Category;
+  displayOrder: number;
+  isVisible: boolean;
+  seo?: {
+    title?: string | null;
+    description?: string | null;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "brands".
+ */
+export interface Brand {
+  id: number;
+  name: string;
+  /**
+   * Stable identity shared between EN and ES.
+   */
+  slug: string;
+  logo?: (number | null) | Media;
+  description?: string | null;
+  /**
+   * Optional ISO 3166-1 alpha-2 code, for example AR.
+   */
+  countryCode?: string | null;
+  website?: string | null;
+  isActive: boolean;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tags".
+ */
+export interface Tag {
+  id: number;
+  label: string;
+  /**
+   * Stable identity shared between EN and ES.
+   */
+  slug: string;
+  description?: string | null;
+  group?: string | null;
+  isVisible: boolean;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Reusable option types, such as size or color. Translate labels without changing the shared code.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "variantTypes".
+ */
+export interface VariantType {
+  id: number;
+  label: string;
+  name: string;
+  /**
+   * Choose one value per option type. Define the selling price separately below.
+   */
+  options?: {
+    docs?: (number | VariantOption)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  updatedAt: string;
+  createdAt: string;
+  deletedAt?: string | null;
+}
+/**
+ * Reusable labels such as 15g and 20g. These are not sellable variants and have no prices or stock.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "variantOptions".
+ */
+export interface VariantOption {
+  id: number;
+  _variantOptions_options_order?: string | null;
+  variantType: number | VariantType;
+  label: string;
+  /**
+   * Stable identifier, e.g. 20g. Never enter a selling price here. Set prices on sellable variants.
+   */
+  value: string;
+  updatedAt: string;
+  createdAt: string;
+  deletedAt?: string | null;
+}
+/**
+ * Each record is a purchasable combination with its own ARS price and stock. Save and publish every variant, not only the parent product.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "variants".
+ */
+export interface Variant {
+  id: number;
+  /**
+   * Used for administrative purposes, not shown to customers. This is populated by default.
+   */
+  title?: string | null;
+  product: number | Product;
+  /**
+   * Choose one value per option type. Define the selling price separately below.
+   */
+  options: (number | VariantOption)[];
+  /**
+   * Stock for this sellable item. Zero means sold out. For variant products, edit stock on each variant.
+   */
+  inventory?: number | null;
+  priceInARSEnabled?: boolean | null;
+  /**
+   * Selling price of this item. For products with variants, set the price inside each sellable variant; the parent price is not used.
+   */
+  priceInARS?: number | null;
+  /**
+   * Unique, stable identifier for this sellable item. It cannot be edited after saving.
+   */
+  sku?: string | null;
+  barcode?: string | null;
+  oneOfAKind?: boolean | null;
+  netContent?: number | null;
+  netContentUnit?: ('g' | 'ml' | 'unit') | null;
+  salesUnit?: ('unit' | 'pack') | null;
+  packedWeightGrams?: number | null;
+  packageLengthMm?: number | null;
+  packageWidthMm?: number | null;
+  packageHeightMm?: number | null;
+  /**
+   * Use lower values to display first. Ties preserve the current order.
+   */
+  sortOrder?: number | null;
+  lifecycleStatus?: ('active' | 'discontinued') | null;
+  image?: (number | null) | Media;
+  combinationKey?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  deletedAt?: string | null;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "transactions".
+ */
+export interface Transaction {
+  id: number;
+  items?:
+    | {
+        product?: (number | null) | Product;
+        variant?: (number | null) | Variant;
+        quantity: number;
+        id?: string | null;
+      }[]
+    | null;
+  billingAddress?: {
+    title?: string | null;
+    firstName?: string | null;
+    lastName?: string | null;
+    company?: string | null;
+    addressLine1?: string | null;
+    addressLine2?: string | null;
+    city?: string | null;
+    state?: string | null;
+    postalCode?: string | null;
+    country?: string | null;
+    phone?: string | null;
+  };
+  status: 'pending' | 'succeeded' | 'failed' | 'cancelled' | 'expired' | 'refunded';
+  customer?: (number | null) | User;
+  customerEmail?: string | null;
+  order?: (number | null) | Order;
+  cart?: (number | null) | Cart;
+  amount?: number | null;
+  currency?: 'ARS' | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "carts".
+ */
+export interface Cart {
+  id: number;
+  /**
+   * Choose local collection or delivery before starting checkout.
+   */
+  fulfillmentMode?: ('local_collection' | 'delivery') | null;
+  acceptCurrentPrices?: boolean | null;
+  items?:
+    | {
+        product?: (number | null) | Product;
+        variant?: (number | null) | Variant;
+        quantity: number;
+        amount?: number | null;
+        id?: string | null;
+      }[]
+    | null;
+  secret?: string | null;
+  customer?: (number | null) | User;
+  purchasedAt?: string | null;
+  status?: ('active' | 'purchased' | 'abandoned') | null;
+  subtotal?: number | null;
+  currency?: 'ARS' | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "pages".
  */
@@ -238,7 +777,7 @@ export interface Page {
   id: number;
   title: string;
   /**
-   * URL canónica en español, compartida entre idiomas (minúsculas-con-guiones).
+   * Canonical Spanish URL shared between languages (lowercase-with-hyphens).
    */
   slug: string;
   layout: (
@@ -527,134 +1066,6 @@ export interface FeaturedProductsBlock {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "products".
- */
-export interface Product {
-  id: number;
-  title: string;
-  /**
-   * URL estable, escrito principalmente en español y compartido entre idiomas (p. ej. cacao-de-montana).
-   */
-  slug: string;
-  description?: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
-  /**
-   * Short plain-text blurb for cards and listings.
-   */
-  summary?: string | null;
-  gallery?:
-    | {
-        image: number | Media;
-        id?: string | null;
-      }[]
-    | null;
-  category?: (number | null) | Category;
-  tags?:
-    | {
-        tag: string;
-        id?: string | null;
-      }[]
-    | null;
-  inventory?: number | null;
-  enableVariants?: boolean | null;
-  variantTypes?: (number | VariantType)[] | null;
-  variants?: {
-    docs?: (number | Variant)[];
-    hasNextPage?: boolean;
-    totalDocs?: number;
-  };
-  priceInARSEnabled?: boolean | null;
-  priceInARS?: number | null;
-  updatedAt: string;
-  createdAt: string;
-  deletedAt?: string | null;
-  _status?: ('draft' | 'published') | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "categories".
- */
-export interface Category {
-  id: number;
-  title: string;
-  /**
-   * URL canónica en español, compartida entre idiomas.
-   */
-  slug: string;
-  description?: string | null;
-  image?: (number | null) | Media;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "variantTypes".
- */
-export interface VariantType {
-  id: number;
-  label: string;
-  name: string;
-  options?: {
-    docs?: (number | VariantOption)[];
-    hasNextPage?: boolean;
-    totalDocs?: number;
-  };
-  updatedAt: string;
-  createdAt: string;
-  deletedAt?: string | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "variantOptions".
- */
-export interface VariantOption {
-  id: number;
-  _variantOptions_options_order?: string | null;
-  variantType: number | VariantType;
-  label: string;
-  /**
-   * should be defaulted or dynamic based on label
-   */
-  value: string;
-  updatedAt: string;
-  createdAt: string;
-  deletedAt?: string | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "variants".
- */
-export interface Variant {
-  id: number;
-  /**
-   * Used for administrative purposes, not shown to customers. This is populated by default.
-   */
-  title?: string | null;
-  product: number | Product;
-  options: (number | VariantOption)[];
-  inventory?: number | null;
-  priceInARSEnabled?: boolean | null;
-  priceInARS?: number | null;
-  updatedAt: string;
-  createdAt: string;
-  deletedAt?: string | null;
-  _status?: ('draft' | 'published') | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "FeaturedCategoriesBlock".
  */
 export interface FeaturedCategoriesBlock {
@@ -696,7 +1107,7 @@ export interface Post {
   id: number;
   title: string;
   /**
-   * URL canónica en español, compartida entre idiomas (minúsculas-con-guiones).
+   * Canonical Spanish URL shared between languages (lowercase-with-hyphens).
    */
   slug: string;
   /**
@@ -800,102 +1211,6 @@ export interface Address {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "carts".
- */
-export interface Cart {
-  id: number;
-  items?:
-    | {
-        product?: (number | null) | Product;
-        variant?: (number | null) | Variant;
-        quantity: number;
-        id?: string | null;
-      }[]
-    | null;
-  secret?: string | null;
-  customer?: (number | null) | User;
-  purchasedAt?: string | null;
-  status?: ('active' | 'purchased' | 'abandoned') | null;
-  subtotal?: number | null;
-  currency?: 'ARS' | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "orders".
- */
-export interface Order {
-  id: number;
-  items?:
-    | {
-        product?: (number | null) | Product;
-        variant?: (number | null) | Variant;
-        quantity: number;
-        id?: string | null;
-      }[]
-    | null;
-  shippingAddress?: {
-    title?: string | null;
-    firstName?: string | null;
-    lastName?: string | null;
-    company?: string | null;
-    addressLine1?: string | null;
-    addressLine2?: string | null;
-    city?: string | null;
-    state?: string | null;
-    postalCode?: string | null;
-    country?: string | null;
-    phone?: string | null;
-  };
-  customer?: (number | null) | User;
-  customerEmail?: string | null;
-  transactions?: (number | Transaction)[] | null;
-  status?: OrderStatus;
-  amount?: number | null;
-  currency?: 'ARS' | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "transactions".
- */
-export interface Transaction {
-  id: number;
-  items?:
-    | {
-        product?: (number | null) | Product;
-        variant?: (number | null) | Variant;
-        quantity: number;
-        id?: string | null;
-      }[]
-    | null;
-  billingAddress?: {
-    title?: string | null;
-    firstName?: string | null;
-    lastName?: string | null;
-    company?: string | null;
-    addressLine1?: string | null;
-    addressLine2?: string | null;
-    city?: string | null;
-    state?: string | null;
-    postalCode?: string | null;
-    country?: string | null;
-    phone?: string | null;
-  };
-  status: 'pending' | 'succeeded' | 'failed' | 'cancelled' | 'expired' | 'refunded';
-  customer?: (number | null) | User;
-  customerEmail?: string | null;
-  order?: (number | null) | Order;
-  cart?: (number | null) | Cart;
-  amount?: number | null;
-  currency?: 'ARS' | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -927,6 +1242,10 @@ export interface PayloadLockedDocument {
         value: number | Media;
       } | null)
     | ({
+        relationTo: 'localSales';
+        value: number | LocalSale;
+      } | null)
+    | ({
         relationTo: 'pages';
         value: number | Page;
       } | null)
@@ -945,6 +1264,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'categories';
         value: number | Category;
+      } | null)
+    | ({
+        relationTo: 'brands';
+        value: number | Brand;
+      } | null)
+    | ({
+        relationTo: 'tags';
+        value: number | Tag;
       } | null)
     | ({
         relationTo: 'addresses';
@@ -1025,6 +1352,7 @@ export interface PayloadMigration {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
+  editorLanguage?: T;
   roles?: T;
   name?: T;
   updatedAt?: T;
@@ -1064,6 +1392,22 @@ export interface MediaSelect<T extends boolean = true> {
   height?: T;
   focalX?: T;
   focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "localSales_select".
+ */
+export interface LocalSalesSelect<T extends boolean = true> {
+  order?: T;
+  idempotencyKey?: T;
+  status?: T;
+  fulfillmentMode?: T;
+  paymentStatus?: T;
+  buyerContact?: T;
+  snapshot?: T;
+  paymentEvidence?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1342,6 +1686,44 @@ export interface CategoriesSelect<T extends boolean = true> {
   slug?: T;
   description?: T;
   image?: T;
+  icon?: T;
+  parent?: T;
+  displayOrder?: T;
+  isVisible?: T;
+  seo?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "brands_select".
+ */
+export interface BrandsSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  logo?: T;
+  description?: T;
+  countryCode?: T;
+  website?: T;
+  isActive?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tags_select".
+ */
+export interface TagsSelect<T extends boolean = true> {
+  label?: T;
+  slug?: T;
+  description?: T;
+  group?: T;
+  isVisible?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1376,6 +1758,20 @@ export interface VariantsSelect<T extends boolean = true> {
   inventory?: T;
   priceInARSEnabled?: T;
   priceInARS?: T;
+  sku?: T;
+  barcode?: T;
+  oneOfAKind?: T;
+  netContent?: T;
+  netContentUnit?: T;
+  salesUnit?: T;
+  packedWeightGrams?: T;
+  packageLengthMm?: T;
+  packageWidthMm?: T;
+  packageHeightMm?: T;
+  sortOrder?: T;
+  lifecycleStatus?: T;
+  image?: T;
+  combinationKey?: T;
   updatedAt?: T;
   createdAt?: T;
   deletedAt?: T;
@@ -1415,25 +1811,64 @@ export interface ProductsSelect<T extends boolean = true> {
   slug?: T;
   description?: T;
   summary?: T;
-  gallery?:
+  firstPublishedAt?: T;
+  informationSections?:
     | T
     | {
-        image?: T;
+        key?: T;
+        title?: T;
+        body?: T;
+        isVisible?: T;
         id?: T;
       };
+  seo?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+        noIndex?: T;
+      };
   category?: T;
+  additionalCategories?: T;
+  brand?: T;
+  taxonomyTags?: T;
   tags?:
     | T
     | {
         tag?: T;
         id?: T;
       };
+  countryOfOrigin?: T;
+  region?: T;
+  community?: T;
+  originStory?: T;
+  gallery?:
+    | T
+    | {
+        image?: T;
+        externalVideoUrl?: T;
+        isPrimary?: T;
+        caption?: T;
+        id?: T;
+      };
+  lifecycleStatus?: T;
   inventory?: T;
   enableVariants?: T;
   variantTypes?: T;
   variants?: T;
   priceInARSEnabled?: T;
   priceInARS?: T;
+  sku?: T;
+  barcode?: T;
+  oneOfAKind?: T;
+  netContent?: T;
+  netContentUnit?: T;
+  salesUnit?: T;
+  packedWeightGrams?: T;
+  packageLengthMm?: T;
+  packageWidthMm?: T;
+  packageHeightMm?: T;
   updatedAt?: T;
   createdAt?: T;
   deletedAt?: T;
@@ -1444,12 +1879,15 @@ export interface ProductsSelect<T extends boolean = true> {
  * via the `definition` "carts_select".
  */
 export interface CartsSelect<T extends boolean = true> {
+  fulfillmentMode?: T;
+  acceptCurrentPrices?: T;
   items?:
     | T
     | {
         product?: T;
         variant?: T;
         quantity?: T;
+        amount?: T;
         id?: T;
       };
   secret?: T;
@@ -1495,6 +1933,11 @@ export interface OrdersSelect<T extends boolean = true> {
   status?: T;
   amount?: T;
   currency?: T;
+  checkoutKey?: T;
+  cartReference?: T;
+  fulfillmentMode?: T;
+  buyerContact?: T;
+  commercialSnapshot?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1711,6 +2154,23 @@ export interface SiteSetting {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "commerce-settings".
+ */
+export interface CommerceSetting {
+  id: number;
+  /**
+   * Allows customers to collect their purchase locally.
+   */
+  localCollectionEnabled: boolean;
+  /**
+   * Allows customers to receive their purchase by delivery.
+   */
+  deliveryEnabled: boolean;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "seo".
  */
 export interface Seo {
@@ -1733,6 +2193,40 @@ export interface Seo {
     index?: boolean | null;
     follow?: boolean | null;
   };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * Controls which sections appear in navigation. It does not change permissions or direct access.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "cms-settings".
+ */
+export interface CmsSetting {
+  id: number;
+  media: boolean;
+  pages: boolean;
+  posts: boolean;
+  testimonials: boolean;
+  faqs: boolean;
+  header: boolean;
+  footer: boolean;
+  localSales: boolean;
+  categories: boolean;
+  brands: boolean;
+  tags: boolean;
+  addresses: boolean;
+  variants: boolean;
+  variantTypes: boolean;
+  variantOptions: boolean;
+  products: boolean;
+  carts: boolean;
+  orders: boolean;
+  transactions: boolean;
+  users: boolean;
+  siteSettings: boolean;
+  commerceSettings: boolean;
+  seo: boolean;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -1845,6 +2339,17 @@ export interface SiteSettingsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "commerce-settings_select".
+ */
+export interface CommerceSettingsSelect<T extends boolean = true> {
+  localCollectionEnabled?: T;
+  deliveryEnabled?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "seo_select".
  */
 export interface SeoSelect<T extends boolean = true> {
@@ -1859,6 +2364,38 @@ export interface SeoSelect<T extends boolean = true> {
         index?: T;
         follow?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "cms-settings_select".
+ */
+export interface CmsSettingsSelect<T extends boolean = true> {
+  media?: T;
+  pages?: T;
+  posts?: T;
+  testimonials?: T;
+  faqs?: T;
+  header?: T;
+  footer?: T;
+  localSales?: T;
+  categories?: T;
+  brands?: T;
+  tags?: T;
+  addresses?: T;
+  variants?: T;
+  variantTypes?: T;
+  variantOptions?: T;
+  products?: T;
+  carts?: T;
+  orders?: T;
+  transactions?: T;
+  users?: T;
+  siteSettings?: T;
+  commerceSettings?: T;
+  seo?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

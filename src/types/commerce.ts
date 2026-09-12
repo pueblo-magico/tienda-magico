@@ -1,3 +1,7 @@
+import type { SafeRichTextHtml } from "@/types/content";
+
+export type FulfillmentMode = "local_collection" | "delivery";
+
 export type Money = {
   amount: string;
   currencyCode: string;
@@ -10,18 +14,82 @@ export type CommerceImage = {
   height: number | null;
 };
 
+export type CommerceMedia =
+  | (CommerceImage & { kind: "image"; caption?: string | null })
+  | {
+      kind: "video";
+      url: string;
+      embedUrl?: string;
+      poster: CommerceImage | null;
+      altText: string | null;
+      caption?: string | null;
+    };
+
+export type CategoryReference = {
+  id: string;
+  handle: string;
+  title: string;
+  description: string;
+  image: CommerceImage | null;
+  icon: CategoryIcon | null;
+  parent: CategoryReference | null;
+};
+
+export type CategoryIcon = "leaf" | "mountain" | "sun" | "ritual" | "heart";
+
+export type BrandReference = {
+  id: string;
+  handle: string;
+  name: string;
+  description: string;
+  logo: CommerceImage | null;
+  countryCode: string | null;
+  website: string | null;
+};
+
+export type TagReference = {
+  id: string;
+  handle: string;
+  label: string;
+  description: string;
+  group: string | null;
+};
+
+export type ProductClassification = {
+  primaryCategory: CategoryReference | null;
+  additionalCategories: CategoryReference[];
+  brand: BrandReference | null;
+  tags: TagReference[];
+};
+
+export type ProductOrigin = {
+  countryCode: string | null;
+  region: string | null;
+  community: string | null;
+  story: SafeRichTextHtml | null;
+};
+
 export type ProductOption = {
   id: string;
   name: string;
   values: string[];
+  /** Stable provider value identities when supplied; labels remain presentation. */
+  choices?: Array<{ id: string; value: string }>;
 };
 
 export type SelectedOption = {
   name: string;
   value: string;
+  optionId?: string;
+  valueId?: string;
 };
 
 export type ProductVariant = {
+  purchaseStatus?: "available" | "unpriced" | "soldOut" | "unavailable";
+  maxPurchaseQuantity?: number | null;
+  netContent?: { quantity: number; unit: string } | null;
+  salesUnit?: "unit" | "pack";
+  /** Opaque sellable reference; may represent a simple product, not a persisted variant. */
   id: string;
   title: string;
   availableForSale: boolean;
@@ -34,6 +102,11 @@ export type ProductVariant = {
 };
 
 export type Product = {
+  lifecycleStatus: "active" | "discontinued";
+  media?: CommerceMedia[];
+  informationSections?: ProductInformationSection[];
+  shortDescription?: string;
+  descriptionContent?: SafeRichTextHtml;
   id: string;
   handle: string;
   title: string;
@@ -42,6 +115,10 @@ export type Product = {
   vendor: string;
   productType: string;
   tags: string[];
+  /** Structured, provider-independent public classification. */
+  classification?: ProductClassification;
+  /** Public provenance only; supplier and purchasing data never cross this contract. */
+  origin?: ProductOrigin;
   availableForSale: boolean;
   createdAt: string;
   updatedAt: string;
@@ -56,7 +133,15 @@ export type Product = {
   seo: {
     title: string | null;
     description: string | null;
+    image?: CommerceImage | null;
+    noIndex?: boolean;
   };
+};
+
+export type ProductInformationSection = {
+  key: string;
+  title: string;
+  content: SafeRichTextHtml;
 };
 
 export type ProductSummary = Pick<
@@ -66,9 +151,11 @@ export type ProductSummary = Pick<
   | "title"
   | "vendor"
   | "availableForSale"
+  | "lifecycleStatus"
   | "featuredImage"
   | "priceRange"
   | "tags"
+  | "classification"
 >;
 
 export type Collection = {
@@ -78,6 +165,9 @@ export type Collection = {
   description: string;
   descriptionHtml: string;
   image: CommerceImage | null;
+  icon: CategoryIcon | null;
+  parent?: CategoryReference | null;
+  displayOrder?: number;
   seo: {
     title: string | null;
     description: string | null;
@@ -87,11 +177,19 @@ export type Collection = {
 
 export type CollectionSummary = Pick<
   Collection,
-  "id" | "handle" | "title" | "description" | "image"
+  | "id"
+  | "handle"
+  | "title"
+  | "description"
+  | "image"
+  | "icon"
+  | "parent"
+  | "displayOrder"
 >;
 
 export type CartLineMerchandise = {
   id: string;
+  sku?: string | null;
   title: string;
   selectedOptions: SelectedOption[];
   product: {
@@ -103,7 +201,11 @@ export type CartLineMerchandise = {
   price: Money;
 };
 
+export type CheckoutOrder = { id: string };
+
 export type CartLine = {
+  issue?: "unavailable" | "priceChanged" | "quantityExceeded" | null;
+  maxPurchaseQuantity?: number | null;
   id: string;
   quantity: number;
   cost: {
@@ -116,6 +218,7 @@ export type CartLine = {
 export type Cart = {
   id: string;
   checkoutUrl: string;
+  fulfillmentMode: FulfillmentMode | null;
   totalQuantity: number;
   note: string | null;
   cost: {
@@ -139,6 +242,8 @@ export type CartLineUpdateInput = {
 /** Optional cart request context (locale for localized product titles/images). */
 export type CartParams = {
   locale?: string | null;
+  acceptPriceChanges?: boolean;
+  fulfillmentMode?: FulfillmentMode | null;
 };
 
 export type GetProductsParams = {
@@ -210,7 +315,10 @@ export class CommerceError extends Error {
 }
 
 export class CommerceConfigError extends CommerceError {
-  constructor(message = "Commerce provider is not configured.", provider?: string) {
+  constructor(
+    message = "Commerce provider is not configured.",
+    provider?: string,
+  ) {
     super(message, { provider });
     this.name = "CommerceConfigError";
   }

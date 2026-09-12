@@ -1,7 +1,29 @@
-import type { Cart, CartLineInput, CartLineUpdateInput } from "@/types/commerce";
+import type {
+  Cart,
+  CartLineInput,
+  CartLineUpdateInput,
+} from "@/types/commerce";
+import type { FulfillmentMode } from "@/lib/commerce/local-purchase";
+import type { CommerceSettings } from "@/lib/commerce/commerce-settings";
+
+export class CartRequestError extends Error {}
+
+export async function confirmCartPrices(
+  cartId: string,
+  locale: string,
+): Promise<CartResponse> {
+  return parseResponse(
+    await fetch("/api/cart", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "confirmPrices", cartId, locale }),
+    }),
+  );
+}
 
 type CartResponse = {
   cart: Cart;
+  commerceSettings?: CommerceSettings;
   configured?: boolean;
   error?: string;
 };
@@ -13,7 +35,7 @@ type LocaleOption = {
 async function parseResponse(response: Response): Promise<CartResponse> {
   const data = (await response.json()) as CartResponse;
   if (!response.ok) {
-    throw new Error(data.error || `Cart request failed (${response.status})`);
+    throw new CartRequestError("cartRequestFailed");
   }
   return data;
 }
@@ -80,6 +102,25 @@ export async function updateCartLines(
     }),
   });
   return parseResponse(response);
+}
+
+export async function setCartFulfillmentMode(
+  cartId: string,
+  fulfillmentMode: FulfillmentMode,
+  locale: string,
+): Promise<CartResponse> {
+  return parseResponse(
+    await fetch("/api/cart", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "setFulfillmentMode",
+        cartId,
+        fulfillmentMode,
+        locale,
+      }),
+    }),
+  );
 }
 
 export async function removeCartLines(

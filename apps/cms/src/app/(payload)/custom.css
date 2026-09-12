@@ -1,0 +1,131 @@
+/* The product editor renders the locale popup beside Publish changes. */
+.document-locale-switcher {
+  display: inline-flex;
+  align-items: center;
+  margin-inline-end: 0.5rem;
+}
+
+.document-locale-switcher .localizer {
+  margin: 0;
+}
+
+.document-locale-switcher__label {
+  margin-inline-end: 0.35rem;
+  font-size: 0.75rem;
+}
+
+.document-locale-switcher select {
+  min-height: 2rem;
+  padding: 0.25rem 1.75rem 0.25rem 0.5rem;
+  border: 1px solid var(--theme-elevation-300);
+  border-radius: 0.25rem;
+  background: var(--theme-input-bg);
+  color: var(--theme-text);
+  cursor: pointer;
+}
+
+/* Avoid presenting the same locale control twice on product edit screens. */
+body:has(.collection-edit--products) .app-header__localizer {
+  display: none;
+}
+
+.cms-role-visibility-row {
+  display: grid;
+  grid-template-columns: minmax(12rem, 1fr) auto;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.cms-role-visibility-header {
+  display: grid;
+  grid-template-columns: minmax(12rem, 1fr) auto;
+  align-items: end;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--theme-elevation-150);
+}
+
+.cms-role-visibility-header .cms-role-visibility-columns {
+  justify-items: center;
+}
+
+.cms-role-visibility-row .field-label {
+  padding: 0;
+}
+
+.cms-role-visibility-columns {
+  display: grid;
+  grid-template-columns: repeat(3, 6.5rem);
+  gap: 0.5rem;
+}
+
+.cms-role-visibility-column {
+  display: grid;
+  justify-items: center;
+}
+
+.cms-role-visibility-column__label {
+  color: var(--theme-elevation-600);
+  font-size: 0.75rem;
+}
+
+.cms-role-visibility-switch {
+  position: relative;
+  width: 2.75rem;
+  height: 1.5rem;
+  padding: 0;
+  border: 1px solid var(--theme-elevation-300);
+  border-radius: 999px;
+  background: var(--theme-elevation-200);
+  cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease;
+}
+
+.cms-role-visibility-switch[aria-checked='true'] {
+  border-color: var(--theme-success-500);
+  background: var(--theme-success-500);
+}
+
+.cms-role-visibility-switch:focus-visible {
+  outline: 2px solid var(--theme-success-500);
+  outline-offset: 2px;
+}
+
+.cms-role-visibility-switch:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.cms-role-visibility-switch__thumb {
+  position: absolute;
+  top: 0.1875rem;
+  left: 0.1875rem;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  background: var(--theme-elevation-0);
+  box-shadow: 0 1px 3px var(--theme-elevation-500);
+  transition: transform 150ms ease;
+}
+
+.cms-role-visibility-switch[aria-checked='true'] .cms-role-visibility-switch__thumb {
+  transform: translateX(1.25rem);
+}
+
+@media (max-width: 768px) {
+  .cms-role-visibility-row {
+    grid-template-columns: 1fr;
+  }
+
+  .cms-role-visibility-header {
+    grid-template-columns: 1fr;
+  }
+
+  .cms-role-visibility-columns {
+    grid-template-columns: repeat(3, minmax(5rem, 1fr));
+  }
+}

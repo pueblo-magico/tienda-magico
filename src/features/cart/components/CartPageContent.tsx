@@ -2,6 +2,7 @@
 
 import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
+import { LockKeyhole, Sprout, Truck } from "lucide-react";
 import { localizePath } from "@/config/navigation";
 import { Body, PageTitle } from "@/components/typography";
 import { useCart } from "../CartProvider";
@@ -20,6 +21,8 @@ export function CartPageContent() {
     updateItemQuantity,
     removeItem,
     checkout,
+    setFulfillmentMode,
+    commerceSettings,
   } = useCart();
 
   const busy = isLoading || isMutating;
@@ -97,12 +100,21 @@ export function CartPageContent() {
             </h2>
             <CartSummary
               cart={cart}
+              commerceSettings={commerceSettings}
               disabled={busy}
+              fulfillmentDisabled={isLoading}
               onCheckout={checkout}
+              onFulfillmentModeChange={setFulfillmentMode}
               labels={{
                 subtotal: t("subtotal"),
                 checkout: t("checkout"),
                 taxesNote: t("taxesNote"),
+                fulfillmentLegend: t("fulfillmentLegend"),
+                localCollection: t("localCollection"),
+                localCollectionHint: t("localCollectionHint"),
+                delivery: t("delivery"),
+                deliveryHint: t("deliveryHint"),
+                fulfillmentRequired: t("fulfillmentRequired"),
               }}
             />
             <div className="mt-3">
@@ -120,19 +132,23 @@ export function CartPageContent() {
       {cart.lines.length > 0 ? (
         <div className="border-border text-muted grid gap-4 border-t pt-6 text-center text-xs sm:grid-cols-3">
           <p>
-            ♧{" "}
+            <Truck aria-hidden className="mx-auto size-4" strokeWidth={1.5} />
             <strong className="text-text-black block">
               {t("shippingBenefit")}
             </strong>
           </p>
           <p>
-            ◇{" "}
+            <Sprout aria-hidden className="mx-auto size-4" strokeWidth={1.5} />
             <strong className="text-text-black block">
               {t("sourcingBenefit")}
             </strong>
           </p>
           <p>
-            ♙{" "}
+            <LockKeyhole
+              aria-hidden
+              className="mx-auto size-4"
+              strokeWidth={1.5}
+            />
             <strong className="text-text-black block">
               {t("paymentBenefit")}
             </strong>

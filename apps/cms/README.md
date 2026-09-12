@@ -15,23 +15,23 @@ Related storefront docs:
 
 ## Stack
 
-| Piece | Choice |
-| --- | --- |
-| CMS | Payload 3 (Next.js App Router admin) |
-| Database | PostgreSQL (`@payloadcms/db-postgres`) |
-| Ecommerce | `@payloadcms/plugin-ecommerce` |
+| Piece          | Choice                                           |
+| -------------- | ------------------------------------------------ |
+| CMS            | Payload 3 (Next.js App Router admin)             |
+| Database       | PostgreSQL (`@payloadcms/db-postgres`)           |
+| Ecommerce      | `@payloadcms/plugin-ecommerce`                   |
 | Catalog extras | `categories`, product `slug` / gallery / summary |
-| Payments | Not wired yet (Stripe can be added later) |
+| Payments       | Not wired yet (Stripe can be added later)        |
 
 ## Ports
 
-| Service | Default |
-| --- | --- |
-| CMS admin + API | `http://localhost:4000` |
-| Admin UI | `http://localhost:4000/admin` |
-| REST API | `http://localhost:4000/api` |
+| Service                   | Default                             |
+| ------------------------- | ----------------------------------- |
+| CMS admin + API           | `http://localhost:4000`             |
+| Admin UI                  | `http://localhost:4000/admin`       |
+| REST API                  | `http://localhost:4000/api`         |
 | Postgres (Docker Compose) | `localhost:5433` → container `5432` |
-| Storefront | `http://localhost:3000` |
+| Storefront                | `http://localhost:3000`             |
 
 ## Quick start
 
@@ -72,40 +72,40 @@ npm run generate:types
 
 ## Environment (`apps/cms/.env`)
 
-| Variable | Required | Notes |
-| --- | --- | --- |
-| `DATABASE_URL` | Yes | e.g. `postgresql://postgres:postgres@127.0.0.1:5433/tienda_magico_cms` |
-| `PAYLOAD_SECRET` | Yes | Long random string |
-| `NEXT_PUBLIC_SERVER_URL` | Recommended | Public CMS URL (`http://localhost:4000`) |
-| `PAYLOAD_PUBLIC_SERVER_URL` | Optional | Same as above if used |
-| `CORS_ORIGINS` | Recommended | Comma-separated storefront origins (`http://localhost:3000`) |
+| Variable                    | Required    | Notes                                                                  |
+| --------------------------- | ----------- | ---------------------------------------------------------------------- |
+| `DATABASE_URL`              | Yes         | e.g. `postgresql://postgres:postgres@127.0.0.1:5433/tienda_magico_cms` |
+| `PAYLOAD_SECRET`            | Yes         | Long random string                                                     |
+| `NEXT_PUBLIC_SERVER_URL`    | Recommended | Public CMS URL (`http://localhost:4000`)                               |
+| `PAYLOAD_PUBLIC_SERVER_URL` | Optional    | Same as above if used                                                  |
+| `CORS_ORIGINS`              | Recommended | Comma-separated storefront origins (`http://localhost:3000`)           |
 
 Never commit `.env`.
 
 ## Collections (high level)
 
-| Slug | Source | Purpose |
-| --- | --- | --- |
-| `users` | App | Admins/customers; API keys enabled |
-| `media` | App | Public-read uploads |
-| `pages` | App (Phase 6) | Marketing pages with layout blocks (draft/publish) |
-| `posts` | App (Phase 6) | Journal / editorial posts |
-| `testimonials` | App (Phase 6) | Quotes for Testimonials blocks |
-| `faqs` | App (Phase 6) | FAQ entries for FAQ blocks |
-| `categories` | App | Storefront “collections” listing |
-| `products` | Ecommerce plugin + override | Catalog (draft/publish) |
-| `variants` / variant types & options | Plugin | Product variants |
-| `carts` | Plugin | Carts + item endpoints (`allowGuestCarts: true`) |
-| `orders`, `addresses`, … | Plugin | Checkout domain (payments TBD) |
+| Slug                                 | Source                      | Purpose                                            |
+| ------------------------------------ | --------------------------- | -------------------------------------------------- |
+| `users`                              | App                         | Admins/customers; API keys enabled                 |
+| `media`                              | App                         | Public-read uploads                                |
+| `pages`                              | App (Phase 6)               | Marketing pages with layout blocks (draft/publish) |
+| `posts`                              | App (Phase 6)               | Journal / editorial posts                          |
+| `testimonials`                       | App (Phase 6)               | Quotes for Testimonials blocks                     |
+| `faqs`                               | App (Phase 6)               | FAQ entries for FAQ blocks                         |
+| `categories`                         | App                         | Storefront “collections” listing                   |
+| `products`                           | Ecommerce plugin + override | Catalog (draft/publish)                            |
+| `variants` / variant types & options | Plugin                      | Product variants                                   |
+| `carts`                              | Plugin                      | Carts + item endpoints (`allowGuestCarts: true`)   |
+| `orders`, `addresses`, …             | Plugin                      | Checkout domain (payments TBD)                     |
 
 ## Globals (Phase 6)
 
-| Slug | Purpose |
-| --- | --- |
-| `header` | Logo override, nav items, optional CTA |
-| `footer` | Tagline, link columns, legal links |
-| `site-settings` | Site name, contact, social links |
-| `seo` | Default title template, description, OG image, robots |
+| Slug            | Purpose                                               |
+| --------------- | ----------------------------------------------------- |
+| `header`        | Logo override, nav items, optional CTA                |
+| `footer`        | Tagline, link columns, legal links                    |
+| `site-settings` | Site name, contact, social links                      |
+| `seo`           | Default title template, description, OG image, robots |
 
 ## Layout blocks (Pages)
 
@@ -141,13 +141,13 @@ localization: {
 }
 ```
 
-| Field | Localized? |
-| --- | --- |
-| Product `title`, `description`, `summary`, `tags` | Yes |
-| Category `title`, `description` | Yes |
-| Media `alt` | Yes |
-| Product/category `slug` | **No** (shared handle) |
-| Price, inventory, gallery, category relation | No |
+| Field                                             | Localized?             |
+| ------------------------------------------------- | ---------------------- |
+| Product `title`, `description`, `summary`, `tags` | Yes                    |
+| Category `title`, `description`                   | Yes                    |
+| Media `alt`                                       | Yes                    |
+| Product/category `slug`                           | **No** (shared handle) |
+| Price, inventory, gallery, category relation      | No                     |
 
 ### Editor workflow
 
@@ -172,7 +172,7 @@ PAYLOAD_ECOMMERCE_URL=http://localhost:4000
 PAYLOAD_ECOMMERCE_CURRENCY=ARS
 PAYLOAD_ECOMMERCE_AMOUNT_IS_CENTS=true
 PAYLOAD_ECOMMERCE_COLLECTIONS_SLUG=categories
-# Optional — Users collection API key for server-side reads/writes
+# Required for checkout order creation — Users collection API key
 # PAYLOAD_ECOMMERCE_API_KEY=...
 # PAYLOAD_ECOMMERCE_API_KEY_COLLECTION=users
 ```
@@ -181,14 +181,14 @@ Full adapter reference: [docs/commerce/payload-ecommerce.md](../../docs/commerce
 
 ## Scripts
 
-| Script | Purpose |
-| --- | --- |
-| `npm run dev` | Dev server `:4000` |
-| `npm run build` / `start` | Production |
-| `npm run db:up` / `db:down` / `db:logs` | Local Postgres Compose |
-| `npm run generate:importmap` | Fix missing admin components |
-| `npm run generate:types` | Refresh `src/payload-types.ts` |
-| `npm run payload` | Payload CLI |
+| Script                                  | Purpose                        |
+| --------------------------------------- | ------------------------------ |
+| `npm run dev`                           | Dev server `:4000`             |
+| `npm run build` / `start`               | Production                     |
+| `npm run db:up` / `db:down` / `db:logs` | Local Postgres Compose         |
+| `npm run generate:importmap`            | Fix missing admin components   |
+| `npm run generate:types`                | Refresh `src/payload-types.ts` |
+| `npm run payload`                       | Payload CLI                    |
 
 Root convenience scripts: `dev:cms`, `build:cms`, `start:cms`, `db:cms:up`, `db:cms:down`.
 
@@ -207,14 +207,14 @@ Optional container image: set `CMS_STANDALONE_OUTPUT=true` when building the CMS
 
 ## Troubleshooting
 
-| Symptom | Fix |
-| --- | --- |
-| `useAsTitle` / missing `title` on products | Ensure products override includes `title` (already in `src/collections/Products.ts`) |
-| `getFromImportMap: PayloadComponent not found` | `npm run generate:importmap` + restart |
-| DB connection errors | `npm run db:up`, check `DATABASE_URL` port **5433** |
-| CORS errors from browser | Add storefront origin to `CORS_ORIGINS` |
-| Empty catalog on storefront | Publish products (`_status: published`), confirm `COMMERCE_PROVIDER=payload` |
-| Guest cart 403 | Guest carts need secret; storefront uses `cartId::secret` |
+| Symptom                                        | Fix                                                                                  |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `useAsTitle` / missing `title` on products     | Ensure products override includes `title` (already in `src/collections/Products.ts`) |
+| `getFromImportMap: PayloadComponent not found` | `npm run generate:importmap` + restart                                               |
+| DB connection errors                           | `npm run db:up`, check `DATABASE_URL` port **5433**                                  |
+| CORS errors from browser                       | Add storefront origin to `CORS_ORIGINS`                                              |
+| Empty catalog on storefront                    | Publish products (`_status: published`), confirm `COMMERCE_PROVIDER=payload`         |
+| Guest cart 403                                 | Guest carts need secret; storefront uses `cartId::secret`                            |
 
 ## Notes
 

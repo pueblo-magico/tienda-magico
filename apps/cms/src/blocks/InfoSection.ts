@@ -7,8 +7,8 @@ export const InfoSection: Block = {
   slug: 'infoSection',
   interfaceName: 'InfoSectionBlock',
   labels: {
-    singular: 'Info section',
-    plural: 'Info sections',
+    singular: { es: 'Sección informativa', en: 'Info section' },
+    plural: { es: 'Secciones informativas', en: 'Info sections' },
   },
   fields: [
     {
@@ -35,9 +35,9 @@ export const InfoSection: Block = {
       type: 'select',
       defaultValue: 'textMedia',
       options: [
-        { label: 'Text + media', value: 'textMedia' },
-        { label: 'Media + text', value: 'mediaText' },
-        { label: 'Centered text', value: 'centered' },
+        { label: { es: 'Texto + medios', en: 'Text + media' }, value: 'textMedia' },
+        { label: { es: 'Medios + texto', en: 'Media + text' }, value: 'mediaText' },
+        { label: { es: 'Texto centrado', en: 'Centered text' }, value: 'centered' },
       ],
     },
     linkField({ name: 'link', required: false }),

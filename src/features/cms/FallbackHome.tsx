@@ -4,7 +4,12 @@ import { ImpactCard } from "@/components/cards/ImpactCard";
 import { ProductCard } from "@/components/cards/ProductCard";
 import { Container } from "@/components/layout/Container";
 import { Section } from "@/components/layout/Section";
-import { Body, Eyebrow, PageTitle, SectionTitle } from "@/components/typography";
+import {
+  Body,
+  Eyebrow,
+  PageTitle,
+  SectionTitle,
+} from "@/components/typography";
 import { commerce, formatMoney } from "@/lib/commerce";
 import { getTranslations } from "next-intl/server";
 
@@ -15,11 +20,11 @@ import { getTranslations } from "next-intl/server";
 export async function FallbackHome({ locale }: { locale: string }) {
   const t = await getTranslations("home");
   const tSections = await getTranslations("homeSections");
+  const tProduct = await getTranslations("product");
 
   let products: Awaited<ReturnType<typeof commerce.getProducts>>["items"] = [];
-  let categories: Awaited<
-    ReturnType<typeof commerce.getCollections>
-  >["items"] = [];
+  let categories: Awaited<ReturnType<typeof commerce.getCollections>>["items"] =
+    [];
 
   if (commerce.isConfigured()) {
     try {
@@ -61,14 +66,17 @@ export async function FallbackHome({ locale }: { locale: string }) {
               {categories.map((category) => (
                 <li key={category.id}>
                   <a
-                    href={localizePath(locale, `/shop?collection=${encodeURIComponent(category.handle)}`)}
-                    className="block rounded-2xl border border-border bg-card px-4 py-5 transition-shadow hover:shadow-md"
+                    href={localizePath(
+                      locale,
+                      `/shop?collection=${encodeURIComponent(category.handle)}`,
+                    )}
+                    className="border-border bg-card block rounded-2xl border px-4 py-5 transition-shadow hover:shadow-md"
                   >
-                    <h3 className="font-serif text-lg text-forest">
+                    <h3 className="text-forest font-serif text-lg">
                       {category.title}
                     </h3>
                     {category.description ? (
-                      <p className="mt-1 line-clamp-2 text-sm text-muted">
+                      <p className="text-muted mt-1 line-clamp-2 text-sm">
                         {category.description}
                       </p>
                     ) : null}
@@ -93,15 +101,17 @@ export async function FallbackHome({ locale }: { locale: string }) {
                   <ProductCard
                     href={localizePath(locale, `/shop/${product.handle}`)}
                     title={product.title}
-                    price={formatMoney(
-                      product.priceRange.minVariantPrice,
-                      locale,
-                    )}
-                    imageSrc={
-                      product.featuredImage?.url ||
-                      "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=80"
+                    price={
+                      product.availableForSale
+                        ? formatMoney(
+                            product.priceRange.minVariantPrice,
+                            locale,
+                          )
+                        : tProduct("productUnavailable")
                     }
+                    imageSrc={product.featuredImage?.url}
                     imageAlt={product.featuredImage?.altText || product.title}
+                    noMediaLabel={tProduct("noMedia")}
                   />
                 </li>
               ))}
@@ -155,13 +165,17 @@ export async function FallbackHome({ locale }: { locale: string }) {
 
       <Section spacing="md">
         <Container>
-          <div className="rounded-3xl border border-border bg-card px-6 py-10 text-center sm:px-10">
+          <div className="border-border bg-card rounded-3xl border px-6 py-10 text-center sm:px-10">
             <Eyebrow>{tSections("newsletterEyebrow")}</Eyebrow>
-            <SectionTitle className="mt-3">{tSections("newsletterTitle")}</SectionTitle>
+            <SectionTitle className="mt-3">
+              {tSections("newsletterTitle")}
+            </SectionTitle>
             <Body className="mx-auto mt-3 max-w-lg">
               {tSections("newsletterBody")}
             </Body>
-            <p className="mt-4 text-sm text-muted">{tSections("newsletterHint")}</p>
+            <p className="text-muted mt-4 text-sm">
+              {tSections("newsletterHint")}
+            </p>
           </div>
         </Container>
       </Section>

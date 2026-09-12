@@ -1,3 +1,6 @@
+export type PayloadLocalizedText =
+  string | Partial<Record<"en" | "es", string | null>>;
+
 export type PayloadDoc = {
   id: string | number;
   createdAt?: string;
@@ -25,21 +28,64 @@ export type PayloadMedia = {
   filename?: string | null;
   width?: number | null;
   height?: number | null;
-  sizes?: Record<string, { url?: string | null; width?: number | null; height?: number | null }>;
+  mimeType?: string | null;
+  caption?: PayloadLocalizedText | null;
+  poster?: unknown;
+  sizes?: Record<
+    string,
+    { url?: string | null; width?: number | null; height?: number | null }
+  >;
+};
+
+export type PayloadCategoryDoc = PayloadDoc & {
+  title?: PayloadLocalizedText | null;
+  slug?: string | null;
+  description?: unknown;
+  image?: unknown;
+  icon?: string | null;
+  parent?: string | number | PayloadCategoryDoc | null;
+  displayOrder?: number | null;
+  isVisible?: boolean | null;
+  seo?: unknown;
+};
+
+export type PayloadBrandDoc = PayloadDoc & {
+  name?: string | null;
+  slug?: string | null;
+  description?: unknown;
+  logo?: unknown;
+  countryCode?: string | null;
+  website?: string | null;
+  isActive?: boolean | null;
+};
+
+export type PayloadTagDoc = PayloadDoc & {
+  label?: PayloadLocalizedText | null;
+  slug?: string | null;
+  description?: unknown;
+  group?: string | null;
+  isVisible?: boolean | null;
 };
 
 export type PayloadProductDoc = PayloadDoc & {
-  title?: string | null;
-  name?: string | null;
-  slug?: string | null;
+  title?: PayloadLocalizedText | null;
+  name?: PayloadLocalizedText | null;
+  slug?: PayloadLocalizedText | null;
   handle?: string | null;
   description?: unknown;
   richText?: unknown;
   summary?: string | null;
+  informationSections?: unknown;
+  countryOfOrigin?: string | null;
+  region?: PayloadLocalizedText | null;
+  community?: PayloadLocalizedText | null;
+  originStory?: unknown;
   vendor?: string | null;
-  brand?: string | null;
+  brand?: string | number | PayloadBrandDoc | null;
   productType?: string | null;
   category?: unknown;
+  additionalCategories?: unknown;
+  taxonomyTags?: unknown;
   tags?: unknown;
   enableVariants?: boolean | null;
   inventory?: number | null;
@@ -56,20 +102,24 @@ export type PayloadProductDoc = PayloadDoc & {
   seo?: {
     title?: string | null;
     description?: string | null;
+    image?: unknown;
+    noIndex?: boolean | null;
   } | null;
   _status?: "draft" | "published";
+  lifecycleStatus?: "active" | "discontinued" | null;
 };
 
 export type PayloadVariantDoc = PayloadDoc & {
-  title?: string | null;
+  title?: PayloadLocalizedText | null;
   sku?: string | null;
+  sortOrder?: number | null;
   inventory?: number | null;
   options?: Array<
     | string
     | number
     | {
         id?: string | number;
-        label?: string | null;
+        label?: PayloadLocalizedText | null;
         value?: string | null;
         title?: string | null;
         variantType?:
@@ -77,7 +127,7 @@ export type PayloadVariantDoc = PayloadDoc & {
           | number
           | {
               id?: string | number;
-              label?: string | null;
+              label?: PayloadLocalizedText | null;
               name?: string | null;
               title?: string | null;
             }
@@ -98,6 +148,7 @@ export type PayloadCartItem = {
 
 export type PayloadCartDoc = PayloadDoc & {
   items?: PayloadCartItem[] | null;
+  fulfillmentMode?: string | null;
   secret?: string | null;
   subtotal?: number | null;
   currency?: string | null;

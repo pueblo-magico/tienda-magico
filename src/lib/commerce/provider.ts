@@ -3,6 +3,7 @@ import type {
   CartLineInput,
   CartLineUpdateInput,
   CartParams,
+  CheckoutOrder,
   Collection,
   CollectionSummary,
   CommerceProviderName,
@@ -14,6 +15,7 @@ import type {
   Product,
   ProductSummary,
 } from "@/types/commerce";
+import type { CheckoutCustomer } from "@/types/checkout";
 
 /**
  * Provider-agnostic commerce contract.
@@ -26,9 +28,14 @@ export interface CommerceProvider {
   isConfigured(): boolean;
 
   getProducts(params?: GetProductsParams): Promise<Paginated<ProductSummary>>;
-  getProduct(handle: string, params?: GetProductParams): Promise<Product | null>;
+  getProduct(
+    handle: string,
+    params?: GetProductParams,
+  ): Promise<Product | null>;
 
-  getCollections(params?: GetCollectionsParams): Promise<Paginated<CollectionSummary>>;
+  getCollections(
+    params?: GetCollectionsParams,
+  ): Promise<Paginated<CollectionSummary>>;
   getCollection(
     handle: string,
     productsFirstOrParams?: number | GetCollectionParams,
@@ -39,6 +46,7 @@ export interface CommerceProvider {
     lines?: CartLineInput[];
     note?: string;
     locale?: string | null;
+    fulfillmentMode?: CartParams["fulfillmentMode"];
   }): Promise<Cart>;
   /** Update line quantities (COMMAND: Update Cart). */
   updateCart(
@@ -61,4 +69,8 @@ export interface CommerceProvider {
     lineIds: string[],
     params?: CartParams,
   ): Promise<Cart>;
+  createCheckoutOrder(
+    cart: Cart,
+    customer?: CheckoutCustomer,
+  ): Promise<CheckoutOrder | null>;
 }

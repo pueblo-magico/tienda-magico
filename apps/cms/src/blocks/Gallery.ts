@@ -4,8 +4,8 @@ export const Gallery: Block = {
   slug: 'gallery',
   interfaceName: 'GalleryBlock',
   labels: {
-    singular: 'Gallery',
-    plural: 'Galleries',
+    singular: { es: 'Galería', en: 'Gallery' },
+    plural: { es: 'Galerías', en: 'Galleries' },
   },
   fields: [
     {

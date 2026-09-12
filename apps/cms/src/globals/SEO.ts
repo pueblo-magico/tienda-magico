@@ -5,9 +5,9 @@ import { adminOnly } from '../access/adminOnly'
 /** Site-wide SEO defaults (pages can override via their own seo group). */
 export const SEO: GlobalConfig = {
   slug: 'seo',
-  label: 'SEO defaults',
+  label: { es: 'Valores predeterminados de SEO', en: 'SEO defaults' },
   admin: {
-    group: 'Globals',
+    group: { es: 'Globales', en: 'Globals' },
   },
   access: {
     read: () => true,
@@ -19,7 +19,7 @@ export const SEO: GlobalConfig = {
       type: 'text',
       localized: true,
       admin: {
-        description: 'Fallback document title.',
+        description: { es: 'Título de respaldo del documento.', en: 'Fallback document title.' },
       },
     },
     {
@@ -28,7 +28,10 @@ export const SEO: GlobalConfig = {
       localized: true,
       defaultValue: '%s · Pueblo Mágico',
       admin: {
-        description: 'Use %s for the page title segment.',
+        description: {
+          es: 'Usá %s para el segmento del título de la página.',
+          en: 'Use %s for the page title segment.',
+        },
       },
     },
     {
@@ -45,7 +48,7 @@ export const SEO: GlobalConfig = {
       name: 'twitterHandle',
       type: 'text',
       admin: {
-        description: 'Without @ (e.g. pueblomagico).',
+        description: { es: 'Sin @ (p. ej. pueblomagico).', en: 'Without @ (e.g. pueblomagico).' },
       },
     },
     {
@@ -56,13 +59,19 @@ export const SEO: GlobalConfig = {
           name: 'index',
           type: 'checkbox',
           defaultValue: true,
-          label: 'Allow indexing by default',
+          label: {
+            es: 'Permitir indexación de forma predeterminada',
+            en: 'Allow indexing by default',
+          },
         },
         {
           name: 'follow',
           type: 'checkbox',
           defaultValue: true,
-          label: 'Allow following links by default',
+          label: {
+            es: 'Permitir seguir enlaces de forma predeterminada',
+            en: 'Allow following links by default',
+          },
         },
       ],
     },

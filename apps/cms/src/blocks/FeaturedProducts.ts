@@ -4,8 +4,8 @@ export const FeaturedProducts: Block = {
   slug: 'featuredProducts',
   interfaceName: 'FeaturedProductsBlock',
   labels: {
-    singular: 'Featured products',
-    plural: 'Featured products blocks',
+    singular: { es: 'Productos destacados', en: 'Featured products' },
+    plural: { es: 'Bloques de productos destacados', en: 'Featured products blocks' },
   },
   fields: [
     {
@@ -28,8 +28,8 @@ export const FeaturedProducts: Block = {
       type: 'radio',
       defaultValue: 'manual',
       options: [
-        { label: 'Manual products', value: 'manual' },
-        { label: 'By category', value: 'category' },
+        { label: { es: 'Productos manuales', en: 'Manual products' }, value: 'manual' },
+        { label: { es: 'Por categoría', en: 'By category' }, value: 'category' },
       ],
       admin: { layout: 'horizontal' },
     },

@@ -4,8 +4,8 @@ export const ImpactStats: Block = {
   slug: 'impactStats',
   interfaceName: 'ImpactStatsBlock',
   labels: {
-    singular: 'Impact stats',
-    plural: 'Impact stats blocks',
+    singular: { es: 'Estadísticas de impacto', en: 'Impact stats' },
+    plural: { es: 'Bloques de estadísticas de impacto', en: 'Impact stats blocks' },
   },
   fields: [
     {
@@ -31,7 +31,10 @@ export const ImpactStats: Block = {
           required: true,
           localized: true,
           admin: {
-            description: 'Display value (e.g. 120+, 3k).',
+            description: {
+              es: 'Valor visible (p. ej. 120+, 3 mil).',
+              en: 'Display value (e.g. 120+, 3k).',
+            },
           },
         },
         {

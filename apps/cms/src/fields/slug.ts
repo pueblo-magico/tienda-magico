@@ -11,7 +11,10 @@ export const slugField = (overrides?: Partial<Field>): Field =>
     localized: false,
     admin: {
       position: 'sidebar',
-      description: 'URL canónica en español, compartida entre idiomas (minúsculas-con-guiones).',
+      description: {
+        es: 'URL canónica en español, compartida entre idiomas (minúsculas-con-guiones).',
+        en: 'Canonical Spanish URL shared between languages (lowercase-with-hyphens).',
+      },
     },
     ...overrides,
   }) as Field

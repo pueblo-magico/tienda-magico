@@ -42,13 +42,13 @@ Browser  →  Next.js storefront (:3000)
                 └─ FallbackHome  (if CMS missing / empty layout)
 ```
 
-| Layer | Path | Role |
-| --- | --- | --- |
-| Route | `src/app/[locale]/page.tsx` | Load home page, metadata, fallback |
-| CMS API | `src/lib/cms/*` | Config, fetch, media URLs, rich text |
-| UI | `src/features/cms/*` | `RenderBlocks`, block views, `FallbackHome` |
-| Schema | `apps/cms/src/collections/Pages.ts` | Page + `layout` blocks |
-| Blocks | `apps/cms/src/blocks/*` | Payload block field definitions |
+| Layer   | Path                                | Role                                        |
+| ------- | ----------------------------------- | ------------------------------------------- |
+| Route   | `src/app/[locale]/page.tsx`         | Load home page, metadata, fallback          |
+| CMS API | `src/lib/cms/*`                     | Config, fetch, media URLs, rich text        |
+| UI      | `src/features/cms/*`                | `RenderBlocks`, block views, `FallbackHome` |
+| Schema  | `apps/cms/src/collections/Pages.ts` | Page + `layout` blocks                      |
+| Blocks  | `apps/cms/src/blocks/*`             | Payload block field definitions             |
 
 **Rules**
 
@@ -62,17 +62,17 @@ Browser  →  Next.js storefront (:3000)
 
 Storefront `.env.local` (see root `.env.example`):
 
-| Variable | Required | Default / notes |
-| --- | --- | --- |
-| `PAYLOAD_CMS_URL` | No* | CMS base URL. Falls back to `PAYLOAD_ECOMMERCE_URL` |
-| `PAYLOAD_ECOMMERCE_URL` | No* | Shared monorepo default `http://localhost:4000` |
-| `PAYLOAD_CMS_API_KEY` | No | Falls back to `PAYLOAD_ECOMMERCE_API_KEY` |
-| `PAYLOAD_CMS_API_KEY_COLLECTION` | No | Default `users` |
-| `PAYLOAD_CMS_API_PREFIX` | No | Default `/api` |
-| `PAYLOAD_CMS_DEPTH` | No | Default `2` (relationship populate) |
-| `PAYLOAD_CMS_DEFAULT_LOCALE` | No | Default `en` |
-| `PAYLOAD_CMS_FALLBACK_LOCALE` | No | Default `en` |
-| `CMS_HOME_PAGE_SLUG` | No | Default `home` |
+| Variable                         | Required | Default / notes                                     |
+| -------------------------------- | -------- | --------------------------------------------------- |
+| `PAYLOAD_CMS_URL`                | No*      | CMS base URL. Falls back to `PAYLOAD_ECOMMERCE_URL` |
+| `PAYLOAD_ECOMMERCE_URL`          | No*      | Shared monorepo default `http://localhost:4000`     |
+| `PAYLOAD_CMS_API_KEY`            | No       | Falls back to `PAYLOAD_ECOMMERCE_API_KEY`           |
+| `PAYLOAD_CMS_API_KEY_COLLECTION` | No       | Default `users`                                     |
+| `PAYLOAD_CMS_API_PREFIX`         | No       | Default `/api`                                      |
+| `PAYLOAD_CMS_DEPTH`              | No       | Default `2` (relationship populate)                 |
+| `PAYLOAD_CMS_DEFAULT_LOCALE`     | No       | Default `en`                                        |
+| `PAYLOAD_CMS_FALLBACK_LOCALE`    | No       | Default `en`                                        |
+| `CMS_HOME_PAGE_SLUG`             | No       | Default `home`                                      |
 
 \* At least one of `PAYLOAD_CMS_URL` or `PAYLOAD_ECOMMERCE_URL` must be set for `isCmsConfigured()` to be true.
 
@@ -101,15 +101,15 @@ import {
 } from "@/lib/cms";
 ```
 
-| Helper | Purpose |
-| --- | --- |
-| `isCmsConfigured()` | Base URL present |
-| `getHomePage(locale?)` | Published page for `CMS_HOME_PAGE_SLUG` |
-| `getPageBySlug(slug, locale?)` | Any published page by shared slug |
-| `getTestimonials` / `getFaqs` | Block helpers when relationships are ids only |
-| `resolveMediaUrl` / `mediaAlt` | Absolute media URLs against CMS origin |
-| `richTextToHtml` / `richTextToPlain` | Lexical JSON helpers |
-| `cmsFetch` | Low-level REST (prefer higher-level helpers) |
+| Helper                               | Purpose                                       |
+| ------------------------------------ | --------------------------------------------- |
+| `isCmsConfigured()`                  | Base URL present                              |
+| `getHomePage(locale?)`               | Published page for `CMS_HOME_PAGE_SLUG`       |
+| `getPageBySlug(slug, locale?)`       | Any published page by shared slug             |
+| `getTestimonials` / `getFaqs`        | Block helpers when relationships are ids only |
+| `resolveMediaUrl` / `mediaAlt`       | Absolute media URLs against CMS origin        |
+| `richTextToHtml` / `richTextToPlain` | Lexical JSON helpers                          |
+| `cmsFetch`                           | Low-level REST (prefer higher-level helpers)  |
 
 ### Fetch behaviour
 
@@ -151,18 +151,18 @@ This keeps local UI work unblocked without a published CMS page.
 
 `RenderBlocks` maps each Payload `blockType` to a React view:
 
-| `blockType` | View | Notes |
-| --- | --- | --- |
-| `hero` | `HeroBlockView` | Media positions: background / left / right / none |
-| `cta` | `CtaBlockView` | Styles: brand / sand / outline |
-| `infoSection` | `InfoSectionBlockView` | Story-style section + optional link |
-| `gallery` | `GalleryBlockView` | 2–4 columns |
-| `testimonials` | `TestimonialsBlockView` | Manual relations or latest published |
-| `faq` | `FaqBlockView` | Manual / category / all + Accordion |
-| `newsletter` | `NewsletterBlockView` | Client form UI; provider hookup TBD (`formId`) |
-| `featuredProducts` | `FeaturedProductsBlockView` | Uses `@/lib/commerce` |
-| `featuredCategories` | `FeaturedCategoriesBlockView` | Uses `@/lib/commerce` |
-| `impactStats` | `ImpactStatsBlockView` | Stat cards |
+| `blockType`          | View                          | Notes                                             |
+| -------------------- | ----------------------------- | ------------------------------------------------- |
+| `hero`               | `HeroBlockView`               | Media positions: background / left / right / none |
+| `cta`                | `CtaBlockView`                | Styles: brand / sand / outline                    |
+| `infoSection`        | `InfoSectionBlockView`        | Story-style section + optional link               |
+| `gallery`            | `GalleryBlockView`            | 2–4 columns                                       |
+| `testimonials`       | `TestimonialsBlockView`       | Manual relations or latest published              |
+| `faq`                | `FaqBlockView`                | Manual / category / all + Accordion               |
+| `newsletter`         | `NewsletterBlockView`         | Client form UI; provider hookup TBD (`formId`)    |
+| `featuredProducts`   | `FeaturedProductsBlockView`   | Uses `@/lib/commerce`                             |
+| `featuredCategories` | `FeaturedCategoriesBlockView` | Uses `@/lib/commerce`                             |
+| `impactStats`        | `ImpactStatsBlockView`        | Stat cards                                        |
 
 Unknown `blockType` values are skipped (safe forward-compat).
 
@@ -220,13 +220,13 @@ Do not put presentation-only Tailwind decisions into Payload fields unless edito
 
 ## Localization
 
-| Concern | Mechanism |
-| --- | --- |
-| URL locale | `next-intl` `/en`, `/es` |
-| CMS field locale | REST `locale` + `fallback-locale` |
-| Shared slug | Page `slug` is **not** localized (same handle both languages) |
-| UI chrome fallback | `messages/en.json`, `messages/es.json` |
-| Catalog locale | Passed into `commerce.*` as `locale` when provider supports it |
+| Concern            | Mechanism                                                      |
+| ------------------ | -------------------------------------------------------------- |
+| URL locale         | `next-intl` `/en`, `/es`                                       |
+| CMS field locale   | REST `locale` + `fallback-locale`                              |
+| Shared slug        | Page `slug` is **not** localized (same handle both languages)  |
+| UI chrome fallback | `messages/en.json`, `messages/es.json`                         |
+| Catalog locale     | Passed into `commerce.*` as `locale` when provider supports it |
 
 Editors translate localized block fields in admin locale switcher; they must **Publish** each locale as required by your draft workflow.
 
@@ -244,7 +244,11 @@ import { revalidateTag } from "next/cache";
 revalidateTag("cms-page-home");
 ```
 
-Wire a Payload `afterChange` hook or CMS webhook when you need instant publishes in production.
+Product and media changes use a Payload hook to call the storefront catalog
+revalidation endpoint. Configure `STOREFRONT_REVALIDATION_URL` in the CMS and the
+same server-only `STOREFRONT_REVALIDATION_SECRET` in both applications. Failed
+delivery does not block editing; the existing 60–120 second cache lifetime remains
+the fallback. Never expose this secret through a `NEXT_PUBLIC_*` variable.
 
 ---
 
@@ -272,14 +276,14 @@ Wire a Payload `afterChange` hook or CMS webhook when you need instant publishes
 
 ## Troubleshooting
 
-| Symptom | Likely cause |
-| --- | --- |
-| Always see fallback home | No URL env; page draft; wrong slug; empty `layout` |
-| 404 / CMS errors in server logs | CMS down; CORS not required for server-side fetch; bad port |
-| Images broken | Media host not in `next.config` images; relative URL not resolved |
-| Empty product block | Commerce not configured; products draft; slug mismatch |
-| EN shows, ES missing copy | Locale fields empty and fallback disabled/misconfigured |
-| Stale content ~1 min | Expected with `revalidate: 60` |
+| Symptom                         | Likely cause                                                      |
+| ------------------------------- | ----------------------------------------------------------------- |
+| Always see fallback home        | No URL env; page draft; wrong slug; empty `layout`                |
+| 404 / CMS errors in server logs | CMS down; CORS not required for server-side fetch; bad port       |
+| Images broken                   | Media host not in `next.config` images; relative URL not resolved |
+| Empty product block             | Commerce not configured; products draft; slug mismatch            |
+| EN shows, ES missing copy       | Locale fields empty and fallback disabled/misconfigured           |
+| Stale content ~1 min            | Expected with `revalidate: 60`                                    |
 
 ---
 

@@ -24,11 +24,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       product.seo.description ||
       product.description?.slice(0, 160) ||
       undefined;
-    const image = product.featuredImage?.url;
+    const image = product.seo.image?.url ?? product.featuredImage?.url;
 
     return {
       title,
       description,
+      robots: product.seo.noIndex ? { index: false, follow: false } : undefined,
       openGraph: {
         title,
         description,
@@ -57,6 +58,9 @@ export default async function ProductRoutePage({ params }: Props) {
       labels={{
         backToShop: t("backToShop"),
         gallery: t("gallery"),
+        noMedia: t("noMedia"),
+        mediaError: t("mediaError"),
+        retryMedia: t("retryMedia"),
         addToCart: t("addToCart"),
         adding: t("adding"),
         soldOut: t("soldOut"),
@@ -65,6 +69,7 @@ export default async function ProductRoutePage({ params }: Props) {
         increase: t("increase"),
         from: t("from"),
         unavailable: t("unavailable"),
+        productUnavailable: t("productUnavailable"),
         addFailed: t("addFailed"),
         storyEyebrow: t("storyEyebrow"),
         storyTitle: t("storyTitle"),
@@ -73,10 +78,14 @@ export default async function ProductRoutePage({ params }: Props) {
         relatedEyebrow: t("relatedEyebrow"),
         relatedTitle: t("relatedTitle"),
         tags: t("tags"),
+        breadcrumb: t("breadcrumb"),
         description: t("description"),
         ingredients: t("ingredients"),
         howToUse: t("howToUse"),
         originImpact: t("originImpact"),
+        originCountry: t("originCountry"),
+        originRegion: t("originRegion"),
+        originCommunity: t("originCommunity"),
         freeShipping: t("freeShipping"),
         securePayment: t("securePayment"),
         ethicallySourced: t("ethicallySourced"),

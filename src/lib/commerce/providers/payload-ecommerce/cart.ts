@@ -1,6 +1,12 @@
-import { CommerceError, type Cart, type CartLineInput, type CartLineUpdateInput } from "@/types/commerce";
+import {
+  CommerceError,
+  type Cart,
+  type CartLineInput,
+  type CartLineUpdateInput,
+} from "@/types/commerce";
 import { collectionPath, localeQuery, payloadFetch } from "./client";
 import { getPayloadEcommerceConfig } from "./config";
+import { resolvePayloadMerchandise } from "./merchandise";
 import {
   decodeCartRef,
   encodeCartRef,
@@ -23,6 +29,8 @@ type ResolvedMerchandise = {
 
 export type PayloadCartParams = {
   locale?: string | null;
+  acceptPriceChanges?: boolean;
+  fulfillmentMode?: import("@/lib/commerce/local-purchase").FulfillmentMode | null;
 };
 
 function cartPath(cartId: string, action?: string) {
@@ -31,7 +39,9 @@ function cartPath(cartId: string, action?: string) {
   return action ? `${base}/${action}` : base;
 }
 
-async function findVariant(merchandiseId: string): Promise<PayloadVariantDoc | null> {
+async function findVariant(
+  merchandiseId: string,
+): Promise<PayloadVariantDoc | null> {
   const config = getPayloadEcommerceConfig();
   try {
     return await payloadFetch<PayloadVariantDoc>({
@@ -39,12 +49,15 @@ async function findVariant(merchandiseId: string): Promise<PayloadVariantDoc | n
       query: { depth: 1 },
       cache: "no-store",
     });
-  } catch {
-    return null;
+  } catch (error) {
+    if (error instanceof CommerceError && error.status === 404) return null;
+    throw error;
   }
 }
 
-async function findProduct(merchandiseId: string): Promise<PayloadProductDoc | null> {
+async function findProduct(
+  merchandiseId: string,
+): Promise<PayloadProductDoc | null> {
   const config = getPayloadEcommerceConfig();
   try {
     return await payloadFetch<PayloadProductDoc>({
@@ -52,8 +65,9 @@ async function findProduct(merchandiseId: string): Promise<PayloadProductDoc | n
       query: { depth: 0 },
       cache: "no-store",
     });
-  } catch {
-    return null;
+  } catch (error) {
+    if (error instanceof CommerceError && error.status === 404) return null;
+    throw error;
   }
 }
 
@@ -68,49 +82,7 @@ async function findProduct(merchandiseId: string): Promise<PayloadProductDoc | n
 export async function resolveMerchandise(
   merchandiseId: string,
 ): Promise<ResolvedMerchandise> {
-  const raw = merchandiseId.trim();
-
-  if (raw.startsWith("product:")) {
-    return { productId: raw.slice("product:".length) };
-  }
-  if (raw.startsWith("variant:")) {
-    const variantId = raw.slice("variant:".length);
-    const variant = await findVariant(variantId);
-    const productId = toId(variant?.product);
-    if (!productId) {
-      throw new CommerceError(`Variant "${variantId}" has no linked product.`, {
-        provider: "payload",
-      });
-    }
-    return { productId, variantId };
-  }
-
-  if (raw.includes(":") && !raw.startsWith("gid://")) {
-    const [productId, variantId] = raw.split(":");
-    if (productId && variantId) {
-      return { productId, variantId };
-    }
-  }
-
-  const variant = await findVariant(raw);
-  if (variant) {
-    const productId = toId(variant.product);
-    if (!productId) {
-      throw new CommerceError(`Variant "${raw}" has no linked product.`, {
-        provider: "payload",
-      });
-    }
-    return { productId, variantId: toId(variant.id) };
-  }
-
-  const product = await findProduct(raw);
-  if (product) {
-    return { productId: toId(product.id) };
-  }
-
-  throw new CommerceError(`Unable to resolve merchandise id "${merchandiseId}".`, {
-    provider: "payload",
-  });
+  return resolvePayloadMerchandise(merchandiseId, { findProduct, findVariant });
 }
 
 async function fetchCartDocument(
@@ -135,7 +107,9 @@ async function fetchProductDocsForCart(
   productIds: string[],
 ): Promise<Map<string, PayloadProductDoc>> {
   const config = getPayloadEcommerceConfig();
-  const unique = [...new Set(productIds.map((id) => id.trim()).filter(Boolean))];
+  const unique = [
+    ...new Set(productIds.map((id) => id.trim()).filter(Boolean)),
+  ];
   const map = new Map<string, PayloadProductDoc>();
 
   await Promise.all(
@@ -152,8 +126,9 @@ async function fetchProductDocsForCart(
           cache: "no-store",
         });
         map.set(toId(doc.id), doc);
-      } catch {
-        // skip missing products
+      } catch (error) {
+        if (!(error instanceof CommerceError && error.status === 404))
+          throw error;
       }
     }),
   );
@@ -170,9 +145,9 @@ async function finalizeCart(cart: Cart, locale?: string | null): Promise<Cart> {
 function isCartDoc(value: unknown): value is PayloadCartDoc {
   return Boolean(
     value &&
-      typeof value === "object" &&
-      "id" in value &&
-      (value as { id: unknown }).id != null,
+    typeof value === "object" &&
+    "id" in value &&
+    (value as { id: unknown }).id != null,
   );
 }
 
@@ -206,7 +181,10 @@ function extractCartDoc(
 }
 
 function extractSecret(
-  result: PayloadCartMutationResult | PayloadCartDoc | { doc?: PayloadCartDoc; secret?: string },
+  result:
+    | PayloadCartMutationResult
+    | PayloadCartDoc
+    | { doc?: PayloadCartDoc; secret?: string },
   cartDoc: PayloadCartDoc,
   fallbackSecret?: string,
 ): string | null {
@@ -250,23 +228,33 @@ function withPreservedSecret(cart: Cart, secret?: string | null): Cart {
   };
 }
 
-function resultToCart(
+async function resultToCart(
   result: PayloadCartMutationResult | PayloadCartDoc,
   fallbackSecret?: string,
-): Cart {
+  locale?: string | null,
+): Promise<Cart> {
   const config = getPayloadEcommerceConfig();
   const cartDoc = extractCartDoc(result);
 
   if (!cartDoc) {
-    throw new CommerceError("Payload cart response did not include a cart document.", {
-      provider: "payload",
-      errors: result,
-    });
+    throw new CommerceError(
+      "Payload cart response did not include a cart document.",
+      {
+        provider: "payload",
+        errors: result,
+      },
+    );
   }
 
   const secret = extractSecret(result, cartDoc, fallbackSecret);
-  const cart = mapCart(cartDoc, {
+  // Mutation responses are depth 0. Populate relationships before price
+  // validation; an ID-only response does not mean the saved item lacks a price.
+  const populated = cartDoc.items?.length
+    ? await fetchCartDocument(toId(cartDoc.id), secret ?? undefined, locale)
+    : cartDoc;
+  const cart = mapCart(populated, {
     secret,
+    locale,
     checkoutBaseUrl: config.checkoutBaseUrl,
   });
 
@@ -278,12 +266,8 @@ function resultToCart(
  * Re-fetch so line titles, handles, and unit prices are populated for the UI.
  */
 async function hydrateCart(cart: Cart, locale?: string | null): Promise<Cart> {
-  try {
-    const fresh = await getCart(cart.id, { locale });
-    return fresh ?? cart;
-  } catch {
-    return finalizeCart(cart, locale);
-  }
+  const fresh = await getCart(cart.id, { locale });
+  return fresh ?? cart;
 }
 
 export async function getCart(
@@ -325,23 +309,31 @@ export async function createCart(input?: {
   lines?: CartLineInput[];
   note?: string;
   locale?: string | null;
+  fulfillmentMode?: PayloadCartParams["fulfillmentMode"];
 }): Promise<Cart> {
   const config = getPayloadEcommerceConfig();
   const locale = input?.locale;
 
   // Create empty cart first (guest carts require allowGuestCarts on Payload side)
-  const created = await payloadFetch<PayloadCartMutationResult | PayloadCartDoc | { doc: PayloadCartDoc }>({
+  const created = await payloadFetch<
+    PayloadCartMutationResult | PayloadCartDoc | { doc: PayloadCartDoc }
+  >({
     method: "POST",
     path: collectionPath(config.cartsSlug),
     body: {
       items: [],
       ...(input?.note ? { note: input.note } : {}),
+      ...(input?.fulfillmentMode !== undefined
+        ? { fulfillmentMode: input.fulfillmentMode }
+        : {}),
       currency: config.currencyCode,
     },
     cache: "no-store",
   });
 
-  let cart = resultToCart(created as PayloadCartMutationResult | PayloadCartDoc);
+  let cart = await resultToCart(
+    created as PayloadCartMutationResult | PayloadCartDoc,
+  );
 
   if (input?.lines?.length) {
     cart = await addCartLines(cart.id, input.lines, { locale });
@@ -360,6 +352,41 @@ export async function addCartLines(
   const { cartId, secret } = decodeCartRef(cartRef);
   const locale = params.locale;
   let latest: Cart | null = null;
+
+  // Payload reprices every stored line on mutation. A removed catalogue record
+  // otherwise makes even adding a different, valid item fail with 404.
+  const stored = await fetchCartDocument(cartId, secret, locale);
+  const checks = await Promise.all(
+    (stored.items ?? []).map(async (item) => {
+      const productId = toId(item.product);
+      const variantId = toId(item.variant);
+      const product = productId ? await findProduct(productId) : null;
+      const variant = variantId ? await findVariant(variantId) : null;
+      return { item, unavailable: !product || Boolean(variantId && !variant) };
+    }),
+  );
+  const remaining = checks
+    .filter((entry) => !entry.unavailable)
+    .map(({ item }) => ({
+      ...(item.id ? { id: item.id } : {}),
+      product: toPayloadRelationId(item.product),
+      ...(item.variant ? { variant: toPayloadRelationId(item.variant) } : {}),
+      quantity: item.quantity ?? 1,
+    }));
+  if (checks.some((entry) => entry.unavailable)) {
+    // Remove all stale references in one update so repricing never encounters
+    // another missing line. Preserve existing valid line IDs and quantities.
+    await payloadFetch({
+      method: "PATCH",
+      path: cartPath(cartId),
+      query: secret ? { secret } : undefined,
+      body: {
+        items: remaining,
+        currency: stored.currency ?? getPayloadEcommerceConfig().currencyCode,
+      },
+      cache: "no-store",
+    });
+  }
 
   for (const line of lines) {
     const merchandise = await resolveMerchandise(line.merchandiseId);
@@ -390,7 +417,7 @@ export async function addCartLines(
       });
     }
 
-    latest = resultToCart(result, secret);
+    latest = await resultToCart(result, secret, locale);
   }
 
   if (!latest) {
@@ -415,6 +442,40 @@ export async function updateCartLines(
   const locale = params.locale;
   let latest: Cart | null = null;
 
+  if (params.acceptPriceChanges) {
+    const stored = await fetchCartDocument(cartId, secret, locale);
+    const result = await payloadFetch<PayloadCartMutationResult>({
+      method: "PATCH",
+      path: cartPath(cartId),
+      query: { ...localeQuery(locale), ...(secret ? { secret } : {}) },
+      body: {
+        currency: "ARS",
+        acceptCurrentPrices: true,
+        items: (stored.items ?? []).map((item) => ({
+          id: item.id,
+          product: toPayloadRelationId(item.product),
+          ...(item.variant
+            ? { variant: toPayloadRelationId(item.variant) }
+            : {}),
+          quantity: item.quantity,
+        })),
+      },
+      cache: "no-store",
+    });
+    latest = await resultToCart(result, secret, locale);
+  }
+
+  if (params.fulfillmentMode !== undefined) {
+    const result = await payloadFetch<PayloadCartMutationResult>({
+      method: "PATCH",
+      path: cartPath(cartId),
+      query: { ...localeQuery(locale), ...(secret ? { secret } : {}) },
+      body: { fulfillmentMode: params.fulfillmentMode },
+      cache: "no-store",
+    });
+    latest = await resultToCart(result, secret, locale);
+  }
+
   for (const line of lines) {
     const result = await payloadFetch<PayloadCartMutationResult>({
       method: "POST",
@@ -435,7 +496,7 @@ export async function updateCartLines(
       });
     }
 
-    latest = resultToCart(result, secret);
+    latest = await resultToCart(result, secret, locale);
   }
 
   if (!latest) {
@@ -486,7 +547,7 @@ export async function removeCartLines(
       });
     }
 
-    latest = resultToCart(result, secret);
+    latest = await resultToCart(result, secret, locale);
   }
 
   if (!latest) {

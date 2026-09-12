@@ -2,6 +2,7 @@
 
 import { useId, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils/cn";
+import { Minus, Plus } from "lucide-react";
 
 export type AccordionItem = {
   id: string;
@@ -53,7 +54,7 @@ export function Accordion({
               >
                 <span>{item.title}</span>
                 <span aria-hidden className="text-forest/50">
-                  {isOpen ? "−" : "+"}
+                  {isOpen ? <Minus aria-hidden className="size-4" /> : <Plus aria-hidden className="size-4" />}
                 </span>
               </button>
             </h3>

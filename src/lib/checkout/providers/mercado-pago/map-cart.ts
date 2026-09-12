@@ -20,7 +20,13 @@ export function cartToPreferenceItems(cart: Cart): MercadoPagoPreferenceItem[] {
 
   return cart.lines.map((line) => {
     const amount = Number.parseFloat(line.cost.amountPerQuantity.amount);
-    if (!Number.isFinite(amount) || amount < 0) {
+    if (
+      !Number.isFinite(amount) ||
+      amount <= 0 ||
+      !/^\d+(\.\d{1,2})?$/.test(line.cost.amountPerQuantity.amount) ||
+      !Number.isSafeInteger(line.quantity) ||
+      line.quantity <= 0
+    ) {
       throw new CheckoutError(
         `Invalid unit price for cart line "${line.id}".`,
         { provider: "mercado-pago" },
@@ -33,14 +39,12 @@ export function cartToPreferenceItems(cart: Cart): MercadoPagoPreferenceItem[] {
       "ARS";
 
     const title =
-      line.merchandise.product.title ||
-      line.merchandise.title ||
-      "Item";
+      line.merchandise.product.title || line.merchandise.title || "Item";
 
     const item: MercadoPagoPreferenceItem = {
       id: line.merchandise.id || line.id,
       title: title.slice(0, 256),
-      quantity: Math.max(1, Math.floor(line.quantity)),
+      quantity: line.quantity,
       unit_price: Number(amount.toFixed(2)),
       currency_id: currency.toUpperCase(),
     };

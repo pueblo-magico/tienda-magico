@@ -9,13 +9,13 @@ import { slugField } from '../fields/slug'
 export const Posts: CollectionConfig = {
   slug: 'posts',
   labels: {
-    singular: 'Post',
-    plural: 'Posts',
+    singular: { es: 'Publicación', en: 'Post' },
+    plural: { es: 'Publicaciones', en: 'Posts' },
   },
   admin: {
     useAsTitle: 'title',
     defaultColumns: ['title', 'slug', 'publishedAt', '_status', 'updatedAt'],
-    group: 'Content',
+    group: { es: 'Contenido', en: 'Content' },
   },
   versions: {
     drafts: {
@@ -43,7 +43,10 @@ export const Posts: CollectionConfig = {
       type: 'textarea',
       localized: true,
       admin: {
-        description: 'Short summary for cards and listings.',
+        description: {
+          es: 'Resumen breve para tarjetas y listados.',
+          en: 'Short summary for cards and listings.',
+        },
       },
     },
     {

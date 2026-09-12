@@ -2,13 +2,19 @@ import { NextResponse } from "next/server";
 import { commerce } from "@/lib/commerce";
 import { checkout } from "@/lib/checkout";
 import { CheckoutConfigError, CheckoutError } from "@/types/checkout";
+import { CommerceConfigError, CommerceError } from "@/types/commerce";
+import {
+  FulfillmentModeError,
+  validateFulfillmentModeForCheckout,
+} from "@/lib/commerce/local-purchase";
+import { getCommerceSettings } from "@/lib/cms";
+import { isFulfillmentModeEnabled } from "@/lib/commerce/commerce-settings";
 
 export const dynamic = "force-dynamic";
 
 function siteUrl(request: Request): string {
   const env =
-    process.env.NEXT_PUBLIC_SITE_URL?.trim() ||
-    process.env.SITE_URL?.trim();
+    process.env.NEXT_PUBLIC_SITE_URL?.trim() || process.env.SITE_URL?.trim();
   if (env) return env.replace(/\/$/, "");
 
   const host =
@@ -22,6 +28,10 @@ function siteUrl(request: Request): string {
 }
 
 function errorResponse(error: unknown) {
+  if (error instanceof FulfillmentModeError) {
+    return NextResponse.json({ error: error.message }, { status: 400 });
+  }
+
   if (error instanceof CheckoutConfigError) {
     return NextResponse.json(
       {
@@ -30,6 +40,27 @@ function errorResponse(error: unknown) {
         configured: false,
       },
       { status: 503 },
+    );
+  }
+
+  if (error instanceof CommerceConfigError) {
+    return NextResponse.json(
+      {
+        error: error.message,
+        provider: error.provider ?? null,
+        configured: false,
+      },
+      { status: 503 },
+    );
+  }
+
+  if (error instanceof CommerceError) {
+    return NextResponse.json(
+      {
+        error: error.message,
+        provider: error.provider ?? null,
+      },
+      { status: error.status && error.status >= 400 ? error.status : 502 },
     );
   }
 
@@ -106,6 +137,15 @@ export async function POST(request: Request) {
       );
     }
 
+    const fulfillmentMode = validateFulfillmentModeForCheckout(
+      cart.fulfillmentMode,
+      locale,
+    );
+    const commerceSettings = await getCommerceSettings();
+    if (!isFulfillmentModeEnabled(fulfillmentMode, commerceSettings)) {
+      throw new FulfillmentModeError(locale);
+    }
+
     const base = siteUrl(request);
     const returnUrls = {
       success: `${base}/${locale}/checkout/success`,
@@ -118,19 +158,22 @@ export async function POST(request: Request) {
       process.env.CHECKOUT_WEBHOOK_URL?.trim() ||
       `${base}/api/checkout/webhooks/mercado-pago`;
 
+    const customer = {
+      email: body.email?.trim() || null,
+      name: body.name?.trim() || null,
+    };
+    const order = await commerce.createCheckoutOrder(cart, customer);
     const session = await checkout.createCheckoutSession({
       cart,
       locale,
-      customer: {
-        email: body.email?.trim() || null,
-        name: body.name?.trim() || null,
-      },
+      customer,
       returnUrls,
-      externalReference: cart.id,
+      externalReference: order?.id ?? cart.id,
       notificationUrl:
         checkout.provider.name === "mercado-pago" ? notificationUrl : null,
       metadata: {
         locale,
+        fulfillment_mode: fulfillmentMode,
       },
     });
 

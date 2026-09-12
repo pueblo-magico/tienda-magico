@@ -1,3 +1,4 @@
+import { parseFulfillmentMode } from "@/lib/commerce/local-purchase";
 import {
   CommerceError,
   type Cart,
@@ -67,6 +68,7 @@ export function mapProductSummary(product: {
     title: product.title,
     vendor: product.vendor ?? "",
     availableForSale: Boolean(product.availableForSale),
+    lifecycleStatus: "active",
     tags: product.tags ?? [],
     featuredImage: mapImage(product.featuredImage),
     priceRange: {
@@ -95,7 +97,9 @@ export function mapProductVariant(variant: {
     sku: variant.sku ?? null,
     selectedOptions: variant.selectedOptions ?? [],
     price: mapMoney(variant.price),
-    compareAtPrice: variant.compareAtPrice ? mapMoney(variant.compareAtPrice) : null,
+    compareAtPrice: variant.compareAtPrice
+      ? mapMoney(variant.compareAtPrice)
+      : null,
     image: mapImage(variant.image),
   };
 }
@@ -135,10 +139,13 @@ export function mapProduct(product: {
     productType: product.productType ?? "",
     tags: product.tags ?? [],
     availableForSale: Boolean(product.availableForSale),
+    lifecycleStatus: "active",
     createdAt: product.createdAt ?? "",
     updatedAt: product.updatedAt ?? "",
     featuredImage: mapImage(product.featuredImage),
-    images: nodesFromConnection(product.images).map((image) => mapImage(image)!).filter(Boolean),
+    images: nodesFromConnection(product.images)
+      .map((image) => mapImage(image)!)
+      .filter(Boolean),
     options: (product.options ?? []).map((option) => ({
       id: option.id,
       name: option.name,
@@ -169,6 +176,7 @@ export function mapCollectionSummary(collection: {
     title: collection.title,
     description: collection.description ?? "",
     image: mapImage(collection.image),
+    icon: null,
   };
 }
 
@@ -192,6 +200,7 @@ export function mapCollection(collection: {
     description: collection.description ?? "",
     descriptionHtml: collection.descriptionHtml ?? "",
     image: mapImage(collection.image),
+    icon: null,
     seo: {
       title: collection.seo?.title ?? null,
       description: collection.seo?.description ?? null,
@@ -209,6 +218,7 @@ export function mapCartLine(line: {
   } | null;
   merchandise?: {
     id: string;
+    sku?: string | null;
     title: string;
     selectedOptions?: Array<{ name: string; value: string }> | null;
     price?: Maybe<Money>;
@@ -233,6 +243,7 @@ export function mapCartLine(line: {
     },
     merchandise: {
       id: line.merchandise.id,
+      sku: line.merchandise.sku ?? null,
       title: line.merchandise.title,
       selectedOptions: line.merchandise.selectedOptions ?? [],
       price: mapMoney(line.merchandise.price),
@@ -251,6 +262,7 @@ export function mapCart(cart: {
   checkoutUrl: string;
   totalQuantity?: number | null;
   note?: string | null;
+  attributes?: Array<{ key: string; value: string }> | null;
   cost?: {
     subtotalAmount?: Maybe<Money>;
     totalAmount?: Maybe<Money>;
@@ -261,6 +273,12 @@ export function mapCart(cart: {
   return {
     id: cart.id,
     checkoutUrl: cart.checkoutUrl,
+    fulfillmentMode: (() => {
+      const value = cart.attributes?.find(
+        (attribute) => attribute.key === "fulfillment_mode",
+      )?.value;
+      return value ? parseFulfillmentMode(value) : null;
+    })(),
     totalQuantity: cart.totalQuantity ?? 0,
     note: cart.note ?? null,
     cost: {
@@ -277,7 +295,8 @@ export function mapCart(cart: {
 }
 
 export function assertNoUserErrors(
-  userErrors: Array<{ message: string; field?: string[] | null }> | null | undefined,
+  userErrors:
+    Array<{ message: string; field?: string[] | null }> | null | undefined,
   action: string,
 ) {
   if (userErrors?.length) {

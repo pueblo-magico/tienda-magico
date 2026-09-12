@@ -43,18 +43,18 @@ Cart UI / /[locale]/checkout
 
 ### Key paths
 
-| Path | Role |
-| --- | --- |
-| `src/types/checkout.ts` | Domain types + `CheckoutError` / `CheckoutConfigError` |
-| `src/lib/checkout/provider.ts` | `CheckoutProvider` interface |
-| `src/lib/checkout/index.ts` | `checkout` facade + `getCheckoutProvider()` |
-| `src/lib/checkout/create-provider.ts` | Factory (`CHECKOUT_PROVIDER` + auto-detect) |
-| `src/lib/checkout/providers/mercado-pago/*` | Checkout Pro Preferences adapter |
-| `src/lib/checkout/providers/commerce-redirect/*` | Shopify / external `checkoutUrl` |
-| `src/features/checkout/*` | Client `createCheckoutSession`, `CheckoutStart` |
-| `src/app/api/checkout/route.ts` | `GET` status / `POST` create session |
-| `src/app/api/checkout/webhooks/mercado-pago/route.ts` | IPN / webhook stub |
-| `src/app/[locale]/checkout/**` | Entry + success / failure / pending pages |
+| Path                                                  | Role                                                   |
+| ----------------------------------------------------- | ------------------------------------------------------ |
+| `src/types/checkout.ts`                               | Domain types + `CheckoutError` / `CheckoutConfigError` |
+| `src/lib/checkout/provider.ts`                        | `CheckoutProvider` interface                           |
+| `src/lib/checkout/index.ts`                           | `checkout` facade + `getCheckoutProvider()`            |
+| `src/lib/checkout/create-provider.ts`                 | Factory (`CHECKOUT_PROVIDER` + auto-detect)            |
+| `src/lib/checkout/providers/mercado-pago/*`           | Checkout Pro Preferences adapter                       |
+| `src/lib/checkout/providers/commerce-redirect/*`      | Shopify / external `checkoutUrl`                       |
+| `src/features/checkout/*`                             | Client `createCheckoutSession`, `CheckoutStart`        |
+| `src/app/api/checkout/route.ts`                       | `GET` status / `POST` create session                   |
+| `src/app/api/checkout/webhooks/mercado-pago/route.ts` | IPN / webhook stub                                     |
+| `src/app/[locale]/checkout/**`                        | Entry + success / failure / pending pages              |
 
 ---
 
@@ -87,17 +87,17 @@ CHECKOUT_PROVIDER=commerce-redirect
 
 ### Variable reference
 
-| Variable | Required | Notes |
-| --- | --- | --- |
-| `CHECKOUT_PROVIDER` | No | `mercado-pago` \| `commerce-redirect`. Auto: MP when token is set, else commerce-redirect |
-| `MERCADOPAGO_ACCESS_TOKEN` | For MP | Access token from MP Developers. Alias: `MP_ACCESS_TOKEN` |
-| `MERCADOPAGO_SANDBOX` | No | `true`/`false`. Default: `true` when token starts with `TEST-` |
-| `MERCADOPAGO_API_BASE_URL` | No | Default `https://api.mercadopago.com` |
-| `MERCADOPAGO_STATEMENT_DESCRIPTOR` | No | Card statement text (max 22) |
-| `MERCADOPAGO_BINARY_MODE` | No | `true` → approved or rejected only |
-| `MERCADOPAGO_WEBHOOK_URL` | No | Public HTTPS webhook override |
-| `CHECKOUT_WEBHOOK_URL` | No | Generic alias for notification URL |
-| `NEXT_PUBLIC_SITE_URL` | Recommended | Absolute site origin for return URLs |
+| Variable                           | Required    | Notes                                                                                     |
+| ---------------------------------- | ----------- | ----------------------------------------------------------------------------------------- |
+| `CHECKOUT_PROVIDER`                | No          | `mercado-pago` \| `commerce-redirect`. Auto: MP when token is set, else commerce-redirect |
+| `MERCADOPAGO_ACCESS_TOKEN`         | For MP      | Access token from MP Developers. Alias: `MP_ACCESS_TOKEN`                                 |
+| `MERCADOPAGO_SANDBOX`              | No          | Legacy compatibility flag. Checkout Pro test credentials use the returned `init_point`    |
+| `MERCADOPAGO_API_BASE_URL`         | No          | Default `https://api.mercadopago.com`                                                     |
+| `MERCADOPAGO_STATEMENT_DESCRIPTOR` | No          | Card statement text (max 22)                                                              |
+| `MERCADOPAGO_BINARY_MODE`          | No          | `true` → approved or rejected only                                                        |
+| `MERCADOPAGO_WEBHOOK_URL`          | No          | Public HTTPS webhook override                                                             |
+| `CHECKOUT_WEBHOOK_URL`             | No          | Generic alias for notification URL                                                        |
+| `NEXT_PUBLIC_SITE_URL`             | Recommended | Absolute site origin for return URLs                                                      |
 
 ---
 
@@ -178,12 +178,12 @@ Success (`200`):
 
 Errors:
 
-| Status | When |
-| --- | --- |
-| `400` | Missing `cartId`, empty cart, or gateway validation (e.g. bad preference) |
-| `404` | Cart not found / empty |
-| `503` | Commerce or checkout provider not configured |
-| `502` | Upstream gateway / `CheckoutError` |
+| Status | When                                                                      |
+| ------ | ------------------------------------------------------------------------- |
+| `400`  | Missing `cartId`, empty cart, or gateway validation (e.g. bad preference) |
+| `404`  | Cart not found / empty                                                    |
+| `503`  | Commerce or checkout provider not configured                              |
+| `502`  | Upstream gateway / `CheckoutError`                                        |
 
 ### Client helper
 
@@ -205,7 +205,7 @@ window.location.href = session.redirectUrl;
 
 1. Maps cart lines → preference `items` (`map-cart.ts`)
 2. `POST /checkout/preferences` with bearer access token
-3. Returns `sandbox_init_point` or `init_point` based on `MERCADOPAGO_SANDBOX`
+3. Returns `init_point`; uses `sandbox_init_point` only when the API omits the current URL
 4. Sets `external_reference` to the commerce cart id (including Payload `id::secret`)
 
 **Localhost constraints (important):**
@@ -224,13 +224,13 @@ Uses `cart.checkoutUrl` from `@/lib/commerce` (Shopify Checkout).
 
 ## Routes (storefront)
 
-| Route | Purpose |
-| --- | --- |
-| `/[locale]/checkout` | Entry: optional `?cart=`; starts session and redirects |
-| `/[locale]/checkout/success` | Return URL after approved payment |
-| `/[locale]/checkout/failure` | Return URL after failure / cancel |
-| `/[locale]/checkout/pending` | Return URL while payment is pending |
-| `/[locale]/cart` | Cart UI; Checkout CTA → `POST /api/checkout` |
+| Route                        | Purpose                                                |
+| ---------------------------- | ------------------------------------------------------ |
+| `/[locale]/checkout`         | Entry: optional `?cart=`; starts session and redirects |
+| `/[locale]/checkout/success` | Return URL after approved payment                      |
+| `/[locale]/checkout/failure` | Return URL after failure / cancel                      |
+| `/[locale]/checkout/pending` | Return URL while payment is pending                    |
+| `/[locale]/cart`             | Cart UI; Checkout CTA → `POST /api/checkout`           |
 
 Payload default `Cart.checkoutUrl` is `{SITE}/checkout?cart={id::secret}`, rewritten by locale middleware to `/en/checkout` or `/es/checkout`.
 
@@ -274,15 +274,15 @@ Do **not** branch on provider name inside presentational components.
 
 ## Troubleshooting
 
-| Symptom | Likely cause | Fix |
-| --- | --- | --- |
-| “No external payment provider is configured” | Token only in `.env.example`, or wrong provider | Put vars in **`.env.local`**, set `CHECKOUT_PROVIDER=mercado-pago`, restart dev |
-| `GET /api/checkout` → `commerce-redirect` + `configured: true` but checkout fails | Payload self `checkoutUrl` blocked | Configure MP token; confirm provider name is `mercado-pago` |
-| `auto_return invalid. back_url.success must be defined` | Old build or forced auto_return on localhost | Use current adapter (skips auto_return on non-public URLs) |
-| `POST /api/checkout` 404 cart | Stale / missing cart id | Re-add items; check `pm_cart_id` and Payload cart secret format `id::secret` |
-| Preference 400 on items/currency | Bad prices or mixed currencies | Ensure cart line amounts are finite; single currency per cart |
-| No redirect back after paying (local) | Expected without public HTTPS | Use ngrok/cloudflared or test return pages manually |
-| Images / titles wrong at MP | Cart enrichment / CMS locale | See commerce cart docs; set EN+ES product titles |
+| Symptom                                                                           | Likely cause                                    | Fix                                                                             |
+| --------------------------------------------------------------------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------- |
+| “No external payment provider is configured”                                      | Token only in `.env.example`, or wrong provider | Put vars in **`.env.local`**, set `CHECKOUT_PROVIDER=mercado-pago`, restart dev |
+| `GET /api/checkout` → `commerce-redirect` + `configured: true` but checkout fails | Payload self `checkoutUrl` blocked              | Configure MP token; confirm provider name is `mercado-pago`                     |
+| `auto_return invalid. back_url.success must be defined`                           | Old build or forced auto_return on localhost    | Use current adapter (skips auto_return on non-public URLs)                      |
+| `POST /api/checkout` 404 cart                                                     | Stale / missing cart id                         | Re-add items; check `pm_cart_id` and Payload cart secret format `id::secret`    |
+| Preference 400 on items/currency                                                  | Bad prices or mixed currencies                  | Ensure cart line amounts are finite; single currency per cart                   |
+| No redirect back after paying (local)                                             | Expected without public HTTPS                   | Use ngrok/cloudflared or test return pages manually                             |
+| Images / titles wrong at MP                                                       | Cart enrichment / CMS locale                    | See commerce cart docs; set EN+ES product titles                                |
 
 ### Quick health check
 

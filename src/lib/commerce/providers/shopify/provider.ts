@@ -3,6 +3,8 @@ import type {
   Cart,
   CartLineInput,
   CartLineUpdateInput,
+  CartParams,
+  CheckoutOrder,
   Collection,
   CollectionSummary,
   GetCollectionParams,
@@ -13,12 +15,13 @@ import type {
   Product,
   ProductSummary,
 } from "@/types/commerce";
+import { CommerceError } from "@/types/commerce";
+import { LOCAL_COLLECTION } from "@/lib/commerce/local-purchase";
 import {
   addCartLines,
   createCart,
   getCart,
   removeCartLines,
-  updateCart,
   updateCartLines,
 } from "./cart";
 import { getCollection, getCollections } from "./collections";
@@ -36,7 +39,10 @@ export class ShopifyCommerceProvider implements CommerceProvider {
     return getProducts(params);
   }
 
-  getProduct(handle: string, _params?: GetProductParams): Promise<Product | null> {
+  getProduct(
+    handle: string,
+    _params?: GetProductParams,
+  ): Promise<Product | null> {
     // Shopify Markets/locale can be added later; Storefront adapter ignores locale for now.
     return getProduct(handle);
   }
@@ -58,7 +64,10 @@ export class ShopifyCommerceProvider implements CommerceProvider {
     return getCollection(handle, productsFirst);
   }
 
-  getCart(cartId: string, _params?: { locale?: string | null }): Promise<Cart | null> {
+  getCart(
+    cartId: string,
+    _params?: { locale?: string | null },
+  ): Promise<Cart | null> {
     return getCart(cartId);
   }
 
@@ -66,6 +75,7 @@ export class ShopifyCommerceProvider implements CommerceProvider {
     lines?: CartLineInput[];
     note?: string;
     locale?: string | null;
+    fulfillmentMode?: CartParams["fulfillmentMode"];
   }): Promise<Cart> {
     return createCart(input);
   }
@@ -73,15 +83,15 @@ export class ShopifyCommerceProvider implements CommerceProvider {
   updateCart(
     cartId: string,
     lines: CartLineUpdateInput[],
-    _params?: { locale?: string | null },
+    params?: CartParams,
   ): Promise<Cart> {
-    return updateCart(cartId, lines);
+    return updateCartLines(cartId, lines, params);
   }
 
   addCartLines(
     cartId: string,
     lines: CartLineInput[],
-    _params?: { locale?: string | null },
+    _params?: CartParams,
   ): Promise<Cart> {
     return addCartLines(cartId, lines);
   }
@@ -89,17 +99,27 @@ export class ShopifyCommerceProvider implements CommerceProvider {
   updateCartLines(
     cartId: string,
     lines: CartLineUpdateInput[],
-    _params?: { locale?: string | null },
+    params?: CartParams,
   ): Promise<Cart> {
-    return updateCartLines(cartId, lines);
+    return updateCartLines(cartId, lines, params);
   }
 
   removeCartLines(
     cartId: string,
     lineIds: string[],
-    _params?: { locale?: string | null },
+    _params?: CartParams,
   ): Promise<Cart> {
     return removeCartLines(cartId, lineIds);
+  }
+
+  async createCheckoutOrder(cart: Cart): Promise<CheckoutOrder | null> {
+    if (cart.fulfillmentMode === LOCAL_COLLECTION) {
+      throw new CommerceError(
+        "El retiro local todavía no está disponible con Shopify.",
+        { provider: "shopify", status: 400 },
+      );
+    }
+    return null;
   }
 }
 

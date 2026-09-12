@@ -15,19 +15,13 @@ import {
   pageInfoFromPayload,
   toId,
 } from "./mappers";
-import type { PayloadListResponse, PayloadProductDoc } from "./types";
+import type {
+  PayloadCategoryDoc,
+  PayloadListResponse,
+  PayloadProductDoc,
+} from "./types";
 
-type PayloadCollectionDoc = {
-  id: string | number;
-  title?: string | null;
-  name?: string | null;
-  slug?: string | null;
-  handle?: string | null;
-  description?: unknown;
-  richText?: unknown;
-  summary?: string | null;
-  image?: unknown;
-  media?: unknown;
+type PayloadCollectionDoc = PayloadCategoryDoc & {
   products?:
     | Array<string | number | PayloadProductDoc>
     | { docs?: Array<string | number | PayloadProductDoc> }
@@ -57,6 +51,8 @@ async function safeListCollections(params?: GetCollectionsParams) {
         limit,
         page,
         draft: false,
+        sort: "displayOrder",
+        "where[isVisible][equals]": true,
         ...locales,
       },
       cache: "force-cache",
@@ -96,7 +92,9 @@ export async function getCollections(
 ): Promise<Paginated<CollectionSummary>> {
   const data = await safeListCollections(params);
   return {
-    items: (data.docs ?? []).map(mapCollectionSummary),
+    items: (data.docs ?? []).map((doc) =>
+      mapCollectionSummary(doc, params?.locale),
+    ),
     pageInfo: pageInfoFromPayload(data),
   };
 }
@@ -104,6 +102,7 @@ export async function getCollections(
 function extractRelatedProducts(
   doc: PayloadCollectionDoc,
   productsFirst: number,
+  locale?: string,
 ): ProductSummary[] {
   const raw = Array.isArray(doc.products)
     ? doc.products
@@ -113,8 +112,8 @@ function extractRelatedProducts(
 
   return raw
     .map((item) => {
-      if (item && typeof item === "object") {
-        return mapProductSummary(item as PayloadProductDoc);
+      if (item && typeof item === "object" && item._status === "published") {
+        return mapProductSummary(item as PayloadProductDoc, locale);
       }
       return null;
     })
@@ -132,12 +131,15 @@ export async function getCollection(
   const locales = localeQuery(params.locale);
 
   try {
-    const bySlug = await payloadFetch<PayloadListResponse<PayloadCollectionDoc>>({
+    const bySlug = await payloadFetch<
+      PayloadListResponse<PayloadCollectionDoc>
+    >({
       path: collectionPath(config.collectionsSlug),
       query: {
         depth: Math.max(config.depth, 2),
         limit: 1,
         "where[slug][equals]": handle,
+        "where[isVisible][equals]": true,
         draft: false,
         ...locales,
       },
@@ -174,20 +176,26 @@ export async function getCollection(
       });
     }
 
-    let products = extractRelatedProducts(doc, productsFirst);
+    if (doc.isVisible === false) return null;
+
+    let products = extractRelatedProducts(doc, productsFirst, params.locale);
 
     // Fallback: products that reference this category/collection id
     if (products.length === 0) {
-      const related = await payloadFetch<PayloadListResponse<PayloadProductDoc>>({
+      const related = await payloadFetch<
+        PayloadListResponse<PayloadProductDoc>
+      >({
         path: collectionPath(config.productsSlug),
         query: {
           depth: config.depth,
           limit: productsFirst,
+          "where[_status][equals]": "published",
           draft: false,
           ...locales,
           "where[or][0][category][equals]": toId(doc.id),
-          "where[or][1][categories][contains]": toId(doc.id),
-          "where[or][2][collections][contains]": toId(doc.id),
+          "where[or][1][additionalCategories][contains]": toId(doc.id),
+          "where[or][2][categories][contains]": toId(doc.id),
+          "where[or][3][collections][contains]": toId(doc.id),
         },
         cache: "force-cache",
         next: {
@@ -199,10 +207,12 @@ export async function getCollection(
           ],
         },
       });
-      products = (related.docs ?? []).map(mapProductSummary);
+      products = (related.docs ?? [])
+        .filter((product) => product._status === "published")
+        .map((product) => mapProductSummary(product, params.locale));
     }
 
-    return mapCollection(doc, products);
+    return mapCollection(doc, products, params.locale);
   } catch (error) {
     if (
       error &&

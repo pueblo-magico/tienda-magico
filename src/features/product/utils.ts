@@ -15,17 +15,19 @@ export function findVariant(
 ): ProductVariant | null {
   if (!product.variants.length) return null;
 
-  const match = product.variants.find((variant) =>
-    selected.every((sel) =>
-      variant.selectedOptions.some(
-        (opt) =>
-          opt.name.toLowerCase() === sel.name.toLowerCase() &&
-          opt.value === sel.value,
+  const matches = product.variants.filter(
+    (variant) =>
+      selected.length === variant.selectedOptions.length &&
+      selected.every((sel) =>
+        variant.selectedOptions.some((opt) =>
+          sel.optionId && sel.valueId
+            ? opt.optionId === sel.optionId && opt.valueId === sel.valueId
+            : opt.name === sel.name && opt.value === sel.value,
+        ),
       ),
-    ),
   );
 
-  return match ?? getDefaultVariant(product);
+  return matches.length === 1 ? matches[0] : null;
 }
 
 /** Prefer product images; fall back to variant images. */
@@ -63,10 +65,12 @@ export function impactItemsFromProduct(product: Product): Array<{
 
   // unique by label
   const seen = new Set<string>();
-  return items.filter((item) => {
-    const key = item.label.toLowerCase();
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  }).slice(0, 4);
+  return items
+    .filter((item) => {
+      const key = item.label.toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .slice(0, 4);
 }

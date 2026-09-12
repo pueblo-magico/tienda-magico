@@ -1,12 +1,13 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+import { Minus, Plus } from "lucide-react";
+import { useProductSelection } from "./ProductSelection";
 import { Button } from "@/components/ui/Button";
 import { useCart } from "@/features/cart";
 import { formatMoney } from "@/lib/commerce/utils/format";
 import type { Product, ProductVariant, SelectedOption } from "@/types/commerce";
-import { cn } from "@/lib/utils/cn";
 import { findVariant, getDefaultVariant } from "./utils";
 
 type Props = {
@@ -20,6 +21,7 @@ type Props = {
     increase: string;
     from: string;
     unavailable: string;
+    productUnavailable: string;
     addFailed: string;
   };
 };
@@ -27,10 +29,7 @@ type Props = {
 function initialSelection(product: Product): SelectedOption[] {
   const variant = getDefaultVariant(product);
   if (variant?.selectedOptions?.length) {
-    return variant.selectedOptions.map((opt) => ({
-      name: opt.name,
-      value: opt.value,
-    }));
+    return variant.selectedOptions.map((opt) => ({ ...opt }));
   }
   return product.options.map((option) => ({
     name: option.name,
@@ -40,6 +39,8 @@ function initialSelection(product: Product): SelectedOption[] {
 
 export function AddToCartForm({ product, labels }: Props) {
   const locale = useLocale();
+  const t = useTranslations("commercial");
+  const productSelection = useProductSelection();
   const { addItem, isMutating, configured, error: cartError } = useCart();
   const [selection, setSelection] = useState<SelectedOption[]>(() =>
     initialSelection(product),
@@ -67,12 +68,20 @@ export function AddToCartForm({ product, labels }: Props) {
     );
 
   const merchandiseId = variant?.id || product.id;
+  const selectedQuantity = Math.min(
+    quantity,
+    variant?.maxPurchaseQuantity ?? Number.MAX_SAFE_INTEGER,
+  );
 
   return (
     <div className="space-y-5">
       <div className="border-border space-y-1 border-b pb-4">
         <p className="font-navigation text-text-black text-2xl">
-          {formatMoney(price, locale)}
+          {variant &&
+          price.amount.trim() &&
+          variant.purchaseStatus !== "unpriced"
+            ? formatMoney(price, locale)
+            : labels.productUnavailable}
         </p>
         {compareAt && Number(compareAt.amount) > Number(price.amount) ? (
           <p className="text-muted text-sm line-through">
@@ -89,42 +98,88 @@ export function AddToCartForm({ product, labels }: Props) {
         ) : null}
       </div>
 
+      {variant?.netContent ? (
+        <p className="text-text-primary text-sm">
+          {t("netContent", {
+            quantity: new Intl.NumberFormat(locale).format(
+              variant.netContent.quantity,
+            ),
+            unit: t(
+              variant.netContent.unit === "g"
+                ? "g"
+                : variant.netContent.unit === "ml"
+                  ? "ml"
+                  : "unit",
+            ),
+          })}
+        </p>
+      ) : null}
+      {variant?.salesUnit ? (
+        <p className="text-text-primary text-sm">
+          {t("salesUnit", { unit: t(variant.salesUnit) })}
+        </p>
+      ) : null}
+      {variant?.purchaseStatus && variant.purchaseStatus !== "available" ? (
+        <p role="status" className="text-text-primary text-sm">
+          {t(variant.purchaseStatus)}
+        </p>
+      ) : null}
+
       {showOptions
         ? product.options.map((option) => {
-            const current =
-              selection.find((sel) => sel.name === option.name)?.value ??
-              option.values[0];
+            const current = selection.find((sel) =>
+              sel.optionId
+                ? sel.optionId === option.id
+                : sel.name === option.name,
+            );
             return (
               <fieldset key={option.id || option.name} className="space-y-2">
                 <legend className="text-muted text-xs font-medium tracking-[0.14em] uppercase">
                   {option.name}
                 </legend>
                 <div className="flex flex-wrap gap-2">
-                  {option.values.map((value) => {
-                    const active = current === value;
+                  {(option.choices?.length
+                    ? option.choices
+                    : option.values.map((value) => ({ id: value, value }))
+                  ).map((choice) => {
+                    const { value } = choice;
+                    const usesIds = Boolean(option.choices?.length);
+                    const active = usesIds
+                      ? current?.valueId === choice.id
+                      : current?.value === value;
+                    const candidate = [
+                      ...selection.filter((sel) =>
+                        sel.optionId
+                          ? sel.optionId !== option.id
+                          : sel.name !== option.name,
+                      ),
+                      {
+                        name: option.name,
+                        value,
+                        ...(usesIds
+                          ? { optionId: option.id, valueId: choice.id }
+                          : {}),
+                      },
+                    ];
                     return (
-                      <button
-                        key={value}
+                      <Button
+                        key={choice.id}
                         type="button"
-                        className={cn(
-                          "min-w-20 rounded-lg border px-4 py-2 text-sm transition-colors",
-                          active
-                            ? "border-forest bg-forest text-brand-foreground"
-                            : "border-border bg-card text-forest hover:border-forest/40",
-                        )}
+                        variant={active ? "primary" : "secondary"}
+                        aria-pressed={active}
+                        disabled={isMutating}
+                        className="min-w-20 rounded-lg px-4 normal-case"
                         onClick={() => {
-                          setSelection((prev) => {
-                            const next = prev.filter(
-                              (sel) => sel.name !== option.name,
-                            );
-                            next.push({ name: option.name, value });
-                            return next;
-                          });
+                          setSelection(candidate);
+                          productSelection?.select(
+                            findVariant(product, candidate),
+                          );
+                          setQuantity(1);
                           setMessage(null);
                         }}
                       >
                         {value}
-                      </button>
+                      </Button>
                     );
                   })}
                 </div>
@@ -143,20 +198,26 @@ export function AddToCartForm({ product, labels }: Props) {
               type="button"
               className="h-11 w-11 rounded-full text-lg disabled:opacity-40"
               aria-label={labels.decrease}
-              disabled={quantity <= 1 || isMutating}
+              disabled={selectedQuantity <= 1 || isMutating}
               onClick={() => setQuantity((value) => Math.max(1, value - 1))}
             >
-              −
+              <Minus aria-hidden className="mx-auto size-4" strokeWidth={2} />
             </button>
-            <span className="min-w-8 text-center tabular-nums">{quantity}</span>
+            <span className="min-w-8 text-center tabular-nums">
+              {selectedQuantity}
+            </span>
             <button
               type="button"
               className="h-11 w-11 rounded-full text-lg disabled:opacity-40"
               aria-label={labels.increase}
-              disabled={isMutating}
+              disabled={
+                isMutating ||
+                selectedQuantity >=
+                  (variant?.maxPurchaseQuantity ?? Number.MAX_SAFE_INTEGER)
+              }
               onClick={() => setQuantity((value) => value + 1)}
             >
-              +
+              <Plus aria-hidden className="mx-auto size-4" strokeWidth={2} />
             </button>
           </div>
         </div>
@@ -174,7 +235,7 @@ export function AddToCartForm({ product, labels }: Props) {
               }
               const cart = await addItem({
                 merchandiseId,
-                quantity,
+                quantity: selectedQuantity,
               });
               if (!cart) {
                 setMessage(labels.addFailed);
@@ -183,7 +244,9 @@ export function AddToCartForm({ product, labels }: Props) {
           }}
         >
           {!available
-            ? labels.soldOut
+            ? !variant
+              ? labels.productUnavailable
+              : labels.soldOut
             : isMutating
               ? labels.adding
               : labels.addToCart}

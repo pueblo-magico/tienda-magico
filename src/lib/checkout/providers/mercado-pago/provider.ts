@@ -95,9 +95,7 @@ export class MercadoPagoCheckoutProvider implements CheckoutProvider {
     const config = getMercadoPagoConfig();
     const items = cartToPreferenceItems(input.cart);
     const externalReference =
-      input.externalReference?.trim() ||
-      input.cart.id ||
-      `cart-${Date.now()}`;
+      input.externalReference?.trim() || input.cart.id || `cart-${Date.now()}`;
 
     const backUrls = {
       success: input.returnUrls.success,
@@ -155,8 +153,10 @@ export class MercadoPagoCheckoutProvider implements CheckoutProvider {
     }
 
     // Include time so retries after a failed payload are not sticky-cached.
-    const idempotencyKey =
-      `pref-${externalReference}-${Date.now()}`.slice(0, 64);
+    const idempotencyKey = `pref-${externalReference}-${Date.now()}`.slice(
+      0,
+      64,
+    );
 
     const preference = await mercadoPagoFetch<PreferenceResponse>({
       method: "POST",
@@ -165,9 +165,7 @@ export class MercadoPagoCheckoutProvider implements CheckoutProvider {
       idempotencyKey,
     });
 
-    const redirectUrl = config.sandbox
-      ? preference.sandbox_init_point || preference.init_point
-      : preference.init_point || preference.sandbox_init_point;
+    const redirectUrl = preference.init_point || preference.sandbox_init_point;
 
     if (!preference.id || !redirectUrl) {
       throw new CheckoutError(

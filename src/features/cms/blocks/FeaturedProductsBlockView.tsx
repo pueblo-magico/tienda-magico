@@ -6,10 +6,12 @@ import { Body, Eyebrow, SectionTitle } from "@/components/typography";
 import { commerce, formatMoney } from "@/lib/commerce";
 import type { FeaturedProductsBlockData } from "@/lib/cms";
 import type { ProductSummary } from "@/types/commerce";
+import { getTranslations } from "next-intl/server";
 
 function refId(value: unknown): string | null {
   if (value == null) return null;
-  if (typeof value === "string" || typeof value === "number") return String(value);
+  if (typeof value === "string" || typeof value === "number")
+    return String(value);
   if (typeof value === "object" && value && "id" in value) {
     return String((value as { id: string | number }).id);
   }
@@ -32,6 +34,7 @@ export async function FeaturedProductsBlockView({
   locale: string;
 }) {
   if (!commerce.isConfigured()) return null;
+  const tProduct = await getTranslations("product");
 
   const limit = block.limit ?? 4;
   let products: ProductSummary[] = [];
@@ -59,9 +62,11 @@ export async function FeaturedProductsBlockView({
               title: product.title,
               vendor: product.vendor,
               availableForSale: product.availableForSale,
+              lifecycleStatus: product.lifecycleStatus,
               featuredImage: product.featuredImage,
               priceRange: product.priceRange,
               tags: product.tags,
+              classification: product.classification,
             });
           }
           continue;
@@ -104,12 +109,15 @@ export async function FeaturedProductsBlockView({
               <ProductCard
                 href={localizePath(locale, `/shop/${product.handle}`)}
                 title={product.title}
-                price={formatMoney(product.priceRange.minVariantPrice, locale)}
-                imageSrc={
-                  product.featuredImage?.url ||
-                  "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=80"
+                price={
+                  product.availableForSale
+                    ? formatMoney(product.priceRange.minVariantPrice, locale)
+                    : tProduct("productUnavailable")
                 }
+                imageSrc={product.featuredImage?.url}
                 imageAlt={product.featuredImage?.altText || product.title}
+                noMediaLabel={tProduct("noMedia")}
+                category={product.classification?.primaryCategory?.title}
               />
             </li>
           ))}

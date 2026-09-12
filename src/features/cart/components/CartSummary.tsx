@@ -1,31 +1,55 @@
 "use client";
 
+import { useId } from "react";
 import { useLocale } from "next-intl";
 import type { Cart } from "@/types/commerce";
+import {
+  DELIVERY,
+  LOCAL_COLLECTION,
+  type FulfillmentMode,
+} from "@/lib/commerce/local-purchase";
 import { formatMoney } from "@/lib/commerce/utils/format";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils/cn";
+import type { CommerceSettings } from "@/lib/commerce/commerce-settings";
 
 type Props = {
   cart: Cart;
+  commerceSettings: CommerceSettings;
   disabled?: boolean;
+  fulfillmentDisabled?: boolean;
   onCheckout: () => void | Promise<void>;
   labels: {
     subtotal: string;
     checkout: string;
     taxesNote: string;
+    fulfillmentLegend: string;
+    localCollection: string;
+    localCollectionHint: string;
+    delivery: string;
+    deliveryHint: string;
+    fulfillmentRequired: string;
   };
+  onFulfillmentModeChange: (mode: FulfillmentMode) => void | Promise<void>;
   className?: string;
 };
 
 export function CartSummary({
   cart,
+  commerceSettings,
   disabled,
+  fulfillmentDisabled,
   onCheckout,
   labels,
+  onFulfillmentModeChange,
   className,
 }: Props) {
   const locale = useLocale();
+  const fulfillmentGroupName = `fulfillment-mode-${useId()}`;
+  const hasEnabledFulfillmentMode =
+    (cart.fulfillmentMode === LOCAL_COLLECTION &&
+      commerceSettings.localCollectionEnabled) ||
+    (cart.fulfillmentMode === DELIVERY && commerceSettings.deliveryEnabled);
 
   return (
     <div className={cn("space-y-4", className)}>
@@ -38,11 +62,63 @@ export function CartSummary({
         </span>
       </div>
       <div className="bg-border h-px" />
+      <fieldset className="space-y-3">
+        <legend className="text-text-black text-sm font-semibold">
+          {labels.fulfillmentLegend}
+        </legend>
+        {commerceSettings.localCollectionEnabled ? (
+          <label className="border-border flex cursor-pointer gap-3 rounded-lg border p-3">
+            <input
+              type="radio"
+              name={fulfillmentGroupName}
+              value={LOCAL_COLLECTION}
+              checked={cart.fulfillmentMode === LOCAL_COLLECTION}
+              disabled={fulfillmentDisabled}
+              onChange={() => void onFulfillmentModeChange(LOCAL_COLLECTION)}
+            />
+            <span className="space-y-1">
+              <span className="text-text-black block text-sm font-medium">
+                {labels.localCollection}
+              </span>
+              <span className="text-muted block text-xs">
+                {labels.localCollectionHint}
+              </span>
+            </span>
+          </label>
+        ) : null}
+        {commerceSettings.deliveryEnabled ? (
+          <label className="border-border flex cursor-pointer gap-3 rounded-lg border p-3">
+            <input
+              type="radio"
+              name={fulfillmentGroupName}
+              value={DELIVERY}
+              checked={cart.fulfillmentMode === DELIVERY}
+              disabled={fulfillmentDisabled}
+              onChange={() => void onFulfillmentModeChange(DELIVERY)}
+            />
+            <span className="space-y-1">
+              <span className="text-text-black block text-sm font-medium">
+                {labels.delivery}
+              </span>
+              <span className="text-muted block text-xs">
+                {labels.deliveryHint}
+              </span>
+            </span>
+          </label>
+        ) : null}
+      </fieldset>
+      {!hasEnabledFulfillmentMode ? (
+        <p className="text-clay text-xs" role="status">
+          {labels.fulfillmentRequired}
+        </p>
+      ) : null}
       <p className="text-muted text-xs leading-relaxed">{labels.taxesNote}</p>
       <Button
         type="button"
         className="h-12 w-full"
-        disabled={disabled || cart.totalQuantity === 0}
+        disabled={
+          disabled || cart.totalQuantity === 0 || !hasEnabledFulfillmentMode
+        }
         onClick={onCheckout}
       >
         {labels.checkout}

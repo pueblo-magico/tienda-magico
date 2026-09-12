@@ -7,8 +7,8 @@ export const Hero: Block = {
   slug: 'hero',
   interfaceName: 'HeroBlock',
   labels: {
-    singular: 'Hero',
-    plural: 'Heroes',
+    singular: { es: 'Portada', en: 'Hero' },
+    plural: { es: 'Portadas', en: 'Heroes' },
   },
   fields: [
     {
@@ -41,10 +41,10 @@ export const Hero: Block = {
       type: 'select',
       defaultValue: 'right',
       options: [
-        { label: 'Background', value: 'background' },
-        { label: 'Right', value: 'right' },
-        { label: 'Left', value: 'left' },
-        { label: 'None', value: 'none' },
+        { label: { es: 'Fondo', en: 'Background' }, value: 'background' },
+        { label: { es: 'Derecha', en: 'Right' }, value: 'right' },
+        { label: { es: 'Izquierda', en: 'Left' }, value: 'left' },
+        { label: { es: 'Sin medios', en: 'None' }, value: 'none' },
       ],
     },
     {

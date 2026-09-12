@@ -10,9 +10,10 @@ export const linkField = (options?: {
   required?: boolean
 }): Field => {
   const name = options?.name ?? 'link'
-  const appearances = options?.appearances === false
-    ? null
-    : (options?.appearances ?? ['primary', 'secondary', 'ghost', 'link'])
+  const appearances =
+    options?.appearances === false
+      ? null
+      : (options?.appearances ?? ['primary', 'secondary', 'ghost', 'link'])
 
   const fields: Field[] = [
     {
@@ -20,8 +21,8 @@ export const linkField = (options?: {
       type: 'radio',
       defaultValue: 'custom',
       options: [
-        { label: 'Custom URL', value: 'custom' },
-        { label: 'Internal path', value: 'internal' },
+        { label: { es: 'URL personalizada', en: 'Custom URL' }, value: 'custom' },
+        { label: { es: 'Ruta interna', en: 'Internal path' }, value: 'internal' },
       ],
       admin: {
         layout: 'horizontal',
@@ -42,7 +43,10 @@ export const linkField = (options?: {
       required: options?.required ?? true,
       admin: {
         condition: (_, siblingData) => siblingData?.type === 'custom',
-        description: 'Absolute URL or site path (e.g. https://… or /shop).',
+        description: {
+          es: 'URL absoluta o ruta del sitio (p. ej. https://… o /shop).',
+          en: 'Absolute URL or site path (e.g. https://… or /shop).',
+        },
       },
     },
     {
@@ -51,13 +55,16 @@ export const linkField = (options?: {
       required: options?.required ?? true,
       admin: {
         condition: (_, siblingData) => siblingData?.type === 'internal',
-        description: 'Locale-free path (e.g. /shop, /about). Storefront prefixes locale.',
+        description: {
+          es: 'Ruta sin idioma (p. ej. /shop, /about). La tienda agrega el idioma.',
+          en: 'Locale-free path (e.g. /shop, /about). Storefront prefixes locale.',
+        },
       },
     },
     {
       name: 'newTab',
       type: 'checkbox',
-      label: 'Open in new tab',
+      label: { es: 'Abrir en una pestaña nueva', en: 'Open in new tab' },
       defaultValue: false,
     },
   ]
@@ -68,7 +75,19 @@ export const linkField = (options?: {
       type: 'select',
       defaultValue: appearances[0],
       options: appearances.map((value) => ({
-        label: value.charAt(0).toUpperCase() + value.slice(1),
+        label: {
+          es:
+            (
+              {
+                primary: 'Principal',
+                secondary: 'Secundaria',
+                ghost: 'Discreta',
+                link: 'Enlace',
+                default: 'Predeterminada',
+              } as Record<string, string>
+            )[value] ?? value,
+          en: value.charAt(0).toUpperCase() + value.slice(1),
+        },
         value,
       })),
     })

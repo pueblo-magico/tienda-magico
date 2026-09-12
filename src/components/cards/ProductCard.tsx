@@ -1,15 +1,19 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "@/components/ui/Badge";
+import { MediaPlaceholder } from "@/components/media/MediaPlaceholder";
 import { cn } from "@/lib/utils/cn";
 
 export type ProductCardProps = {
   href: string;
   title: string;
   price: string;
-  imageSrc: string;
+  imageSrc?: string | null;
   imageAlt?: string;
+  noMediaLabel: string;
   badge?: string;
+  category?: string;
+  imageLoading?: "eager" | "lazy";
   className?: string;
 };
 
@@ -19,7 +23,10 @@ export function ProductCard({
   price,
   imageSrc,
   imageAlt = "",
+  noMediaLabel,
   badge,
+  category,
+  imageLoading = "lazy",
   className,
 }: ProductCardProps) {
   return (
@@ -31,13 +38,18 @@ export function ProductCard({
     >
       <Link href={href} className="block">
         <div className="bg-card-hover relative aspect-[4/5] overflow-hidden">
-          <Image
-            src={imageSrc}
-            alt={imageAlt || title}
-            fill
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
-            sizes="(max-width: 768px) 50vw, 25vw"
-          />
+          {imageSrc ? (
+            <Image
+              src={imageSrc}
+              alt={imageAlt || title}
+              fill
+              className="object-cover object-top transition-transform duration-500 group-hover:scale-105"
+              sizes="(max-width: 768px) 50vw, 25vw"
+              loading={imageLoading}
+            />
+          ) : (
+            <MediaPlaceholder label={noMediaLabel} />
+          )}
           {badge ? (
             <Badge className="absolute top-3 left-3" variant="forest">
               {badge}
@@ -45,6 +57,11 @@ export function ProductCard({
           ) : null}
         </div>
         <div className="space-y-1 px-4 py-3">
+          {category ? (
+            <p className="text-text-accent text-xs font-bold tracking-wide">
+              {category}
+            </p>
+          ) : null}
           <h3 className="text-text-secondary text-sm font-medium">{title}</h3>
           <p className="text-text-primary text-sm">{price}</p>
         </div>

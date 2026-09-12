@@ -4,8 +4,8 @@ export const FeaturedCategories: Block = {
   slug: 'featuredCategories',
   interfaceName: 'FeaturedCategoriesBlock',
   labels: {
-    singular: 'Featured categories',
-    plural: 'Featured categories blocks',
+    singular: { es: 'Categorías destacadas', en: 'Featured categories' },
+    plural: { es: 'Bloques de categorías destacadas', en: 'Featured categories blocks' },
   },
   fields: [
     {
@@ -28,8 +28,8 @@ export const FeaturedCategories: Block = {
       type: 'radio',
       defaultValue: 'manual',
       options: [
-        { label: 'Manual categories', value: 'manual' },
-        { label: 'Latest categories', value: 'latest' },
+        { label: { es: 'Categorías manuales', en: 'Manual categories' }, value: 'manual' },
+        { label: { es: 'Categorías recientes', en: 'Latest categories' }, value: 'latest' },
       ],
       admin: { layout: 'horizontal' },
     },

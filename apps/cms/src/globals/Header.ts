@@ -5,9 +5,9 @@ import { linkField } from '../fields/link'
 
 export const Header: GlobalConfig = {
   slug: 'header',
-  label: 'Header',
+  label: { es: 'Encabezado', en: 'Header' },
   admin: {
-    group: 'Globals',
+    group: { es: 'Globales', en: 'Globals' },
   },
   access: {
     read: () => true,
@@ -19,15 +19,18 @@ export const Header: GlobalConfig = {
       type: 'upload',
       relationTo: 'media',
       admin: {
-        description: 'Optional logo override. Storefront falls back to wordmark.',
+        description: {
+          es: 'Logo alternativo opcional. La tienda usa la marca denominativa como respaldo.',
+          en: 'Optional logo override. Storefront falls back to wordmark.',
+        },
       },
     },
     {
       name: 'navItems',
       type: 'array',
       labels: {
-        singular: 'Nav item',
-        plural: 'Nav items',
+        singular: { es: 'Elemento de navegación', en: 'Nav item' },
+        plural: { es: 'Elementos de navegación', en: 'Nav items' },
       },
       maxRows: 10,
       fields: [
@@ -40,7 +43,7 @@ export const Header: GlobalConfig = {
     {
       name: 'cta',
       type: 'group',
-      label: 'Header CTA',
+      label: { es: 'Llamado a la acción del encabezado', en: 'Header CTA' },
       fields: [
         {
           name: 'enabled',

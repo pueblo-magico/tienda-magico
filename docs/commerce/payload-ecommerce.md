@@ -17,16 +17,25 @@ npm run db:cms:up    # Postgres on localhost:5433
 npm run dev:cms      # http://localhost:4000
 ```
 
-| URL | Purpose |
-| --- | --- |
+| URL                           | Purpose       |
+| ----------------------------- | ------------- |
 | `http://localhost:4000/admin` | Payload admin |
-| `http://localhost:4000/api` | REST API |
+| `http://localhost:4000/api`   | REST API      |
 
 CMS setup details: [`apps/cms/README.md`](../../apps/cms/README.md).
 
 ---
 
 ## Enable on the storefront
+
+### Local image optimization
+
+Next.js blocks private-IP image fetching by default, even for allowlisted URLs.
+The storefront allows it only in development so images from the local Payload
+server can be optimized. Existing media host/path allowlists still apply and image
+redirects are disabled in development. Production keeps private-IP protection;
+serve production media from a publicly reachable, configured origin. After changing
+image configuration, restart the storefront if its dev server does not reload it.
 
 ```bash
 COMMERCE_PROVIDER=payload
@@ -37,7 +46,7 @@ PAYLOAD_ECOMMERCE_CURRENCY=ARS
 PAYLOAD_ECOMMERCE_AMOUNT_IS_CENTS=true
 PAYLOAD_ECOMMERCE_COLLECTIONS_SLUG=categories
 
-# Optional API key (Users → enable API key in admin)
+# Required for checkout order creation (Users → enable API key in admin)
 # PAYLOAD_ECOMMERCE_API_KEY=...
 # PAYLOAD_ECOMMERCE_API_KEY_COLLECTION=users
 
@@ -80,16 +89,31 @@ Same VM is fine: two Node processes + one Postgres.
 
 ## Expected collections
 
-| Slug | Purpose |
-| --- | --- |
-| `products` | Catalog (draft/publish) + catalogue fields override |
-| `variants` | Variant rows joined to products |
-| `carts` | Persisted carts + item endpoints |
-| `categories` | Storefront `getCollections()` / `getCollection()` |
-| `media` | Images |
-| `users` | Admins / API keys / customers |
+| Slug         | Purpose                                             |
+| ------------ | --------------------------------------------------- |
+| `products`   | Catalog (draft/publish) + catalogue fields override |
+| `variants`   | Variant rows joined to products                     |
+| `carts`      | Persisted carts + item endpoints                    |
+| `categories` | Storefront `getCollections()` / `getCollection()`   |
+| `media`      | Images                                              |
+| `users`      | Admins / API keys / customers                       |
 
 ### Product fields mapped by the adapter
+
+Public product reads explicitly require `_status=published`; `draft=false` is not
+treated as authorization. The adapter also checks returned records, including ID
+lookups and category product relationships, because an optional upstream API key
+may grant administrative access. Records without publication status are excluded.
+This is defense in depth, not a replacement for CMS access rules. Product reads
+retain the existing 60-second cache revalidation interval; unpublishing is not
+an instantaneous purge of previously cached responses.
+
+Product and collection rich text uses `src/lib/cms/richtext.ts`, the same
+allowlisted Lexical serializer as CMS page content. Raw HTML strings are displayed
+as escaped text, not trusted markup. Supported links are HTTP(S), mail, telephone,
+same-origin absolute paths and anchors; unsafe links retain only their label.
+This intentionally removes the legacy raw-HTML passthrough. Convert any content
+that relied on raw HTML strings to supported Lexical nodes before publication.
 
 - identity: `title` / `name`, `slug` / `handle`, `id`
 - copy: `description` / `richText` / `summary`
@@ -103,12 +127,12 @@ Same VM is fine: two Node processes + one Postgres.
 
 ## Cart behavior
 
-| Operation | Payload route |
-| --- | --- |
-| Create cart | `POST /api/carts` |
-| Get cart | `GET /api/carts/:id` |
-| Add line | `POST /api/carts/:id/add-item` |
-| Update qty | `POST /api/carts/:id/update-item` |
+| Operation   | Payload route                     |
+| ----------- | --------------------------------- |
+| Create cart | `POST /api/carts`                 |
+| Get cart    | `GET /api/carts/:id`              |
+| Add line    | `POST /api/carts/:id/add-item`    |
+| Update qty  | `POST /api/carts/:id/update-item` |
 | Remove line | `POST /api/carts/:id/remove-item` |
 
 Guest carts require `allowGuestCarts: true` (enabled in `apps/cms`).
@@ -125,13 +149,13 @@ Pass that full value back into cart methods.
 
 ### merchandiseId formats
 
-| Value | Meaning |
-| --- | --- |
-| `variantId` | Resolve variant → parent product |
-| `productId` | Simple product |
-| `variant:variantId` | Explicit variant |
-| `product:productId` | Explicit product |
-| `productId:variantId` | Explicit pair |
+| Value                 | Meaning                          |
+| --------------------- | -------------------------------- |
+| `variantId`           | Resolve variant → parent product |
+| `productId`           | Simple product                   |
+| `variant:variantId`   | Explicit variant                 |
+| `product:productId`   | Explicit product                 |
+| `productId:variantId` | Explicit pair                    |
 
 ### Checkout URL
 
@@ -148,11 +172,11 @@ Payments are **not** processed inside Payload admin.
 
 ## Localization
 
-| Layer | Status |
-| --- | --- |
-| Storefront UI (`next-intl`) | EN / ES |
-| Payload catalog fields | **EN / ES** (`apps/cms` localization) |
-| Adapter `locale` param | Supported on catalog methods |
+| Layer                       | Status                                |
+| --------------------------- | ------------------------------------- |
+| Storefront UI (`next-intl`) | EN / ES                               |
+| Payload catalog fields      | **EN / ES** (`apps/cms` localization) |
+| Adapter `locale` param      | Supported on catalog methods          |
 
 ### Storefront usage
 

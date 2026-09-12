@@ -7,6 +7,7 @@ import {
 } from "@/components/typography";
 import { DocsPageHeader } from "@/components/ui-system/DocsPageHeader";
 import { DocsSection } from "@/components/ui-system/DocsSection";
+import { RichText } from "@/components/typography/RichText";
 
 export default function TypographyPage() {
   return (
@@ -35,6 +36,45 @@ export default function TypographyPage() {
             Jost Bold 700 is used for sans-serif titles and buttons.
           </p>
         </div>
+      </DocsSection>
+      <DocsSection
+        title="Texto enriquecido seguro"
+        className="w-full flex-col items-start gap-5"
+      >
+        <RichText
+          value={{
+            root: {
+              type: "root",
+              children: [
+                {
+                  type: "heading",
+                  tag: "h3",
+                  children: [{ type: "text", text: "Origen y cuidado" }],
+                },
+                {
+                  type: "paragraph",
+                  children: [
+                    { type: "text", text: "Hecho a mano", format: 1 },
+                    { type: "text", text: " por nuestra comunidad." },
+                  ],
+                },
+                {
+                  type: "list",
+                  listType: "bullet",
+                  children: [
+                    {
+                      type: "listitem",
+                      children: [
+                        { type: "text", text: "Guardalo en un lugar seco." },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          }}
+        />
+        <RichText value={"<b>Este texto no se interpreta como HTML.</b>"} />
       </DocsSection>
     </>
   );

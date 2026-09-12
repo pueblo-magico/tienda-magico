@@ -4,8 +4,8 @@ export const FAQ: Block = {
   slug: 'faq',
   interfaceName: 'FaqBlock',
   labels: {
-    singular: 'FAQ',
-    plural: 'FAQ blocks',
+    singular: { es: 'Preguntas frecuentes', en: 'FAQ' },
+    plural: { es: 'Bloques de preguntas frecuentes', en: 'FAQ blocks' },
   },
   fields: [
     {
@@ -23,9 +23,9 @@ export const FAQ: Block = {
       type: 'radio',
       defaultValue: 'manual',
       options: [
-        { label: 'Manual pick', value: 'manual' },
-        { label: 'By category', value: 'category' },
-        { label: 'All published', value: 'all' },
+        { label: { es: 'Selección manual', en: 'Manual pick' }, value: 'manual' },
+        { label: { es: 'Por categoría', en: 'By category' }, value: 'category' },
+        { label: { es: 'Todas las publicadas', en: 'All published' }, value: 'all' },
       ],
     },
     {
@@ -42,7 +42,10 @@ export const FAQ: Block = {
       type: 'text',
       admin: {
         condition: (_, siblingData) => siblingData?.selection === 'category',
-        description: 'Matches FAQ category field (e.g. shipping).',
+        description: {
+          es: 'Coincide con la categoría de preguntas frecuentes (p. ej. envíos).',
+          en: 'Matches FAQ category field (e.g. shipping).',
+        },
       },
     },
   ],
