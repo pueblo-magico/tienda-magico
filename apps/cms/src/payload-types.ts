@@ -137,6 +137,7 @@ export interface Config {
     'site-settings': SiteSetting;
     'commerce-settings': CommerceSetting;
     seo: Seo;
+    'cms-settings': CmsSetting;
   };
   globalsSelect: {
     header: HeaderSelect<false> | HeaderSelect<true>;
@@ -144,6 +145,7 @@ export interface Config {
     'site-settings': SiteSettingsSelect<false> | SiteSettingsSelect<true>;
     'commerce-settings': CommerceSettingsSelect<false> | CommerceSettingsSelect<true>;
     seo: SeoSelect<false> | SeoSelect<true>;
+    'cms-settings': CmsSettingsSelect<false> | CmsSettingsSelect<true>;
   };
   locale: 'en' | 'es';
   widgets: {
@@ -2195,6 +2197,40 @@ export interface Seo {
   createdAt?: string | null;
 }
 /**
+ * Controls which sections appear in navigation. It does not change permissions or direct access.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "cms-settings".
+ */
+export interface CmsSetting {
+  id: number;
+  media: boolean;
+  pages: boolean;
+  posts: boolean;
+  testimonials: boolean;
+  faqs: boolean;
+  header: boolean;
+  footer: boolean;
+  localSales: boolean;
+  categories: boolean;
+  brands: boolean;
+  tags: boolean;
+  addresses: boolean;
+  variants: boolean;
+  variantTypes: boolean;
+  variantOptions: boolean;
+  products: boolean;
+  carts: boolean;
+  orders: boolean;
+  transactions: boolean;
+  users: boolean;
+  siteSettings: boolean;
+  commerceSettings: boolean;
+  seo: boolean;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "header_select".
  */
@@ -2328,6 +2364,38 @@ export interface SeoSelect<T extends boolean = true> {
         index?: T;
         follow?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "cms-settings_select".
+ */
+export interface CmsSettingsSelect<T extends boolean = true> {
+  media?: T;
+  pages?: T;
+  posts?: T;
+  testimonials?: T;
+  faqs?: T;
+  header?: T;
+  footer?: T;
+  localSales?: T;
+  categories?: T;
+  brands?: T;
+  tags?: T;
+  addresses?: T;
+  variants?: T;
+  variantTypes?: T;
+  variantOptions?: T;
+  products?: T;
+  carts?: T;
+  orders?: T;
+  transactions?: T;
+  users?: T;
+  siteSettings?: T;
+  commerceSettings?: T;
+  seo?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

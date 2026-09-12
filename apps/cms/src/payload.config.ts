@@ -37,6 +37,7 @@ import { Header } from './globals/Header'
 import { SEO } from './globals/SEO'
 import { SiteSettings } from './globals/SiteSettings'
 import { CommerceSettings } from './globals/CommerceSettings'
+import { CmsSettings } from './globals/CmsSettings'
 import { migrations } from './migrations'
 import { sellableSchema } from './utilities/sellableSchema'
 
@@ -63,6 +64,9 @@ export default buildConfig({
   },
   admin: {
     user: Users.slug,
+    components: {
+      Nav: '@/components/ConfigurableNav',
+    },
     importMap: {
       baseDir: path.resolve(dirname),
     },
@@ -84,7 +88,7 @@ export default buildConfig({
     Brands,
     Tags,
   ],
-  globals: [Header, Footer, SiteSettings, CommerceSettings, SEO],
+  globals: [Header, Footer, SiteSettings, CommerceSettings, SEO, CmsSettings],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {

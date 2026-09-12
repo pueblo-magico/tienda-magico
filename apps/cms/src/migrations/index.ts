@@ -18,6 +18,7 @@ import * as migration_20260912_022008_task_06_1_local_purchase from './20260912_
 import * as migration_20260912_122450_task_06_1_order_local_sale from './20260912_122450_task_06_1_order_local_sale'
 import * as migration_20260912_223137_task_06_1_commerce_settings from './20260912_223137_task_06_1_commerce_settings'
 import * as migration_20260912_231316_cms_user_editor_language from './20260912_231316_cms_user_editor_language'
+import * as migration_20260912_231908_cms_navigation_visibility from './20260912_231908_cms_navigation_visibility'
 
 export const migrations = [
   {
@@ -119,5 +120,10 @@ export const migrations = [
     up: migration_20260912_231316_cms_user_editor_language.up,
     down: migration_20260912_231316_cms_user_editor_language.down,
     name: '20260912_231316_cms_user_editor_language',
+  },
+  {
+    up: migration_20260912_231908_cms_navigation_visibility.up,
+    down: migration_20260912_231908_cms_navigation_visibility.down,
+    name: '20260912_231908_cms_navigation_visibility',
   },
 ]
