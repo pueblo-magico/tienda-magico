@@ -22,8 +22,19 @@ test("accepts the two explicit fulfillment modes", () => {
 
 test("rejects an omitted or unknown fulfillment mode", () => {
   for (const value of [undefined, null, "pickup", "local", ""]) {
-    assert.throws(() => parseFulfillmentMode(value), /fulfillment mode/i);
+    assert.throws(() => parseFulfillmentMode(value), /modalidad de entrega/i);
   }
+});
+
+test("returns a localized checkout validation message", () => {
+  assert.throws(
+    () => parseFulfillmentMode(null, "es"),
+    /Elegí una modalidad de entrega válida antes de continuar con el pago\./,
+  );
+  assert.throws(
+    () => parseFulfillmentMode(null, "en"),
+    /Choose a valid fulfillment mode before checkout\./,
+  );
 });
 
 test("derives one stable local-sale idempotency key from an order", () => {
@@ -47,7 +58,7 @@ test("maps the persisted fulfillment mode without inventing a default", () => {
   );
   assert.throws(
     () => mapCart({ ...cart, fulfillmentMode: "pickup" }),
-    /fulfillment mode/i,
+    /modalidad de entrega/i,
   );
 });
 
@@ -70,16 +81,18 @@ test("the CMS cart schema persists only the supported fulfillment modes", () => 
   );
 
   assert.deepEqual(field?.options, [
-    { label: { es: "Retiro local", en: "Local collection" }, value: LOCAL_COLLECTION },
+    {
+      label: { es: "Retiro local", en: "Local collection" },
+      value: LOCAL_COLLECTION,
+    },
     { label: { es: "Entrega", en: "Delivery" }, value: DELIVERY },
   ]);
   assert.equal(field?.required, false);
 });
 
 test("checkout cannot finalize a cart without an explicit fulfillment mode", async () => {
-  const { validateFulfillmentModeForCheckout } = await import(
-    "../src/lib/commerce/local-purchase.ts"
-  );
+  const { validateFulfillmentModeForCheckout } =
+    await import("../src/lib/commerce/local-purchase.ts");
 
   assert.equal(
     validateFulfillmentModeForCheckout(LOCAL_COLLECTION),
@@ -87,7 +100,7 @@ test("checkout cannot finalize a cart without an explicit fulfillment mode", asy
   );
   assert.throws(
     () => validateFulfillmentModeForCheckout(null),
-    /fulfillment mode/i,
+    /modalidad de entrega/i,
   );
 });
 
@@ -106,4 +119,21 @@ test("the local-sale collection stores an order-linked operational snapshot priv
     assert.ok(names.has(name), `missing local-sale field: ${name}`);
   }
   assert.equal(LocalSales.access?.read?.({ req: { user: null } }), false);
+
+  for (const name of [
+    "order",
+    "idempotencyKey",
+    "fulfillmentMode",
+    "buyerContact",
+    "snapshot",
+    "paymentStatus",
+    "paymentEvidence",
+  ]) {
+    const field = fields.find((candidate) => candidate.name === name);
+    assert.equal(
+      field?.access?.update?.({ req: { user: { roles: ["admin"] } } }),
+      false,
+      `${name} must not be editable after creation`,
+    );
+  }
 });

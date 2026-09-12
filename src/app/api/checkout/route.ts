@@ -11,8 +11,7 @@ export const dynamic = "force-dynamic";
 
 function siteUrl(request: Request): string {
   const env =
-    process.env.NEXT_PUBLIC_SITE_URL?.trim() ||
-    process.env.SITE_URL?.trim();
+    process.env.NEXT_PUBLIC_SITE_URL?.trim() || process.env.SITE_URL?.trim();
   if (env) return env.replace(/\/$/, "");
 
   const host =
@@ -116,6 +115,7 @@ export async function POST(request: Request) {
 
     const fulfillmentMode = validateFulfillmentModeForCheckout(
       cart.fulfillmentMode,
+      locale,
     );
 
     const base = siteUrl(request);

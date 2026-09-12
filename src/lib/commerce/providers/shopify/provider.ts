@@ -19,7 +19,6 @@ import {
   createCart,
   getCart,
   removeCartLines,
-  updateCart,
   updateCartLines,
 } from "./cart";
 import { getCollection, getCollections } from "./collections";

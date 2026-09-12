@@ -14,6 +14,7 @@ import * as migration_20260910_224721_task_04_cart_price_snapshot from './202609
 import * as migration_20260911_001000_task_04_active_combination_index from './20260911_001000_task_04_active_combination_index'
 import * as migration_20260911_142004_task_04_schema_alignment from './20260911_142004_task_04_schema_alignment'
 import * as migration_20260911_213034_variant_sort_order from './20260911_213034_variant_sort_order'
+import * as migration_20260912_022008_task_06_1_local_purchase from './20260912_022008_task_06_1_local_purchase'
 
 export const migrations = [
   {
@@ -95,5 +96,10 @@ export const migrations = [
     up: migration_20260911_213034_variant_sort_order.up,
     down: migration_20260911_213034_variant_sort_order.down,
     name: '20260911_213034_variant_sort_order',
+  },
+  {
+    up: migration_20260912_022008_task_06_1_local_purchase.up,
+    down: migration_20260912_022008_task_06_1_local_purchase.down,
+    name: '20260912_022008_task_06_1_local_purchase',
   },
 ]

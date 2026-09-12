@@ -1,6 +1,7 @@
 import type { CollectionConfig, PayloadRequest } from 'payload'
 
 const operationalRoles = new Set(['admin', 'manager', 'staff', 'finance'])
+const immutableAfterCreation = { update: () => false }
 
 function canOperateLocalSales(req: PayloadRequest): boolean {
   const roles = req.user?.roles
@@ -38,6 +39,7 @@ export const LocalSales: CollectionConfig = {
       relationTo: 'orders',
       required: true,
       label: { es: 'Pedido ecommerce', en: 'Ecommerce order' },
+      access: immutableAfterCreation,
     },
     {
       name: 'idempotencyKey',
@@ -46,6 +48,7 @@ export const LocalSales: CollectionConfig = {
       unique: true,
       index: true,
       label: { es: 'Clave de idempotencia', en: 'Idempotency key' },
+      access: immutableAfterCreation,
       admin: {
         readOnly: true,
         description: {
@@ -76,6 +79,7 @@ export const LocalSales: CollectionConfig = {
         { label: { es: 'Entrega', en: 'Delivery' }, value: 'delivery' },
       ],
       label: { es: 'Modalidad de fulfillment', en: 'Fulfillment mode' },
+      access: immutableAfterCreation,
     },
     {
       name: 'paymentStatus',
@@ -90,11 +94,13 @@ export const LocalSales: CollectionConfig = {
         { label: { es: 'No verificado', en: 'Unverified' }, value: 'unverified' },
       ],
       label: { es: 'Estado del pago', en: 'Payment status' },
+      access: immutableAfterCreation,
     },
     {
       name: 'buyerContact',
       type: 'json',
       label: { es: 'Contacto del comprador', en: 'Buyer contact' },
+      access: immutableAfterCreation,
       admin: {
         description: {
           es: 'Datos opcionales y privados permitidos por el checkout.',
@@ -107,6 +113,7 @@ export const LocalSales: CollectionConfig = {
       type: 'json',
       required: true,
       label: { es: 'Snapshot comercial', en: 'Commercial snapshot' },
+      access: immutableAfterCreation,
       admin: {
         description: {
           es: 'Identidad, opciones, cantidades e importes inmutables del pedido.',
@@ -118,6 +125,7 @@ export const LocalSales: CollectionConfig = {
       name: 'paymentEvidence',
       type: 'json',
       label: { es: 'Evidencia de pago', en: 'Payment evidence' },
+      access: immutableAfterCreation,
       admin: {
         description: {
           es: 'Nunca guardes credenciales ni secretos del gateway.',

@@ -1,5 +1,6 @@
 import type { SafeRichTextHtml } from "@/types/content";
-import type { FulfillmentMode } from "@/lib/commerce/local-purchase";
+
+export type FulfillmentMode = "local_collection" | "delivery";
 
 export type Money = {
   amount: string;
