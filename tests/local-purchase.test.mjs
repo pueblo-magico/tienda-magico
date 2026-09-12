@@ -17,6 +17,7 @@ import {
   createCheckoutOrder,
 } from "../src/lib/commerce/providers/payload-ecommerce/orders.ts";
 import { ShopifyCommerceProvider } from "../src/lib/commerce/providers/shopify/provider.ts";
+import { MercadoPagoCheckoutProvider } from "../src/lib/checkout/providers/mercado-pago/provider.ts";
 
 process.env.PAYLOAD_ECOMMERCE_URL = "http://cms.test";
 process.env.PAYLOAD_ECOMMERCE_CURRENCY = "ARS";
@@ -332,4 +333,77 @@ test("fulfillment radios remain interactive while their serialized request is pe
   assert.match(summary, /name=\{fulfillmentGroupName\}/);
   assert.match(provider, /fulfillmentMutationQueue/);
   assert.match(provider, /setCart\(\(current\).*fulfillmentMode: mode/s);
+});
+
+test("Mercado Pago test credentials use the current Checkout Pro init point", async () => {
+  const previousFetch = globalThis.fetch;
+  const previousToken = process.env.MERCADOPAGO_ACCESS_TOKEN;
+  const previousSandbox = process.env.MERCADOPAGO_SANDBOX;
+  process.env.MERCADOPAGO_ACCESS_TOKEN = "APP_USR-test-token";
+  process.env.MERCADOPAGO_SANDBOX = "true";
+  globalThis.fetch = async () =>
+    new Response(
+      JSON.stringify({
+        id: "preference-1",
+        init_point: "https://www.mercadopago.com.ar/checkout/start",
+        sandbox_init_point: "https://sandbox.mercadopago.com.ar/checkout/pay",
+      }),
+      { status: 200 },
+    );
+
+  try {
+    const session =
+      await new MercadoPagoCheckoutProvider().createCheckoutSession({
+        cart: {
+          id: "cart-1",
+          checkoutUrl: "https://shop.test/checkout",
+          fulfillmentMode: LOCAL_COLLECTION,
+          totalQuantity: 1,
+          note: null,
+          cost: {
+            subtotalAmount: { amount: "10.00", currencyCode: "ARS" },
+            totalAmount: { amount: "10.00", currencyCode: "ARS" },
+            totalTaxAmount: null,
+          },
+          lines: [
+            {
+              id: "line-1",
+              quantity: 1,
+              cost: {
+                amountPerQuantity: { amount: "10.00", currencyCode: "ARS" },
+                totalAmount: { amount: "10.00", currencyCode: "ARS" },
+              },
+              merchandise: {
+                id: "product:8",
+                title: "Cacao",
+                selectedOptions: [],
+                price: { amount: "10.00", currencyCode: "ARS" },
+                product: {
+                  id: "8",
+                  handle: "cacao",
+                  title: "Cacao",
+                  featuredImage: null,
+                },
+              },
+            },
+          ],
+        },
+        returnUrls: {
+          success: "http://localhost:3000/es/checkout/success",
+          failure: "http://localhost:3000/es/checkout/failure",
+          pending: "http://localhost:3000/es/checkout/pending",
+        },
+      });
+
+    assert.equal(
+      session.redirectUrl,
+      "https://www.mercadopago.com.ar/checkout/start",
+    );
+  } finally {
+    globalThis.fetch = previousFetch;
+    if (previousToken) process.env.MERCADOPAGO_ACCESS_TOKEN = previousToken;
+    else delete process.env.MERCADOPAGO_ACCESS_TOKEN;
+    if (previousSandbox) process.env.MERCADOPAGO_SANDBOX = previousSandbox;
+    else delete process.env.MERCADOPAGO_SANDBOX;
+  }
 });
