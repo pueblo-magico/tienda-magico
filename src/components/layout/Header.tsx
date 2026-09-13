@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import {
   localizePath,
@@ -24,7 +24,16 @@ export function Header({ className }: { className?: string }) {
   const pathname = usePathname();
   const { openCart, itemCount } = useCart();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isCompact, setIsCompact] = useState(false);
   const homeHref = localizePath(locale, "/shop");
+
+  useEffect(() => {
+    const updateCompactState = () => setIsCompact(window.scrollY > 24);
+
+    updateCompactState();
+    window.addEventListener("scroll", updateCompactState, { passive: true });
+    return () => window.removeEventListener("scroll", updateCompactState);
+  }, []);
 
   const items = mainNavigation.map((item) => {
     return {
@@ -43,7 +52,12 @@ export function Header({ className }: { className?: string }) {
           className,
         )}
       >
-        <div className="mx-auto flex h-20 max-w-6xl items-center justify-between gap-4 px-4 sm:h-24 sm:px-6">
+        <div
+          className={cn(
+            "mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 transition-[height] duration-200 sm:px-6",
+            isCompact ? "h-[3.75rem] sm:h-18" : "h-20 sm:h-24",
+          )}
+        >
           <div className="flex items-center gap-3">
             <button
               type="button"
@@ -71,7 +85,10 @@ export function Header({ className }: { className?: string }) {
                 width={134}
                 height={65}
                 priority
-                className="h-12 w-auto sm:h-14"
+                className={cn(
+                  "w-auto transition-[height] duration-200",
+                  isCompact ? "h-9 sm:h-[2.625rem]" : "h-12 sm:h-14",
+                )}
               />
             </Link>
           </div>
