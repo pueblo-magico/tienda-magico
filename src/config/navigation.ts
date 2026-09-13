@@ -125,6 +125,18 @@ export function resolveNavigationHref(
   return item.kind === "internal" ? localizePath(locale, item.href) : item.href;
 }
 
+/** Determine whether an internal navigation item owns the current pathname. */
+export function isNavigationItemActive(
+  item: NavItem,
+  locale: Locale | string,
+  pathname: string,
+): boolean {
+  if (item.kind !== "internal") return false;
+  const href = resolveNavigationHref(item, locale).replace(/\/$/, "");
+  const currentPath = pathname.replace(/\/$/, "");
+  return currentPath === href || currentPath.startsWith(`${href}/`);
+}
+
 /** Resolve a public localized pathname back to a shared internal route. */
 export function internalPath(pathname: string): string {
   const segments = pathname.split("/").filter(Boolean);

@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import {
   localizePath,
   mainNavigation,
+  isNavigationItemActive,
   resolveNavigationHref,
   type Locale,
 } from "@/config/navigation";
@@ -19,6 +21,7 @@ import { MobileMenu } from "./MobileMenu";
 export function Header({ className }: { className?: string }) {
   const t = useTranslations();
   const locale = useLocale() as Locale;
+  const pathname = usePathname();
   const { openCart, itemCount } = useCart();
   const [menuOpen, setMenuOpen] = useState(false);
   const homeHref = localizePath(locale);
@@ -27,6 +30,7 @@ export function Header({ className }: { className?: string }) {
     return {
       ...item,
       href: resolveNavigationHref(item, locale),
+      isActive: isNavigationItemActive(item, locale, pathname),
       label: t(item.labelKey),
     };
   });
@@ -76,7 +80,13 @@ export function Header({ className }: { className?: string }) {
               <Link
                 key={item.href}
                 href={item.href}
-                className="font-navigation-desktop text-text-black hover:bg-card-hover hover:text-text-secondary rounded-full px-3 py-2 text-[13px] font-light tracking-normal transition-colors"
+                aria-current={item.isActive ? "page" : undefined}
+                className={cn(
+                  "font-navigation-desktop hover:bg-card-hover rounded-full px-3 py-2 text-[13px] tracking-normal transition-colors",
+                  item.isActive
+                    ? "bg-card-hover text-text-highlight font-bold"
+                    : "text-text-black hover:text-text-secondary font-light",
+                )}
               >
                 {item.label}
               </Link>
