@@ -96,7 +96,9 @@ the staging or production Google Cloud VM. VMs run only images and persistent
 runtime data; they do not clone or build this repository.
 
 Start with the [staging and production deployment runbook](./docs/deploy/github-actions.md).
-The [GCE VM runtime reference](./docs/deploy/gce.md) describes the VM runtime layout.
+The staging operator guide provides concise merge, verification, rollback, and
+troubleshooting checklists in [English](./docs/deploy/staging.md) and
+[Spanish](./docs/deploy/staging-es.md).
 
 ## Documentation
 
@@ -108,7 +110,6 @@ The [GCE VM runtime reference](./docs/deploy/gce.md) describes the VM runtime la
 - [Checkout developer guide](./docs/checkout/developer.md)
 - [Checkout operations (Mercado Pago)](./docs/checkout/operations.md)
 - [Staging and production deployment](./docs/deploy/github-actions.md)
-- [GCE VM runtime reference](./docs/deploy/gce.md)
 - [CMS homepage (developer)](./docs/cms/developer.md)
 - [CMS homepage (content editors)](./docs/cms/content.md)
 - [CMS app README](./apps/cms/README.md)
