@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import type { CollectionSummary, TagReference } from "@/types/commerce";
 import { cn } from "@/lib/utils/cn";
-import { SlidersHorizontal } from "lucide-react";
+import { SlidersHorizontalIcon } from "@phosphor-icons/react";
 import { buildShopHref, type ShopQuery } from "./search-params";
 import { buildCategoryTree, type CategoryTreeNode } from "./category-hierarchy";
 
@@ -101,7 +101,10 @@ export function ShopFilters({
         className="border-border bg-card flex w-full items-center justify-between rounded-xl border px-4 py-3 text-sm font-medium lg:hidden"
         aria-expanded={isOpen}
       >
-        <span className="inline-flex items-center gap-2"><SlidersHorizontal aria-hidden className="size-4" />{labels.filters}</span>
+        <span className="inline-flex items-center gap-2">
+          <SlidersHorizontalIcon aria-hidden className="size-4" />
+          {labels.filters}
+        </span>
         <span>{isOpen ? "−" : "+"}</span>
       </button>
       <form

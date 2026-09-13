@@ -21,7 +21,7 @@ const components = [
   {
     href: "/ui-system/icons",
     name: "Iconos",
-    description: "Iconografía Lucide, tamaños, trazos y uso accesible.",
+    description: "Iconografía Phosphor, tamaños, pesos y uso accesible.",
   },
   {
     href: "/ui-system/typography",

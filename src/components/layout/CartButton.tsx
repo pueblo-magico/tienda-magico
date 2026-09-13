@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ShoppingBag } from "lucide-react";
+import { ShoppingBagIcon } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils/cn";
 
 export type CartButtonProps = {
@@ -20,9 +20,9 @@ export function CartButton({
   const content = (
     <>
       <span className="sr-only">Open cart</span>
-      <ShoppingBag aria-hidden className="h-5 w-5" strokeWidth={1.6} />
+      <ShoppingBagIcon aria-hidden className="h-5 w-5" weight="light" />
       {count > 0 ? (
-        <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-clay px-1 text-[10px] font-semibold text-brand-foreground">
+        <span className="bg-clay text-brand-foreground absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-semibold">
           {count}
         </span>
       ) : null}
@@ -36,7 +36,12 @@ export function CartButton({
 
   if (onClick) {
     return (
-      <button type="button" onClick={onClick} className={classes} aria-label="Open cart">
+      <button
+        type="button"
+        onClick={onClick}
+        className={classes}
+        aria-label="Open cart"
+      >
         {content}
       </button>
     );

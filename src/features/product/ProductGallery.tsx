@@ -2,7 +2,11 @@
 
 import Image from "next/image";
 import { useReducer } from "react";
-import { ImageOff, LoaderCircle, RotateCcw } from "lucide-react";
+import {
+  ArrowCounterClockwiseIcon,
+  ImageBrokenIcon,
+  SpinnerGapIcon,
+} from "@phosphor-icons/react";
 import { MediaPlaceholder } from "@/components/media/MediaPlaceholder";
 import type { CommerceImage, CommerceMedia } from "@/types/commerce";
 import { cn } from "@/lib/utils/cn";
@@ -94,10 +98,10 @@ function GalleryContent({ title, images, media = [], labels }: Props) {
               >
                 {state.failedThumbnails.has(image.url) ? (
                   <span className="text-muted flex size-full items-center justify-center">
-                    <ImageOff
+                    <ImageBrokenIcon
                       aria-hidden
                       className="size-5"
-                      strokeWidth={1.5}
+                      weight="light"
                     />
                   </span>
                 ) : image.kind === "video" ? (
@@ -145,14 +149,14 @@ function GalleryContent({ title, images, media = [], labels }: Props) {
       <div className="bg-warm relative order-1 aspect-[4/5] overflow-hidden rounded-2xl sm:order-2">
         {state.failedSource === current.url ? (
           <div className="text-muted absolute inset-0 flex flex-col items-center justify-center gap-3 px-6 text-center">
-            <ImageOff aria-hidden className="size-10" strokeWidth={1.5} />
+            <ImageBrokenIcon aria-hidden className="size-10" weight="light" />
             <p className="text-sm">{labels.mediaError}</p>
             <button
               type="button"
               onClick={() => dispatch({ type: "retry", source: current.url })}
               className="border-border bg-card text-text-black inline-flex cursor-pointer items-center gap-2 rounded-full border px-4 py-2 text-sm font-bold"
             >
-              <RotateCcw aria-hidden className="size-4" />
+              <ArrowCounterClockwiseIcon aria-hidden className="size-4" />
               {labels.retry}
             </button>
           </div>
@@ -198,10 +202,10 @@ function GalleryContent({ title, images, media = [], labels }: Props) {
         {state.loadingSource === current.url &&
         state.failedSource !== current.url ? (
           <div className="bg-warm/80 text-muted pointer-events-none absolute inset-0 flex items-center justify-center">
-            <LoaderCircle
+            <SpinnerGapIcon
               aria-hidden
               className="size-8 animate-spin"
-              strokeWidth={1.5}
+              weight="light"
             />
             <span className="sr-only">{labels.gallery}</span>
           </div>

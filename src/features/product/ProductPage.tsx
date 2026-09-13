@@ -7,7 +7,11 @@ import { Container } from "@/components/layout/Container";
 import { Section } from "@/components/layout/Section";
 import { Body, Eyebrow, PageTitle } from "@/components/typography";
 import { RichText } from "@/components/typography/RichText";
-import { LockKeyhole, Sprout, Truck } from "lucide-react";
+import {
+  LockKeyIcon,
+  PlantIcon,
+  TruckIcon,
+} from "@phosphor-icons/react/dist/ssr";
 import type {
   CategoryReference,
   Product,
@@ -234,30 +238,30 @@ export function ProductPageView({ locale, product, related, labels }: Props) {
 
                 <div className="border-border text-muted grid grid-cols-3 gap-3 border-y py-5 text-center text-[11px] leading-snug">
                   <span>
-                    <Truck
+                    <TruckIcon
                       aria-hidden
                       className="mx-auto size-4"
-                      strokeWidth={1.5}
+                      weight="light"
                     />
                     <strong className="text-text-black mt-1 block font-medium">
                       {labels.freeShipping}
                     </strong>
                   </span>
                   <span>
-                    <LockKeyhole
+                    <LockKeyIcon
                       aria-hidden
                       className="mx-auto size-4"
-                      strokeWidth={1.5}
+                      weight="light"
                     />
                     <strong className="text-text-black mt-1 block font-medium">
                       {labels.securePayment}
                     </strong>
                   </span>
                   <span>
-                    <Sprout
+                    <PlantIcon
                       aria-hidden
                       className="mx-auto size-4"
-                      strokeWidth={1.5}
+                      weight="light"
                     />
                     <strong className="text-text-black mt-1 block font-medium">
                       {labels.ethicallySourced}

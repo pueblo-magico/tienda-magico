@@ -1,4 +1,4 @@
-import { ImageOff } from "lucide-react";
+import { ImageBrokenIcon } from "@phosphor-icons/react/dist/ssr";
 import { cn } from "@/lib/utils/cn";
 
 type Props = {
@@ -16,7 +16,7 @@ export function MediaPlaceholder({ label, className }: Props) {
       role="img"
       aria-label={label}
     >
-      <ImageOff aria-hidden className="size-10" strokeWidth={1.5} />
+      <ImageBrokenIcon aria-hidden className="size-10" weight="light" />
       <p className="text-sm">{label}</p>
     </div>
   );

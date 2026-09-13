@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { Minus, Plus } from "lucide-react";
+import { MinusIcon, PlusIcon } from "@phosphor-icons/react";
 import { useProductSelection } from "./ProductSelection";
 import { Button } from "@/components/ui/Button";
 import { useCart } from "@/features/cart";
@@ -201,7 +201,7 @@ export function AddToCartForm({ product, labels }: Props) {
               disabled={selectedQuantity <= 1 || isMutating}
               onClick={() => setQuantity((value) => Math.max(1, value - 1))}
             >
-              <Minus aria-hidden className="mx-auto size-4" strokeWidth={2} />
+              <MinusIcon aria-hidden className="mx-auto size-4" />
             </button>
             <span className="min-w-8 text-center tabular-nums">
               {selectedQuantity}
@@ -217,7 +217,7 @@ export function AddToCartForm({ product, labels }: Props) {
               }
               onClick={() => setQuantity((value) => value + 1)}
             >
-              <Plus aria-hidden className="mx-auto size-4" strokeWidth={2} />
+              <PlusIcon aria-hidden className="mx-auto size-4" />
             </button>
           </div>
         </div>

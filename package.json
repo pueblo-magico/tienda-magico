@@ -11,6 +11,7 @@
     "test:task-04": "node --import ./tests/register.mjs --test tests/catalog.test.mjs tests/product-publication.test.mjs tests/catalog-revalidation.test.mjs tests/sellable-items.test.mjs",
     "test:task-03": "node --import ./tests/register.mjs --test tests/catalog.test.mjs tests/product-publication.test.mjs tests/catalog-revalidation.test.mjs",
     "test:deploy": "node --test tests/deployment-runtime-env.test.mjs",
+    "test:icons": "node --test tests/icon-library.test.mjs",
     "dev:web": "next dev --turbopack",
     "dev:cms": "npm --prefix apps/cms run dev",
     "build:web": "next build --turbopack",
@@ -24,7 +25,7 @@
     "deploy:gce": "bash deploy/gce/deploy.sh"
   },
   "dependencies": {
-    "lucide-react": "^1.44.0",
+    "@phosphor-icons/react": "^2.1.10",
     "next": "16.3.0",
     "next-intl": "^4.13.6",
     "react": "19.1.0",

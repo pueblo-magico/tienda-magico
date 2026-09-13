@@ -2,7 +2,7 @@
 
 import { useId, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils/cn";
-import { Minus, Plus } from "lucide-react";
+import { MinusIcon, PlusIcon } from "@phosphor-icons/react";
 
 export type AccordionItem = {
   id: string;
@@ -35,7 +35,12 @@ export function Accordion({
   };
 
   return (
-    <div className={cn("divide-y divide-border rounded-2xl border border-border", className)}>
+    <div
+      className={cn(
+        "divide-border border-border divide-y rounded-2xl border",
+        className,
+      )}
+    >
       {items.map((item) => {
         const isOpen = openItems.includes(item.id);
         const panelId = `${baseId}-${item.id}-panel`;
@@ -50,11 +55,15 @@ export function Accordion({
                 aria-expanded={isOpen}
                 aria-controls={panelId}
                 onClick={() => toggle(item.id)}
-                className="flex w-full items-center justify-between gap-4 px-4 py-3 text-left text-sm font-medium text-forest transition-colors hover:bg-forest/5"
+                className="text-forest hover:bg-forest/5 flex w-full items-center justify-between gap-4 px-4 py-3 text-left text-sm font-medium transition-colors"
               >
                 <span>{item.title}</span>
                 <span aria-hidden className="text-forest/50">
-                  {isOpen ? <Minus aria-hidden className="size-4" /> : <Plus aria-hidden className="size-4" />}
+                  {isOpen ? (
+                    <MinusIcon aria-hidden className="size-4" />
+                  ) : (
+                    <PlusIcon aria-hidden className="size-4" />
+                  )}
                 </span>
               </button>
             </h3>
@@ -63,7 +72,7 @@ export function Accordion({
               role="region"
               aria-labelledby={buttonId}
               hidden={!isOpen}
-              className="px-4 pb-4 text-sm leading-relaxed text-forest/75"
+              className="text-forest/75 px-4 pb-4 text-sm leading-relaxed"
             >
               {item.content}
             </div>

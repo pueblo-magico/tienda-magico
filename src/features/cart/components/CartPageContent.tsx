@@ -2,7 +2,7 @@
 
 import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
-import { LockKeyhole, Sprout, Truck } from "lucide-react";
+import { LockKeyIcon, PlantIcon, TruckIcon } from "@phosphor-icons/react";
 import { localizePath } from "@/config/navigation";
 import { Body, PageTitle } from "@/components/typography";
 import { useCart } from "../CartProvider";
@@ -132,22 +132,22 @@ export function CartPageContent() {
       {cart.lines.length > 0 ? (
         <div className="border-border text-muted grid gap-4 border-t pt-6 text-center text-xs sm:grid-cols-3">
           <p>
-            <Truck aria-hidden className="mx-auto size-4" strokeWidth={1.5} />
+            <TruckIcon aria-hidden className="mx-auto size-4" weight="light" />
             <strong className="text-text-black block">
               {t("shippingBenefit")}
             </strong>
           </p>
           <p>
-            <Sprout aria-hidden className="mx-auto size-4" strokeWidth={1.5} />
+            <PlantIcon aria-hidden className="mx-auto size-4" weight="light" />
             <strong className="text-text-black block">
               {t("sourcingBenefit")}
             </strong>
           </p>
           <p>
-            <LockKeyhole
+            <LockKeyIcon
               aria-hidden
               className="mx-auto size-4"
-              strokeWidth={1.5}
+              weight="light"
             />
             <strong className="text-text-black block">
               {t("paymentBenefit")}
