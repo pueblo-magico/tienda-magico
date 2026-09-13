@@ -65,6 +65,7 @@ export function MobileMenu({
         <div className="border-border flex items-center justify-between border-b px-4 py-4">
           <Link
             href={homeHref}
+            prefetch={false}
             onClick={onClose}
             className="inline-flex items-center"
           >

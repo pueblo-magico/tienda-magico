@@ -958,10 +958,15 @@ test("structured classification localizes labels while preserving stable identit
   assert.equal(english.classification.brand.website, null);
 });
 
-test("category browsing includes primary and additional membership and requests only visible ordered categories", async () => {
+test("category browsing includes descendant membership and requests only visible ordered categories", async () => {
   const calls = transport({
     "GET /api/categories": {
-      docs: [{ id: 10, slug: "rituales", title: "Rituals" }],
+      docs: [
+        { id: 10, slug: "rituales", title: "Rituals" },
+        { id: 11, slug: "inciensos", title: "Incense", parent: 10 },
+        { id: 12, slug: "copales", title: "Copal", parent: 11 },
+        { id: 20, slug: "alimentos", title: "Food" },
+      ],
       hasNextPage: false,
       hasPrevPage: false,
     },
@@ -994,6 +999,16 @@ test("category browsing includes primary and additional membership and requests 
       "where[and][0][or][2][additionalCategories][contains]",
     ),
     "10",
+  );
+  assert.equal(
+    productCall.url.searchParams.get("where[and][0][or][3][category][equals]"),
+    "11",
+  );
+  assert.equal(
+    productCall.url.searchParams.get(
+      "where[and][0][or][6][additionalCategories][contains]",
+    ),
+    "12",
   );
 });
 

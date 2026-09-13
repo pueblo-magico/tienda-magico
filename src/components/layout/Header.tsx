@@ -24,7 +24,7 @@ export function Header({ className }: { className?: string }) {
   const pathname = usePathname();
   const { openCart, itemCount } = useCart();
   const [menuOpen, setMenuOpen] = useState(false);
-  const homeHref = localizePath(locale);
+  const homeHref = localizePath(locale, "/shop");
 
   const items = mainNavigation.map((item) => {
     return {
@@ -60,7 +60,11 @@ export function Header({ className }: { className?: string }) {
               </span>
             </button>
 
-            <Link href={homeHref} className="inline-flex shrink-0 items-center">
+            <Link
+              href={homeHref}
+              prefetch={false}
+              className="inline-flex shrink-0 items-center"
+            >
               <Image
                 src="/pueblo_magico_logo_marron.svg"
                 alt="Pueblo Mágico"
