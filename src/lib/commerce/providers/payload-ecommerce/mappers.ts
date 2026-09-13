@@ -16,6 +16,7 @@ import type {
   SelectedOption,
   TagReference,
 } from "@/types/commerce";
+import dynamicIconImports from "lucide-react/dynamicIconImports.mjs";
 import { CommerceError } from "@/types/commerce";
 import { mapInformationSections } from "./information-sections";
 import { regularPrice, purchaseStatus, publicSellable } from "./sellable";
@@ -33,6 +34,14 @@ import type {
   PayloadLocalizedText,
   PayloadTagDoc,
 } from "./types";
+
+const lucideIconNames = new Set<string>(Object.keys(dynamicIconImports));
+
+function mapCategoryIcon(value: unknown): CategoryIcon | null {
+  return typeof value === "string" && lucideIconNames.has(value)
+    ? (value as CategoryIcon)
+    : null;
+}
 
 export function encodeCartRef(cartId: string, secret?: string | null): string {
   if (!secret) return cartId;
@@ -493,10 +502,7 @@ function mapCategoryReference(
   const handle = typeof doc.slug === "string" ? doc.slug : "";
   const title = resolveLocalizedText(doc.title, preferred);
   if (!handle || !title) return null;
-  const allowedIcons = ["leaf", "mountain", "sun", "ritual", "heart"] as const;
-  const icon = allowedIcons.includes(doc.icon as (typeof allowedIcons)[number])
-    ? (doc.icon as CategoryIcon)
-    : null;
+  const icon = mapCategoryIcon(doc.icon);
 
   return {
     id: toId(doc.id),
@@ -980,11 +986,7 @@ export function mapCollectionSummary(
       String(doc.summary ?? ""),
     image:
       collectImages(doc as PayloadProductDoc)[0] ?? mapMedia(doc.image) ?? null,
-    icon: ["leaf", "mountain", "sun", "ritual", "heart"].includes(
-      category.icon ?? "",
-    )
-      ? (category.icon as CategoryIcon)
-      : null,
+    icon: mapCategoryIcon(category.icon),
     parent: mapCategoryReference(category.parent, locale),
     displayOrder:
       typeof category.displayOrder === "number" ? category.displayOrder : 0,

@@ -1,4 +1,5 @@
 import type { SafeRichTextHtml } from "@/types/content";
+import type { IconName } from "lucide-react/dynamic.js";
 
 export type FulfillmentMode = "local_collection" | "delivery";
 
@@ -35,7 +36,7 @@ export type CategoryReference = {
   parent: CategoryReference | null;
 };
 
-export type CategoryIcon = "leaf" | "mountain" | "sun" | "ritual" | "heart";
+export type CategoryIcon = IconName;
 
 export type BrandReference = {
   id: string;

@@ -1,8 +1,11 @@
 import type { CollectionConfig } from 'payload'
+import dynamicIconImports from 'lucide-react/dynamicIconImports.mjs'
 
 import { adminOnly } from '../access/adminOnly'
 import { publicVisibleOrAdmin } from '../access/publicOrAdmin'
 import { preventCategoryCycles } from './categoryHierarchy'
+
+const iconNames = Object.keys(dynamicIconImports)
 
 export const Categories: CollectionConfig = {
   slug: 'categories',
@@ -66,17 +69,13 @@ export const Categories: CollectionConfig = {
     {
       name: 'icon',
       type: 'select',
-      options: [
-        { label: { es: '♧  Hoja', en: '♧  Leaf' }, value: 'leaf' },
-        { label: { es: '⌃  Montaña', en: '⌃  Mountain' }, value: 'mountain' },
-        { label: { es: '☼  Sol', en: '☼  Sun' }, value: 'sun' },
-        { label: { es: '♨  Ritual', en: '♨  Ritual' }, value: 'ritual' },
-        { label: { es: '♡  Corazón', en: '♡  Heart' }, value: 'heart' },
-      ],
+      options: iconNames.map((name) => ({ label: name, value: name })),
       admin: {
-        description: {
-          es: 'Opcional. Se usa cuando no hay imagen.',
-          en: 'Optional. Used when no image is available.',
+        components: {
+          Description: {
+            path: '@/components/LucideIconFieldDescription',
+            exportName: 'default',
+          },
         },
       },
     },
