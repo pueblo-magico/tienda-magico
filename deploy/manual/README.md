@@ -226,11 +226,13 @@ MERCADOPAGO_SANDBOX=true
 The access token may be left empty until checkout testing, but checkout calls
 will fail until a valid token is supplied.
 
-When deployment runs through GitHub Actions, the staging Environment manages
-`CHECKOUT_PROVIDER`, `MERCADOPAGO_ACCESS_TOKEN`, `MERCADOPAGO_SANDBOX`, and
-`MERCADOPAGO_WEBHOOK_URL`. The workflow updates only those keys and preserves
-the remaining values in `storefront.env`. Manual artifact deployments continue
-to use the values configured directly in this file.
+When deployment runs through GitHub Actions, the workflow derives the Payload
+commerce connection from `SHOP_URL` and `CMS_URL`. The staging Environment also
+manages `CHECKOUT_PROVIDER`, `MERCADOPAGO_ACCESS_TOKEN`,
+`MERCADOPAGO_SANDBOX`, and `MERCADOPAGO_WEBHOOK_URL`. The workflow updates only
+those managed keys and preserves the remaining values in `storefront.env`.
+Manual artifact deployments continue to use the values configured directly in
+this file.
 
 Environment files are installed with mode `600`. Keep all secrets out of Git
 and out of the image build arguments.

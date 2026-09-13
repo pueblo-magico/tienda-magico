@@ -33,18 +33,21 @@ normal workflow, this happens when a pull request is merged into that branch.
 5. Confirm that the SSH user can run `sudo -n true` and that the environment
    files under `/opt/tienda-magico/env` contain no placeholders.
 
-The workflow manages the four checkout keys in `storefront.env` on every
-deployment. It preserves every other key already present in that file. Database,
-Payload, CMS API, and revalidation secrets remain VM-managed.
+The workflow manages the commerce connection and checkout keys in
+`storefront.env` on every deployment. `COMMERCE_PROVIDER` is set to `payload`;
+the Payload URLs and public site URL are derived from `CMS_URL` and `SHOP_URL`.
+It preserves every other key already present in the file. Database, Payload,
+CMS API, and revalidation secrets remain VM-managed.
 
-| Setting                                              | Owner                | Phase              |
-| ---------------------------------------------------- | -------------------- | ------------------ |
-| `SHOP_URL`, `CMS_URL`                                | GitHub variable      | Image build        |
-| `CHECKOUT_PROVIDER`                                  | GitHub variable      | Runtime deployment |
-| `MERCADOPAGO_SANDBOX`                                | GitHub variable      | Runtime deployment |
-| `MERCADOPAGO_WEBHOOK_URL`                            | GitHub variable      | Runtime deployment |
-| `MERCADOPAGO_ACCESS_TOKEN`                           | GitHub secret        | Runtime deployment |
-| Database, Payload, CMS API, and revalidation secrets | VM environment files | Runtime            |
+| Setting                                              | Owner                | Phase                              |
+| ---------------------------------------------------- | -------------------- | ---------------------------------- |
+| `SHOP_URL`, `CMS_URL`                                | GitHub variable      | Image build and runtime deployment |
+| `COMMERCE_PROVIDER`, Payload URLs, public site URL   | Derived by workflow  | Runtime deployment                 |
+| `CHECKOUT_PROVIDER`                                  | GitHub variable      | Runtime deployment                 |
+| `MERCADOPAGO_SANDBOX`                                | GitHub variable      | Runtime deployment                 |
+| `MERCADOPAGO_WEBHOOK_URL`                            | GitHub variable      | Runtime deployment                 |
+| `MERCADOPAGO_ACCESS_TOKEN`                           | GitHub secret        | Runtime deployment                 |
+| Database, Payload, CMS API, and revalidation secrets | VM environment files | Runtime                            |
 
 Runtime secrets are never passed as Docker build arguments or written to the
 workflow summary. During activation, the workflow backs up the existing

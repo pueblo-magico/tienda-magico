@@ -20,6 +20,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
   key="${line%%=*}"
 
   case "$key" in
+    COMMERCE_PROVIDER|PAYLOAD_ECOMMERCE_URL|PAYLOAD_CMS_URL|NEXT_PUBLIC_SITE_URL) ;;
     CHECKOUT_PROVIDER|MERCADOPAGO_ACCESS_TOKEN|MERCADOPAGO_SANDBOX|MERCADOPAGO_WEBHOOK_URL) ;;
     *) die "Unsupported managed environment key: $key" ;;
   esac

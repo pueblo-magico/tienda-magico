@@ -123,6 +123,10 @@ jobs:
           runtime_file="$RUNNER_TEMP/storefront-runtime.env"
           umask 077
           {
+            printf 'COMMERCE_PROVIDER=payload\n'
+            printf 'PAYLOAD_ECOMMERCE_URL=%s\n' "$CMS_URL"
+            printf 'PAYLOAD_CMS_URL=%s\n' "$CMS_URL"
+            printf 'NEXT_PUBLIC_SITE_URL=%s\n' "$SHOP_URL"
             printf 'CHECKOUT_PROVIDER=%s\n' "$CHECKOUT_PROVIDER"
             printf 'MERCADOPAGO_ACCESS_TOKEN=%s\n' "$MERCADOPAGO_ACCESS_TOKEN"
             printf 'MERCADOPAGO_SANDBOX=%s\n' "$MERCADOPAGO_SANDBOX"

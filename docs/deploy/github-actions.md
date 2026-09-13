@@ -112,10 +112,13 @@ query, or fragment. They must match the URLs already configured on the VM.
 `MERCADOPAGO_WEBHOOK_URL` must equal `SHOP_URL` followed by
 `/api/checkout/webhooks/mercado-pago`.
 
-The deployment updates only `CHECKOUT_PROVIDER`, `MERCADOPAGO_ACCESS_TOKEN`,
-`MERCADOPAGO_SANDBOX`, and `MERCADOPAGO_WEBHOOK_URL` in the VM's
-`storefront.env`. All unmanaged values remain unchanged. The previous runtime
-configuration and image tag are restored automatically if activation fails.
+The deployment sets `COMMERCE_PROVIDER=payload` and derives
+`PAYLOAD_ECOMMERCE_URL`, `PAYLOAD_CMS_URL`, and `NEXT_PUBLIC_SITE_URL` from the
+validated public URLs. It also updates `CHECKOUT_PROVIDER`,
+`MERCADOPAGO_ACCESS_TOKEN`, `MERCADOPAGO_SANDBOX`, and
+`MERCADOPAGO_WEBHOOK_URL` in the VM's `storefront.env`. All unmanaged values
+remain unchanged. The previous runtime configuration and image tag are restored
+automatically if activation fails.
 
 ## 4. First automated release
 
@@ -136,7 +139,7 @@ Follow **Actions -> Deploy staging**. A successful run will:
 4. Export and verify `tienda-magico-TAG.tar`.
 5. Copy the artifact, checksum, and current deployment kit over SSH.
 6. Refresh Compose and Caddy files without overwriting runtime environment files.
-7. Atomically update the GitHub-managed checkout runtime configuration.
+7. Atomically update the GitHub-managed commerce and checkout runtime configuration.
 8. Verify the checksum again on the VM.
 9. Load and activate the immutable images.
 10. Wait for the storefront and CMS health checks.

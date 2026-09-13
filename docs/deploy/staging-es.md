@@ -33,18 +33,21 @@ flujo normal, esto sucede al mergear un pull request contra esa rama.
 5. Confirmá que el usuario SSH pueda ejecutar `sudo -n true` y que los archivos
    de entorno de `/opt/tienda-magico/env` no contengan placeholders.
 
-El workflow administra las cuatro claves de checkout de `storefront.env` en
-cada despliegue y conserva todas las demás claves existentes. Los secretos de
-base de datos, Payload, API del CMS y revalidación siguen administrados en la VM.
+El workflow administra la conexión de comercio y las claves de checkout de
+`storefront.env` en cada despliegue. Configura `COMMERCE_PROVIDER` como
+`payload` y deriva las URLs de Payload y del sitio público desde `CMS_URL` y
+`SHOP_URL`. Conserva todas las demás claves existentes. Los secretos de base de
+datos, Payload, API del CMS y revalidación siguen administrados en la VM.
 
-| Configuración                                                  | Responsable                  | Etapa                 |
-| -------------------------------------------------------------- | ---------------------------- | --------------------- |
-| `SHOP_URL`, `CMS_URL`                                          | Variable de GitHub           | Build de imágenes     |
-| `CHECKOUT_PROVIDER`                                            | Variable de GitHub           | Despliegue en runtime |
-| `MERCADOPAGO_SANDBOX`                                          | Variable de GitHub           | Despliegue en runtime |
-| `MERCADOPAGO_WEBHOOK_URL`                                      | Variable de GitHub           | Despliegue en runtime |
-| `MERCADOPAGO_ACCESS_TOKEN`                                     | Secreto de GitHub            | Despliegue en runtime |
-| Secretos de base de datos, Payload, API del CMS y revalidación | Archivos de entorno de la VM | Runtime               |
+| Configuración                                                  | Responsable                  | Etapa                                     |
+| -------------------------------------------------------------- | ---------------------------- | ----------------------------------------- |
+| `SHOP_URL`, `CMS_URL`                                          | Variable de GitHub           | Build de imágenes y despliegue en runtime |
+| `COMMERCE_PROVIDER`, URLs de Payload y URL pública del sitio   | Derivado por el workflow     | Despliegue en runtime                     |
+| `CHECKOUT_PROVIDER`                                            | Variable de GitHub           | Despliegue en runtime                     |
+| `MERCADOPAGO_SANDBOX`                                          | Variable de GitHub           | Despliegue en runtime                     |
+| `MERCADOPAGO_WEBHOOK_URL`                                      | Variable de GitHub           | Despliegue en runtime                     |
+| `MERCADOPAGO_ACCESS_TOKEN`                                     | Secreto de GitHub            | Despliegue en runtime                     |
+| Secretos de base de datos, Payload, API del CMS y revalidación | Archivos de entorno de la VM | Runtime                                   |
 
 Los secretos de runtime nunca se pasan como argumentos de build ni se escriben
 en el resumen del workflow. Durante la activación se respaldan los archivos de
