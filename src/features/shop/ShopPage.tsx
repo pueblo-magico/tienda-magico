@@ -2,7 +2,6 @@ import { getTranslations } from "next-intl/server";
 import Image from "next/image";
 import Link from "next/link";
 import { Container } from "@/components/layout/Container";
-import { Section } from "@/components/layout/Section";
 import { Body, Eyebrow, PageTitle } from "@/components/typography";
 import { loadShopCatalog } from "./load-shop-catalog";
 import { ProductGrid } from "./ProductGrid";
@@ -77,27 +76,30 @@ export async function ShopPage({ locale, query, labels }: Props) {
     : catalog.collections
         .filter((collection) => !collection.parent)
         .slice(0, 4);
+  const heroImage =
+    catalog.selectedCollection?.image ??
+    categoryCards.find((collection) => collection.image)?.image ??
+    null;
 
   return (
-    <Section spacing="lg">
-      <Container className="space-y-9">
-        <header className="border-border bg-warm relative overflow-hidden rounded-3xl border px-6 py-12 sm:px-12 lg:py-16">
-          {catalog.selectedCollection?.image?.url ? (
+    <section className="pb-16 sm:pb-24">
+      <div className="relative h-72 w-full overflow-hidden">
+        <header className="bg-warm absolute inset-0 flex items-center px-6 sm:px-12 lg:px-[max(3rem,calc((100vw-72rem)/2))]">
+          {heroImage?.url ? (
             <>
               <Image
-                src={catalog.selectedCollection.image.url}
+                src={heroImage.url}
                 alt=""
                 fill
                 priority
                 className="object-cover"
-                sizes="(max-width: 1280px) 100vw, 1280px"
+                sizes="100vw"
               />
               <div className="bg-forest/65 absolute inset-0" />
             </>
           ) : null}
           <div className="relative z-10 max-w-xl space-y-3">
-            {!catalog.selectedCollection?.image?.url &&
-            catalog.selectedCollection?.icon ? (
+            {!heroImage?.url && catalog.selectedCollection?.icon ? (
               <div className="text-text-secondary" aria-hidden="true">
                 <CategoryIcon name={catalog.selectedCollection.icon} />
               </div>
@@ -106,7 +108,7 @@ export async function ShopPage({ locale, query, labels }: Props) {
               <nav
                 aria-label={labels.collections}
                 className={
-                  catalog.selectedCollection?.image?.url
+                  heroImage?.url
                     ? "text-card/80 flex flex-wrap gap-2 text-xs"
                     : "text-muted flex flex-wrap gap-2 text-xs"
                 }
@@ -132,17 +134,13 @@ export async function ShopPage({ locale, query, labels }: Props) {
                 ))}
               </nav>
             ) : null}
-            <Eyebrow
-              className={
-                catalog.selectedCollection?.image?.url ? "text-gold" : undefined
-              }
-            >
+            <Eyebrow className={heroImage?.url ? "text-gold" : undefined}>
               {labels.eyebrow}
             </Eyebrow>
             <PageTitle
               as="h1"
               className={
-                catalog.selectedCollection?.image?.url
+                heroImage?.url
                   ? "text-card text-4xl sm:text-5xl"
                   : "text-4xl sm:text-5xl"
               }
@@ -151,11 +149,7 @@ export async function ShopPage({ locale, query, labels }: Props) {
             </PageTitle>
             <Body
               size="lg"
-              className={
-                catalog.selectedCollection?.image?.url
-                  ? "text-card/85"
-                  : "text-muted"
-              }
+              className={heroImage?.url ? "text-card/85" : "text-muted"}
             >
               {catalog.selectedCollection?.description || labels.subtitle}
             </Body>
@@ -169,8 +163,10 @@ export async function ShopPage({ locale, query, labels }: Props) {
             className="border-brand/20 absolute right-20 -bottom-28 h-52 w-52 rounded-full border"
           />
         </header>
+      </div>
 
-        {categoryCards.length ? (
+      {categoryCards.length ? (
+        <Container className="relative z-10 -mt-8">
           <nav
             aria-label={
               catalog.selectedCollection
@@ -222,8 +218,10 @@ export async function ShopPage({ locale, query, labels }: Props) {
               ))}
             </ul>
           </nav>
-        ) : null}
+        </Container>
+      ) : null}
 
+      <Container className="mt-10 space-y-9">
         {!catalog.configured ? (
           <Body className="text-muted">{labels.notConfigured}</Body>
         ) : null}
@@ -305,6 +303,6 @@ export async function ShopPage({ locale, query, labels }: Props) {
           </div>
         ) : null}
       </Container>
-    </Section>
+    </section>
   );
 }
