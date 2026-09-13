@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
+import { readFile } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
 import { test } from "node:test";
 
@@ -30,4 +31,18 @@ test("managed staging runtime configuration is merged safely", (context) => {
 
   assert.equal(result.status, 0, result.stderr || result.stdout);
   assert.match(result.stdout, /Runtime environment update tests passed\./);
+});
+
+test("the storefront image selects Payload during the Next.js build", async () => {
+  const [dockerfile, artifactBuilder] = await Promise.all([
+    readFile("deploy/docker/storefront.Dockerfile", "utf8"),
+    readFile("deploy/manual/build-artifact.mjs", "utf8"),
+  ]);
+
+  assert.match(dockerfile, /ARG COMMERCE_PROVIDER/);
+  assert.match(dockerfile, /COMMERCE_PROVIDER=\$COMMERCE_PROVIDER/);
+  assert.match(
+    artifactBuilder,
+    /["']--build-arg["']\s*,\s*["']COMMERCE_PROVIDER=payload["']/,
+  );
 });

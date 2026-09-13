@@ -128,6 +128,7 @@ run(
   [
     'buildx', 'build', '--load', '--platform', options.platform,
     '-f', 'deploy/docker/storefront.Dockerfile',
+    '--build-arg', 'COMMERCE_PROVIDER=payload',
     '--build-arg', `NEXT_PUBLIC_SITE_URL=${options.shopUrl}`,
     '--build-arg', `PAYLOAD_ECOMMERCE_URL=${options.cmsUrl}`,
     '--build-arg', `PAYLOAD_CMS_URL=${options.cmsUrl}`,
