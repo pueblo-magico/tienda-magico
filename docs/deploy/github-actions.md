@@ -87,24 +87,35 @@ impersonated VM.
 In the repository, open **Settings -> Environments**, create `staging`, and add
 these Environment variables:
 
-| Variable          | Example                            | Purpose                                                  |
-| ----------------- | ---------------------------------- | -------------------------------------------------------- |
-| `SHOP_URL`        | `https://shop.staging.example.org` | Public storefront origin compiled into the image         |
-| `CMS_URL`         | `https://cms.staging.example.org`  | Public CMS origin compiled into both images              |
-| `DEPLOY_PLATFORM` | `linux/amd64`                      | Use `linux/arm64` when `uname -m` on the VM is `aarch64` |
-| `SSH_HOST`        | `203.0.113.10`                     | VM DNS name or public IP                                 |
-| `SSH_PORT`        | `22`                               | Optional; defaults to 22                                 |
-| `SSH_USER`        | `ubuntu`                           | Non-root deployment user                                 |
+| Variable                  | Example                                                               | Purpose                                                  |
+| ------------------------- | --------------------------------------------------------------------- | -------------------------------------------------------- |
+| `SHOP_URL`                | `https://shop.staging.example.org`                                    | Public storefront origin compiled into the image         |
+| `CMS_URL`                 | `https://cms.staging.example.org`                                     | Public CMS origin compiled into both images              |
+| `DEPLOY_PLATFORM`         | `linux/amd64`                                                         | Use `linux/arm64` when `uname -m` on the VM is `aarch64` |
+| `SSH_HOST`                | `203.0.113.10`                                                        | VM DNS name or public IP                                 |
+| `SSH_PORT`                | `22`                                                                  | Optional; defaults to 22                                 |
+| `SSH_USER`                | `ubuntu`                                                              | Non-root deployment user                                 |
+| `CHECKOUT_PROVIDER`       | `mercado-pago`                                                        | Staging checkout adapter                                 |
+| `MERCADOPAGO_SANDBOX`     | `true`                                                                | Enables test payment behavior                            |
+| `MERCADOPAGO_WEBHOOK_URL` | `https://shop.staging.example.org/api/checkout/webhooks/mercado-pago` | Public payment notification endpoint                     |
 
 Add these Environment secrets:
 
-| Secret            | Contents                                                  |
-| ----------------- | --------------------------------------------------------- |
-| `SSH_PRIVATE_KEY` | Complete dedicated private key, including BEGIN/END lines |
-| `SSH_KNOWN_HOSTS` | Verified `known_hosts` entry for this VM and port         |
+| Secret                     | Contents                                                  |
+| -------------------------- | --------------------------------------------------------- |
+| `SSH_PRIVATE_KEY`          | Complete dedicated private key, including BEGIN/END lines |
+| `SSH_KNOWN_HOSTS`          | Verified `known_hosts` entry for this VM and port         |
+| `MERCADOPAGO_ACCESS_TOKEN` | Server-side Mercado Pago test access token                |
 
 `SHOP_URL` and `CMS_URL` must be HTTP(S) origins without a trailing slash, path,
 query, or fragment. They must match the URLs already configured on the VM.
+`MERCADOPAGO_WEBHOOK_URL` must equal `SHOP_URL` followed by
+`/api/checkout/webhooks/mercado-pago`.
+
+The deployment updates only `CHECKOUT_PROVIDER`, `MERCADOPAGO_ACCESS_TOKEN`,
+`MERCADOPAGO_SANDBOX`, and `MERCADOPAGO_WEBHOOK_URL` in the VM's
+`storefront.env`. All unmanaged values remain unchanged. The previous runtime
+configuration and image tag are restored automatically if activation fails.
 
 ## 4. First automated release
 
@@ -125,11 +136,12 @@ Follow **Actions -> Deploy staging**. A successful run will:
 4. Export and verify `tienda-magico-TAG.tar`.
 5. Copy the artifact, checksum, and current deployment kit over SSH.
 6. Refresh Compose and Caddy files without overwriting runtime environment files.
-7. Verify the checksum again on the VM.
-8. Load and activate the immutable images.
-9. Wait for the storefront and CMS health checks.
-10. Verify the public storefront and CMS endpoints through DNS and HTTPS.
-11. Print a deployment summary and remove the transferred tar archive.
+7. Atomically update the GitHub-managed checkout runtime configuration.
+8. Verify the checksum again on the VM.
+9. Load and activate the immutable images.
+10. Wait for the storefront and CMS health checks.
+11. Verify the public storefront and CMS endpoints through DNS and HTTPS.
+12. Print a deployment summary and remove the transferred tar archive.
 
 Payload production migrations are bundled into the CMS image and run before CMS
 initialization. A migration failure prevents the CMS health check from passing

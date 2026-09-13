@@ -10,27 +10,46 @@ flujo normal, esto sucede al mergear un pull request contra esa rama.
 2. Creá el Environment `staging` en **GitHub -> Settings -> Environments**.
 3. Configurá estas variables del Environment:
 
-| Variable          | Uso                                                |
-| ----------------- | -------------------------------------------------- |
-| `SHOP_URL`        | Origen HTTPS público del storefront, sin `/` final |
-| `CMS_URL`         | Origen HTTPS público del CMS, sin `/` final        |
-| `DEPLOY_PLATFORM` | `linux/amd64` o `linux/arm64`, según la VM         |
-| `SSH_HOST`        | Dominio o IP pública de la VM                      |
-| `SSH_PORT`        | Puerto SSH; normalmente `22`                       |
-| `SSH_USER`        | Usuario no root habilitado para desplegar          |
+| Variable                  | Uso                                                          |
+| ------------------------- | ------------------------------------------------------------ |
+| `SHOP_URL`                | Origen HTTPS público del storefront, sin `/` final           |
+| `CMS_URL`                 | Origen HTTPS público del CMS, sin `/` final                  |
+| `DEPLOY_PLATFORM`         | `linux/amd64` o `linux/arm64`, según la VM                   |
+| `SSH_HOST`                | Dominio o IP pública de la VM                                |
+| `SSH_PORT`                | Puerto SSH; normalmente `22`                                 |
+| `SSH_USER`                | Usuario no root habilitado para desplegar                    |
+| `CHECKOUT_PROVIDER`       | Adaptador de checkout; usá `mercado-pago` en staging         |
+| `MERCADOPAGO_SANDBOX`     | `true` para credenciales y pagos de prueba                   |
+| `MERCADOPAGO_WEBHOOK_URL` | `SHOP_URL` seguido por `/api/checkout/webhooks/mercado-pago` |
 
 4. Configurá estos secretos del Environment:
 
-| Secreto           | Uso                                              |
-| ----------------- | ------------------------------------------------ |
-| `SSH_PRIVATE_KEY` | Clave privada Ed25519 exclusiva para despliegues |
-| `SSH_KNOWN_HOSTS` | Clave de host de la VM verificada previamente    |
+| Secreto                    | Uso                                                   |
+| -------------------------- | ----------------------------------------------------- |
+| `SSH_PRIVATE_KEY`          | Clave privada Ed25519 exclusiva para despliegues      |
+| `SSH_KNOWN_HOSTS`          | Clave de host de la VM verificada previamente         |
+| `MERCADOPAGO_ACCESS_TOKEN` | Credencial de prueba de Mercado Pago para el servidor |
 
 5. Confirmá que el usuario SSH pueda ejecutar `sudo -n true` y que los archivos
    de entorno de `/opt/tienda-magico/env` no contengan placeholders.
 
-Los secretos de aplicación, base de datos y Mercado Pago viven solamente en la
-VM. No deben cargarse como argumentos de build ni guardarse en GitHub.
+El workflow administra las cuatro claves de checkout de `storefront.env` en
+cada despliegue y conserva todas las demás claves existentes. Los secretos de
+base de datos, Payload, API del CMS y revalidación siguen administrados en la VM.
+
+| Configuración                                                  | Responsable                  | Etapa                 |
+| -------------------------------------------------------------- | ---------------------------- | --------------------- |
+| `SHOP_URL`, `CMS_URL`                                          | Variable de GitHub           | Build de imágenes     |
+| `CHECKOUT_PROVIDER`                                            | Variable de GitHub           | Despliegue en runtime |
+| `MERCADOPAGO_SANDBOX`                                          | Variable de GitHub           | Despliegue en runtime |
+| `MERCADOPAGO_WEBHOOK_URL`                                      | Variable de GitHub           | Despliegue en runtime |
+| `MERCADOPAGO_ACCESS_TOKEN`                                     | Secreto de GitHub            | Despliegue en runtime |
+| Secretos de base de datos, Payload, API del CMS y revalidación | Archivos de entorno de la VM | Runtime               |
+
+Los secretos de runtime nunca se pasan como argumentos de build ni se escriben
+en el resumen del workflow. Durante la activación se respaldan los archivos de
+entorno del storefront y del despliegue. Si la activación falla, se restauran
+ambos archivos y se reinicia el release anterior.
 
 ## Configuración recomendada de la rama
 

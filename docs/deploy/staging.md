@@ -10,27 +10,46 @@ normal workflow, this happens when a pull request is merged into that branch.
 2. Create the `staging` Environment under **GitHub -> Settings -> Environments**.
 3. Configure these Environment variables:
 
-| Variable          | Purpose                                               |
-| ----------------- | ----------------------------------------------------- |
-| `SHOP_URL`        | Public HTTPS storefront origin without a trailing `/` |
-| `CMS_URL`         | Public HTTPS CMS origin without a trailing `/`        |
-| `DEPLOY_PLATFORM` | `linux/amd64` or `linux/arm64`, according to the VM   |
-| `SSH_HOST`        | Public VM domain or IP address                        |
-| `SSH_PORT`        | SSH port; normally `22`                               |
-| `SSH_USER`        | Non-root user authorized to deploy                    |
+| Variable                  | Purpose                                                      |
+| ------------------------- | ------------------------------------------------------------ |
+| `SHOP_URL`                | Public HTTPS storefront origin without a trailing `/`        |
+| `CMS_URL`                 | Public HTTPS CMS origin without a trailing `/`               |
+| `DEPLOY_PLATFORM`         | `linux/amd64` or `linux/arm64`, according to the VM          |
+| `SSH_HOST`                | Public VM domain or IP address                               |
+| `SSH_PORT`                | SSH port; normally `22`                                      |
+| `SSH_USER`                | Non-root user authorized to deploy                           |
+| `CHECKOUT_PROVIDER`       | Checkout adapter; set `mercado-pago` for staging             |
+| `MERCADOPAGO_SANDBOX`     | `true` for test credentials and staging payments             |
+| `MERCADOPAGO_WEBHOOK_URL` | `SHOP_URL` followed by `/api/checkout/webhooks/mercado-pago` |
 
 4. Configure these Environment secrets:
 
-| Secret            | Purpose                                  |
-| ----------------- | ---------------------------------------- |
-| `SSH_PRIVATE_KEY` | Dedicated Ed25519 private deployment key |
-| `SSH_KNOWN_HOSTS` | Previously verified VM host key          |
+| Secret                     | Purpose                                  |
+| -------------------------- | ---------------------------------------- |
+| `SSH_PRIVATE_KEY`          | Dedicated Ed25519 private deployment key |
+| `SSH_KNOWN_HOSTS`          | Previously verified VM host key          |
+| `MERCADOPAGO_ACCESS_TOKEN` | Server-side Mercado Pago test credential |
 
 5. Confirm that the SSH user can run `sudo -n true` and that the environment
    files under `/opt/tienda-magico/env` contain no placeholders.
 
-Application, database, and Mercado Pago secrets live only on the VM. Do not
-provide them as build arguments or store them in GitHub.
+The workflow manages the four checkout keys in `storefront.env` on every
+deployment. It preserves every other key already present in that file. Database,
+Payload, CMS API, and revalidation secrets remain VM-managed.
+
+| Setting                                              | Owner                | Phase              |
+| ---------------------------------------------------- | -------------------- | ------------------ |
+| `SHOP_URL`, `CMS_URL`                                | GitHub variable      | Image build        |
+| `CHECKOUT_PROVIDER`                                  | GitHub variable      | Runtime deployment |
+| `MERCADOPAGO_SANDBOX`                                | GitHub variable      | Runtime deployment |
+| `MERCADOPAGO_WEBHOOK_URL`                            | GitHub variable      | Runtime deployment |
+| `MERCADOPAGO_ACCESS_TOKEN`                           | GitHub secret        | Runtime deployment |
+| Database, Payload, CMS API, and revalidation secrets | VM environment files | Runtime            |
+
+Runtime secrets are never passed as Docker build arguments or written to the
+workflow summary. During activation, the workflow backs up the existing
+storefront and deployment environment files. If activation fails, it restores
+both files and restarts the previous release.
 
 ## Recommended branch configuration
 

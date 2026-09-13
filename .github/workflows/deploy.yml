@@ -29,6 +29,9 @@ jobs:
       SSH_HOST: ${{ vars.SSH_HOST }}
       SSH_PORT: ${{ vars.SSH_PORT }}
       SSH_USER: ${{ vars.SSH_USER }}
+      CHECKOUT_PROVIDER: ${{ vars.CHECKOUT_PROVIDER }}
+      MERCADOPAGO_SANDBOX: ${{ vars.MERCADOPAGO_SANDBOX }}
+      MERCADOPAGO_WEBHOOK_URL: ${{ vars.MERCADOPAGO_WEBHOOK_URL }}
       REQUESTED_TAG: ${{ inputs.existing_tag }}
 
     steps:
@@ -37,10 +40,15 @@ jobs:
 
       - name: Validate deployment configuration
         shell: bash
+        env:
+          MERCADOPAGO_ACCESS_TOKEN: ${{ secrets.MERCADOPAGO_ACCESS_TOKEN }}
         run: |
           set -euo pipefail
 
-          required=(SHOP_URL CMS_URL DEPLOY_PLATFORM SSH_HOST SSH_USER)
+          required=(
+            SHOP_URL CMS_URL DEPLOY_PLATFORM SSH_HOST SSH_USER
+            CHECKOUT_PROVIDER MERCADOPAGO_SANDBOX MERCADOPAGO_WEBHOOK_URL
+          )
           for key in "${required[@]}"; do
             [[ -n "${!key:-}" ]] || {
               echo "Missing staging GitHub Environment variable: ${key}"
@@ -60,6 +68,33 @@ jobs:
             echo "DEPLOY_PLATFORM must be linux/amd64 or linux/arm64."
             exit 1
           }
+          [[ "$CHECKOUT_PROVIDER" == "mercado-pago" ]] || {
+            echo "CHECKOUT_PROVIDER must be mercado-pago for staging."
+            exit 1
+          }
+          [[ "$MERCADOPAGO_SANDBOX" == "true" ]] || {
+            echo "MERCADOPAGO_SANDBOX must be true for staging."
+            exit 1
+          }
+          [[ -n "$MERCADOPAGO_ACCESS_TOKEN" ]] || {
+            echo "Missing staging GitHub Environment secret: MERCADOPAGO_ACCESS_TOKEN"
+            exit 1
+          }
+          [[ "$MERCADOPAGO_WEBHOOK_URL" == "$SHOP_URL/api/checkout/webhooks/mercado-pago" ]] || {
+            echo "MERCADOPAGO_WEBHOOK_URL must use SHOP_URL and the Mercado Pago webhook path."
+            exit 1
+          }
+
+          runtime_values=(
+            "$CHECKOUT_PROVIDER" "$MERCADOPAGO_SANDBOX"
+            "$MERCADOPAGO_WEBHOOK_URL" "$MERCADOPAGO_ACCESS_TOKEN"
+          )
+          for value in "${runtime_values[@]}"; do
+            [[ "$value" != *$'\n'* && "$value" != *$'\r'* ]] || {
+              echo "Managed runtime values must not contain line breaks."
+              exit 1
+            }
+          done
 
           if [[ -n "${REQUESTED_TAG:-}" ]]; then
             IMAGE_TAG="$REQUESTED_TAG"
@@ -78,6 +113,22 @@ jobs:
           echo "BUILD_RELEASE=$BUILD_RELEASE" >> "$GITHUB_ENV"
           echo "ARTIFACT=artifacts/manual/tienda-magico-${IMAGE_TAG}.tar" >> "$GITHUB_ENV"
           echo "Release tag: $IMAGE_TAG"
+
+      - name: Prepare managed storefront runtime configuration
+        shell: bash
+        env:
+          MERCADOPAGO_ACCESS_TOKEN: ${{ secrets.MERCADOPAGO_ACCESS_TOKEN }}
+        run: |
+          set -euo pipefail
+          runtime_file="$RUNNER_TEMP/storefront-runtime.env"
+          umask 077
+          {
+            printf 'CHECKOUT_PROVIDER=%s\n' "$CHECKOUT_PROVIDER"
+            printf 'MERCADOPAGO_ACCESS_TOKEN=%s\n' "$MERCADOPAGO_ACCESS_TOKEN"
+            printf 'MERCADOPAGO_SANDBOX=%s\n' "$MERCADOPAGO_SANDBOX"
+            printf 'MERCADOPAGO_WEBHOOK_URL=%s\n' "$MERCADOPAGO_WEBHOOK_URL"
+          } > "$runtime_file"
+          echo "RUNTIME_ENV_FILE=$runtime_file" >> "$GITHUB_ENV"
 
       - name: Configure SSH host verification
         shell: bash
@@ -123,8 +174,11 @@ jobs:
           set -euo pipefail
           SSH_TARGET="${SSH_USER}@${SSH_HOST}"
           REMOTE_BUNDLE="/tmp/tienda-manual-${IMAGE_TAG}"
+          REMOTE_RUNTIME_ENV="/tmp/tienda-storefront-runtime-${IMAGE_TAG}.env"
 
           scp -P "$SSH_PORT" -r deploy/manual "${SSH_TARGET}:${REMOTE_BUNDLE}"
+          ssh -p "$SSH_PORT" "$SSH_TARGET" \
+            "umask 077; cat > '$REMOTE_RUNTIME_ENV'" < "$RUNTIME_ENV_FILE"
           if [[ "$BUILD_RELEASE" == "true" ]]; then
             scp -P "$SSH_PORT" \
               "$ARTIFACT" \
@@ -139,16 +193,45 @@ jobs:
           SSH_TARGET="${SSH_USER}@${SSH_HOST}"
           REMOTE_BUNDLE="/tmp/tienda-manual-${IMAGE_TAG}"
           REMOTE_ARTIFACT="/tmp/tienda-magico-${IMAGE_TAG}.tar"
+          REMOTE_RUNTIME_ENV="/tmp/tienda-storefront-runtime-${IMAGE_TAG}.env"
 
           ssh -p "$SSH_PORT" "$SSH_TARGET" bash -s -- \
-            "$IMAGE_TAG" "$BUILD_RELEASE" "$REMOTE_BUNDLE" "$REMOTE_ARTIFACT" <<'REMOTE'
+            "$IMAGE_TAG" "$BUILD_RELEASE" "$REMOTE_BUNDLE" "$REMOTE_ARTIFACT" \
+            "$REMOTE_RUNTIME_ENV" <<'REMOTE'
           set -euo pipefail
           image_tag="$1"
           build_release="$2"
           bundle="$3"
           artifact="$4"
+          runtime_env="$5"
+          app_dir="/opt/tienda-magico"
+          storefront_env="$app_dir/env/storefront.env"
+          deployment_env="$app_dir/deployment.env"
+          storefront_backup="/tmp/tienda-storefront-${image_tag}.backup"
+          deployment_backup="/tmp/tienda-deployment-${image_tag}.backup"
 
           sudo bash "$bundle/vm-deploy.sh" install
+          sudo cp -p "$storefront_env" "$storefront_backup"
+          sudo cp -p "$deployment_env" "$deployment_backup"
+
+          restore_previous_release() {
+            status=$?
+            trap - ERR
+            set +e
+            echo "Activation failed; restoring the previous runtime configuration and release tag."
+            sudo cp -p "$storefront_backup" "$storefront_env"
+            sudo cp -p "$deployment_backup" "$deployment_env"
+            sudo docker compose \
+              --env-file "$deployment_env" \
+              -f "$app_dir/compose.yml" \
+              up -d --remove-orphans --wait --wait-timeout 180
+            sudo rm -f -- "$storefront_backup" "$deployment_backup"
+            rm -rf -- "$bundle" "$runtime_env"
+            exit "$status"
+          }
+          trap restore_previous_release ERR
+
+          sudo bash "$bundle/update-runtime-env.sh" "$runtime_env" "$storefront_env"
 
           if [[ "$build_release" == "true" ]]; then
             cd /tmp
@@ -161,7 +244,9 @@ jobs:
           fi
 
           sudo bash "$bundle/vm-deploy.sh" status
-          rm -rf -- "$bundle"
+          trap - ERR
+          sudo rm -f -- "$storefront_backup" "$deployment_backup"
+          rm -rf -- "$bundle" "$runtime_env"
           REMOTE
 
       - name: Verify public staging endpoints
