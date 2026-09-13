@@ -17,14 +17,22 @@ test("categories preserve valid Lucide icon names from Payload", async () => {
 });
 
 test("the CMS icon selector and storefront use Lucide's dynamic registry", async () => {
-  const [collection, description, storefrontIcon] = await Promise.all([
-    readFile("apps/cms/src/collections/Categories.ts", "utf8"),
-    readFile("apps/cms/src/components/LucideIconFieldDescription.tsx", "utf8"),
-    readFile("src/components/CategoryIcon.tsx", "utf8"),
-  ]);
+  const [collection, description, cmsField, storefrontIcon] = await Promise.all(
+    [
+      readFile("apps/cms/src/collections/Categories.ts", "utf8"),
+      readFile(
+        "apps/cms/src/components/LucideIconFieldDescription.tsx",
+        "utf8",
+      ),
+      readFile("apps/cms/src/components/LucideIconSelectField.tsx", "utf8"),
+      readFile("src/components/CategoryIcon.tsx", "utf8"),
+    ],
+  );
 
   assert.match(collection, /iconNames\.map/);
   assert.match(collection, /Description:.*LucideIconFieldDescription/s);
+  assert.match(collection, /Field:.*LucideIconSelectField/s);
   assert.match(description, /https:\/\/lucide\.dev\/icons\//);
+  assert.match(cmsField, /<DynamicIcon[^>]+name=\{data\.value\}/s);
   assert.match(storefrontIcon, /<DynamicIcon[^>]+name=\{name\}/s);
 });

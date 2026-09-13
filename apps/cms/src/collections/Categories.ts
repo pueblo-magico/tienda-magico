@@ -76,6 +76,10 @@ export const Categories: CollectionConfig = {
             path: '@/components/LucideIconFieldDescription',
             exportName: 'default',
           },
+          Field: {
+            path: '@/components/LucideIconSelectField',
+            exportName: 'default',
+          },
         },
       },
     },
