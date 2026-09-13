@@ -125,6 +125,8 @@ jobs:
           {
             printf 'COMMERCE_PROVIDER=payload\n'
             printf 'PAYLOAD_ECOMMERCE_URL=%s\n' "$CMS_URL"
+            printf 'PAYLOAD_ECOMMERCE_CURRENCY=ARS\n'
+            printf 'PAYLOAD_ECOMMERCE_AMOUNT_IS_CENTS=true\n'
             printf 'PAYLOAD_CMS_URL=%s\n' "$CMS_URL"
             printf 'NEXT_PUBLIC_SITE_URL=%s\n' "$SHOP_URL"
             printf 'CHECKOUT_PROVIDER=%s\n' "$CHECKOUT_PROVIDER"
