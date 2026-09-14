@@ -49,6 +49,11 @@ const components = [
     description: "Multi-line form input.",
   },
   {
+    href: "/ui-system/slider",
+    name: "Slider",
+    description: "Accessible single-value and range selection.",
+  },
+  {
     href: "/ui-system/modal",
     name: "Modal",
     description: "Accessible dialog overlays.",

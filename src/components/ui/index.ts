@@ -17,3 +17,5 @@ export { Accordion } from "./Accordion";
 export type { AccordionProps, AccordionItem } from "./Accordion";
 export { Tabs } from "./Tabs";
 export type { TabsProps, TabItem } from "./Tabs";
+export { Slider } from "./Slider";
+export type { SliderProps } from "./Slider";

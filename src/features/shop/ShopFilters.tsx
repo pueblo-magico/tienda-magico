@@ -9,6 +9,7 @@ import {
   type FormEvent,
   type ReactNode,
 } from "react";
+import { Slider } from "@/components/ui";
 import type { CollectionSummary, TagReference } from "@/types/commerce";
 import { cn } from "@/lib/utils/cn";
 import { buildShopHref, type ShopQuery } from "./search-params";
@@ -83,6 +84,8 @@ type Props = {
   labels: {
     collections: string;
     price: string;
+    minPrice: string;
+    maxPrice: string;
     characteristics: string;
     origin: string;
     availability: string;
@@ -108,6 +111,10 @@ export function ShopFilters({
   const [pending, startTransition] = useTransition();
   const categoryTree = buildCategoryTree(collections);
   const maximumPrice = Math.max(priceBounds.max, 1);
+  const [priceRange, setPriceRange] = useState({
+    min: Number(query.minPrice || priceBounds.min),
+    max: Number(query.maxPrice || maximumPrice),
+  });
   const formatPrice = (value: number) =>
     new Intl.NumberFormat(locale, { maximumFractionDigits: 0 }).format(value);
 
@@ -145,16 +152,13 @@ export function ShopFilters({
         });
     }
     if (priceTimerRef.current) clearTimeout(priceTimerRef.current);
-    if (target.type === "range") {
-      priceTimerRef.current = setTimeout(() => applyFilters(form), 250);
-      return;
-    }
     applyFilters(form);
   };
 
   const clearFilters = () => {
     if (priceTimerRef.current) clearTimeout(priceTimerRef.current);
     const form = formRef.current;
+    setPriceRange({ min: priceBounds.min, max: maximumPrice });
     form?.querySelectorAll<HTMLInputElement>("input").forEach((input) => {
       if (input.type === "checkbox") input.checked = false;
       if (input.name === "minPrice") input.value = String(priceBounds.min);
@@ -185,6 +189,13 @@ export function ShopFilters({
   const optionClassName =
     "text-text-primary flex cursor-pointer items-center gap-2 text-sm";
   const checkboxClassName = "border-border size-4 rounded accent-brand";
+  const updatePriceRange = ([min, max]: number[]) => {
+    setPriceRange({ min, max });
+    if (priceTimerRef.current) clearTimeout(priceTimerRef.current);
+    priceTimerRef.current = setTimeout(() => {
+      if (formRef.current) applyFilters(formRef.current);
+    }, 250);
+  };
 
   return (
     <div>
@@ -229,29 +240,20 @@ export function ShopFilters({
           />
         </FilterSection>
         <FilterSection title={labels.price}>
-          <input
-            name="minPrice"
-            type="range"
-            min={priceBounds.min}
-            max={maximumPrice}
-            defaultValue={query.minPrice || priceBounds.min}
+          <input name="minPrice" type="hidden" value={priceRange.min} />
+          <input name="maxPrice" type="hidden" value={priceRange.max} />
+          <Slider
             aria-label={labels.price}
-            className="accent-brand w-full"
-          />
-          <input
-            name="maxPrice"
-            type="range"
-            min={priceBounds.min}
-            max={maximumPrice}
-            defaultValue={query.maxPrice || maximumPrice}
-            aria-label={labels.price}
-            className="accent-brand w-full"
+            minValue={priceBounds.min}
+            maxValue={maximumPrice}
+            step={Math.max(Math.round(maximumPrice / 100), 1)}
+            value={[priceRange.min, priceRange.max]}
+            thumbLabels={[labels.minPrice, labels.maxPrice]}
+            onChange={updatePriceRange}
           />
           <div className="text-text-secondary flex justify-between text-xs">
-            <span>
-              {formatPrice(Number(query.minPrice || priceBounds.min))}
-            </span>
-            <span>{formatPrice(Number(query.maxPrice || maximumPrice))}</span>
+            <span>{formatPrice(priceRange.min)}</span>
+            <span>{formatPrice(priceRange.max)}</span>
           </div>
         </FilterSection>
         {origins.length ? (

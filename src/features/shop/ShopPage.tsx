@@ -317,6 +317,8 @@ export async function ShopPage({ locale, query, labels }: Props) {
                   collections: labels.collections,
                   filters: labels.filters,
                   price: labels.price,
+                  minPrice: labels.minPrice,
+                  maxPrice: labels.maxPrice,
                   characteristics: labels.characteristics,
                   origin: labels.origin,
                   availability: labels.availability,

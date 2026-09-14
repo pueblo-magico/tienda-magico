@@ -28,6 +28,7 @@
     "next": "16.3.0",
     "next-intl": "^4.13.6",
     "react": "19.1.0",
+    "react-aria-components": "^1.21.1",
     "react-dom": "19.1.0"
   },
   "devDependencies": {

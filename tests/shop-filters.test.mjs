@@ -26,4 +26,19 @@ test("el panel aplica filtros al cambiar y no muestra botón aplicar", async () 
   assert.match(source, /<details[\s\S]+<summary/);
   assert.match(source, /name="origins"/);
   assert.match(source, /name="availability"/);
+  assert.match(source, /name="minPrice"[\s\S]+name="maxPrice"/);
+  assert.match(
+    source,
+    /<Slider[\s\S]+value=\{\[priceRange\.min, priceRange\.max\]\}/,
+  );
+  assert.doesNotMatch(source, /type="range"/);
+});
+
+test("el rango de precios parte de cero aunque todos los productos cuesten igual", async () => {
+  const source = await readFile(
+    "src/features/shop/load-shop-catalog.ts",
+    "utf8",
+  );
+
+  assert.match(source, /const priceBounds = \{\s*min: 0,/);
 });

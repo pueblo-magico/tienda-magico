@@ -64,7 +64,7 @@ export async function loadShopCatalog(
       .map((product) => Number(product.priceRange.minVariantPrice.amount))
       .filter(Number.isFinite);
     const priceBounds = {
-      min: pricedAmounts.length ? Math.floor(Math.min(...pricedAmounts)) : 0,
+      min: 0,
       max: pricedAmounts.length ? Math.ceil(Math.max(...pricedAmounts)) : 0,
     };
     const regionNames = new Intl.DisplayNames([locale], { type: "region" });
