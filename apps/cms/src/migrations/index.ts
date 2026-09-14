@@ -20,6 +20,7 @@ import * as migration_20260912_223137_task_06_1_commerce_settings from './202609
 import * as migration_20260912_231316_cms_user_editor_language from './20260912_231316_cms_user_editor_language';
 import * as migration_20260912_231908_cms_navigation_visibility from './20260912_231908_cms_navigation_visibility';
 import * as migration_20260913_191156_category_lucide_icons from './20260913_191156_category_lucide_icons';
+import * as migration_20260913_220000_category_slogan from './20260913_220000_category_slogan';
 
 export const migrations = [
   {
@@ -130,6 +131,11 @@ export const migrations = [
   {
     up: migration_20260913_191156_category_lucide_icons.up,
     down: migration_20260913_191156_category_lucide_icons.down,
-    name: '20260913_191156_category_lucide_icons'
+    name: '20260913_191156_category_lucide_icons',
+  },
+  {
+    up: migration_20260913_220000_category_slogan.up,
+    down: migration_20260913_220000_category_slogan.down,
+    name: '20260913_220000_category_slogan',
   },
 ];

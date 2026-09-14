@@ -30,6 +30,7 @@ export type CategoryReference = {
   id: string;
   handle: string;
   title: string;
+  slogan?: string;
   description: string;
   image: CommerceImage | null;
   icon: CategoryIcon | null;
@@ -163,6 +164,7 @@ export type Collection = {
   id: string;
   handle: string;
   title: string;
+  slogan?: string;
   description: string;
   descriptionHtml: string;
   image: CommerceImage | null;
@@ -181,6 +183,7 @@ export type CollectionSummary = Pick<
   | "id"
   | "handle"
   | "title"
+  | "slogan"
   | "description"
   | "image"
   | "icon"

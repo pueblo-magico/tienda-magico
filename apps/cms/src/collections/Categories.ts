@@ -56,13 +56,24 @@ export const Categories: CollectionConfig = {
       localized: true,
     },
     {
+      name: 'slogan',
+      type: 'text',
+      localized: true,
+      admin: {
+        description: {
+          es: 'Frase principal que se muestra en el encabezado de la categoría.',
+          en: 'Main phrase displayed in the category header.',
+        },
+      },
+    },
+    {
       name: 'image',
       type: 'upload',
       relationTo: 'media',
       admin: {
         description: {
-          es: 'Opcional. Se muestra antes que el icono.',
-          en: 'Optional. Displayed before the icon.',
+          es: 'Imagen horizontal del encabezado de la categoría. También se usa en su tarjeta.',
+          en: 'Horizontal category header image. It is also used on its card.',
         },
       },
     },

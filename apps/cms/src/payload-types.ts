@@ -552,7 +552,11 @@ export interface Category {
   slug: string;
   description?: string | null;
   /**
-   * Optional. Displayed before the icon.
+   * Main phrase displayed in the category header.
+   */
+  slogan?: string | null;
+  /**
+   * Horizontal category header image. It is also used on its card.
    */
   image?: (number | null) | Media;
   icon?:
@@ -3766,6 +3770,7 @@ export interface CategoriesSelect<T extends boolean = true> {
   title?: T;
   slug?: T;
   description?: T;
+  slogan?: T;
   image?: T;
   icon?: T;
   parent?: T;

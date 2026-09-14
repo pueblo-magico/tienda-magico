@@ -508,6 +508,7 @@ function mapCategoryReference(
     id: toId(doc.id),
     handle,
     title,
+    slogan: resolveLocalizedText(doc.slogan, preferred),
     description: richTextToPlain(doc.description),
     image: mapMedia(doc.image),
     icon,
@@ -980,6 +981,7 @@ export function mapCollectionSummary(
       resolveLocalizedText(doc.title, preferred) ||
       resolveLocalizedText(doc.name, preferred) ||
       "Untitled collection",
+    slogan: resolveLocalizedText(category.slogan, preferred),
     description:
       richTextToPlain(doc.description) ||
       richTextToPlain(doc.richText) ||

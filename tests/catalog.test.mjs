@@ -1099,12 +1099,17 @@ test("missing translation falls back to Spanish; shared legacy strings remain co
     {
       id: 5,
       title: { en: "Rituals", es: "Rituales" },
+      slogan: {
+        en: "Rituals for conscious living",
+        es: "Rituales conscientes",
+      },
       slug: { en: "rituals", es: "rituales" },
     },
     "en",
   );
   assert.equal(category.handle, "rituals");
   assert.equal(category.id, "5");
+  assert.equal(category.slogan, "Rituals for conscious living");
 });
 
 test("public projections do not spread private fields or administrative variant titles", () => {

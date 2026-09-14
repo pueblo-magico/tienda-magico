@@ -18,11 +18,12 @@
 
 1. Open `/es/shop` and `/en/shop`. Confirm visible categories follow display order and their titles/descriptions change language while links keep the same category slug.
 2. Open the child category. Confirm the product appears once. Open the second category and confirm the same product appears once there too. The hidden category must not be listed or publicly browsable.
-3. Confirm child categories are indented below their parent in the filter. Select a parent and confirm its direct visible children appear as category cards below the category hero; hidden children must not appear.
-4. Open the product. Confirm the breadcrumb is parent → primary child → product, all category links preserve locale, and language switching keeps the product/category slugs stable.
-5. Confirm the active brand name/logo and visible localized tag labels render. Confirm hidden tags, inactive brands, and hidden category labels do not leak.
-6. Remove the category image and one translation in CMS. Confirm the storefront shows a stable no-image layout and falls back to configured locale content without broken controls.
-7. Hide the primary category and refresh after the documented cache window. Confirm the product still loads but the hidden category is omitted from its breadcrumb and category UI.
+3. Confirm child categories are indented below their parent in the filter. Select a parent and confirm up to five direct visible children appear as cards overlapping the category hero; hidden children and children beyond the fifth must not appear in this strip.
+4. Configure localized category slogans and a horizontal header image. Open the category in EN and ES and confirm the breadcrumb appears first, followed by the localized category name, slogan, description, and selected category image.
+5. Open the product. Confirm the breadcrumb is parent → primary child → product, all category links preserve locale, and language switching keeps the product/category slugs stable.
+6. Confirm the active brand name/logo and visible localized tag labels render. Confirm hidden tags, inactive brands, and hidden category labels do not leak.
+7. Remove the category image and one translation in CMS. Confirm the storefront shows a stable no-image layout and falls back to configured locale content without broken controls.
+8. Hide the primary category and refresh after the documented cache window. Confirm the product still loads but the hidden category is omitted from its breadcrumb and category UI.
 
 ## Responsive and accessibility
 

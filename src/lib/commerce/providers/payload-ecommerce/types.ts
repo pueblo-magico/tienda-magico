@@ -39,6 +39,7 @@ export type PayloadMedia = {
 
 export type PayloadCategoryDoc = PayloadDoc & {
   title?: PayloadLocalizedText | null;
+  slogan?: PayloadLocalizedText | null;
   slug?: string | null;
   description?: unknown;
   image?: unknown;

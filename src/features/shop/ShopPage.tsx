@@ -71,15 +71,15 @@ export async function ShopPage({ locale, query, labels }: Props) {
     categoryParents.unshift(categoryParent);
     categoryParent = categoryParent.parent;
   }
-  const categoryCards = catalog.selectedCollection
-    ? directChildCategories(catalog.collections, catalog.selectedCollection.id)
-    : catalog.collections
-        .filter((collection) => !collection.parent)
-        .slice(0, 4);
-  const heroImage =
-    catalog.selectedCollection?.image ??
-    categoryCards.find((collection) => collection.image)?.image ??
-    null;
+  const categoryCards = (
+    catalog.selectedCollection
+      ? directChildCategories(
+          catalog.collections,
+          catalog.selectedCollection.id,
+        )
+      : catalog.collections.filter((collection) => !collection.parent)
+  ).slice(0, 5);
+  const heroImage = catalog.selectedCollection?.image ?? null;
 
   return (
     <section className="pb-16 sm:pb-24">
@@ -95,90 +95,81 @@ export async function ShopPage({ locale, query, labels }: Props) {
                 className="object-cover"
                 sizes="100vw"
               />
-              <div className="bg-forest/65 absolute inset-0" />
+              <div className="from-warm via-warm/90 absolute inset-0 bg-gradient-to-r to-transparent" />
             </>
           ) : null}
-          <div className="relative z-10 max-w-xl space-y-3">
-            {!heroImage?.url && catalog.selectedCollection?.icon ? (
-              <div className="text-text-secondary" aria-hidden="true">
-                <CategoryIcon name={catalog.selectedCollection.icon} />
-              </div>
-            ) : null}
-            {categoryParents.length ? (
-              <nav
-                aria-label={labels.collections}
-                className={
-                  heroImage?.url
-                    ? "text-card/80 flex flex-wrap gap-2 text-xs"
-                    : "text-muted flex flex-wrap gap-2 text-xs"
-                }
-              >
-                <Link
-                  href={buildShopHref(locale, { ...query, collection: "" })}
-                >
-                  {labels.allCollections}
-                </Link>
-                {categoryParents.map((parent) => (
-                  <span key={parent.id} className="contents">
-                    <span aria-hidden>/</span>
-                    <Link
-                      href={buildShopHref(locale, {
-                        ...query,
-                        collection: parent.handle,
-                        after: "",
-                      })}
-                    >
-                      {parent.title}
-                    </Link>
-                  </span>
-                ))}
-              </nav>
-            ) : null}
-            <Eyebrow className={heroImage?.url ? "text-gold" : undefined}>
-              {labels.eyebrow}
+          {catalog.selectedCollection ? (
+            <nav
+              aria-label={labels.collections}
+              className="text-muted absolute top-6 z-10 flex flex-wrap items-center gap-2 text-xs"
+            >
+              <Link href={buildShopHref(locale, { ...query, collection: "" })}>
+                {labels.eyebrow}
+              </Link>
+              {categoryParents.map((parent) => (
+                <span key={parent.id} className="contents">
+                  <span aria-hidden>/</span>
+                  <Link
+                    href={buildShopHref(locale, {
+                      ...query,
+                      collection: parent.handle,
+                      after: "",
+                    })}
+                  >
+                    {parent.title}
+                  </Link>
+                </span>
+              ))}
+              <span aria-hidden>/</span>
+              <span aria-current="page">
+                {catalog.selectedCollection.title}
+              </span>
+            </nav>
+          ) : null}
+          <div className="relative z-10 max-w-3xl space-y-3">
+            <Eyebrow className="flex items-center gap-2">
+              {catalog.selectedCollection?.icon ? (
+                <CategoryIcon
+                  name={catalog.selectedCollection.icon}
+                  className="size-3"
+                />
+              ) : null}
+              {catalog.selectedCollection?.title ?? labels.eyebrow}
             </Eyebrow>
-            <PageTitle
-              as="h1"
-              className={
-                heroImage?.url
-                  ? "text-card text-4xl sm:text-5xl"
-                  : "text-4xl sm:text-5xl"
-              }
-            >
-              {catalog.selectedCollection?.title ?? labels.title}
+            <PageTitle as="h1" className="max-w-3xl text-4xl sm:text-5xl">
+              {catalog.selectedCollection?.slogan ||
+                catalog.selectedCollection?.title ||
+                labels.title}
             </PageTitle>
-            <Body
-              size="lg"
-              className={heroImage?.url ? "text-card/85" : "text-muted"}
-            >
+            <Body size="lg" className="text-muted max-w-2xl">
               {catalog.selectedCollection?.description || labels.subtitle}
             </Body>
           </div>
-          <div
-            aria-hidden
-            className="bg-brand/8 absolute -top-24 -right-16 h-72 w-72 rounded-full"
-          />
-          <div
-            aria-hidden
-            className="border-brand/20 absolute right-20 -bottom-28 h-52 w-52 rounded-full border"
-          />
+          {!heroImage?.url ? (
+            <>
+              <div
+                aria-hidden
+                className="bg-brand/8 absolute -top-24 -right-16 h-72 w-72 rounded-full"
+              />
+              <div
+                aria-hidden
+                className="border-brand/20 absolute right-20 -bottom-28 h-52 w-52 rounded-full border"
+              />
+            </>
+          ) : null}
         </header>
       </div>
 
       {categoryCards.length ? (
-        <Container className="relative z-10 -mt-8">
+        <Container className="relative z-10 -mt-10">
           <nav
             aria-label={
               catalog.selectedCollection
                 ? labels.subcategories
                 : labels.collections
             }
-            className="space-y-4"
           >
-            {catalog.selectedCollection ? (
-              <Eyebrow>{labels.subcategories}</Eyebrow>
-            ) : null}
-            <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
               {categoryCards.map((collection) => (
                 <li key={collection.id}>
                   <Link
@@ -209,8 +200,15 @@ export async function ShopPage({ locale, query, labels }: Props) {
                         </span>
                       ) : null}
                     </span>
-                    <span className="font-serif text-lg">
-                      {collection.title}
+                    <span className="min-w-0">
+                      <span className="block font-serif text-base">
+                        {collection.title}
+                      </span>
+                      {collection.description ? (
+                        <span className="text-muted mt-1 block truncate text-xs">
+                          {collection.description}
+                        </span>
+                      ) : null}
                     </span>
                     <ArrowRight aria-hidden className="ml-auto size-4" />
                   </Link>
