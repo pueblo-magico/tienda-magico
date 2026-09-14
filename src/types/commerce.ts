@@ -160,6 +160,7 @@ export type ProductSummary = Pick<
   | "classification"
 > & {
   quickAddMerchandiseId?: string | null;
+  origin?: Pick<ProductOrigin, "countryCode" | "region" | "community">;
 };
 
 export type Collection = {

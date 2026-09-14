@@ -13,6 +13,8 @@ export type ShopQuery = {
   minPrice: string;
   maxPrice: string;
   tags: string[];
+  origins: string[];
+  availableOnly: boolean;
   /** Cursor (Shopify) or page number string (Payload). */
   after: string;
 };
@@ -49,6 +51,11 @@ export function parseShopQuery(
       .split(",")
       .map((tag) => tag.trim())
       .filter(Boolean),
+    origins: read("origins")
+      .split(",")
+      .map((origin) => origin.trim().toUpperCase())
+      .filter(Boolean),
+    availableOnly: read("availability") === "available",
     after: read("after").trim(),
   };
 }
@@ -103,6 +110,7 @@ export function buildShopHref(
   const minPrice = query.minPrice?.trim();
   const maxPrice = query.maxPrice?.trim();
   const tags = query.tags?.filter(Boolean) ?? [];
+  const origins = query.origins?.filter(Boolean) ?? [];
 
   if (q) params.set("q", q);
   if (collection) params.set("collection", collection);
@@ -110,6 +118,8 @@ export function buildShopHref(
   if (minPrice) params.set("minPrice", minPrice);
   if (maxPrice) params.set("maxPrice", maxPrice);
   if (tags.length) params.set("tags", tags.join(","));
+  if (origins.length) params.set("origins", origins.join(","));
+  if (query.availableOnly) params.set("availability", "available");
   if (after) params.set("after", after);
 
   const qs = params.toString();

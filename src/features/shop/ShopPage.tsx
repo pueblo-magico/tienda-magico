@@ -42,6 +42,11 @@ type Labels = {
   tags: string;
   minPrice: string;
   maxPrice: string;
+  origin: string;
+  characteristics: string;
+  availability: string;
+  availableOnly: string;
+  clearAll: string;
   previous: string;
   next: string;
   pagination: string;
@@ -63,6 +68,8 @@ export async function ShopPage({ locale, query, labels }: Props) {
     query.collection ||
     query.minPrice ||
     query.maxPrice ||
+    query.origins.length ||
+    query.availableOnly ||
     query.tags.length,
   );
   const count = catalog.products.items.length;
@@ -303,17 +310,18 @@ export async function ShopPage({ locale, query, labels }: Props) {
                 locale={locale}
                 collections={catalog.collections}
                 tags={catalog.availableTags}
+                origins={catalog.availableOrigins}
+                priceBounds={catalog.priceBounds}
                 query={query}
                 labels={{
-                  all: labels.allCollections,
                   collections: labels.collections,
                   filters: labels.filters,
                   price: labels.price,
-                  tags: labels.tags,
-                  minPrice: labels.minPrice,
-                  maxPrice: labels.maxPrice,
-                  apply: labels.submit,
-                  clear: labels.clear,
+                  characteristics: labels.characteristics,
+                  origin: labels.origin,
+                  availability: labels.availability,
+                  availableOnly: labels.availableOnly,
+                  clearAll: labels.clearAll,
                 }}
               />
             </aside>

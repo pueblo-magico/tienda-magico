@@ -834,6 +834,10 @@ export function mapProductSummary(
           : purchaseStatus(product) === "available";
 
   const classification = mapClassification(product, locale);
+  const preferredLocales = [
+    locale ?? config.defaultLocale,
+    config.fallbackLocale,
+  ];
   const quickAddMerchandiseId =
     product.enableVariants === true
       ? variantDocs(product).length === 1 && variants.length === 1
@@ -856,6 +860,16 @@ export function mapProductSummary(
       ? classification.tags.map((tag) => tag.label)
       : mapTags(product.tags),
     classification,
+    origin: {
+      countryCode:
+        typeof product.countryOfOrigin === "string" &&
+        /^[A-Z]{2}$/.test(product.countryOfOrigin.trim())
+          ? product.countryOfOrigin.trim()
+          : null,
+      region: resolveLocalizedText(product.region, preferredLocales) || null,
+      community:
+        resolveLocalizedText(product.community, preferredLocales) || null,
+    },
     quickAddMerchandiseId,
     featuredImage: images[0] ?? null,
     priceRange: {
