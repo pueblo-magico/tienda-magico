@@ -32,12 +32,12 @@ export function ProductCard({
   return (
     <article
       className={cn(
-        "hover:bg-card-hover group border-border bg-card overflow-hidden rounded-2xl border transition-colors hover:shadow-md",
+        "hover:bg-card-hover group border-border bg-card h-full overflow-hidden rounded-2xl border transition-colors hover:shadow-md",
         className,
       )}
     >
-      <Link href={href} className="block">
-        <div className="bg-card-hover relative aspect-[4/5] overflow-hidden">
+      <Link href={href} className="flex h-full flex-col">
+        <div className="bg-card-hover relative aspect-square overflow-hidden">
           {imageSrc ? (
             <Image
               src={imageSrc}
@@ -56,14 +56,16 @@ export function ProductCard({
             </Badge>
           ) : null}
         </div>
-        <div className="space-y-1 px-4 py-3">
-          {category ? (
-            <p className="text-text-accent text-xs font-bold tracking-wide">
+        <div className="flex flex-1 flex-col space-y-1 p-2">
+          {/* {category ? (
+            <p className="text-xs font-medium uppercase tracking-[0.2em] text-forest/55">
               {category}
             </p>
-          ) : null}
-          <h3 className="text-text-secondary text-sm font-medium">{title}</h3>
-          <p className="text-text-primary text-sm">{price}</p>
+          ) : null} */}
+          <h3 className="text-text-primary font-serif text-sm">{title}</h3>
+          <p className="text-text-highlight mt-auto text-sm font-bold">
+            {price}
+          </p>
         </div>
       </Link>
     </article>

@@ -66,3 +66,10 @@ test("the shop masthead is full width with overlapping category cards", async ()
   assert.match(source, /isRootCategoryCard && collection\.image\?\.url/);
   assert.match(source, /isRootCategoryCard \? collection\.icon/);
 });
+
+test("the product grid uses the compact desktop density", async () => {
+  const source = await readFile("src/features/shop/ProductGrid.tsx", "utf8");
+
+  assert.match(source, /lg:grid-cols-4 xl:grid-cols-5/);
+  assert.match(source, /<li key=\{product\.id\} className="h-full">/);
+});

@@ -190,6 +190,27 @@ test("la tarjeta de producto muestra el estado sin medios y no inventa una image
   assert.doesNotMatch(html, /unsplash/);
 });
 
+test("la tarjeta de producto usa una jerarquía compacta para catálogo", () => {
+  const html = renderToStaticMarkup(
+    createElement(ProductCard, {
+      href: "/es/shop/cacao",
+      title: "Cacao ceremonial",
+      price: "$28.000",
+      category: "Rituales de bienestar",
+      noMediaLabel: "Sin imagen",
+    }),
+  );
+
+  assert.match(html, /aspect-square/);
+  assert.match(html, /p-2/);
+  assert.match(html, /text-text-secondary text-xs font-bold/);
+  assert.match(html, /text-text-primary font-serif text-sm/);
+  assert.match(html, /group[^"]*h-full/);
+  assert.match(html, /class="flex h-full flex-col"/);
+  assert.match(html, /flex flex-1 flex-col space-y-1 p-2/);
+  assert.match(html, /text-text-highlight mt-auto text-sm font-bold/);
+});
+
 test("la revalidación acepta solo eventos y tags de catálogo permitidos", () => {
   const event = parseCatalogRevalidationEvent({
     resource: "product",
