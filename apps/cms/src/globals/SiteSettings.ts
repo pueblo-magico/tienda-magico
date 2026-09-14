@@ -31,6 +31,22 @@ export const SiteSettings: GlobalConfig = {
       relationTo: 'media',
     },
     {
+      name: 'shopHeroImage',
+      label: {
+        es: 'Imagen principal de la tienda',
+        en: 'Shop hero image',
+      },
+      type: 'upload',
+      relationTo: 'media',
+      localized: true,
+      admin: {
+        description: {
+          es: 'Imagen horizontal de fondo para el encabezado principal de la tienda.',
+          en: 'Horizontal background image for the main shop header.',
+        },
+      },
+    },
+    {
       name: 'contactEmail',
       type: 'email',
     },

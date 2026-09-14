@@ -4218,6 +4218,10 @@ export interface SiteSetting {
   siteName: string;
   tagline?: string | null;
   logo?: (number | null) | Media;
+  /**
+   * Horizontal background image for the main shop header.
+   */
+  shopHeroImage?: (number | null) | Media;
   contactEmail?: string | null;
   contactPhone?: string | null;
   social?:
@@ -4408,6 +4412,7 @@ export interface SiteSettingsSelect<T extends boolean = true> {
   siteName?: T;
   tagline?: T;
   logo?: T;
+  shopHeroImage?: T;
   contactEmail?: T;
   contactPhone?: T;
   social?:

@@ -1,4 +1,5 @@
 import { commerce } from "@/lib/commerce";
+import { getSiteSettings, type SiteSettings } from "@/lib/cms";
 import type {
   CollectionSummary,
   Paginated,
@@ -13,6 +14,7 @@ export type ShopCatalogResult = {
   collections: CollectionSummary[];
   selectedCollection: CollectionSummary | null;
   availableTags: TagReference[];
+  siteSettings: SiteSettings;
   error: string | null;
 };
 
@@ -30,6 +32,7 @@ export async function loadShopCatalog(
   locale: string,
   query: ShopQuery,
 ): Promise<ShopCatalogResult> {
+  const siteSettingsPromise = getSiteSettings(locale);
   if (!commerce.isConfigured()) {
     return {
       configured: false,
@@ -37,14 +40,16 @@ export async function loadShopCatalog(
       collections: [],
       selectedCollection: null,
       availableTags: [],
+      siteSettings: await siteSettingsPromise,
       error: null,
     };
   }
 
   try {
-    const [products, collectionsPage] = await Promise.all([
+    const [products, collectionsPage, siteSettings] = await Promise.all([
       commerce.getProducts(toCommerceProductsParams(query, locale)),
       commerce.getCollections({ first: 24, locale }),
+      siteSettingsPromise,
     ]);
 
     const minPrice = Number(query.minPrice);
@@ -87,6 +92,7 @@ export async function loadShopCatalog(
           (collection) => collection.handle === query.collection,
         ) ?? null,
       availableTags,
+      siteSettings,
       error: null,
     };
   } catch (error) {
@@ -96,6 +102,7 @@ export async function loadShopCatalog(
       collections: [],
       selectedCollection: null,
       availableTags: [],
+      siteSettings: await siteSettingsPromise,
       error:
         error instanceof Error ? error.message : "Failed to load shop catalog.",
     };

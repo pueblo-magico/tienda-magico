@@ -100,7 +100,7 @@
   "shop": {
     "eyebrow": "Shop",
     "title": "All products",
-    "subtitle": "Conscious goods from the mountains — filter by collection, search, and sort.",
+    "subtitle": "Conscious goods from the mountains",
     "notConfigured": "Commerce is not configured yet. Connect Shopify or Payload to load the catalog.",
     "empty": "No products are available right now.",
     "emptyFiltered": "No products match your filters. Try another search or collection.",

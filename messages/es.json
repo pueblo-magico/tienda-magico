@@ -100,7 +100,7 @@
   "shop": {
     "eyebrow": "Tienda",
     "title": "Todos los productos",
-    "subtitle": "Bienes conscientes de la montaña — filtra por colección, busca y ordena.",
+    "subtitle": "Bienes conscientes de la montaña",
     "notConfigured": "El comercio aún no está configurado. Conecta Shopify o Payload para ver el catálogo.",
     "empty": "No hay productos disponibles por ahora.",
     "emptyFiltered": "Ningún producto coincide con tus filtros. Prueba otra búsqueda o colección.",

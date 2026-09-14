@@ -21,6 +21,7 @@ import * as migration_20260912_231316_cms_user_editor_language from './20260912_
 import * as migration_20260912_231908_cms_navigation_visibility from './20260912_231908_cms_navigation_visibility';
 import * as migration_20260913_191156_category_lucide_icons from './20260913_191156_category_lucide_icons';
 import * as migration_20260913_220000_category_slogan from './20260913_220000_category_slogan';
+import * as migration_20260914_010000_site_shop_hero from './20260914_010000_site_shop_hero';
 
 export const migrations = [
   {
@@ -137,5 +138,10 @@ export const migrations = [
     up: migration_20260913_220000_category_slogan.up,
     down: migration_20260913_220000_category_slogan.down,
     name: '20260913_220000_category_slogan',
+  },
+  {
+    up: migration_20260914_010000_site_shop_hero.up,
+    down: migration_20260914_010000_site_shop_hero.down,
+    name: '20260914_010000_site_shop_hero',
   },
 ];
