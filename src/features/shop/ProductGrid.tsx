@@ -3,6 +3,7 @@ import { localizePath } from "@/config/navigation";
 import { formatMoney } from "@/lib/commerce/utils/format";
 import type { ProductSummary } from "@/types/commerce";
 import { useTranslations } from "next-intl";
+import { AddToCartButton } from "@/features/cart";
 
 type Props = {
   locale: string;
@@ -27,7 +28,13 @@ export function ProductGrid({ locale, products, noMediaLabel }: Props) {
             imageSrc={product.featuredImage?.url}
             imageAlt={product.featuredImage?.altText || product.title}
             noMediaLabel={noMediaLabel}
-            category={product.classification?.primaryCategory?.title}
+            action={
+              product.quickAddMerchandiseId ? (
+                <AddToCartButton
+                  merchandiseId={product.quickAddMerchandiseId}
+                />
+              ) : null
+            }
           />
         </li>
       ))}

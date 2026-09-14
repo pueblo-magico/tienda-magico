@@ -158,7 +158,9 @@ export type ProductSummary = Pick<
   | "priceRange"
   | "tags"
   | "classification"
->;
+> & {
+  quickAddMerchandiseId?: string | null;
+};
 
 export type Collection = {
   id: string;

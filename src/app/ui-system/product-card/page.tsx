@@ -15,7 +15,9 @@ export default function ProductCardPage() {
           title="Organic Mountain Cacao"
           price="$28"
           badge="Best seller"
-          category="Wellness rituals"
+          rating={4.5}
+          ratingLabel="4.5 out of 5 stars"
+          reviewCount="124"
           imageLoading="eager"
           imageSrc="https://images.unsplash.com/photo-1511381939415-e44015466834?auto=format&fit=crop&w=800&q=80"
           noMediaLabel="Este producto todavía no tiene imágenes ni videos."
@@ -26,7 +28,6 @@ export default function ProductCardPage() {
           href="/es/shop/producto-sin-medios"
           title="Producto sin medios"
           price="$28.000"
-          category="Rituales de bienestar"
           noMediaLabel="Este producto todavía no tiene imágenes ni videos."
         />
       </DocsSection>

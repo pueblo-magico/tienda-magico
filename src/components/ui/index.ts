@@ -9,6 +9,7 @@ export type { SelectProps, SelectOption } from "./Select";
 export { Textarea } from "./Textarea";
 export type { TextareaProps } from "./Textarea";
 export { Modal } from "./Modal";
+export { Rating } from "./Rating";
 export type { ModalProps } from "./Modal";
 export { Drawer } from "./Drawer";
 export type { DrawerProps } from "./Drawer";

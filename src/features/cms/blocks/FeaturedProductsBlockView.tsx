@@ -117,7 +117,6 @@ export async function FeaturedProductsBlockView({
                 imageSrc={product.featuredImage?.url}
                 imageAlt={product.featuredImage?.altText || product.title}
                 noMediaLabel={tProduct("noMedia")}
-                category={product.classification?.primaryCategory?.title}
               />
             </li>
           ))}

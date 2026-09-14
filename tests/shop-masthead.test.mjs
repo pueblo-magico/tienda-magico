@@ -68,8 +68,21 @@ test("the shop masthead is full width with overlapping category cards", async ()
 });
 
 test("the product grid uses the compact desktop density", async () => {
-  const source = await readFile("src/features/shop/ProductGrid.tsx", "utf8");
+  const [source, quickAdd, messagesEn, messagesEs] = await Promise.all([
+    readFile("src/features/shop/ProductGrid.tsx", "utf8"),
+    readFile("src/features/cart/components/AddToCartButton.tsx", "utf8"),
+    readFile("messages/en.json", "utf8"),
+    readFile("messages/es.json", "utf8"),
+  ]);
 
   assert.match(source, /lg:grid-cols-4 xl:grid-cols-5/);
   assert.match(source, /<li key=\{product\.id\} className="h-full">/);
+  assert.match(source, /product\.quickAddMerchandiseId/);
+  assert.match(source, /<AddToCartButton/);
+  assert.match(quickAdd, /ShoppingCart/);
+  assert.match(quickAdd, /addItem\(\{ merchandiseId, quantity: 1 \}\)/);
+  assert.match(quickAdd, /const \[isAdding, setIsAdding\] = useState\(false\)/);
+  assert.doesNotMatch(quickAdd, /removeItem|hasItem|isMutating/);
+  assert.match(messagesEn, /"adding": "Adding…"/);
+  assert.match(messagesEs, /"adding": "Añadiendo…"/);
 });

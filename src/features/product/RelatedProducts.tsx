@@ -52,7 +52,6 @@ export function RelatedProducts({
                 imageSrc={product.featuredImage?.url}
                 imageAlt={product.featuredImage?.altText || product.title}
                 noMediaLabel={noMediaLabel}
-                category={product.classification?.primaryCategory?.title}
               />
             </li>
           ))}

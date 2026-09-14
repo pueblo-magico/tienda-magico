@@ -1,7 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { MediaPlaceholder } from "@/components/media/MediaPlaceholder";
+import { Rating } from "@/components/ui/Rating";
 import { cn } from "@/lib/utils/cn";
 
 export type ProductCardProps = {
@@ -12,7 +14,10 @@ export type ProductCardProps = {
   imageAlt?: string;
   noMediaLabel: string;
   badge?: string;
-  category?: string;
+  rating?: number;
+  ratingLabel?: string;
+  reviewCount?: string;
+  action?: ReactNode;
   imageLoading?: "eager" | "lazy";
   className?: string;
 };
@@ -25,18 +30,21 @@ export function ProductCard({
   imageAlt = "",
   noMediaLabel,
   badge,
-  category,
+  rating,
+  ratingLabel,
+  reviewCount,
+  action,
   imageLoading = "lazy",
   className,
 }: ProductCardProps) {
   return (
     <article
       className={cn(
-        "hover:bg-card-hover group border-border bg-card h-full overflow-hidden rounded-2xl border transition-colors hover:shadow-md",
+        "hover:bg-card-hover group border-border bg-card flex h-full flex-col overflow-hidden rounded-2xl border transition-colors hover:shadow-md",
         className,
       )}
     >
-      <Link href={href} className="flex h-full flex-col">
+      <Link href={href} className="block">
         <div className="bg-card-hover relative aspect-square overflow-hidden">
           {imageSrc ? (
             <Image
@@ -56,18 +64,25 @@ export function ProductCard({
             </Badge>
           ) : null}
         </div>
-        <div className="flex flex-1 flex-col space-y-1 p-2">
-          {/* {category ? (
-            <p className="text-xs font-medium uppercase tracking-[0.2em] text-forest/55">
-              {category}
-            </p>
-          ) : null} */}
-          <h3 className="text-text-primary font-serif text-sm">{title}</h3>
-          <p className="text-text-highlight mt-auto text-sm font-bold">
-            {price}
-          </p>
-        </div>
       </Link>
+      <div className="flex flex-1 flex-col space-y-1 p-2">
+        <Link href={href} className="block">
+          <h3 className="text-text-primary font-serif text-sm">{title}</h3>
+        </Link>
+        <div className="flex h-full items-start justify-between gap-2">
+          <div className="space-y-1">
+            <p className="text-text-highlight text-sm font-bold">{price}</p>
+            {rating !== undefined && ratingLabel ? (
+              <Rating
+                value={rating}
+                label={ratingLabel}
+                reviewCount={reviewCount}
+              />
+            ) : null}
+          </div>
+          <span className="self-end">{action}</span>
+        </div>
+      </div>
     </article>
   );
 }

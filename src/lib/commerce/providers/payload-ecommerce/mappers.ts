@@ -834,6 +834,14 @@ export function mapProductSummary(
           : purchaseStatus(product) === "available";
 
   const classification = mapClassification(product, locale);
+  const quickAddMerchandiseId =
+    product.enableVariants === true
+      ? variantDocs(product).length === 1 && variants.length === 1
+        ? variants[0]?.id
+        : null
+      : availableForSale
+        ? merchandiseRef("product", toId(product.id))
+        : null;
   return {
     id: toId(product.id),
     handle: productHandle(product, locale),
@@ -848,6 +856,7 @@ export function mapProductSummary(
       ? classification.tags.map((tag) => tag.label)
       : mapTags(product.tags),
     classification,
+    quickAddMerchandiseId,
     featuredImage: images[0] ?? null,
     priceRange: {
       minVariantPrice: {

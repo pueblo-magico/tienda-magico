@@ -7,12 +7,14 @@ import type {
 import { cn } from "@/lib/utils/cn";
 
 type ButtonVariant = "primary" | "secondary" | "ghost" | "link";
-type ButtonSize = "sm" | "md" | "lg";
+type ButtonSize = "sm" | "md" | "lg" | "icon-sm";
+type ButtonShape = "pill" | "rounded";
 
 type CommonProps = {
   children: ReactNode;
   variant?: ButtonVariant;
   size?: ButtonSize;
+  shape?: ButtonShape;
   className?: string;
 };
 
@@ -42,6 +44,12 @@ const sizeClasses: Record<ButtonSize, string> = {
   sm: "h-9 px-4 text-xs tracking-[0.08em]",
   md: "h-11 px-6 text-sm tracking-[0.1em]",
   lg: "h-12 px-8 text-sm tracking-[0.12em]",
+  "icon-sm": "size-8 p-0",
+};
+
+const shapeClasses: Record<ButtonShape, string> = {
+  pill: "rounded-full",
+  rounded: "rounded-md",
 };
 
 const baseClasses =
@@ -52,11 +60,12 @@ export function Button({
   className,
   variant = "primary",
   size = "md",
+  shape = "pill",
   ...props
 }: ButtonProps) {
   const classes = cn(
     baseClasses,
-    variant !== "link" && "rounded-full",
+    variant !== "link" && shapeClasses[shape],
     variantClasses[variant],
     variant === "link" ? "text-sm tracking-[0.08em]" : sizeClasses[size],
     className,

@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/Button";
 import { DocsPageHeader } from "@/components/ui-system/DocsPageHeader";
 import { DocsSection } from "@/components/ui-system/DocsSection";
+import { ShoppingCart } from "lucide-react";
 
 export default function ButtonPage() {
   return (
@@ -26,6 +27,9 @@ export default function ButtonPage() {
         <Button size="sm">Add to cart</Button>
         <Button size="md">Add to cart</Button>
         <Button size="lg">Add to cart</Button>
+        <Button size="icon-sm" shape="rounded" aria-label="Quick add to cart">
+          <ShoppingCart aria-hidden className="size-4" strokeWidth={2} />
+        </Button>
       </DocsSection>
 
       <DocsSection title="States">

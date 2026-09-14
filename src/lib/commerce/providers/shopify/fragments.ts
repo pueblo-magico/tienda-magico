@@ -47,6 +47,12 @@ export const productSummaryFragment = /* GraphQL */ `
     vendor
     availableForSale
     tags
+    variants(first: 2) {
+      nodes {
+        id
+        availableForSale
+      }
+    }
     featuredImage {
       ...Image
     }

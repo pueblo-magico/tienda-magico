@@ -203,12 +203,84 @@ test("la tarjeta de producto usa una jerarquía compacta para catálogo", () => 
 
   assert.match(html, /aspect-square/);
   assert.match(html, /p-2/);
-  assert.match(html, /text-text-secondary text-xs font-bold/);
   assert.match(html, /text-text-primary font-serif text-sm/);
   assert.match(html, /group[^"]*h-full/);
-  assert.match(html, /class="flex h-full flex-col"/);
   assert.match(html, /flex flex-1 flex-col space-y-1 p-2/);
-  assert.match(html, /text-text-highlight mt-auto text-sm font-bold/);
+  assert.match(html, /text-text-highlight text-sm font-bold/);
+  assert.doesNotMatch(html, /aria-label="4,5 de 5 estrellas"/);
+});
+
+test("la tarjeta muestra la calificación solamente cuando recibe datos reales", () => {
+  const html = renderToStaticMarkup(
+    createElement(ProductCard, {
+      href: "/es/shop/cacao",
+      title: "Cacao ceremonial",
+      price: "$28.000",
+      rating: 4.5,
+      ratingLabel: "4,5 de 5 estrellas",
+      reviewCount: "124",
+      noMediaLabel: "Sin imagen",
+    }),
+  );
+
+  assert.match(html, /aria-label="4,5 de 5 estrellas"/);
+  assert.match(html, />\(124\)</);
+});
+
+test("el resumen publica una referencia vendible para compra rápida", () => {
+  const summary = mapProductSummary(
+    {
+      id: 8,
+      slug: "cacao",
+      title: "Cacao",
+      _status: "published",
+      enableVariants: false,
+      sku: "CACAO-1",
+      priceInARS: 28000,
+      priceInARSEnabled: true,
+      inventory: 1,
+      lifecycleStatus: "active",
+    },
+    "es",
+  );
+
+  assert.equal(summary.quickAddMerchandiseId, "product:8");
+});
+
+test("la compra rápida no elige silenciosamente entre varias variantes", () => {
+  const summary = mapProductSummary(
+    {
+      id: 8,
+      slug: "cacao",
+      title: "Cacao",
+      _status: "published",
+      enableVariants: true,
+      lifecycleStatus: "active",
+      variants: {
+        docs: [
+          {
+            id: 4,
+            _status: "published",
+            priceInARS: 28000,
+            priceInARSEnabled: true,
+            inventory: 1,
+            options: [1],
+          },
+          {
+            id: 5,
+            _status: "published",
+            priceInARS: 30000,
+            priceInARSEnabled: true,
+            inventory: 1,
+            options: [2],
+          },
+        ],
+      },
+    },
+    "es",
+  );
+
+  assert.equal(summary.quickAddMerchandiseId, null);
 });
 
 test("la revalidación acepta solo eventos y tags de catálogo permitidos", () => {

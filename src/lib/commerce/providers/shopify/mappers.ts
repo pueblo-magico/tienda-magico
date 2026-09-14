@@ -56,6 +56,9 @@ export function mapProductSummary(product: {
   vendor?: string | null;
   availableForSale?: boolean | null;
   tags?: string[] | null;
+  variants?: {
+    nodes?: Array<{ id: string; availableForSale?: boolean | null }> | null;
+  } | null;
   featuredImage?: Maybe<CommerceImage>;
   priceRange?: {
     minVariantPrice?: Maybe<Money>;
@@ -70,6 +73,11 @@ export function mapProductSummary(product: {
     availableForSale: Boolean(product.availableForSale),
     lifecycleStatus: "active",
     tags: product.tags ?? [],
+    quickAddMerchandiseId:
+      product.variants?.nodes?.length === 1 &&
+      product.variants.nodes[0]?.availableForSale
+        ? product.variants.nodes[0].id
+        : null,
     featuredImage: mapImage(product.featuredImage),
     priceRange: {
       minVariantPrice: mapMoney(product.priceRange?.minVariantPrice),
