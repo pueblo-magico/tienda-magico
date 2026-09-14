@@ -5,6 +5,7 @@ import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { CartDrawer, CartProvider } from "@/features/cart";
 import { routing } from "@/i18n/routing";
+import { ImpactFooter } from "@/features/shop/ImpactFooter";
 
 type Props = {
   children: React.ReactNode;
@@ -31,6 +32,7 @@ export default async function LocaleLayout({ children, params }: Props) {
         <div className="flex min-h-screen flex-col">
           <Header />
           <div className="flex-1">{children}</div>
+          <ImpactFooter /> 
           <Footer />
         </div>
         <CartDrawer />

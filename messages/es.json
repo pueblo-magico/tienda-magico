@@ -135,7 +135,15 @@
     "previous": "Anterior",
     "next": "Siguiente",
     "pagination": "Paginación",
-    "subcategories": "Explorar subcategorías"
+    "subcategories": "Explorar subcategorías",
+    "impactFooter": {
+      "label": "Nuestro impacto",
+      "ethicalIngredients": "Ingredientes éticos y naturales",
+      "localCommunities": "Apoya a comunidades locales",
+      "regenerativeDesign": "Regeneración por diseño",
+      "consciousShipping": "Envíos conscientes y sin plástico",
+      "humanConnection": "Un puente entre personas y territorios"
+    }
   },
   "product": {
     "backToShop": "Volver a la tienda",

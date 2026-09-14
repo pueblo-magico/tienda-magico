@@ -13,7 +13,7 @@ export async function Footer({ className }: { className?: string }) {
   const locale = (await getLocale()) as Locale;
 
   return (
-    <footer className={cn("border-border bg-card border-t", className)}>
+    <footer className={cn("border-border bg-card border-t", className)}>      
       <Container className="grid gap-10 py-12 sm:grid-cols-2 lg:grid-cols-4">
         <div className="space-y-3 lg:col-span-2">
           <p className="text-forest font-serif text-2xl">Pueblo Mágico</p>

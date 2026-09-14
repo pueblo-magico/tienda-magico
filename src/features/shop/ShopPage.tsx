@@ -96,7 +96,7 @@ export async function ShopPage({ locale, query, labels }: Props) {
     : labels.subtitle;
 
   return (
-    <section className="pb-16 sm:pb-24">
+    <section className="pb-12 sm:pb-24">
       <div className="relative h-72 w-full overflow-hidden">
         <header className="bg-warm absolute inset-0 flex items-center px-6 sm:px-12 lg:px-[max(3rem,calc((100vw-72rem)/2))]">
           {heroImage?.url ? (
