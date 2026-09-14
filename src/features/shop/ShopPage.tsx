@@ -301,9 +301,6 @@ export async function ShopPage({ locale, query, labels }: Props) {
               <h2 className="font-serif text-2xl">
                 {t("resultsFor", { query: query.q })}
               </h2>
-              <p className="text-muted mt-1 text-sm">
-                {t("results", { count })}
-              </p>
             </div>
           ) : null}
         </div>
@@ -344,27 +341,22 @@ export async function ShopPage({ locale, query, labels }: Props) {
             </aside>
 
             <div className="space-y-6">
-              <ShopToolbar
-                locale={locale}
-                query={query}
-                labels={{
-                  search: labels.search,
-                  searchPlaceholder: labels.searchPlaceholder,
-                  sort: labels.sort,
-                  submit: labels.submit,
-                  clear: labels.clear,
-                  sortBest: labels.sortBest,
-                  sortNewest: labels.sortNewest,
-                  sortTitleAsc: labels.sortTitleAsc,
-                  sortTitleDesc: labels.sortTitleDesc,
-                  sortPriceAsc: labels.sortPriceAsc,
-                  sortPriceDesc: labels.sortPriceDesc,
-                }}
-              />
-
-              {!query.q && count > 0 ? (
+              <div className="flex flex-wrap items-center justify-between gap-3">
                 <p className="text-muted text-sm">{t("results", { count })}</p>
-              ) : null}
+                <ShopToolbar
+                  locale={locale}
+                  query={query}
+                  labels={{
+                    sort: labels.sort,
+                    sortBest: labels.sortBest,
+                    sortNewest: labels.sortNewest,
+                    sortTitleAsc: labels.sortTitleAsc,
+                    sortTitleDesc: labels.sortTitleDesc,
+                    sortPriceAsc: labels.sortPriceAsc,
+                    sortPriceDesc: labels.sortPriceDesc,
+                  }}
+                />
+              </div>
 
               {count === 0 ? (
                 <Body className="text-muted">

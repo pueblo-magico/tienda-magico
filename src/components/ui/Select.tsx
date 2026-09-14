@@ -11,6 +11,8 @@ export type SelectProps = SelectHTMLAttributes<HTMLSelectElement> & {
   error?: string;
   options: SelectOption[];
   placeholder?: string;
+  layout?: "stacked" | "inline";
+  controlSize?: "default" | "compact";
 };
 
 export function Select({
@@ -19,19 +21,34 @@ export function Select({
   error,
   options,
   placeholder,
+  layout = "stacked",
+  controlSize = "default",
   id,
   ...props
 }: SelectProps) {
   const selectId = id ?? props.name;
 
   return (
-    <label className="flex w-full flex-col gap-1.5 text-sm text-forest">
-      {label ? <span className="font-medium">{label}</span> : null}
+    <label
+      className={cn(
+        "text-forest flex w-full gap-1.5 text-sm",
+        layout === "inline" ? "items-center justify-end" : "flex-col",
+      )}
+    >
+      {label ? (
+        <span className={
+          cn("w-full",
+          controlSize === "default" && "font-medium")
+        }>
+          {label}
+        </span>
+      ) : null}
       <select
         id={selectId}
         className={cn(
-          "h-11 w-full appearance-none rounded-full border border-border bg-card px-4 text-sm text-forest",
-          "transition-colors focus-visible:border-forest focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/30",
+          "border-border bg-card text-forest h-11 w-full appearance-none rounded-full border px-4 text-sm",
+          "focus-visible:border-forest focus-visible:ring-brand/30 transition-colors focus-visible:ring-2 focus-visible:outline-none",
+          controlSize === "compact" && "h-9 rounded-md px-3 text-xs",
           error && "border-clay focus-visible:ring-clay/40",
           className,
         )}
@@ -49,7 +66,7 @@ export function Select({
           </option>
         ))}
       </select>
-      {error ? <span className="text-xs text-clay">{error}</span> : null}
+      {error ? <span className="text-clay text-xs">{error}</span> : null}
     </label>
   );
 }
