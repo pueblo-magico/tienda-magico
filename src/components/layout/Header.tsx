@@ -14,9 +14,11 @@ import {
 } from "@/config/navigation";
 import { cn } from "@/lib/utils/cn";
 import { useCart } from "@/features/cart";
+import { SearchDialog } from "@/features/search";
 import { CartButton } from "./CartButton";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { MobileMenu } from "./MobileMenu";
+import { SearchButton } from "./SearchButton";
 
 export function Header({ className }: { className?: string }) {
   const t = useTranslations();
@@ -24,6 +26,7 @@ export function Header({ className }: { className?: string }) {
   const pathname = usePathname();
   const { openCart, itemCount } = useCart();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const [isCompact, setIsCompact] = useState(false);
   const homeHref = localizePath(locale, "/shop");
 
@@ -118,6 +121,11 @@ export function Header({ className }: { className?: string }) {
             <div className="hidden sm:block">
               <LanguageSwitcher className="border-border text-text-black" />
             </div>
+            <SearchButton
+              label={t("shop.openSearch")}
+              onClick={() => setSearchOpen(true)}
+              className="text-text-black hover:bg-card-hover"
+            />
             <CartButton
               count={itemCount}
               onClick={openCart}
@@ -135,6 +143,7 @@ export function Header({ className }: { className?: string }) {
           homeHref={homeHref}
         />
       </div>
+      <SearchDialog open={searchOpen} onClose={() => setSearchOpen(false)} />
     </>
   );
 }

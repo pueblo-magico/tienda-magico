@@ -3,7 +3,6 @@
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { DEFAULT_SHOP_SORT, type ShopSortValue } from "./constants";
 import { buildShopHref, type ShopQuery } from "./search-params";
@@ -45,7 +44,6 @@ export function ShopToolbar({ locale, query, labels }: Props) {
       onSubmit={(event) => {
         event.preventDefault();
         const form = new FormData(event.currentTarget);
-        const q = String(form.get("q") ?? "").trim();
         const sort = String(
           form.get("sort") ?? DEFAULT_SHOP_SORT,
         ) as ShopSortValue;
@@ -54,7 +52,6 @@ export function ShopToolbar({ locale, query, labels }: Props) {
           locale,
           {
             ...query,
-            q,
             sort,
             after: "",
           },
@@ -66,13 +63,6 @@ export function ShopToolbar({ locale, query, labels }: Props) {
         });
       }}
     >
-      <Input
-        name="q"
-        defaultValue={query.q}
-        label={labels.search}
-        placeholder={labels.searchPlaceholder}
-        className="sm:flex-1"
-      />
       <Select
         name="sort"
         label={labels.sort}

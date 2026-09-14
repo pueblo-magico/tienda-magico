@@ -15,6 +15,7 @@ import { CategoryIcon } from "@/components/CategoryIcon";
 import { cn } from "@/lib/utils/cn";
 import { ArrowRight } from "lucide-react";
 import { directChildCategories } from "./category-hierarchy";
+import { SearchForm } from "@/features/search";
 
 type Labels = {
   eyebrow: string;
@@ -293,6 +294,20 @@ export async function ShopPage({ locale, query, labels }: Props) {
       ) : null}
 
       <Container className="mt-10 space-y-9">
+        <div className="space-y-4">
+          <SearchForm initialQuery={query.q} />
+          {query.q ? (
+            <div>
+              <h2 className="font-serif text-2xl">
+                {t("resultsFor", { query: query.q })}
+              </h2>
+              <p className="text-muted mt-1 text-sm">
+                {t("results", { count })}
+              </p>
+            </div>
+          ) : null}
+        </div>
+
         {!catalog.configured ? (
           <Body className="text-muted">{labels.notConfigured}</Body>
         ) : null}
@@ -347,7 +362,7 @@ export async function ShopPage({ locale, query, labels }: Props) {
                 }}
               />
 
-              {count > 0 ? (
+              {!query.q && count > 0 ? (
                 <p className="text-muted text-sm">{t("results", { count })}</p>
               ) : null}
 
