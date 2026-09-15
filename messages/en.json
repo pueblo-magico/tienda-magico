@@ -133,7 +133,12 @@
     "tagline": "Everyday products inspired by regeneration, local communities, and the magic of the mountains.",
     "explore": "Explore",
     "support": "Support",
-    "rights": "Crafted with care for people and planet."
+    "rights": "Made with respect for the mountains.",
+    "legalEntity": "HERMANOS MÁGICOS SOCIEDAD POR ACCIONES SIMPLIFICADA",
+    "legalDetails": "Tax ID 30-71875586-3 · Calle Aconquija 635, Villa Allende, Colón Department, Córdoba, Argentina · Córdoba Tourism Agency license No. 000258",
+    "legalCopyright": "© {year} Pueblo Mágico Eco-Refugio. All rights reserved. Operated by HERMANOS MÁGICOS SOCIEDAD POR ACCIONES SIMPLIFICADA.",
+    "qrAlt": "Hermanos Mágicos ARCA QR code",
+    "qrLinkLabel": "Open the ARCA QR code"
   },
   "home": {
     "eyebrow": "Mountain shop",

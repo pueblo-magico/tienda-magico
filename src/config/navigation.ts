@@ -78,18 +78,6 @@ export const footerNavigation = {
       labelKey: "nav.contact",
       label: { en: "Contact", es: "Contacto" },
     },
-    {
-      kind: "external",
-      href: legalLinks.terms,
-      labelKey: "nav.terms",
-      label: { en: "Terms and conditions", es: "Términos y condiciones" },
-    },
-    {
-      kind: "external",
-      href: legalLinks.privacy,
-      labelKey: "nav.privacy",
-      label: { en: "Privacy policy", es: "Política de privacidad" },
-    },
   ] satisfies NavItem[],
 };
 

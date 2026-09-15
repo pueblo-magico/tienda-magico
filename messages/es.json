@@ -133,7 +133,12 @@
     "tagline": "Productos cotidianos inspirados en la regeneración, las comunidades locales y la magia de las montañas.",
     "explore": "Explorar",
     "support": "Soporte",
-    "rights": "Hecho con cuidado por las personas y el planeta."
+    "rights": "Hecho con respeto a la montaña.",
+    "legalEntity": "HERMANOS MÁGICOS SOCIEDAD POR ACCIONES SIMPLIFICADA",
+    "legalDetails": "CUIT 30-71875586-3 · Calle Aconquija 635, Villa Allende, Dpto. Colón, Córdoba, Argentina · Hab. Agencia Córdoba Turismo N° 000258",
+    "legalCopyright": "© {year} Pueblo Mágico Eco-Refugio. Todos los derechos reservados. Operado por HERMANOS MÁGICOS SOCIEDAD POR ACCIONES SIMPLIFICADA.",
+    "qrAlt": "Código QR de ARCA de Hermanos Mágicos",
+    "qrLinkLabel": "Abrir el código QR de ARCA"
   },
   "home": {
     "eyebrow": "Tienda de montaña",
