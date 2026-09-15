@@ -8,7 +8,7 @@ test("el catálogo muestra el resumen de impacto debajo de los productos", async
     readFile("src/features/shop/ShopPage.tsx", "utf8"),
   ]);
 
-  assert.match(component, /Leaf/);
+  assert.match(component, /Sprout/);
   assert.match(component, /Heart/);
   assert.match(component, /Mountain/);
   assert.match(component, /Truck/);

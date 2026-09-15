@@ -16,6 +16,9 @@ import { cn } from "@/lib/utils/cn";
 import { ArrowRight } from "lucide-react";
 import { directChildCategories } from "./category-hierarchy";
 import { SearchForm } from "@/features/search";
+import { CommunityReviewCard } from "./CommunityReviewCard";
+import { ImpactFooter } from "./ImpactFooter";
+import { ImpactStoryCard } from "./ImpactStoryCard";
 
 type Labels = {
   eyebrow: string;
@@ -363,11 +366,13 @@ export async function ShopPage({ locale, query, labels }: Props) {
                   {hasFilters ? labels.emptyFiltered : labels.empty}
                 </Body>
               ) : (
-                <ProductGrid
-                  locale={locale}
-                  products={catalog.products.items}
-                  noMediaLabel={labels.noMedia}
-                />
+                <>
+                  <ProductGrid
+                    locale={locale}
+                    products={catalog.products.items}
+                    noMediaLabel={labels.noMedia}
+                  />
+                </>
               )}
 
               <ShopPagination
@@ -383,6 +388,11 @@ export async function ShopPage({ locale, query, labels }: Props) {
             </div>
           </div>
         ) : null}
+        <div className="grid gap-4 lg:grid-cols-2">
+          <ImpactStoryCard locale={locale} imageUrl={heroImage?.url} />
+          <CommunityReviewCard />
+        </div>
+        <ImpactFooter />
       </Container>
     </section>
   );

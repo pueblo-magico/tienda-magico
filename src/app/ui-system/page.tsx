@@ -89,6 +89,11 @@ const components = [
     description: "Impact statistics card.",
   },
   {
+    href: "/ui-system/info-card",
+    name: "InfoCard",
+    description: "Informational principles, attributes, and guidelines.",
+  },
+  {
     href: "/ui-system/container",
     name: "Container",
     description: "Responsive content width wrapper.",

@@ -143,6 +143,17 @@
       "regenerativeDesign": "Regeneration by design",
       "consciousShipping": "Conscious, plastic-free shipping",
       "humanConnection": "A bridge between people and territories"
+    },
+    "supportingCards": {
+      "impact": {
+        "title": "Every purchase supports local communities",
+        "description": "We work directly with artisan families and regenerative projects across the Andes and the Amazon.",
+        "cta": "Discover our impact"
+      },
+      "review": {
+        "quote": "Most importantly: the love, the dedication of the entire team, and the ability to feel at one with nature.",
+        "role": "Facilitator"
+      }
     }
   },
   "product": {
