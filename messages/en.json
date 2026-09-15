@@ -108,8 +108,14 @@
       },
       "message": "Message",
       "messagePlaceholder": "How can we help?",
-      "hint": "This form does not send enquiries yet.",
-      "submit": "Send enquiry"
+      "hint": "Submitting opens WhatsApp with your enquiry ready to send.",
+      "submit": "Send via WhatsApp",
+      "whatsappIntro": "Hello Pueblo Mágico, I'd like to make an enquiry from the impact page.",
+      "consentPrefix": "I accept the",
+      "consentTerms": "Terms and Conditions",
+      "consentConnector": "and the",
+      "consentPrivacy": "Privacy Policy",
+      "consentSuffix": "I authorize Pueblo Mágico to contact me via WhatsApp or email with information about availability, offers, and news."
     }
   },
   "nav": {

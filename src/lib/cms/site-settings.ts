@@ -5,16 +5,19 @@ import type { CmsMedia } from "./types";
 
 export type SiteSettings = {
   shopHeroImage: CommerceImage | null;
+  contactPhone: string | null;
 };
 
 const DEFAULT_SITE_SETTINGS: SiteSettings = {
   shopHeroImage: null,
+  contactPhone: null,
 };
 
 export async function getSiteSettings(locale: string): Promise<SiteSettings> {
   try {
     const settings = await cmsFetch<{
       shopHeroImage?: CmsMedia | string | number | null;
+      contactPhone?: string | null;
     }>({
       path: "/globals/site-settings",
       query: { depth: 1 },
@@ -23,17 +26,21 @@ export async function getSiteSettings(locale: string): Promise<SiteSettings> {
     });
     const media = settings.shopHeroImage;
     const url = resolveMediaUrl(media);
-    if (!url) return DEFAULT_SITE_SETTINGS;
 
     return {
-      shopHeroImage: {
-        url,
-        altText: mediaAlt(media),
-        width:
-          media && typeof media === "object" ? (media.width ?? null) : null,
-        height:
-          media && typeof media === "object" ? (media.height ?? null) : null,
-      },
+      shopHeroImage: url
+        ? {
+            url,
+            altText: mediaAlt(media),
+            width:
+              media && typeof media === "object" ? (media.width ?? null) : null,
+            height:
+              media && typeof media === "object"
+                ? (media.height ?? null)
+                : null,
+          }
+        : null,
+      contactPhone: settings.contactPhone?.trim() || null,
     };
   } catch {
     return DEFAULT_SITE_SETTINGS;

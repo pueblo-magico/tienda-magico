@@ -25,6 +25,11 @@ export function experienciaMagicoUrl(path = "/"): string {
   return new URL(path, externalSites.experienciaMagico).toString();
 }
 
+export const legalLinks = {
+  terms: experienciaMagicoUrl("/terminos-y-condiciones"),
+  privacy: experienciaMagicoUrl("/politica-de-privacidad"),
+} as const;
+
 export const mainNavigation: NavItem[] = [
   {
     kind: "internal",
@@ -75,13 +80,13 @@ export const footerNavigation = {
     },
     {
       kind: "external",
-      href: experienciaMagicoUrl("/terminos-y-condiciones"),
+      href: legalLinks.terms,
       labelKey: "nav.terms",
       label: { en: "Terms and conditions", es: "Términos y condiciones" },
     },
     {
       kind: "external",
-      href: experienciaMagicoUrl("/politica-de-privacidad"),
+      href: legalLinks.privacy,
       labelKey: "nav.privacy",
       label: { en: "Privacy policy", es: "Política de privacidad" },
     },

@@ -8,7 +8,10 @@ import {
   PageTitle,
   SectionTitle,
 } from "@/components/typography";
-import { Badge, Button, Input, Select, Textarea } from "@/components/ui";
+import { Badge, Button } from "@/components/ui";
+import { legalLinks } from "@/config/navigation";
+import { getSiteSettings } from "@/lib/cms";
+import { ImpactContactForm } from "./ImpactContactForm";
 
 const principleKeys = ["origin", "materials", "purpose"] as const;
 const statisticKeys = [
@@ -21,9 +24,10 @@ const statisticKeys = [
 ] as const;
 
 export async function ImpactPage() {
-  const [locale, t] = await Promise.all([
-    getLocale(),
+  const locale = await getLocale();
+  const [t, siteSettings] = await Promise.all([
     getTranslations("impactPage"),
+    getSiteSettings(locale),
   ]);
   const anchors = {
     principles: locale === "es" ? "principios" : "principles",
@@ -119,35 +123,30 @@ export async function ImpactPage() {
               <SectionTitle className="mt-3">{t("contact.title")}</SectionTitle>
               <Body className="mt-4">{t("contact.description")}</Body>
             </div>
-            <form className="bg-card hover:bg-card-hover border-border space-y-5 rounded-2xl border p-6 transition-colors">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Input
-                  name="name"
-                  label={t("contact.name")}
-                  placeholder={t("contact.namePlaceholder")}
-                />
-                <Input
-                  name="email"
-                  type="email"
-                  label={t("contact.email")}
-                  placeholder={t("contact.emailPlaceholder")}
-                />
-              </div>
-              <Select
-                name="interest"
-                label={t("contact.interest")}
-                placeholder={t("contact.interestPlaceholder")}
-                defaultValue=""
-                options={interests}
-              />
-              <Textarea
-                name="message"
-                label={t("contact.message")}
-                placeholder={t("contact.messagePlaceholder")}
-                hint={t("contact.hint")}
-              />
-              <Button type="button">{t("contact.submit")}</Button>
-            </form>
+            <ImpactContactForm
+              whatsappNumber={siteSettings.contactPhone ?? undefined}
+              termsHref={legalLinks.terms}
+              privacyHref={legalLinks.privacy}
+              interests={interests}
+              labels={{
+                name: t("contact.name"),
+                namePlaceholder: t("contact.namePlaceholder"),
+                email: t("contact.email"),
+                emailPlaceholder: t("contact.emailPlaceholder"),
+                interest: t("contact.interest"),
+                interestPlaceholder: t("contact.interestPlaceholder"),
+                message: t("contact.message"),
+                messagePlaceholder: t("contact.messagePlaceholder"),
+                hint: t("contact.hint"),
+                submit: t("contact.submit"),
+                whatsappIntro: t("contact.whatsappIntro"),
+                consentPrefix: t("contact.consentPrefix"),
+                consentTerms: t("contact.consentTerms"),
+                consentConnector: t("contact.consentConnector"),
+                consentPrivacy: t("contact.consentPrivacy"),
+                consentSuffix: t("contact.consentSuffix"),
+              }}
+            />
           </div>
         </Container>
       </Section>

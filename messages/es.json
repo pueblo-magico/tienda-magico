@@ -108,8 +108,14 @@
       },
       "message": "Mensaje",
       "messagePlaceholder": "¿Cómo podemos ayudarte?",
-      "hint": "Este formulario todavía no envía consultas.",
-      "submit": "Enviar consulta"
+      "hint": "Al enviar, se abrirá WhatsApp con tu consulta preparada.",
+      "submit": "Enviar por WhatsApp",
+      "whatsappIntro": "Hola Pueblo Mágico, quiero hacer una consulta desde la página de impacto.",
+      "consentPrefix": "Acepto los",
+      "consentTerms": "Términos y Condiciones",
+      "consentConnector": "y la",
+      "consentPrivacy": "Política de Privacidad",
+      "consentSuffix": "Autorizo a Pueblo Mágico a contactarme por WhatsApp o email con información sobre disponibilidad, ofertas y novedades."
     }
   },
   "nav": {
