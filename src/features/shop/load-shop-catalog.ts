@@ -1,4 +1,5 @@
 import { commerce } from "@/lib/commerce";
+import { getSiteSettings, type SiteSettings } from "@/lib/cms";
 import type {
   CollectionSummary,
   Paginated,
@@ -13,6 +14,9 @@ export type ShopCatalogResult = {
   collections: CollectionSummary[];
   selectedCollection: CollectionSummary | null;
   availableTags: TagReference[];
+  availableOrigins: Array<{ value: string; label: string }>;
+  priceBounds: { min: number; max: number };
+  siteSettings: SiteSettings;
   error: string | null;
 };
 
@@ -30,6 +34,7 @@ export async function loadShopCatalog(
   locale: string,
   query: ShopQuery,
 ): Promise<ShopCatalogResult> {
+  const siteSettingsPromise = getSiteSettings(locale);
   if (!commerce.isConfigured()) {
     return {
       configured: false,
@@ -37,19 +42,42 @@ export async function loadShopCatalog(
       collections: [],
       selectedCollection: null,
       availableTags: [],
+      availableOrigins: [],
+      priceBounds: { min: 0, max: 0 },
+      siteSettings: await siteSettingsPromise,
       error: null,
     };
   }
 
   try {
-    const [products, collectionsPage] = await Promise.all([
+    const [products, collectionsPage, siteSettings] = await Promise.all([
       commerce.getProducts(toCommerceProductsParams(query, locale)),
       commerce.getCollections({ first: 24, locale }),
+      siteSettingsPromise,
     ]);
 
     const minPrice = Number(query.minPrice);
     const maxPrice = Number(query.maxPrice);
     const selectedTags = new Set(query.tags);
+    const selectedOrigins = new Set(query.origins);
+    const pricedAmounts = products.items
+      .map((product) => Number(product.priceRange.minVariantPrice.amount))
+      .filter(Number.isFinite);
+    const priceBounds = {
+      min: 0,
+      max: pricedAmounts.length ? Math.ceil(Math.max(...pricedAmounts)) : 0,
+    };
+    const regionNames = new Intl.DisplayNames([locale], { type: "region" });
+    const availableOrigins = Array.from(
+      new Set(
+        products.items
+          .map((product) => product.origin?.countryCode)
+          .filter((code): code is string => Boolean(code)),
+      ),
+    ).map((value) => ({
+      value,
+      label: regionNames.of(value) ?? value,
+    }));
     const availableTags = Array.from(
       new Map(
         products.items
@@ -75,6 +103,13 @@ export async function loadShopCatalog(
         )
       )
         return false;
+      if (
+        selectedOrigins.size &&
+        (!product.origin?.countryCode ||
+          !selectedOrigins.has(product.origin.countryCode))
+      )
+        return false;
+      if (query.availableOnly && !product.availableForSale) return false;
       return true;
     });
 
@@ -87,6 +122,9 @@ export async function loadShopCatalog(
           (collection) => collection.handle === query.collection,
         ) ?? null,
       availableTags,
+      availableOrigins,
+      priceBounds,
+      siteSettings,
       error: null,
     };
   } catch (error) {
@@ -96,6 +134,9 @@ export async function loadShopCatalog(
       collections: [],
       selectedCollection: null,
       availableTags: [],
+      availableOrigins: [],
+      priceBounds: { min: 0, max: 0 },
+      siteSettings: await siteSettingsPromise,
       error:
         error instanceof Error ? error.message : "Failed to load shop catalog.",
     };

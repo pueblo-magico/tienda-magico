@@ -21,6 +21,8 @@
   --card: var(--surface-card);
   --card-hover: var(--surface-card-hover);
   --ring: color-mix(in srgb, var(--text-secondary) 45%, transparent);
+  --selection-background: var(--text-highlight);
+  --selection-foreground: var(--text-black);
 
   --brand: var(--surface-secondary);
   --brand-hover: color-mix(in srgb, var(--surface-secondary) 88%, black);

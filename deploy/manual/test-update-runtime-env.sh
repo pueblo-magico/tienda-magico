@@ -28,6 +28,8 @@ EOF
 cat > "$managed" <<'EOF'
 COMMERCE_PROVIDER=payload
 PAYLOAD_ECOMMERCE_URL=https://cms.staging.example
+PAYLOAD_ECOMMERCE_CURRENCY=ARS
+PAYLOAD_ECOMMERCE_AMOUNT_IS_CENTS=true
 PAYLOAD_CMS_URL=https://cms.staging.example
 NEXT_PUBLIC_SITE_URL=https://shop.staging.example
 CHECKOUT_PROVIDER=mercado-pago
@@ -41,6 +43,8 @@ bash "$SCRIPT_DIR/update-runtime-env.sh" "$managed" "$target"
 assert_line "$target" 'NODE_ENV=production'
 assert_line "$target" 'COMMERCE_PROVIDER=payload'
 assert_line "$target" 'PAYLOAD_ECOMMERCE_URL=https://cms.staging.example'
+assert_line "$target" 'PAYLOAD_ECOMMERCE_CURRENCY=ARS'
+assert_line "$target" 'PAYLOAD_ECOMMERCE_AMOUNT_IS_CENTS=true'
 assert_line "$target" 'PAYLOAD_CMS_URL=https://cms.staging.example'
 assert_line "$target" 'NEXT_PUBLIC_SITE_URL=https://shop.staging.example'
 assert_line "$target" 'CHECKOUT_PROVIDER=mercado-pago'

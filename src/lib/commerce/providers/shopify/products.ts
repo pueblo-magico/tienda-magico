@@ -1,4 +1,9 @@
-import type { GetProductsParams, Paginated, Product, ProductSummary } from "@/types/commerce";
+import type {
+  GetProductsParams,
+  Paginated,
+  Product,
+  ProductSummary,
+} from "@/types/commerce";
 import { shopifyFetch } from "./client";
 import { productFragment, productSummaryFragment } from "./fragments";
 import { mapProduct, mapProductSummary } from "./mappers";
@@ -52,10 +57,23 @@ type ProductResponse = {
   product: Parameters<typeof mapProduct>[0] | null;
 };
 
-function buildShopifyProductQuery(params: GetProductsParams): string | undefined {
+export function buildShopifyProductQuery(
+  params: GetProductsParams,
+): string | undefined {
   const parts: string[] = [];
-  if (params.collection?.trim()) {
-    parts.push(`collection:${params.collection.trim()}`);
+  const collections = [
+    ...(params.collections ?? []),
+    ...(params.collection ? [params.collection] : []),
+  ]
+    .map((collection) => collection.trim())
+    .filter(Boolean);
+  const uniqueCollections = [...new Set(collections)];
+  if (uniqueCollections.length === 1) {
+    parts.push(`collection:${uniqueCollections[0]}`);
+  } else if (uniqueCollections.length > 1) {
+    parts.push(
+      `(${uniqueCollections.map((collection) => `collection:${collection}`).join(" OR ")})`,
+    );
   }
   if (params.query?.trim()) {
     parts.push(params.query.trim());

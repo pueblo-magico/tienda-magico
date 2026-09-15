@@ -1,9 +1,21 @@
-import { Heart, Leaf, Mountain, Sun, Waves } from "lucide-react";
+"use client";
+
+import { DynamicIcon } from "lucide-react/dynamic.js";
 import type { CategoryIcon as CategoryIconName } from "@/types/commerce";
 
-const icons = { leaf: Leaf, mountain: Mountain, sun: Sun, ritual: Waves, heart: Heart } as const;
-
-export function CategoryIcon({ name }: { name: CategoryIconName }) {
-  const Icon = icons[name];
-  return <Icon aria-hidden="true" className="size-8" strokeWidth={1} />;
+export function CategoryIcon({
+  name,
+  className,
+}: {
+  name: CategoryIconName;
+  className?: string;
+}) {
+  return (
+    <DynamicIcon
+      aria-hidden="true"
+      className={className ?? "size-8"}
+      name={name}
+      strokeWidth={1}
+    />
+  );
 }

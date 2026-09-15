@@ -37,6 +37,7 @@ const groups = [
       { href: "/ui-system/input", label: "Input" },
       { href: "/ui-system/select", label: "Select" },
       { href: "/ui-system/textarea", label: "Textarea" },
+      { href: "/ui-system/slider", label: "Slider" },
     ],
   },
   {
@@ -55,6 +56,7 @@ const groups = [
       { href: "/ui-system/product-card", label: "ProductCard" },
       { href: "/ui-system/article-card", label: "ArticleCard" },
       { href: "/ui-system/impact-card", label: "ImpactCard" },
+      { href: "/ui-system/info-card", label: "InfoCard" },
     ],
   },
 ] as const;

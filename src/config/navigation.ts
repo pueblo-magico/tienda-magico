@@ -21,9 +21,14 @@ export const externalSites = {
   experienciaMagico: "https://experienciamagico.com",
 } as const;
 
-function experienciaMagicoUrl(path = "/"): string {
+export function experienciaMagicoUrl(path = "/"): string {
   return new URL(path, externalSites.experienciaMagico).toString();
 }
+
+export const legalLinks = {
+  terms: experienciaMagicoUrl("/terminos-y-condiciones"),
+  privacy: experienciaMagicoUrl("/politica-de-privacidad"),
+} as const;
 
 export const mainNavigation: NavItem[] = [
   {
@@ -43,6 +48,12 @@ export const mainNavigation: NavItem[] = [
     href: experienciaMagicoUrl("/#experiencias"),
     labelKey: "nav.experiences",
     label: { en: "Experiences", es: "Experiencias" },
+  },
+  {
+    kind: "internal",
+    href: "/impact",
+    labelKey: "nav.impact",
+    label: { en: "Impact", es: "Impacto" },
   },
   {
     kind: "external",
@@ -67,18 +78,6 @@ export const footerNavigation = {
       labelKey: "nav.contact",
       label: { en: "Contact", es: "Contacto" },
     },
-    {
-      kind: "external",
-      href: experienciaMagicoUrl("/terminos-y-condiciones"),
-      labelKey: "nav.terms",
-      label: { en: "Terms and conditions", es: "Términos y condiciones" },
-    },
-    {
-      kind: "external",
-      href: experienciaMagicoUrl("/politica-de-privacidad"),
-      labelKey: "nav.privacy",
-      label: { en: "Privacy policy", es: "Política de privacidad" },
-    },
   ] satisfies NavItem[],
 };
 
@@ -93,6 +92,7 @@ const localizedSegments: Record<Locale, Record<string, string>> = {
     about: "nosotros",
     shipping: "envios",
     contact: "contacto",
+    impact: "impacto",
   },
   en: {
     shop: "shop",
@@ -100,6 +100,7 @@ const localizedSegments: Record<Locale, Record<string, string>> = {
     about: "about",
     shipping: "shipping",
     contact: "contact",
+    impact: "impact",
   },
 };
 
@@ -123,6 +124,18 @@ export function resolveNavigationHref(
   locale: Locale | string,
 ): string {
   return item.kind === "internal" ? localizePath(locale, item.href) : item.href;
+}
+
+/** Determine whether an internal navigation item owns the current pathname. */
+export function isNavigationItemActive(
+  item: NavItem,
+  locale: Locale | string,
+  pathname: string,
+): boolean {
+  if (item.kind !== "internal") return false;
+  const href = resolveNavigationHref(item, locale).replace(/\/$/, "");
+  const currentPath = pathname.replace(/\/$/, "");
+  return currentPath === href || currentPath.startsWith(`${href}/`);
 }
 
 /** Resolve a public localized pathname back to a shared internal route. */

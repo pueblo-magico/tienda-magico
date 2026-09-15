@@ -14,33 +14,60 @@ import {
   sortParam,
   toId,
 } from "./mappers";
-import type { PayloadListResponse, PayloadProductDoc } from "./types";
+import type {
+  PayloadCategoryDoc,
+  PayloadListResponse,
+  PayloadProductDoc,
+} from "./types";
 
-async function resolveCategoryId(
+function categoryParentId(category: PayloadCategoryDoc): string | null {
+  const parent = category.parent;
+  if (typeof parent === "string" || typeof parent === "number") {
+    return toId(parent);
+  }
+  return parent?.id != null ? toId(parent.id) : null;
+}
+
+async function resolveCategoryIds(
   handle: string,
   locales: Record<string, string>,
-): Promise<string | null> {
+): Promise<string[]> {
   const config = getPayloadEcommerceConfig();
   try {
     const categories = await payloadFetch<
-      PayloadListResponse<{ id: string | number; slug?: string }>
+      PayloadListResponse<PayloadCategoryDoc>
     >({
       path: collectionPath(config.collectionsSlug),
       query: {
-        limit: 1,
         depth: 0,
         draft: false,
-        "where[slug][equals]": handle,
+        pagination: false,
         "where[isVisible][equals]": true,
         ...locales,
       },
       cache: "force-cache",
       next: { revalidate: 120, tags: ["collections", `collection:${handle}`] },
     });
-    const catId = categories.docs?.[0]?.id;
-    return catId != null ? toId(catId) : null;
+    const documents = categories.docs ?? [];
+    const selected = documents.find((category) => category.slug === handle);
+    if (selected?.id == null) return [];
+
+    const ids = new Set([toId(selected.id)]);
+    let foundDescendant = true;
+    while (foundDescendant) {
+      foundDescendant = false;
+      for (const category of documents) {
+        if (category.id == null || ids.has(toId(category.id))) continue;
+        const parentId = categoryParentId(category);
+        if (parentId && ids.has(parentId)) {
+          ids.add(toId(category.id));
+          foundDescendant = true;
+        }
+      }
+    }
+    return [...ids];
   } catch {
-    return null;
+    return [];
   }
 }
 
@@ -51,10 +78,9 @@ async function resolveCategoryId(
 function applyProductFilters(
   query: Record<string, string | number | boolean>,
   params: GetProductsParams,
-  categoryId: string | null,
+  collectionFilters: Array<{ handle: string; categoryIds: string[] }>,
 ) {
   const search = params.query?.trim();
-  const collection = params.collection?.trim();
   const andIndex = { value: 0 };
 
   const nextAnd = () => {
@@ -69,18 +95,42 @@ function applyProductFilters(
     query[`where[and][${i}][or][1][slug][contains]`] = search;
   }
 
-  if (collection) {
+  if (collectionFilters.length) {
     const i = nextAnd();
-    if (categoryId) {
-      query[`where[and][${i}][or][0][category][equals]`] = categoryId;
-      query[`where[and][${i}][or][1][category.slug][equals]`] = collection;
-      query[`where[and][${i}][or][2][additionalCategories][contains]`] =
-        categoryId;
-    } else {
-      query[`where[and][${i}][or][0][category.slug][equals]`] = collection;
-      query[`where[and][${i}][or][1][category][equals]`] = collection;
-      query[`where[and][${i}][or][2][additionalCategories.slug][equals]`] =
-        collection;
+    let orIndex = 0;
+    for (const { handle, categoryIds } of collectionFilters) {
+      const [categoryId, ...descendantIds] = categoryIds;
+      if (categoryId) {
+        query[`where[and][${i}][or][${orIndex}][category][equals]`] =
+          categoryId;
+        orIndex += 1;
+        query[`where[and][${i}][or][${orIndex}][category.slug][equals]`] =
+          handle;
+        orIndex += 1;
+        query[
+          `where[and][${i}][or][${orIndex}][additionalCategories][contains]`
+        ] = categoryId;
+        orIndex += 1;
+        for (const descendantId of descendantIds) {
+          query[`where[and][${i}][or][${orIndex}][category][equals]`] =
+            descendantId;
+          orIndex += 1;
+          query[
+            `where[and][${i}][or][${orIndex}][additionalCategories][contains]`
+          ] = descendantId;
+          orIndex += 1;
+        }
+      } else {
+        query[`where[and][${i}][or][${orIndex}][category.slug][equals]`] =
+          handle;
+        orIndex += 1;
+        query[`where[and][${i}][or][${orIndex}][category][equals]`] = handle;
+        orIndex += 1;
+        query[
+          `where[and][${i}][or][${orIndex}][additionalCategories.slug][equals]`
+        ] = handle;
+        orIndex += 1;
+      }
     }
   }
 }
@@ -105,12 +155,24 @@ export async function getProducts(
   const sort = sortParam(params.sortKey, params.reverse);
   if (sort) query.sort = sort;
 
-  let categoryId: string | null = null;
-  if (params.collection?.trim()) {
-    categoryId = await resolveCategoryId(params.collection.trim(), locales);
-  }
+  const collectionHandles = [
+    ...(params.collections ?? []),
+    ...(params.collection ? [params.collection] : []),
+  ]
+    .map((handle) => handle.trim())
+    .filter(Boolean);
+  const uniqueCollectionHandles = [...new Set(collectionHandles)];
+  const resolvedCategoryIds = await Promise.all(
+    uniqueCollectionHandles.map((handle) =>
+      resolveCategoryIds(handle, locales),
+    ),
+  );
+  const collectionFilters = uniqueCollectionHandles.map((handle, index) => ({
+    handle,
+    categoryIds: [...new Set(resolvedCategoryIds[index])],
+  }));
 
-  applyProductFilters(query, params, categoryId);
+  applyProductFilters(query, params, collectionFilters);
 
   const data = await payloadFetch<PayloadListResponse<PayloadProductDoc>>({
     path: collectionPath(config.productsSlug),

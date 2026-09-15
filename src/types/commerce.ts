@@ -1,4 +1,5 @@
 import type { SafeRichTextHtml } from "@/types/content";
+import type { IconName } from "lucide-react/dynamic.js";
 
 export type FulfillmentMode = "local_collection" | "delivery";
 
@@ -29,13 +30,14 @@ export type CategoryReference = {
   id: string;
   handle: string;
   title: string;
+  slogan?: string;
   description: string;
   image: CommerceImage | null;
   icon: CategoryIcon | null;
   parent: CategoryReference | null;
 };
 
-export type CategoryIcon = "leaf" | "mountain" | "sun" | "ritual" | "heart";
+export type CategoryIcon = IconName;
 
 export type BrandReference = {
   id: string;
@@ -156,12 +158,16 @@ export type ProductSummary = Pick<
   | "priceRange"
   | "tags"
   | "classification"
->;
+> & {
+  quickAddMerchandiseId?: string | null;
+  origin?: Pick<ProductOrigin, "countryCode" | "region" | "community">;
+};
 
 export type Collection = {
   id: string;
   handle: string;
   title: string;
+  slogan?: string;
   description: string;
   descriptionHtml: string;
   image: CommerceImage | null;
@@ -180,6 +186,7 @@ export type CollectionSummary = Pick<
   | "id"
   | "handle"
   | "title"
+  | "slogan"
   | "description"
   | "image"
   | "icon"
@@ -252,6 +259,8 @@ export type GetProductsParams = {
   query?: string;
   /** Collection/category handle filter (provider-specific). */
   collection?: string;
+  /** Collection/category handles combined with OR (provider-specific). */
+  collections?: string[];
   /** Preferred content locale (e.g. en, es). Provider-specific. */
   locale?: string;
   sortKey?:

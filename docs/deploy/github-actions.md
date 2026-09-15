@@ -114,7 +114,8 @@ query, or fragment. They must match the URLs already configured on the VM.
 
 The deployment sets `COMMERCE_PROVIDER=payload` and derives
 `PAYLOAD_ECOMMERCE_URL`, `PAYLOAD_CMS_URL`, and `NEXT_PUBLIC_SITE_URL` from the
-validated public URLs. It also updates `CHECKOUT_PROVIDER`,
+validated public URLs. It enforces `PAYLOAD_ECOMMERCE_CURRENCY=ARS` and
+`PAYLOAD_ECOMMERCE_AMOUNT_IS_CENTS=true`. It also updates `CHECKOUT_PROVIDER`,
 `MERCADOPAGO_ACCESS_TOKEN`, `MERCADOPAGO_SANDBOX`, and
 `MERCADOPAGO_WEBHOOK_URL` in the VM's `storefront.env`. All unmanaged values
 remain unchanged. The previous runtime configuration and image tag are restored

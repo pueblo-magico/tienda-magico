@@ -49,6 +49,11 @@ const components = [
     description: "Multi-line form input.",
   },
   {
+    href: "/ui-system/slider",
+    name: "Slider",
+    description: "Accessible single-value and range selection.",
+  },
+  {
     href: "/ui-system/modal",
     name: "Modal",
     description: "Accessible dialog overlays.",
@@ -82,6 +87,11 @@ const components = [
     href: "/ui-system/impact-card",
     name: "ImpactCard",
     description: "Impact statistics card.",
+  },
+  {
+    href: "/ui-system/info-card",
+    name: "InfoCard",
+    description: "Informational principles, attributes, and guidelines.",
   },
   {
     href: "/ui-system/container",

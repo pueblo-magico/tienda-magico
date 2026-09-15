@@ -58,8 +58,8 @@ body {
 }
 
 ::selection {
-  background: color-mix(in srgb, var(--forest) 20%, transparent);
-  color: var(--forest);
+  background: var(--selection-background);
+  color: var(--selection-foreground);
 }
 
 :focus-visible {

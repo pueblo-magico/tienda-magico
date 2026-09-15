@@ -1,4 +1,4 @@
-import { ImpactCard } from "@/components/cards";
+import { ImpactCard, InfoCard } from "@/components/cards";
 import { Container } from "@/components/layout/Container";
 import { Section } from "@/components/layout/Section";
 import {
@@ -51,7 +51,7 @@ export default function UsageExamplePage() {
             <Container width="narrow" className="text-center">
               <Badge variant="outline">Colección de la montaña</Badge>
               <Eyebrow className="text-text-highlight mt-6">
-                Pueblo Mágico
+                Pueblo Mágico · La Tienda
               </Eyebrow>
               <PageTitle className="text-text-secondary mt-3">
                 Objetos con historia, hechos para acompañarte
@@ -75,10 +75,10 @@ export default function UsageExamplePage() {
                 <Eyebrow className="text-text-highlight">
                   Nuestra forma de hacer
                 </Eyebrow>
-                <SectionTitle className="text-brand-foreground mt-3">
+                <SectionTitle tone="inverse" className="mt-3">
                   Cuidado que se convierte en impacto
                 </SectionTitle>
-                <Body className="text-brand-foreground/75 mx-auto mt-4 max-w-2xl">
+                <Body tone="inverse" className="mx-auto mt-4 max-w-2xl">
                   El fondo verde identifica momentos de marca y contenido de
                   alto contraste. El dorado destaca categorías, detalles y
                   llamados importantes.
@@ -89,35 +89,31 @@ export default function UsageExamplePage() {
                 id="example-collection"
                 className="mt-10 grid gap-4 sm:grid-cols-3"
               >
-                <div className="border-brand-foreground/15 bg-brand-foreground/10 rounded-2xl border p-5">
-                  <p className="text-text-highlight text-sm font-medium">
-                    Origen
-                  </p>
-                  <p className="mt-2 text-lg font-medium">Producción local</p>
-                  <p className="text-brand-foreground/70 mt-1 text-sm">
-                    Relaciones directas con personas creadoras de la región.
-                  </p>
-                </div>
-                <div className="border-brand-foreground/15 bg-brand-foreground/10 rounded-2xl border p-5">
-                  <p className="text-text-highlight text-sm font-medium">
-                    Materiales
-                  </p>
-                  <p className="mt-2 text-lg font-medium">
-                    Elecciones conscientes
-                  </p>
-                  <p className="text-brand-foreground/70 mt-1 text-sm">
-                    Menos desperdicio y ciclos de vida más largos.
-                  </p>
-                </div>
-                <div className="border-brand-foreground/15 bg-brand-foreground/10 rounded-2xl border p-5">
-                  <p className="text-text-highlight text-sm font-medium">
-                    Propósito
-                  </p>
-                  <p className="mt-2 text-lg font-medium">Impacto compartido</p>
-                  <p className="text-brand-foreground/70 mt-1 text-sm">
-                    Cada compra ayuda a sostener el ecosistema del proyecto.
-                  </p>
-                </div>
+                <InfoCard
+                  tone="inverse"
+                  eyebrow="Origen"
+                  title="Producción local"
+                  description="Relaciones directas con personas creadoras de la región."
+                />
+                <InfoCard
+                  tone="inverse"
+                  eyebrow="Materiales"
+                  title="Elecciones conscientes"
+                  description="Menos desperdicio y ciclos de vida más largos."
+                />
+                <InfoCard
+                  tone="inverse"
+                  eyebrow="Propósito"
+                  title="Impacto compartido"
+                  description="Cada compra ayuda a sostener el ecosistema del proyecto."
+                />
+                <InfoCard
+                  variant="prominent"
+                  tone="inverse"
+                  eyebrow="Propósito"
+                  title="Impacto compartido"
+                  description="Cada compra ayuda a sostener el ecosistema del proyecto."
+                />
               </div>
             </Container>
           </Section>
@@ -151,6 +147,21 @@ export default function UsageExamplePage() {
                   value="1%"
                   label="Para el planeta"
                   description="De cada compra vuelve al territorio."
+                />
+                <ImpactCard
+                  value="15.000+"
+                  label="Árboles Plantados"
+                  description="Reforestacion en curso"
+                />
+                <ImpactCard
+                  value="200ha"
+                  label="cuidadas"
+                  description="En un camino de 25 años con el territorio"
+                />
+                <ImpactCard
+                  value="20+"
+                  label="Países"
+                  description="Huéspedes y voluntarios de +20 Países - Somos una comunidad diversa"
                 />
               </div>
             </Container>
@@ -209,20 +220,13 @@ export default function UsageExamplePage() {
       >
         <ol className="grid gap-4 sm:grid-cols-3">
           {patternNotes.map((note, index) => (
-            <li
+            <InfoCard
               key={note.title}
-              className="bg-card border-border rounded-2xl border p-5"
-            >
-              <span className="text-text-highlight text-sm font-medium">
-                0{index + 1}
-              </span>
-              <h3 className="text-text-secondary mt-3 font-medium">
-                {note.title}
-              </h3>
-              <p className="text-text-primary mt-2 text-sm leading-relaxed">
-                {note.body}
-              </p>
-            </li>
+              as="li"
+              eyebrow={`0${index + 1}`}
+              title={note.title}
+              description={note.body}
+            />
           ))}
         </ol>
       </DocsSection>

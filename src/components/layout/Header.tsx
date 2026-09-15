@@ -2,31 +2,47 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import {
   localizePath,
   mainNavigation,
+  isNavigationItemActive,
   resolveNavigationHref,
   type Locale,
 } from "@/config/navigation";
 import { cn } from "@/lib/utils/cn";
 import { useCart } from "@/features/cart";
+import { SearchDialog } from "@/features/search";
 import { CartButton } from "./CartButton";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { MobileMenu } from "./MobileMenu";
+import { SearchButton } from "./SearchButton";
 
 export function Header({ className }: { className?: string }) {
   const t = useTranslations();
   const locale = useLocale() as Locale;
+  const pathname = usePathname();
   const { openCart, itemCount } = useCart();
   const [menuOpen, setMenuOpen] = useState(false);
-  const homeHref = localizePath(locale);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [isCompact, setIsCompact] = useState(false);
+  const homeHref = localizePath(locale, "/shop");
+
+  useEffect(() => {
+    const updateCompactState = () => setIsCompact(window.scrollY > 24);
+
+    updateCompactState();
+    window.addEventListener("scroll", updateCompactState, { passive: true });
+    return () => window.removeEventListener("scroll", updateCompactState);
+  }, []);
 
   const items = mainNavigation.map((item) => {
     return {
       ...item,
       href: resolveNavigationHref(item, locale),
+      isActive: isNavigationItemActive(item, locale, pathname),
       label: t(item.labelKey),
     };
   });
@@ -39,7 +55,12 @@ export function Header({ className }: { className?: string }) {
           className,
         )}
       >
-        <div className="mx-auto flex h-20 max-w-6xl items-center justify-between gap-4 px-4 sm:h-24 sm:px-6">
+        <div
+          className={cn(
+            "mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 transition-[height] duration-200 sm:px-6",
+            isCompact ? "h-[3.75rem] sm:h-18" : "h-20 sm:h-24",
+          )}
+        >
           <div className="flex items-center gap-3">
             <button
               type="button"
@@ -56,14 +77,21 @@ export function Header({ className }: { className?: string }) {
               </span>
             </button>
 
-            <Link href={homeHref} className="inline-flex shrink-0 items-center">
+            <Link
+              href={homeHref}
+              prefetch={false}
+              className="inline-flex shrink-0 items-center"
+            >
               <Image
                 src="/pueblo_magico_logo_marron.svg"
                 alt="Pueblo Mágico"
                 width={134}
                 height={65}
                 priority
-                className="h-12 w-auto sm:h-14"
+                className={cn(
+                  "w-auto transition-[height] duration-200",
+                  isCompact ? "h-9 sm:h-[2.625rem]" : "h-12 sm:h-14",
+                )}
               />
             </Link>
           </div>
@@ -76,7 +104,13 @@ export function Header({ className }: { className?: string }) {
               <Link
                 key={item.href}
                 href={item.href}
-                className="font-navigation-desktop text-text-black hover:bg-card-hover hover:text-text-secondary rounded-full px-3 py-2 text-[13px] font-light tracking-normal transition-colors"
+                aria-current={item.isActive ? "page" : undefined}
+                className={cn(
+                  "font-navigation-desktop hover:bg-card-hover rounded-full px-3 py-2 text-[13px] tracking-normal transition-colors",
+                  item.isActive
+                    ? "bg-card-hover text-text-highlight font-bold"
+                    : "text-text-black hover:text-text-secondary font-light",
+                )}
               >
                 {item.label}
               </Link>
@@ -87,6 +121,11 @@ export function Header({ className }: { className?: string }) {
             <div className="hidden sm:block">
               <LanguageSwitcher className="border-border text-text-black" />
             </div>
+            <SearchButton
+              label={t("shop.openSearch")}
+              onClick={() => setSearchOpen(true)}
+              className="text-text-black hover:bg-card-hover"
+            />
             <CartButton
               count={itemCount}
               onClick={openCart}
@@ -104,6 +143,7 @@ export function Header({ className }: { className?: string }) {
           homeHref={homeHref}
         />
       </div>
+      <SearchDialog open={searchOpen} onClose={() => setSearchOpen(false)} />
     </>
   );
 }

@@ -23,6 +23,7 @@ export const metadata: Metadata = {
   },
   description:
     "Conscious products inspired by the mountains, community, and regenerative living.",
+  icons: "/favicon.svg",
 };
 
 export default function RootLayout({

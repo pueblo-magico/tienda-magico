@@ -1,8 +1,11 @@
 import type { CollectionConfig } from 'payload'
+import dynamicIconImports from 'lucide-react/dynamicIconImports.mjs'
 
 import { adminOnly } from '../access/adminOnly'
 import { publicVisibleOrAdmin } from '../access/publicOrAdmin'
 import { preventCategoryCycles } from './categoryHierarchy'
+
+const iconNames = Object.keys(dynamicIconImports)
 
 export const Categories: CollectionConfig = {
   slug: 'categories',
@@ -53,30 +56,41 @@ export const Categories: CollectionConfig = {
       localized: true,
     },
     {
+      name: 'slogan',
+      type: 'text',
+      localized: true,
+      admin: {
+        description: {
+          es: 'Frase principal que se muestra en el encabezado de la categoría.',
+          en: 'Main phrase displayed in the category header.',
+        },
+      },
+    },
+    {
       name: 'image',
       type: 'upload',
       relationTo: 'media',
       admin: {
         description: {
-          es: 'Opcional. Se muestra antes que el icono.',
-          en: 'Optional. Displayed before the icon.',
+          es: 'Imagen horizontal del encabezado de la categoría. También se usa en su tarjeta.',
+          en: 'Horizontal category header image. It is also used on its card.',
         },
       },
     },
     {
       name: 'icon',
       type: 'select',
-      options: [
-        { label: { es: '♧  Hoja', en: '♧  Leaf' }, value: 'leaf' },
-        { label: { es: '⌃  Montaña', en: '⌃  Mountain' }, value: 'mountain' },
-        { label: { es: '☼  Sol', en: '☼  Sun' }, value: 'sun' },
-        { label: { es: '♨  Ritual', en: '♨  Ritual' }, value: 'ritual' },
-        { label: { es: '♡  Corazón', en: '♡  Heart' }, value: 'heart' },
-      ],
+      options: iconNames.map((name) => ({ label: name, value: name })),
       admin: {
-        description: {
-          es: 'Opcional. Se usa cuando no hay imagen.',
-          en: 'Optional. Used when no image is available.',
+        components: {
+          Description: {
+            path: '@/components/LucideIconFieldDescription',
+            exportName: 'default',
+          },
+          Field: {
+            path: '@/components/LucideIconSelectField',
+            exportName: 'default',
+          },
         },
       },
     },

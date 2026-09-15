@@ -36,7 +36,8 @@ flujo normal, esto sucede al mergear un pull request contra esa rama.
 El workflow administra la conexión de comercio y las claves de checkout de
 `storefront.env` en cada despliegue. Configura `COMMERCE_PROVIDER` como
 `payload` y deriva las URLs de Payload y del sitio público desde `CMS_URL` y
-`SHOP_URL`. Conserva todas las demás claves existentes. Los secretos de base de
+`SHOP_URL`. Los precios de Payload quedan configurados en ARS expresados en
+centavos. Conserva todas las demás claves existentes. Los secretos de base de
 datos, Payload, API del CMS y revalidación siguen administrados en la VM.
 
 | Configuración                                                  | Responsable                  | Etapa                                     |

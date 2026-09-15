@@ -19,10 +19,110 @@
     "title": "Pueblo Mágico",
     "description": "Productos conscientes inspirados en las montañas, la comunidad y la vida regenerativa."
   },
+  "impactPage": {
+    "meta": {
+      "title": "Nuestro impacto",
+      "description": "Conocé cómo cada elección sostiene comunidades, prácticas regenerativas y el cuidado del territorio."
+    },
+    "hero": {
+      "badge": "Colección de la montaña",
+      "eyebrow": "Pueblo Mágico · Nuestro impacto",
+      "title": "Objetos con historia, hechos para acompañarte",
+      "description": "Productos conscientes inspirados en la montaña, las comunidades locales y una forma más simple de habitar el mundo.",
+      "primaryAction": "Conocé nuestros principios",
+      "secondaryAction": "Conocé el proyecto"
+    },
+    "principles": {
+      "eyebrow": "Nuestra forma de hacer",
+      "title": "Cuidado que se convierte en impacto",
+      "description": "Cada decisión busca fortalecer vínculos responsables, reducir el desperdicio y devolver valor al territorio.",
+      "items": {
+        "origin": {
+          "eyebrow": "Origen",
+          "title": "Producción local",
+          "description": "Relaciones directas con personas creadoras de la región."
+        },
+        "materials": {
+          "eyebrow": "Materiales",
+          "title": "Elecciones conscientes",
+          "description": "Menos desperdicio y ciclos de vida más largos."
+        },
+        "purpose": {
+          "eyebrow": "Propósito",
+          "title": "Impacto compartido",
+          "description": "Cada compra ayuda a sostener el ecosistema del proyecto."
+        }
+      }
+    },
+    "results": {
+      "eyebrow": "Resultados compartidos",
+      "title": "Una relación que crece",
+      "description": "Medimos nuestro avance para cuidar los vínculos, la tierra y las comunidades que hacen posible Pueblo Mágico.",
+      "items": {
+        "communities": {
+          "value": "12+",
+          "label": "Comunidades",
+          "description": "Vinculadas mediante relaciones responsables."
+        },
+        "regenerative": {
+          "value": "40%",
+          "label": "Regenerativo",
+          "description": "Materiales elegidos con cuidado por la tierra."
+        },
+        "planet": {
+          "value": "1%",
+          "label": "Para el planeta",
+          "description": "De cada compra vuelve al territorio."
+        },
+        "trees": {
+          "value": "15.000+",
+          "label": "Árboles plantados",
+          "description": "Reforestación en curso."
+        },
+        "land": {
+          "value": "200 ha",
+          "label": "Cuidadas",
+          "description": "En un camino de 25 años con el territorio."
+        },
+        "countries": {
+          "value": "20+",
+          "label": "Países",
+          "description": "Huéspedes y voluntarios forman una comunidad diversa."
+        }
+      }
+    },
+    "contact": {
+      "eyebrow": "Sigamos en contacto",
+      "title": "Contanos qué estás buscando",
+      "description": "Escribinos para conocer más sobre nuestros productos, experiencias y estadías.",
+      "name": "Nombre",
+      "namePlaceholder": "Tu nombre",
+      "email": "Email",
+      "emailPlaceholder": "nombre@ejemplo.com",
+      "interest": "Me interesa",
+      "interestPlaceholder": "Elegí una opción",
+      "interests": {
+        "products": "Productos artesanales",
+        "experiences": "Experiencias",
+        "stays": "Estadías"
+      },
+      "message": "Mensaje",
+      "messagePlaceholder": "¿Cómo podemos ayudarte?",
+      "hint": "Al enviar, se abrirá WhatsApp con tu consulta preparada.",
+      "submit": "Enviar por WhatsApp",
+      "whatsappIntro": "Hola Pueblo Mágico, quiero hacer una consulta desde la página de impacto.",
+      "consentPrefix": "Acepto los",
+      "consentTerms": "Términos y Condiciones",
+      "consentConnector": "y la",
+      "consentPrivacy": "Política de Privacidad",
+      "consentSuffix": "Autorizo a Pueblo Mágico a contactarme por WhatsApp o email con información sobre disponibilidad, ofertas y novedades."
+    }
+  },
   "nav": {
     "shop": "Tienda",
     "stay": "Estadías",
     "experiences": "Experiencias",
+    "impact": "Impacto",
     "about": "Nosotros",
     "mainSite": "Visitar Pueblo Mágico",
     "contact": "Contacto",
@@ -33,7 +133,12 @@
     "tagline": "Productos cotidianos inspirados en la regeneración, las comunidades locales y la magia de las montañas.",
     "explore": "Explorar",
     "support": "Soporte",
-    "rights": "Hecho con cuidado por las personas y el planeta."
+    "rights": "Hecho con respeto a la montaña.",
+    "legalEntity": "HERMANOS MÁGICOS SOCIEDAD POR ACCIONES SIMPLIFICADA",
+    "legalDetails": "CUIT 30-71875586-3 · Calle Aconquija 635, Villa Allende, Dpto. Colón, Córdoba, Argentina · Hab. Agencia Córdoba Turismo N° 000258",
+    "legalCopyright": "© {year} Pueblo Mágico Eco-Refugio. Todos los derechos reservados. Operado por HERMANOS MÁGICOS SOCIEDAD POR ACCIONES SIMPLIFICADA.",
+    "qrAlt": "Código QR de ARCA de Hermanos Mágicos",
+    "qrLinkLabel": "Abrir el código QR de ARCA"
   },
   "home": {
     "eyebrow": "Tienda de montaña",
@@ -100,14 +205,17 @@
   "shop": {
     "eyebrow": "Tienda",
     "title": "Todos los productos",
-    "subtitle": "Bienes conscientes de la montaña — filtra por colección, busca y ordena.",
+    "subtitle": "Bienes conscientes de la montaña",
     "notConfigured": "El comercio aún no está configurado. Conecta Shopify o Payload para ver el catálogo.",
     "empty": "No hay productos disponibles por ahora.",
     "emptyFiltered": "Ningún producto coincide con tus filtros. Prueba otra búsqueda o colección.",
     "results": "Mostrando {count} productos",
+    "resultsFor": "Resultados para “{query}”",
     "error": "No se pudo cargar el catálogo",
     "search": "Buscar",
     "searchPlaceholder": "Buscar productos",
+    "searchDialogTitle": "Buscar en la tienda",
+    "openSearch": "Abrir búsqueda",
     "sort": "Ordenar por",
     "submit": "Aplicar",
     "clear": "Limpiar",
@@ -124,10 +232,34 @@
     "tags": "Etiquetas",
     "minPrice": "Mín.",
     "maxPrice": "Máx.",
+    "origin": "Origen",
+    "characteristics": "Características",
+    "availability": "Disponibilidad",
+    "availableOnly": "Solo productos disponibles",
+    "clearAll": "Limpiar todo",
     "previous": "Anterior",
     "next": "Siguiente",
     "pagination": "Paginación",
-    "subcategories": "Explorar subcategorías"
+    "subcategories": "Explorar subcategorías",
+    "impactFooter": {
+      "label": "Nuestro impacto",
+      "ethicalIngredients": "Ingredientes éticos y naturales",
+      "localCommunities": "Apoya a comunidades locales",
+      "regenerativeDesign": "Regeneración por diseño",
+      "consciousShipping": "Envíos conscientes y sin plástico",
+      "humanConnection": "Un puente entre personas y territorios"
+    },
+    "supportingCards": {
+      "impact": {
+        "title": "Cada compra apoya comunidades locales",
+        "description": "Trabajamos directamente con familias artesanas y proyectos regenerativos en los Andes y la Amazonía.",
+        "cta": "Conocé nuestro impacto"
+      },
+      "review": {
+        "quote": "Lo más importante: El amor, la entrega de todo el equipo y la capacidad de sentirte uno con la naturaleza.",
+        "role": "Facilitadora"
+      }
+    }
   },
   "product": {
     "backToShop": "Volver a la tienda",

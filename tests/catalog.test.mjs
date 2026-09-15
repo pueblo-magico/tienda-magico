@@ -190,6 +190,99 @@ test("la tarjeta de producto muestra el estado sin medios y no inventa una image
   assert.doesNotMatch(html, /unsplash/);
 });
 
+test("la tarjeta de producto usa una jerarquía compacta para catálogo", () => {
+  const html = renderToStaticMarkup(
+    createElement(ProductCard, {
+      href: "/es/shop/cacao",
+      title: "Cacao ceremonial",
+      price: "$28.000",
+      category: "Rituales de bienestar",
+      noMediaLabel: "Sin imagen",
+    }),
+  );
+
+  assert.match(html, /aspect-square/);
+  assert.match(html, /p-2/);
+  assert.match(html, /text-text-primary font-serif text-sm/);
+  assert.match(html, /group[^"]*h-full/);
+  assert.match(html, /flex flex-1 flex-col space-y-1 p-2/);
+  assert.match(html, /text-text-highlight text-sm font-bold/);
+  assert.doesNotMatch(html, /aria-label="4,5 de 5 estrellas"/);
+});
+
+test("la tarjeta muestra la calificación solamente cuando recibe datos reales", () => {
+  const html = renderToStaticMarkup(
+    createElement(ProductCard, {
+      href: "/es/shop/cacao",
+      title: "Cacao ceremonial",
+      price: "$28.000",
+      rating: 4.5,
+      ratingLabel: "4,5 de 5 estrellas",
+      reviewCount: "124",
+      noMediaLabel: "Sin imagen",
+    }),
+  );
+
+  assert.match(html, /aria-label="4,5 de 5 estrellas"/);
+  assert.match(html, />\(124\)</);
+});
+
+test("el resumen publica una referencia vendible para compra rápida", () => {
+  const summary = mapProductSummary(
+    {
+      id: 8,
+      slug: "cacao",
+      title: "Cacao",
+      _status: "published",
+      enableVariants: false,
+      sku: "CACAO-1",
+      priceInARS: 28000,
+      priceInARSEnabled: true,
+      inventory: 1,
+      lifecycleStatus: "active",
+    },
+    "es",
+  );
+
+  assert.equal(summary.quickAddMerchandiseId, "product:8");
+});
+
+test("la compra rápida no elige silenciosamente entre varias variantes", () => {
+  const summary = mapProductSummary(
+    {
+      id: 8,
+      slug: "cacao",
+      title: "Cacao",
+      _status: "published",
+      enableVariants: true,
+      lifecycleStatus: "active",
+      variants: {
+        docs: [
+          {
+            id: 4,
+            _status: "published",
+            priceInARS: 28000,
+            priceInARSEnabled: true,
+            inventory: 1,
+            options: [1],
+          },
+          {
+            id: 5,
+            _status: "published",
+            priceInARS: 30000,
+            priceInARSEnabled: true,
+            inventory: 1,
+            options: [2],
+          },
+        ],
+      },
+    },
+    "es",
+  );
+
+  assert.equal(summary.quickAddMerchandiseId, null);
+});
+
 test("la revalidación acepta solo eventos y tags de catálogo permitidos", () => {
   const event = parseCatalogRevalidationEvent({
     resource: "product",
@@ -958,10 +1051,15 @@ test("structured classification localizes labels while preserving stable identit
   assert.equal(english.classification.brand.website, null);
 });
 
-test("category browsing includes primary and additional membership and requests only visible ordered categories", async () => {
+test("category browsing includes descendant membership and requests only visible ordered categories", async () => {
   const calls = transport({
     "GET /api/categories": {
-      docs: [{ id: 10, slug: "rituales", title: "Rituals" }],
+      docs: [
+        { id: 10, slug: "rituales", title: "Rituals" },
+        { id: 11, slug: "inciensos", title: "Incense", parent: 10 },
+        { id: 12, slug: "copales", title: "Copal", parent: 11 },
+        { id: 20, slug: "alimentos", title: "Food" },
+      ],
       hasNextPage: false,
       hasPrevPage: false,
     },
@@ -994,6 +1092,49 @@ test("category browsing includes primary and additional membership and requests 
       "where[and][0][or][2][additionalCategories][contains]",
     ),
     "10",
+  );
+  assert.equal(
+    productCall.url.searchParams.get("where[and][0][or][3][category][equals]"),
+    "11",
+  );
+  assert.equal(
+    productCall.url.searchParams.get(
+      "where[and][0][or][6][additionalCategories][contains]",
+    ),
+    "12",
+  );
+});
+
+test("category browsing combines multiple category trees in one OR filter", async () => {
+  const calls = transport({
+    "GET /api/categories": {
+      docs: [
+        { id: 10, slug: "rituales", title: "Rituals" },
+        { id: 11, slug: "inciensos", title: "Incense", parent: 10 },
+        { id: 20, slug: "alimentos", title: "Food" },
+      ],
+      hasNextPage: false,
+      hasPrevPage: false,
+    },
+    "GET /api/products": {
+      docs: [],
+      hasNextPage: false,
+      hasPrevPage: false,
+    },
+  });
+
+  await getProducts({ collections: ["rituales", "alimentos"], locale: "en" });
+
+  const productCall = calls.find(
+    (call) => call.url.pathname === "/api/products",
+  );
+  assert.equal(
+    productCall.url.searchParams.get("where[and][0][or][0][category][equals]"),
+    "10",
+  );
+  assert.equal(
+    productCall.url.searchParams.get("where[and][0][or][5][category][equals]"),
+    "20",
   );
 });
 
@@ -1084,12 +1225,17 @@ test("missing translation falls back to Spanish; shared legacy strings remain co
     {
       id: 5,
       title: { en: "Rituals", es: "Rituales" },
+      slogan: {
+        en: "Rituals for conscious living",
+        es: "Rituales conscientes",
+      },
       slug: { en: "rituals", es: "rituales" },
     },
     "en",
   );
   assert.equal(category.handle, "rituals");
   assert.equal(category.id, "5");
+  assert.equal(category.slogan, "Rituals for conscious living");
 });
 
 test("public projections do not spread private fields or administrative variant titles", () => {

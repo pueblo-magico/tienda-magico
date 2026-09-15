@@ -19,10 +19,110 @@
     "title": "Pueblo Mágico",
     "description": "Conscious products inspired by the mountains, community, and regenerative living."
   },
+  "impactPage": {
+    "meta": {
+      "title": "Our impact",
+      "description": "Discover how every choice supports communities, regenerative practices, and care for the land."
+    },
+    "hero": {
+      "badge": "The mountain collection",
+      "eyebrow": "Pueblo Mágico · Our impact",
+      "title": "Objects with a story, made to accompany you",
+      "description": "Conscious products inspired by the mountain, local communities, and a simpler way of inhabiting the world.",
+      "primaryAction": "Discover our principles",
+      "secondaryAction": "Learn about the project"
+    },
+    "principles": {
+      "eyebrow": "Our way of working",
+      "title": "Care that becomes impact",
+      "description": "Every decision seeks to strengthen responsible relationships, reduce waste, and return value to the land.",
+      "items": {
+        "origin": {
+          "eyebrow": "Origin",
+          "title": "Local production",
+          "description": "Direct relationships with makers from the region."
+        },
+        "materials": {
+          "eyebrow": "Materials",
+          "title": "Conscious choices",
+          "description": "Less waste and longer product life cycles."
+        },
+        "purpose": {
+          "eyebrow": "Purpose",
+          "title": "Shared impact",
+          "description": "Every purchase helps sustain the project's ecosystem."
+        }
+      }
+    },
+    "results": {
+      "eyebrow": "Shared results",
+      "title": "A relationship that grows",
+      "description": "We measure our progress to care for the relationships, land, and communities that make Pueblo Mágico possible.",
+      "items": {
+        "communities": {
+          "value": "12+",
+          "label": "Communities",
+          "description": "Connected through responsible relationships."
+        },
+        "regenerative": {
+          "value": "40%",
+          "label": "Regenerative",
+          "description": "Materials chosen with care for the earth."
+        },
+        "planet": {
+          "value": "1%",
+          "label": "For the planet",
+          "description": "From every purchase returns to the territory."
+        },
+        "trees": {
+          "value": "15,000+",
+          "label": "Trees planted",
+          "description": "Ongoing reforestation."
+        },
+        "land": {
+          "value": "200 ha",
+          "label": "Protected",
+          "description": "Part of a 25-year journey with the land."
+        },
+        "countries": {
+          "value": "20+",
+          "label": "Countries",
+          "description": "Guests and volunteers form a diverse community."
+        }
+      }
+    },
+    "contact": {
+      "eyebrow": "Let's stay connected",
+      "title": "Tell us what you're looking for",
+      "description": "Write to us to learn more about our products, experiences, and stays.",
+      "name": "Name",
+      "namePlaceholder": "Your name",
+      "email": "Email",
+      "emailPlaceholder": "name@example.com",
+      "interest": "I'm interested in",
+      "interestPlaceholder": "Choose an option",
+      "interests": {
+        "products": "Artisanal products",
+        "experiences": "Experiences",
+        "stays": "Stays"
+      },
+      "message": "Message",
+      "messagePlaceholder": "How can we help?",
+      "hint": "Submitting opens WhatsApp with your enquiry ready to send.",
+      "submit": "Send via WhatsApp",
+      "whatsappIntro": "Hello Pueblo Mágico, I'd like to make an enquiry from the impact page.",
+      "consentPrefix": "I accept the",
+      "consentTerms": "Terms and Conditions",
+      "consentConnector": "and the",
+      "consentPrivacy": "Privacy Policy",
+      "consentSuffix": "I authorize Pueblo Mágico to contact me via WhatsApp or email with information about availability, offers, and news."
+    }
+  },
   "nav": {
     "shop": "Shop",
     "stay": "Stay",
     "experiences": "Experiences",
+    "impact": "Impact",
     "about": "About",
     "mainSite": "Visit Pueblo Mágico",
     "contact": "Contact",
@@ -33,7 +133,12 @@
     "tagline": "Everyday products inspired by regeneration, local communities, and the magic of the mountains.",
     "explore": "Explore",
     "support": "Support",
-    "rights": "Crafted with care for people and planet."
+    "rights": "Made with respect for the mountains.",
+    "legalEntity": "HERMANOS MÁGICOS SOCIEDAD POR ACCIONES SIMPLIFICADA",
+    "legalDetails": "Tax ID 30-71875586-3 · Calle Aconquija 635, Villa Allende, Colón Department, Córdoba, Argentina · Córdoba Tourism Agency license No. 000258",
+    "legalCopyright": "© {year} Pueblo Mágico Eco-Refugio. All rights reserved. Operated by HERMANOS MÁGICOS SOCIEDAD POR ACCIONES SIMPLIFICADA.",
+    "qrAlt": "Hermanos Mágicos ARCA QR code",
+    "qrLinkLabel": "Open the ARCA QR code"
   },
   "home": {
     "eyebrow": "Mountain shop",
@@ -100,14 +205,17 @@
   "shop": {
     "eyebrow": "Shop",
     "title": "All products",
-    "subtitle": "Conscious goods from the mountains — filter by collection, search, and sort.",
+    "subtitle": "Conscious goods from the mountains",
     "notConfigured": "Commerce is not configured yet. Connect Shopify or Payload to load the catalog.",
     "empty": "No products are available right now.",
     "emptyFiltered": "No products match your filters. Try another search or collection.",
     "results": "Showing {count} products",
+    "resultsFor": "Results for “{query}”",
     "error": "Could not load catalog",
     "search": "Search",
     "searchPlaceholder": "Search products",
+    "searchDialogTitle": "Search the shop",
+    "openSearch": "Open search",
     "sort": "Sort by",
     "submit": "Apply",
     "clear": "Clear",
@@ -124,10 +232,34 @@
     "tags": "Tags",
     "minPrice": "Min",
     "maxPrice": "Max",
+    "origin": "Origin",
+    "characteristics": "Characteristics",
+    "availability": "Availability",
+    "availableOnly": "Available products only",
+    "clearAll": "Clear all",
     "previous": "Previous",
     "next": "Next",
     "pagination": "Pagination",
-    "subcategories": "Explore subcategories"
+    "subcategories": "Explore subcategories",
+    "impactFooter": {
+      "label": "Our impact",
+      "ethicalIngredients": "Ethical, natural ingredients",
+      "localCommunities": "Supporting local communities",
+      "regenerativeDesign": "Regeneration by design",
+      "consciousShipping": "Conscious, plastic-free shipping",
+      "humanConnection": "A bridge between people and territories"
+    },
+    "supportingCards": {
+      "impact": {
+        "title": "Every purchase supports local communities",
+        "description": "We work directly with artisan families and regenerative projects across the Andes and the Amazon.",
+        "cta": "Discover our impact"
+      },
+      "review": {
+        "quote": "Most importantly: the love, the dedication of the entire team, and the ability to feel at one with nature.",
+        "role": "Facilitator"
+      }
+    }
   },
   "product": {
     "backToShop": "Back to shop",

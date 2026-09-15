@@ -36,8 +36,9 @@ normal workflow, this happens when a pull request is merged into that branch.
 The workflow manages the commerce connection and checkout keys in
 `storefront.env` on every deployment. `COMMERCE_PROVIDER` is set to `payload`;
 the Payload URLs and public site URL are derived from `CMS_URL` and `SHOP_URL`.
-It preserves every other key already present in the file. Database, Payload,
-CMS API, and revalidation secrets remain VM-managed.
+Payload pricing is fixed to ARS amounts expressed in cents. The workflow
+preserves every other key already present in the file. Database, Payload, CMS
+API, and revalidation secrets remain VM-managed.
 
 | Setting                                              | Owner                | Phase                              |
 | ---------------------------------------------------- | -------------------- | ---------------------------------- |

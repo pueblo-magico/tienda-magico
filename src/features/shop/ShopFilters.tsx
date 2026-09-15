@@ -1,39 +1,71 @@
 "use client";
 
+import { ChevronDown, SlidersHorizontal } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import {
+  useRef,
+  useState,
+  useTransition,
+  type FormEvent,
+  type ReactNode,
+} from "react";
+import { Slider } from "@/components/ui";
 import type { CollectionSummary, TagReference } from "@/types/commerce";
 import { cn } from "@/lib/utils/cn";
-import { SlidersHorizontal } from "lucide-react";
 import { buildShopHref, type ShopQuery } from "./search-params";
 import { buildCategoryTree, type CategoryTreeNode } from "./category-hierarchy";
 
+function FilterSection({
+  title,
+  children,
+  open = true,
+}: {
+  title: string;
+  children: ReactNode;
+  open?: boolean;
+}) {
+  return (
+    <details className="group border-border border-t py-4" open={open}>
+      <summary className="text-text-black flex cursor-pointer list-none items-center justify-between text-sm font-bold">
+        {title}
+        <ChevronDown
+          aria-hidden
+          className="size-4 transition-transform group-open:rotate-180"
+          strokeWidth={2}
+        />
+      </summary>
+      <div className="mt-3 space-y-2">{children}</div>
+    </details>
+  );
+}
+
 function CategoryOptions({
   nodes,
-  selectedHandle,
+  selectedHandles,
 }: {
   nodes: CategoryTreeNode[];
-  selectedHandle: string;
+  selectedHandles: Set<string>;
 }) {
   return (
     <ul className="space-y-2">
       {nodes.map(({ category, children }) => (
         <li key={category.id}>
-          <label className="flex cursor-pointer items-center gap-3 text-sm">
+          <label className="text-text-primary flex cursor-pointer items-center gap-2 text-sm">
             <input
-              type="radio"
-              name="collection"
+              key={`${category.handle}:${selectedHandles.has(category.handle)}`}
+              type="checkbox"
+              name="categories"
               value={category.handle}
-              defaultChecked={selectedHandle === category.handle}
-              className="accent-brand"
+              defaultChecked={selectedHandles.has(category.handle)}
+              className="border-border accent-brand size-4 rounded"
             />
             {category.title}
           </label>
           {children.length ? (
-            <div className="border-border mt-2 ml-2 border-l pl-5">
+            <div className="mt-2 ml-6">
               <CategoryOptions
                 nodes={children}
-                selectedHandle={selectedHandle}
+                selectedHandles={selectedHandles}
               />
             </div>
           ) : null}
@@ -47,16 +79,19 @@ type Props = {
   locale: string;
   collections: CollectionSummary[];
   tags: TagReference[];
+  origins: Array<{ value: string; label: string }>;
+  priceBounds: { min: number; max: number };
   query: ShopQuery;
   labels: {
-    all: string;
     collections: string;
     price: string;
-    tags: string;
     minPrice: string;
     maxPrice: string;
-    apply: string;
-    clear: string;
+    characteristics: string;
+    origin: string;
+    availability: string;
+    availableOnly: string;
+    clearAll: string;
     filters: string;
   };
 };
@@ -65,32 +100,95 @@ export function ShopFilters({
   locale,
   collections,
   tags,
+  origins,
+  priceBounds,
   query,
   labels,
 }: Props) {
   const router = useRouter();
+  const formRef = useRef<HTMLFormElement>(null);
+  const priceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [pending, startTransition] = useTransition();
   const categoryTree = buildCategoryTree(collections);
+  const maximumPrice = Math.max(priceBounds.max, 1);
+  const [priceRange, setPriceRange] = useState({
+    min: Number(query.minPrice || priceBounds.min),
+    max: Number(query.maxPrice || maximumPrice),
+  });
+  const formatPrice = (value: number) =>
+    new Intl.NumberFormat(locale, { maximumFractionDigits: 0 }).format(value);
 
-  const submit = (form: HTMLFormElement) => {
+  const applyFilters = (form: HTMLFormElement) => {
     const data = new FormData(form);
     startTransition(() =>
-      router.push(
+      router.replace(
         buildShopHref(
           locale,
           {
             ...query,
-            collection: String(data.get("collection") ?? ""),
+            categories: data.getAll("categories").map(String),
             minPrice: String(data.get("minPrice") ?? ""),
             maxPrice: String(data.get("maxPrice") ?? ""),
             tags: data.getAll("tags").map(String),
+            origins: data.getAll("origins").map(String),
+            availableOnly: data.get("availability") === "available",
             after: "",
           },
           { dropAfter: true },
         ),
+        { scroll: false },
       ),
     );
+  };
+
+  const handleChange = (event: FormEvent<HTMLFormElement>) => {
+    const form = event.currentTarget;
+    if (priceTimerRef.current) clearTimeout(priceTimerRef.current);
+    applyFilters(form);
+  };
+
+  const clearFilters = () => {
+    if (priceTimerRef.current) clearTimeout(priceTimerRef.current);
+    const form = formRef.current;
+    setPriceRange({ min: priceBounds.min, max: maximumPrice });
+    form?.querySelectorAll<HTMLInputElement>("input").forEach((input) => {
+      if (input.type === "checkbox") input.checked = false;
+      if (input.name === "minPrice") input.value = String(priceBounds.min);
+      if (input.name === "maxPrice") input.value = String(maximumPrice);
+    });
+    startTransition(() =>
+      router.replace(
+        buildShopHref(
+          locale,
+          {
+            q: query.q,
+            sort: query.sort,
+            collection: query.collection,
+            categories: [],
+            minPrice: "",
+            maxPrice: "",
+            tags: [],
+            origins: [],
+            availableOnly: false,
+            after: "",
+          },
+          { dropAfter: true },
+        ),
+        { scroll: false },
+      ),
+    );
+  };
+
+  const optionClassName =
+    "text-text-primary flex cursor-pointer items-center gap-2 text-sm";
+  const checkboxClassName = "border-border size-4 rounded accent-brand";
+  const updatePriceRange = ([min, max]: number[]) => {
+    setPriceRange({ min, max });
+    if (priceTimerRef.current) clearTimeout(priceTimerRef.current);
+    priceTimerRef.current = setTimeout(() => {
+      if (formRef.current) applyFilters(formRef.current);
+    }, 250);
   };
 
   return (
@@ -98,125 +196,104 @@ export function ShopFilters({
       <button
         type="button"
         onClick={() => setIsOpen((value) => !value)}
-        className="border-border bg-card flex w-full items-center justify-between rounded-xl border px-4 py-3 text-sm font-medium lg:hidden"
+        className="border-border bg-card flex w-full items-center justify-between rounded-xl border px-4 py-3 text-sm font-bold lg:hidden"
         aria-expanded={isOpen}
       >
-        <span className="inline-flex items-center gap-2"><SlidersHorizontal aria-hidden className="size-4" />{labels.filters}</span>
-        <span>{isOpen ? "−" : "+"}</span>
+        <span className="inline-flex items-center gap-2">
+          <SlidersHorizontal aria-hidden className="size-4" />
+          {labels.filters}
+        </span>
+        <ChevronDown
+          aria-hidden
+          className={cn("size-4 transition-transform", isOpen && "rotate-180")}
+        />
       </button>
       <form
-        onSubmit={(event) => {
-          event.preventDefault();
-          submit(event.currentTarget);
-        }}
+        ref={formRef}
+        onChange={handleChange}
         className={cn(
-          "space-y-7 pt-5 lg:block lg:pt-0",
+          "border-border bg-card mt-3 rounded-xl border px-5 transition-opacity lg:mt-0 lg:block",
           isOpen ? "block" : "hidden",
+          pending && "opacity-60",
         )}
       >
-        <fieldset className="space-y-3">
-          <legend className="font-navigation text-text-black text-lg">
-            {labels.collections}
-          </legend>
-          <label className="flex cursor-pointer items-center gap-3 text-sm">
-            <input
-              type="radio"
-              name="collection"
-              value=""
-              defaultChecked={!query.collection}
-              className="accent-brand"
-            />
-            {labels.all}
-          </label>
-          <CategoryOptions
-            nodes={categoryTree}
-            selectedHandle={query.collection}
-          />
-        </fieldset>
-        <fieldset className="border-border space-y-3 border-t pt-5">
-          <legend className="font-navigation text-text-black text-lg">
-            {labels.price}
-          </legend>
-          <div className="grid grid-cols-2 gap-2">
-            <label className="text-muted text-xs">
-              {labels.minPrice}
-              <input
-                name="minPrice"
-                type="number"
-                min="0"
-                defaultValue={query.minPrice}
-                className="border-border bg-card mt-1 h-10 w-full rounded-lg border px-3 text-sm"
-              />
-            </label>
-            <label className="text-muted text-xs">
-              {labels.maxPrice}
-              <input
-                name="maxPrice"
-                type="number"
-                min="0"
-                defaultValue={query.maxPrice}
-                className="border-border bg-card mt-1 h-10 w-full rounded-lg border px-3 text-sm"
-              />
-            </label>
-          </div>
-        </fieldset>
-        {tags.length ? (
-          <fieldset className="border-border space-y-3 border-t pt-5">
-            <legend className="font-navigation text-text-black text-lg">
-              {labels.tags}
-            </legend>
-            <div className="space-y-2">
-              {tags.map((tag) => (
-                <label
-                  key={tag.id}
-                  className="flex cursor-pointer items-center gap-3 text-sm"
-                >
-                  <input
-                    type="checkbox"
-                    name="tags"
-                    value={tag.handle}
-                    defaultChecked={query.tags.includes(tag.handle)}
-                    className="accent-brand"
-                  />
-                  {tag.label}
-                </label>
-              ))}
-            </div>
-          </fieldset>
-        ) : null}
-        <div className="flex gap-2">
-          <button
-            disabled={pending}
-            className="bg-brand text-brand-foreground h-10 flex-1 rounded-full px-4 text-xs font-medium tracking-wider uppercase"
-          >
-            {labels.apply}
-          </button>
+        <div className="flex items-center justify-between py-4">
+          <h2 className="font-serif text-lg">{labels.filters}</h2>
           <button
             type="button"
-            onClick={() =>
-              startTransition(() =>
-                router.push(
-                  buildShopHref(
-                    locale,
-                    {
-                      q: query.q,
-                      sort: query.sort,
-                      collection: "",
-                      minPrice: "",
-                      maxPrice: "",
-                      tags: [],
-                      after: "",
-                    },
-                    { dropAfter: true },
-                  ),
-                ),
-              )
-            }
-            className="text-muted h-10 rounded-full px-3 text-xs tracking-wider uppercase"
+            onClick={clearFilters}
+            className="text-text-secondary hover:text-text-black text-xs underline underline-offset-2"
           >
-            {labels.clear}
+            {labels.clearAll}
           </button>
         </div>
+        <FilterSection title={labels.collections}>
+          <CategoryOptions
+            nodes={categoryTree}
+            selectedHandles={new Set(query.categories)}
+          />
+        </FilterSection>
+        <FilterSection title={labels.price}>
+          <input name="minPrice" type="hidden" value={priceRange.min} />
+          <input name="maxPrice" type="hidden" value={priceRange.max} />
+          <Slider
+            aria-label={labels.price}
+            minValue={priceBounds.min}
+            maxValue={maximumPrice}
+            step={Math.max(Math.round(maximumPrice / 100), 1)}
+            value={[priceRange.min, priceRange.max]}
+            thumbLabels={[labels.minPrice, labels.maxPrice]}
+            onChange={updatePriceRange}
+          />
+          <div className="text-text-secondary flex justify-between text-xs">
+            <span>{formatPrice(priceRange.min)}</span>
+            <span>{formatPrice(priceRange.max)}</span>
+          </div>
+        </FilterSection>
+        {origins.length ? (
+          <FilterSection title={labels.origin}>
+            {origins.map((origin) => (
+              <label key={origin.value} className={optionClassName}>
+                <input
+                  type="checkbox"
+                  name="origins"
+                  value={origin.value}
+                  defaultChecked={query.origins.includes(origin.value)}
+                  className={checkboxClassName}
+                />
+                {origin.label}
+              </label>
+            ))}
+          </FilterSection>
+        ) : null}
+        {tags.length ? (
+          <FilterSection title={labels.characteristics}>
+            {tags.map((tag) => (
+              <label key={tag.id} className={optionClassName}>
+                <input
+                  type="checkbox"
+                  name="tags"
+                  value={tag.handle}
+                  defaultChecked={query.tags.includes(tag.handle)}
+                  className={checkboxClassName}
+                />
+                {tag.label}
+              </label>
+            ))}
+          </FilterSection>
+        ) : null}
+        <FilterSection title={labels.availability} open={false}>
+          <label className={optionClassName}>
+            <input
+              type="checkbox"
+              name="availability"
+              value="available"
+              defaultChecked={query.availableOnly}
+              className={checkboxClassName}
+            />
+            {labels.availableOnly}
+          </label>
+        </FilterSection>
       </form>
     </div>
   );

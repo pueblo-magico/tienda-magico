@@ -16,6 +16,7 @@ import type {
   SelectedOption,
   TagReference,
 } from "@/types/commerce";
+import dynamicIconImports from "lucide-react/dynamicIconImports.mjs";
 import { CommerceError } from "@/types/commerce";
 import { mapInformationSections } from "./information-sections";
 import { regularPrice, purchaseStatus, publicSellable } from "./sellable";
@@ -33,6 +34,14 @@ import type {
   PayloadLocalizedText,
   PayloadTagDoc,
 } from "./types";
+
+const lucideIconNames = new Set<string>(Object.keys(dynamicIconImports));
+
+function mapCategoryIcon(value: unknown): CategoryIcon | null {
+  return typeof value === "string" && lucideIconNames.has(value)
+    ? (value as CategoryIcon)
+    : null;
+}
 
 export function encodeCartRef(cartId: string, secret?: string | null): string {
   if (!secret) return cartId;
@@ -493,15 +502,13 @@ function mapCategoryReference(
   const handle = typeof doc.slug === "string" ? doc.slug : "";
   const title = resolveLocalizedText(doc.title, preferred);
   if (!handle || !title) return null;
-  const allowedIcons = ["leaf", "mountain", "sun", "ritual", "heart"] as const;
-  const icon = allowedIcons.includes(doc.icon as (typeof allowedIcons)[number])
-    ? (doc.icon as CategoryIcon)
-    : null;
+  const icon = mapCategoryIcon(doc.icon);
 
   return {
     id: toId(doc.id),
     handle,
     title,
+    slogan: resolveLocalizedText(doc.slogan, preferred),
     description: richTextToPlain(doc.description),
     image: mapMedia(doc.image),
     icon,
@@ -827,6 +834,18 @@ export function mapProductSummary(
           : purchaseStatus(product) === "available";
 
   const classification = mapClassification(product, locale);
+  const preferredLocales = [
+    locale ?? config.defaultLocale,
+    config.fallbackLocale,
+  ];
+  const quickAddMerchandiseId =
+    product.enableVariants === true
+      ? variantDocs(product).length === 1 && variants.length === 1
+        ? variants[0]?.id
+        : null
+      : availableForSale
+        ? merchandiseRef("product", toId(product.id))
+        : null;
   return {
     id: toId(product.id),
     handle: productHandle(product, locale),
@@ -841,6 +860,17 @@ export function mapProductSummary(
       ? classification.tags.map((tag) => tag.label)
       : mapTags(product.tags),
     classification,
+    origin: {
+      countryCode:
+        typeof product.countryOfOrigin === "string" &&
+        /^[A-Z]{2}$/.test(product.countryOfOrigin.trim())
+          ? product.countryOfOrigin.trim()
+          : null,
+      region: resolveLocalizedText(product.region, preferredLocales) || null,
+      community:
+        resolveLocalizedText(product.community, preferredLocales) || null,
+    },
+    quickAddMerchandiseId,
     featuredImage: images[0] ?? null,
     priceRange: {
       minVariantPrice: {
@@ -974,17 +1004,14 @@ export function mapCollectionSummary(
       resolveLocalizedText(doc.title, preferred) ||
       resolveLocalizedText(doc.name, preferred) ||
       "Untitled collection",
+    slogan: resolveLocalizedText(category.slogan, preferred),
     description:
       richTextToPlain(doc.description) ||
       richTextToPlain(doc.richText) ||
       String(doc.summary ?? ""),
     image:
       collectImages(doc as PayloadProductDoc)[0] ?? mapMedia(doc.image) ?? null,
-    icon: ["leaf", "mountain", "sun", "ritual", "heart"].includes(
-      category.icon ?? "",
-    )
-      ? (category.icon as CategoryIcon)
-      : null,
+    icon: mapCategoryIcon(category.icon),
     parent: mapCategoryReference(category.parent, locale),
     displayOrder:
       typeof category.displayOrder === "number" ? category.displayOrder : 0,

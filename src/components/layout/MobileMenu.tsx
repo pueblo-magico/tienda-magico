@@ -8,6 +8,7 @@ import { LanguageSwitcher } from "./LanguageSwitcher";
 
 export type MobileMenuItem = {
   href: string;
+  isActive: boolean;
   label: string;
 };
 
@@ -64,6 +65,7 @@ export function MobileMenu({
         <div className="border-border flex items-center justify-between border-b px-4 py-4">
           <Link
             href={homeHref}
+            prefetch={false}
             onClick={onClose}
             className="inline-flex items-center"
           >
@@ -90,9 +92,12 @@ export function MobileMenu({
             <Link
               key={item.href}
               href={item.href}
+              aria-current={item.isActive ? "page" : undefined}
               onClick={onClose}
               className={cn(
                 "font-navigation border-border/70 text-forest border-b py-4 text-base font-normal transition-all",
+                item.isActive &&
+                  "text-text-highlight border-text-highlight font-bold",
                 open ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0",
               )}
               style={{ transitionDelay: open ? `${80 + index * 40}ms` : "0ms" }}
