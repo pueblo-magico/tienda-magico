@@ -21,7 +21,7 @@ export const externalSites = {
   experienciaMagico: "https://experienciamagico.com",
 } as const;
 
-function experienciaMagicoUrl(path = "/"): string {
+export function experienciaMagicoUrl(path = "/"): string {
   return new URL(path, externalSites.experienciaMagico).toString();
 }
 
@@ -43,6 +43,12 @@ export const mainNavigation: NavItem[] = [
     href: experienciaMagicoUrl("/#experiencias"),
     labelKey: "nav.experiences",
     label: { en: "Experiences", es: "Experiencias" },
+  },
+  {
+    kind: "internal",
+    href: "/impact",
+    labelKey: "nav.impact",
+    label: { en: "Impact", es: "Impacto" },
   },
   {
     kind: "external",
@@ -93,6 +99,7 @@ const localizedSegments: Record<Locale, Record<string, string>> = {
     about: "nosotros",
     shipping: "envios",
     contact: "contacto",
+    impact: "impacto",
   },
   en: {
     shop: "shop",
@@ -100,6 +107,7 @@ const localizedSegments: Record<Locale, Record<string, string>> = {
     about: "about",
     shipping: "shipping",
     contact: "contact",
+    impact: "impact",
   },
 };
 

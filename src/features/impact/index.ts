@@ -1,0 +1,1 @@
+export { ImpactPage } from "./ImpactPage";

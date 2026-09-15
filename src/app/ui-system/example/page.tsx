@@ -51,7 +51,7 @@ export default function UsageExamplePage() {
             <Container width="narrow" className="text-center">
               <Badge variant="outline">Colección de la montaña</Badge>
               <Eyebrow className="text-text-highlight mt-6">
-                Pueblo Mágico
+                Pueblo Mágico · La Tienda
               </Eyebrow>
               <PageTitle className="text-text-secondary mt-3">
                 Objetos con historia, hechos para acompañarte
@@ -75,10 +75,10 @@ export default function UsageExamplePage() {
                 <Eyebrow className="text-text-highlight">
                   Nuestra forma de hacer
                 </Eyebrow>
-                <SectionTitle className="text-brand-foreground mt-3">
+                <SectionTitle tone="inverse" className="mt-3">
                   Cuidado que se convierte en impacto
                 </SectionTitle>
-                <Body className="text-brand-foreground/75 mx-auto mt-4 max-w-2xl">
+                <Body tone="inverse" className="mx-auto mt-4 max-w-2xl">
                   El fondo verde identifica momentos de marca y contenido de
                   alto contraste. El dorado destaca categorías, detalles y
                   llamados importantes.
@@ -107,7 +107,7 @@ export default function UsageExamplePage() {
                   title="Impacto compartido"
                   description="Cada compra ayuda a sostener el ecosistema del proyecto."
                 />
-                 <InfoCard
+                <InfoCard
                   variant="prominent"
                   tone="inverse"
                   eyebrow="Propósito"
@@ -147,6 +147,21 @@ export default function UsageExamplePage() {
                   value="1%"
                   label="Para el planeta"
                   description="De cada compra vuelve al territorio."
+                />
+                <ImpactCard
+                  value="15.000+"
+                  label="Árboles Plantados"
+                  description="Reforestacion en curso"
+                />
+                <ImpactCard
+                  value="200ha"
+                  label="cuidadas"
+                  description="En un camino de 25 años con el territorio"
+                />
+                <ImpactCard
+                  value="20+"
+                  label="Países"
+                  description="Huéspedes y voluntarios de +20 Países - Somos una comunidad diversa"
                 />
               </div>
             </Container>

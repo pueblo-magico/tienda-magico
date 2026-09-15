@@ -2,9 +2,18 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 import {
+  internalPath,
   isNavigationItemActive,
+  localizePath,
   mainNavigation,
 } from "../src/config/navigation.ts";
+
+test("la ruta de impacto se localiza en español e inglés", () => {
+  assert.equal(localizePath("es", "/impact"), "/es/impacto");
+  assert.equal(localizePath("en", "/impact"), "/en/impact");
+  assert.equal(internalPath("/es/impacto"), "/impact");
+  assert.equal(internalPath("/en/impact"), "/impact");
+});
 
 test("active navigation matching follows localized nested shop routes", () => {
   const shop = mainNavigation.find((item) => item.href === "/shop");
@@ -17,6 +26,17 @@ test("active navigation matching follows localized nested shop routes", () => {
   assert.equal(isNavigationItemActive(shop, "en", "/en/shop/cacao"), true);
   assert.equal(isNavigationItemActive(shop, "es", "/es/carrito"), false);
   assert.equal(isNavigationItemActive(external, "es", "/es/tienda"), false);
+});
+
+test("la navegación principal incluye la página de impacto localizada", () => {
+  const impact = mainNavigation.find((item) => item.href === "/impact");
+
+  assert.ok(impact);
+  assert.equal(impact.kind, "internal");
+  assert.equal(impact.label.es, "Impacto");
+  assert.equal(impact.label.en, "Impact");
+  assert.equal(isNavigationItemActive(impact, "es", "/es/impacto"), true);
+  assert.equal(isNavigationItemActive(impact, "en", "/en/impact"), true);
 });
 
 test("desktop and mobile navigation expose the active page", async () => {

@@ -19,10 +19,104 @@
     "title": "Pueblo Mágico",
     "description": "Conscious products inspired by the mountains, community, and regenerative living."
   },
+  "impactPage": {
+    "meta": {
+      "title": "Our impact",
+      "description": "Discover how every choice supports communities, regenerative practices, and care for the land."
+    },
+    "hero": {
+      "badge": "The mountain collection",
+      "eyebrow": "Pueblo Mágico · Our impact",
+      "title": "Objects with a story, made to accompany you",
+      "description": "Conscious products inspired by the mountain, local communities, and a simpler way of inhabiting the world.",
+      "primaryAction": "Discover our principles",
+      "secondaryAction": "Learn about the project"
+    },
+    "principles": {
+      "eyebrow": "Our way of working",
+      "title": "Care that becomes impact",
+      "description": "Every decision seeks to strengthen responsible relationships, reduce waste, and return value to the land.",
+      "items": {
+        "origin": {
+          "eyebrow": "Origin",
+          "title": "Local production",
+          "description": "Direct relationships with makers from the region."
+        },
+        "materials": {
+          "eyebrow": "Materials",
+          "title": "Conscious choices",
+          "description": "Less waste and longer product life cycles."
+        },
+        "purpose": {
+          "eyebrow": "Purpose",
+          "title": "Shared impact",
+          "description": "Every purchase helps sustain the project's ecosystem."
+        }
+      }
+    },
+    "results": {
+      "eyebrow": "Shared results",
+      "title": "A relationship that grows",
+      "description": "We measure our progress to care for the relationships, land, and communities that make Pueblo Mágico possible.",
+      "items": {
+        "communities": {
+          "value": "12+",
+          "label": "Communities",
+          "description": "Connected through responsible relationships."
+        },
+        "regenerative": {
+          "value": "40%",
+          "label": "Regenerative",
+          "description": "Materials chosen with care for the earth."
+        },
+        "planet": {
+          "value": "1%",
+          "label": "For the planet",
+          "description": "From every purchase returns to the territory."
+        },
+        "trees": {
+          "value": "15,000+",
+          "label": "Trees planted",
+          "description": "Ongoing reforestation."
+        },
+        "land": {
+          "value": "200 ha",
+          "label": "Protected",
+          "description": "Part of a 25-year journey with the land."
+        },
+        "countries": {
+          "value": "20+",
+          "label": "Countries",
+          "description": "Guests and volunteers form a diverse community."
+        }
+      }
+    },
+    "contact": {
+      "eyebrow": "Let's stay connected",
+      "title": "Tell us what you're looking for",
+      "description": "Write to us to learn more about our products, experiences, and stays.",
+      "name": "Name",
+      "namePlaceholder": "Your name",
+      "email": "Email",
+      "emailPlaceholder": "name@example.com",
+      "interest": "I'm interested in",
+      "interestPlaceholder": "Choose an option",
+      "interests": {
+        "products": "Artisanal products",
+        "experiences": "Experiences",
+        "stays": "Stays"
+      },
+      "message": "Message",
+      "messagePlaceholder": "How can we help?",
+      "hint": "This form does not send enquiries yet.",
+      "submit": "Send enquiry"
+    }
+  },
   "nav": {
     "shop": "Shop",
     "stay": "Stay",
     "experiences": "Experiences",
+    "impact": "Impact",
     "about": "About",
     "mainSite": "Visit Pueblo Mágico",
     "contact": "Contact",

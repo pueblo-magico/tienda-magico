@@ -10,6 +10,7 @@ const legacySpanishSegments: Record<string, string> = {
   about: "nosotros",
   shipping: "envios",
   contact: "contacto",
+  impact: "impacto",
 };
 
 export default function proxy(request: NextRequest) {
