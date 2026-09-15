@@ -401,7 +401,6 @@ export async function ShopPage({ locale, query, labels }: Props) {
           <ImpactStoryCard locale={locale} imageUrl={heroImage?.url} />
           <CommunityReviewCard />
         </div>
-        <ImpactFooter />
       </Container>
     </section>
   );

@@ -1,11 +1,13 @@
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
+import { Container } from "@/components/layout/Container";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { CartDrawer, CartProvider } from "@/features/cart";
 import { routing } from "@/i18n/routing";
 import { ImpactFooter } from "@/features/shop/ImpactFooter";
+
 
 type Props = {
   children: React.ReactNode;
@@ -32,7 +34,9 @@ export default async function LocaleLayout({ children, params }: Props) {
         <div className="flex min-h-screen flex-col">
           <Header />
           <div className="flex-1">{children}</div>
-          <ImpactFooter /> 
+          <Container className="relative z-10 -mt-10">
+            <ImpactFooter /> 
+          </Container>
           <Footer />
         </div>
         <CartDrawer />
