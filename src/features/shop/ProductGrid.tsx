@@ -14,7 +14,7 @@ type Props = {
 export function ProductGrid({ locale, products, noMediaLabel }: Props) {
   const t = useTranslations("product");
   return (
-    <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
+    <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {products.map((product) => (
         <li key={product.id} className="h-full">
           <ProductCard

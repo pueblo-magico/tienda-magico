@@ -67,7 +67,7 @@ test("the shop masthead is full width with overlapping category cards", async ()
   assert.match(source, /isRootCategoryCard \? collection\.icon/);
 });
 
-test("the product grid uses the compact desktop density", async () => {
+test("la grilla mantiene tarjetas más amplias en pantallas grandes", async () => {
   const [source, quickAdd, messagesEn, messagesEs] = await Promise.all([
     readFile("src/features/shop/ProductGrid.tsx", "utf8"),
     readFile("src/features/cart/components/AddToCartButton.tsx", "utf8"),
@@ -75,7 +75,8 @@ test("the product grid uses the compact desktop density", async () => {
     readFile("messages/es.json", "utf8"),
   ]);
 
-  assert.match(source, /lg:grid-cols-4 xl:grid-cols-5/);
+  assert.match(source, /lg:grid-cols-4/);
+  assert.doesNotMatch(source, /xl:grid-cols-5/);
   assert.match(source, /<li key=\{product\.id\} className="h-full">/);
   assert.match(source, /product\.quickAddMerchandiseId/);
   assert.match(source, /<AddToCartButton/);

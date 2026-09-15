@@ -40,7 +40,7 @@ export function ProductCard({
   return (
     <article
       className={cn(
-        "hover:bg-card-hover group border-border bg-card flex h-full flex-col overflow-hidden rounded-2xl border transition-colors hover:shadow-md",
+        "hover:bg-card-hover group border-border bg-card flex h-full flex-col overflow-hidden rounded-2xl border transition-colors hover:shadow-md transition-shadow duration-500",
         className,
       )}
     >
