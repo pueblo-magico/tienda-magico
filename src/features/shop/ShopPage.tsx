@@ -70,6 +70,7 @@ export async function ShopPage({ locale, query, labels }: Props) {
   const hasFilters = Boolean(
     query.q ||
     query.collection ||
+    query.categories.length ||
     query.minPrice ||
     query.maxPrice ||
     query.origins.length ||
@@ -120,7 +121,13 @@ export async function ShopPage({ locale, query, labels }: Props) {
               aria-label={labels.collections}
               className="text-muted absolute top-6 z-10 flex flex-wrap items-center gap-2 text-xs"
             >
-              <Link href={buildShopHref(locale, { ...query, collection: "" })}>
+              <Link
+                href={buildShopHref(locale, {
+                  ...query,
+                  collection: "",
+                  categories: [],
+                })}
+              >
                 {labels.eyebrow}
               </Link>
               {categoryParents.map((parent) => (
@@ -130,6 +137,7 @@ export async function ShopPage({ locale, query, labels }: Props) {
                     href={buildShopHref(locale, {
                       ...query,
                       collection: parent.handle,
+                      categories: [],
                       after: "",
                     })}
                   >
@@ -202,6 +210,7 @@ export async function ShopPage({ locale, query, labels }: Props) {
                       href={buildShopHref(locale, {
                         ...query,
                         collection: collection.handle,
+                        categories: [],
                         after: "",
                       })}
                       aria-current={

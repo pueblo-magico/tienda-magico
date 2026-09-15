@@ -78,10 +78,9 @@ async function resolveCategoryIds(
 function applyProductFilters(
   query: Record<string, string | number | boolean>,
   params: GetProductsParams,
-  categoryIds: string[],
+  collectionFilters: Array<{ handle: string; categoryIds: string[] }>,
 ) {
   const search = params.query?.trim();
-  const collection = params.collection?.trim();
   const andIndex = { value: 0 };
 
   const nextAnd = () => {
@@ -96,29 +95,42 @@ function applyProductFilters(
     query[`where[and][${i}][or][1][slug][contains]`] = search;
   }
 
-  if (collection) {
+  if (collectionFilters.length) {
     const i = nextAnd();
-    const [categoryId, ...descendantIds] = categoryIds;
-    if (categoryId) {
-      query[`where[and][${i}][or][0][category][equals]`] = categoryId;
-      query[`where[and][${i}][or][1][category.slug][equals]`] = collection;
-      query[`where[and][${i}][or][2][additionalCategories][contains]`] =
-        categoryId;
-      let orIndex = 3;
-      for (const descendantId of descendantIds) {
+    let orIndex = 0;
+    for (const { handle, categoryIds } of collectionFilters) {
+      const [categoryId, ...descendantIds] = categoryIds;
+      if (categoryId) {
         query[`where[and][${i}][or][${orIndex}][category][equals]`] =
-          descendantId;
+          categoryId;
+        orIndex += 1;
+        query[`where[and][${i}][or][${orIndex}][category.slug][equals]`] =
+          handle;
         orIndex += 1;
         query[
           `where[and][${i}][or][${orIndex}][additionalCategories][contains]`
-        ] = descendantId;
+        ] = categoryId;
+        orIndex += 1;
+        for (const descendantId of descendantIds) {
+          query[`where[and][${i}][or][${orIndex}][category][equals]`] =
+            descendantId;
+          orIndex += 1;
+          query[
+            `where[and][${i}][or][${orIndex}][additionalCategories][contains]`
+          ] = descendantId;
+          orIndex += 1;
+        }
+      } else {
+        query[`where[and][${i}][or][${orIndex}][category.slug][equals]`] =
+          handle;
+        orIndex += 1;
+        query[`where[and][${i}][or][${orIndex}][category][equals]`] = handle;
+        orIndex += 1;
+        query[
+          `where[and][${i}][or][${orIndex}][additionalCategories.slug][equals]`
+        ] = handle;
         orIndex += 1;
       }
-    } else {
-      query[`where[and][${i}][or][0][category.slug][equals]`] = collection;
-      query[`where[and][${i}][or][1][category][equals]`] = collection;
-      query[`where[and][${i}][or][2][additionalCategories.slug][equals]`] =
-        collection;
     }
   }
 }
@@ -143,12 +155,24 @@ export async function getProducts(
   const sort = sortParam(params.sortKey, params.reverse);
   if (sort) query.sort = sort;
 
-  let categoryIds: string[] = [];
-  if (params.collection?.trim()) {
-    categoryIds = await resolveCategoryIds(params.collection.trim(), locales);
-  }
+  const collectionHandles = [
+    ...(params.collections ?? []),
+    ...(params.collection ? [params.collection] : []),
+  ]
+    .map((handle) => handle.trim())
+    .filter(Boolean);
+  const uniqueCollectionHandles = [...new Set(collectionHandles)];
+  const resolvedCategoryIds = await Promise.all(
+    uniqueCollectionHandles.map((handle) =>
+      resolveCategoryIds(handle, locales),
+    ),
+  );
+  const collectionFilters = uniqueCollectionHandles.map((handle, index) => ({
+    handle,
+    categoryIds: [...new Set(resolvedCategoryIds[index])],
+  }));
 
-  applyProductFilters(query, params, categoryIds);
+  applyProductFilters(query, params, collectionFilters);
 
   const data = await payloadFetch<PayloadListResponse<PayloadProductDoc>>({
     path: collectionPath(config.productsSlug),

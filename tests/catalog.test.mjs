@@ -1105,6 +1105,39 @@ test("category browsing includes descendant membership and requests only visible
   );
 });
 
+test("category browsing combines multiple category trees in one OR filter", async () => {
+  const calls = transport({
+    "GET /api/categories": {
+      docs: [
+        { id: 10, slug: "rituales", title: "Rituals" },
+        { id: 11, slug: "inciensos", title: "Incense", parent: 10 },
+        { id: 20, slug: "alimentos", title: "Food" },
+      ],
+      hasNextPage: false,
+      hasPrevPage: false,
+    },
+    "GET /api/products": {
+      docs: [],
+      hasNextPage: false,
+      hasPrevPage: false,
+    },
+  });
+
+  await getProducts({ collections: ["rituales", "alimentos"], locale: "en" });
+
+  const productCall = calls.find(
+    (call) => call.url.pathname === "/api/products",
+  );
+  assert.equal(
+    productCall.url.searchParams.get("where[and][0][or][0][category][equals]"),
+    "10",
+  );
+  assert.equal(
+    productCall.url.searchParams.get("where[and][0][or][5][category][equals]"),
+    "20",
+  );
+});
+
 test("CMS category hierarchy rejects self-parenting and descendant cycles", async () => {
   const req = {
     payload: {

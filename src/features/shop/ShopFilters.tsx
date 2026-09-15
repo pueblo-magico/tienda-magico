@@ -41,10 +41,10 @@ function FilterSection({
 
 function CategoryOptions({
   nodes,
-  selectedHandle,
+  selectedHandles,
 }: {
   nodes: CategoryTreeNode[];
-  selectedHandle: string;
+  selectedHandles: Set<string>;
 }) {
   return (
     <ul className="space-y-2">
@@ -52,10 +52,11 @@ function CategoryOptions({
         <li key={category.id}>
           <label className="text-text-primary flex cursor-pointer items-center gap-2 text-sm">
             <input
+              key={`${category.handle}:${selectedHandles.has(category.handle)}`}
               type="checkbox"
-              name="collection"
+              name="categories"
               value={category.handle}
-              defaultChecked={selectedHandle === category.handle}
+              defaultChecked={selectedHandles.has(category.handle)}
               className="border-border accent-brand size-4 rounded"
             />
             {category.title}
@@ -64,7 +65,7 @@ function CategoryOptions({
             <div className="mt-2 ml-6">
               <CategoryOptions
                 nodes={children}
-                selectedHandle={selectedHandle}
+                selectedHandles={selectedHandles}
               />
             </div>
           ) : null}
@@ -126,7 +127,7 @@ export function ShopFilters({
           locale,
           {
             ...query,
-            collection: String(data.get("collection") ?? ""),
+            categories: data.getAll("categories").map(String),
             minPrice: String(data.get("minPrice") ?? ""),
             maxPrice: String(data.get("maxPrice") ?? ""),
             tags: data.getAll("tags").map(String),
@@ -143,14 +144,6 @@ export function ShopFilters({
 
   const handleChange = (event: FormEvent<HTMLFormElement>) => {
     const form = event.currentTarget;
-    const target = event.target as HTMLInputElement;
-    if (target.name === "collection" && target.checked) {
-      form
-        .querySelectorAll<HTMLInputElement>('input[name="collection"]')
-        .forEach((input) => {
-          if (input !== target) input.checked = false;
-        });
-    }
     if (priceTimerRef.current) clearTimeout(priceTimerRef.current);
     applyFilters(form);
   };
@@ -171,7 +164,8 @@ export function ShopFilters({
           {
             q: query.q,
             sort: query.sort,
-            collection: "",
+            collection: query.collection,
+            categories: [],
             minPrice: "",
             maxPrice: "",
             tags: [],
@@ -236,7 +230,7 @@ export function ShopFilters({
         <FilterSection title={labels.collections}>
           <CategoryOptions
             nodes={categoryTree}
-            selectedHandle={query.collection}
+            selectedHandles={new Set(query.categories)}
           />
         </FilterSection>
         <FilterSection title={labels.price}>

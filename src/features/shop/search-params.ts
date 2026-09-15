@@ -10,6 +10,7 @@ export type ShopQuery = {
   q: string;
   sort: ShopSortValue;
   collection: string;
+  categories: string[];
   minPrice: string;
   maxPrice: string;
   tags: string[];
@@ -41,16 +42,25 @@ export function parseShopQuery(
     ? (sortRaw as ShopSortValue)
     : DEFAULT_SHOP_SORT;
 
+  const readList = (key: string) => [
+    ...new Set(
+      read(key)
+        .split(",")
+        .map((value) => value.trim())
+        .filter(Boolean),
+    ),
+  ];
+  const readHandles = (key: string) =>
+    readList(key).filter((value) => /^[a-z0-9][a-z0-9_-]*$/i.test(value));
+
   return {
     q: read("q").trim(),
     sort,
     collection: read("collection").trim(),
+    categories: readHandles("categories"),
     minPrice: read("minPrice").trim(),
     maxPrice: read("maxPrice").trim(),
-    tags: read("tags")
-      .split(",")
-      .map((tag) => tag.trim())
-      .filter(Boolean),
+    tags: readList("tags"),
     origins: read("origins")
       .split(",")
       .map((origin) => origin.trim().toUpperCase())
@@ -89,7 +99,11 @@ export function toCommerceProductsParams(
     first: SHOP_PAGE_SIZE,
     after: query.after || undefined,
     query: query.q || undefined,
-    collection: query.collection || undefined,
+    collections: query.categories.length
+      ? query.categories
+      : query.collection
+        ? [query.collection]
+        : undefined,
     locale,
     sortKey: sort.sortKey,
     reverse: sort.reverse,
@@ -105,6 +119,7 @@ export function buildShopHref(
   const params = new URLSearchParams();
   const q = query.q?.trim();
   const collection = query.collection?.trim();
+  const categories = query.categories?.filter(Boolean) ?? [];
   const sort = query.sort && query.sort !== DEFAULT_SHOP_SORT ? query.sort : "";
   const after = options?.dropAfter ? "" : query.after?.trim();
   const minPrice = query.minPrice?.trim();
@@ -114,6 +129,7 @@ export function buildShopHref(
 
   if (q) params.set("q", q);
   if (collection) params.set("collection", collection);
+  if (categories.length) params.set("categories", categories.join(","));
   if (sort) params.set("sort", sort);
   if (minPrice) params.set("minPrice", minPrice);
   if (maxPrice) params.set("maxPrice", maxPrice);
