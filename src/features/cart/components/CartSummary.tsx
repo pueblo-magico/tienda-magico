@@ -10,6 +10,7 @@ import {
 } from "@/lib/commerce/local-purchase";
 import { formatMoney } from "@/lib/commerce/utils/format";
 import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
 import { cn } from "@/lib/utils/cn";
 import {
   isBankTransferAvailable,
@@ -28,6 +29,10 @@ type Props = {
   fulfillmentDisabled?: boolean;
   onCheckout: () => void | Promise<void>;
   paymentMethod: PaymentMethod;
+  buyerName: string;
+  buyerEmail: string;
+  onBuyerNameChange: (name: string) => void;
+  onBuyerEmailChange: (email: string) => void;
   onPaymentMethodChange: (method: PaymentMethod) => void;
   labels: {
     subtotal: string;
@@ -44,6 +49,10 @@ type Props = {
     mercadoPagoHint: string;
     bankTransfer: string;
     bankTransferHint: string;
+    buyerLegend: string;
+    buyerName: string;
+    buyerEmail: string;
+    buyerRequired: string;
   };
   onFulfillmentModeChange: (mode: FulfillmentMode) => void | Promise<void>;
   className?: string;
@@ -56,6 +65,10 @@ export function CartSummary({
   fulfillmentDisabled,
   onCheckout,
   paymentMethod,
+  buyerName,
+  buyerEmail,
+  onBuyerNameChange,
+  onBuyerEmailChange,
   onPaymentMethodChange,
   labels,
   onFulfillmentModeChange,
@@ -68,6 +81,9 @@ export function CartSummary({
     (cart.fulfillmentMode === LOCAL_COLLECTION &&
       commerceSettings.localCollectionEnabled) ||
     (cart.fulfillmentMode === DELIVERY && commerceSettings.deliveryEnabled);
+  const hasBuyerDetails =
+    buyerName.trim().length > 0 &&
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(buyerEmail.trim());
 
   return (
     <div className={cn("space-y-4", className)}>
@@ -80,6 +96,33 @@ export function CartSummary({
         </span>
       </div>
       <div className="bg-border h-px" />
+      <fieldset className="space-y-3">
+        <legend className="text-text-black text-sm font-semibold">
+          {labels.buyerLegend}
+        </legend>
+        <Input
+          name={`${paymentGroupName}-buyer-name`}
+          autoComplete="name"
+          label={labels.buyerName}
+          value={buyerName}
+          onChange={(event) => onBuyerNameChange(event.target.value)}
+          required
+        />
+        <Input
+          name={`${paymentGroupName}-buyer-email`}
+          type="email"
+          autoComplete="email"
+          label={labels.buyerEmail}
+          value={buyerEmail}
+          onChange={(event) => onBuyerEmailChange(event.target.value)}
+          required
+        />
+      </fieldset>
+      {!hasBuyerDetails ? (
+        <p className="text-clay text-xs" role="status">
+          {labels.buyerRequired}
+        </p>
+      ) : null}
       <fieldset className="space-y-3">
         <legend className="text-text-black text-sm font-semibold">
           {labels.fulfillmentLegend}
@@ -178,7 +221,10 @@ export function CartSummary({
         type="button"
         className="h-12 w-full"
         disabled={
-          disabled || cart.totalQuantity === 0 || !hasEnabledFulfillmentMode
+          disabled ||
+          cart.totalQuantity === 0 ||
+          !hasEnabledFulfillmentMode ||
+          !hasBuyerDetails
         }
         onClick={onCheckout}
       >

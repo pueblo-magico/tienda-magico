@@ -25,6 +25,10 @@ export function CartPageContent() {
     commerceSettings,
     paymentMethod,
     setPaymentMethod,
+    buyerName,
+    buyerEmail,
+    setBuyerName,
+    setBuyerEmail,
   } = useCart();
 
   const busy = isLoading || isMutating;
@@ -108,6 +112,10 @@ export function CartPageContent() {
               onCheckout={checkout}
               paymentMethod={paymentMethod}
               onPaymentMethodChange={setPaymentMethod}
+              buyerName={buyerName}
+              buyerEmail={buyerEmail}
+              onBuyerNameChange={setBuyerName}
+              onBuyerEmailChange={setBuyerEmail}
               onFulfillmentModeChange={setFulfillmentMode}
               labels={{
                 subtotal: t("subtotal"),
@@ -126,6 +134,10 @@ export function CartPageContent() {
                 bankTransferHint: t("bankTransferHint", {
                   minutes: commerceSettings.transfer.paymentWindowMinutes,
                 }),
+                buyerLegend: t("buyerLegend"),
+                buyerName: t("buyerName"),
+                buyerEmail: t("buyerEmail"),
+                buyerRequired: t("buyerRequired"),
               }}
             />
             <div className="mt-3">

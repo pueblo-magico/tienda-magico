@@ -23,6 +23,8 @@ import * as migration_20260913_191156_category_lucide_icons from './20260913_191
 import * as migration_20260913_220000_category_slogan from './20260913_220000_category_slogan';
 import * as migration_20260914_010000_site_shop_hero from './20260914_010000_site_shop_hero';
 import * as migration_20260915_120000_payment_method_transfer from './20260915_120000_payment_method_transfer';
+import * as migration_20260915_150000_pending_transfer_orders from './20260915_150000_pending_transfer_orders';
+import * as migration_20260915_160000_order_public_reference from './20260915_160000_order_public_reference';
 
 export const migrations = [
   {
@@ -149,5 +151,15 @@ export const migrations = [
     up: migration_20260915_120000_payment_method_transfer.up,
     down: migration_20260915_120000_payment_method_transfer.down,
     name: '20260915_120000_payment_method_transfer',
+  },
+  {
+    up: migration_20260915_150000_pending_transfer_orders.up,
+    down: migration_20260915_150000_pending_transfer_orders.down,
+    name: '20260915_150000_pending_transfer_orders',
+  },
+  {
+    up: migration_20260915_160000_order_public_reference.up,
+    down: migration_20260915_160000_order_public_reference.down,
+    name: '20260915_160000_order_public_reference',
   },
 ];

@@ -54,4 +54,7 @@ export const commerce = {
   createCheckoutOrder: (
     ...args: Parameters<CommerceProvider["createCheckoutOrder"]>
   ) => getCommerceProvider().createCheckoutOrder(...args),
+  getCheckoutOrderByPublicReference: (
+    ...args: Parameters<CommerceProvider["getCheckoutOrderByPublicReference"]>
+  ) => getCommerceProvider().getCheckoutOrderByPublicReference(...args),
 };

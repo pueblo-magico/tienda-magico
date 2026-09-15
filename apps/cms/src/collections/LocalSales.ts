@@ -97,6 +97,24 @@ export const LocalSales: CollectionConfig = {
       access: immutableAfterCreation,
     },
     {
+      name: 'paymentMethod',
+      type: 'select',
+      required: true,
+      defaultValue: 'mercado-pago',
+      options: [
+        { label: 'Mercado Pago', value: 'mercado-pago' },
+        { label: { es: 'Transferencia', en: 'Bank transfer' }, value: 'bank-transfer' },
+      ],
+      label: { es: 'Medio de pago', en: 'Payment method' },
+      access: immutableAfterCreation,
+    },
+    {
+      name: 'paymentExpiresAt',
+      type: 'date',
+      label: { es: 'Vencimiento del pago', en: 'Payment expiry' },
+      access: immutableAfterCreation,
+    },
+    {
       name: 'buyerContact',
       type: 'json',
       label: { es: 'Contacto del comprador', en: 'Buyer contact' },

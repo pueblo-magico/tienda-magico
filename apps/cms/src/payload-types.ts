@@ -260,6 +260,8 @@ export interface LocalSale {
   status: 'pending_payment' | 'paid' | 'cancelled' | 'conflict';
   fulfillmentMode: 'local_collection' | 'delivery';
   paymentStatus: 'pending' | 'approved' | 'rejected' | 'cancelled' | 'unverified';
+  paymentMethod: 'mercado-pago' | 'bank-transfer';
+  paymentExpiresAt?: string | null;
   /**
    * Optional private data allowed by checkout.
    */
@@ -334,6 +336,7 @@ export interface Order {
   currency?: 'ARS' | null;
   checkoutKey?: string | null;
   cartReference?: string | null;
+  publicReference: string;
   fulfillmentMode?: ('local_collection' | 'delivery') | null;
   buyerContact?:
     | {
@@ -344,6 +347,9 @@ export interface Order {
     | number
     | boolean
     | null;
+  paymentMethod: 'mercado-pago' | 'bank-transfer';
+  paymentExpiresAt?: string | null;
+  paymentStatus: 'pending' | 'approved' | 'rejected' | 'cancelled' | 'unverified';
   commercialSnapshot?:
     | {
         [k: string]: unknown;
@@ -3488,6 +3494,8 @@ export interface LocalSalesSelect<T extends boolean = true> {
   status?: T;
   fulfillmentMode?: T;
   paymentStatus?: T;
+  paymentMethod?: T;
+  paymentExpiresAt?: T;
   buyerContact?: T;
   snapshot?: T;
   paymentEvidence?: T;
@@ -4021,8 +4029,12 @@ export interface OrdersSelect<T extends boolean = true> {
   currency?: T;
   checkoutKey?: T;
   cartReference?: T;
+  publicReference?: T;
   fulfillmentMode?: T;
   buyerContact?: T;
+  paymentMethod?: T;
+  paymentExpiresAt?: T;
+  paymentStatus?: T;
   commercialSnapshot?: T;
   updatedAt?: T;
   createdAt?: T;

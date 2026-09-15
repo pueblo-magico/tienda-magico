@@ -6,6 +6,9 @@ import { Body, Eyebrow, PageTitle } from "@/components/typography";
 import { Button } from "@/components/ui/Button";
 import { localizePath } from "@/config/navigation";
 import { checkout } from "@/lib/checkout";
+import { getCommerceSettings } from "@/lib/cms";
+import { BANK_TRANSFER } from "@/types/checkout";
+import { commerce, formatMoney } from "@/lib/commerce";
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -30,6 +33,31 @@ export default async function CheckoutPendingPage({
   const statusParam = first(query.status) || first(query.collection_status);
   const preferenceId = first(query.preference_id);
   const externalReference = first(query.external_reference);
+  const paymentMethod = first(query.payment_method);
+  const orderReference = first(query.order);
+  const isBankTransferRequest =
+    paymentMethod === BANK_TRANSFER && Boolean(orderReference);
+  const transferOrder =
+    isBankTransferRequest && orderReference
+      ? await commerce.getCheckoutOrderByPublicReference(orderReference)
+      : null;
+  const isBankTransfer = transferOrder?.paymentMethod === BANK_TRANSFER;
+  const commerceSettings = isBankTransfer ? await getCommerceSettings() : null;
+  const expiresAt = transferOrder?.paymentExpiresAt ?? null;
+  const formattedExpiry = expiresAt
+    ? (() => {
+        const date = new Date(expiresAt);
+        return Number.isNaN(date.getTime())
+          ? null
+          : new Intl.DateTimeFormat(locale, {
+              dateStyle: "short",
+              timeStyle: "short",
+            }).format(date);
+      })()
+    : null;
+  const formattedAmount = transferOrder
+    ? formatMoney(transferOrder.total, locale)
+    : null;
 
   let paymentStatus: string | null = null;
   if (paymentId && checkout.provider.getPayment) {
@@ -48,10 +76,77 @@ export default async function CheckoutPendingPage({
         <PageTitle as="h1" className="text-4xl sm:text-5xl">
           {t("pending.title")}
         </PageTitle>
-        <Body className="text-forest/80">{t("pending.body")}</Body>
+        <Body className="text-forest/80">
+          {t(
+            isBankTransferRequest && !transferOrder
+              ? "pending.transferNotFound"
+              : isBankTransfer
+                ? "pending.transferBody"
+                : "pending.body",
+          )}
+        </Body>
 
-        {paymentId || statusParam || preferenceId || externalReference || paymentStatus ? (
-          <dl className="mx-auto max-w-sm space-y-2 rounded-2xl border border-border bg-card px-4 py-3 text-left text-sm text-forest/80">
+        {isBankTransfer && commerceSettings ? (
+          <dl className="border-border bg-card text-text-primary mx-auto w-full max-w-md space-y-3 rounded-2xl border px-5 py-4 text-left text-sm">
+            <div className="flex justify-between gap-4">
+              <dt className="text-text-secondary">
+                {t("pending.accountHolder")}
+              </dt>
+              <dd className="text-right font-semibold">
+                {commerceSettings.transfer.accountHolder}
+              </dd>
+            </div>
+            {commerceSettings.transfer.alias ? (
+              <div className="flex justify-between gap-4">
+                <dt className="text-text-secondary">{t("pending.alias")}</dt>
+                <dd className="font-mono text-xs">
+                  {commerceSettings.transfer.alias}
+                </dd>
+              </div>
+            ) : null}
+            {commerceSettings.transfer.cvu ? (
+              <div className="flex justify-between gap-4">
+                <dt className="text-text-secondary">{t("pending.cvu")}</dt>
+                <dd className="font-mono text-xs">
+                  {commerceSettings.transfer.cvu}
+                </dd>
+              </div>
+            ) : null}
+            <div className="flex justify-between gap-4">
+              <dt className="text-text-secondary">
+                {t("pending.orderReference")}
+              </dt>
+              <dd className="font-mono text-xs">
+                {transferOrder.publicReference}
+              </dd>
+            </div>
+            {formattedAmount ? (
+              <div className="flex justify-between gap-4">
+                <dt className="text-text-secondary">{t("pending.amount")}</dt>
+                <dd className="font-semibold">{formattedAmount}</dd>
+              </div>
+            ) : null}
+            {formattedExpiry ? (
+              <div className="flex justify-between gap-4">
+                <dt className="text-text-secondary">
+                  {t("pending.expiresAt")}
+                </dt>
+                <dd>
+                  <time dateTime={expiresAt ?? undefined}>
+                    {formattedExpiry}
+                  </time>
+                </dd>
+              </div>
+            ) : null}
+          </dl>
+        ) : null}
+
+        {paymentId ||
+        statusParam ||
+        preferenceId ||
+        externalReference ||
+        paymentStatus ? (
+          <dl className="border-border bg-card text-forest/80 mx-auto max-w-sm space-y-2 rounded-2xl border px-4 py-3 text-left text-sm">
             {paymentId ? (
               <div className="flex justify-between gap-3">
                 <dt className="text-muted">{t("paymentId")}</dt>
@@ -82,13 +177,15 @@ export default async function CheckoutPendingPage({
         ) : null}
 
         <div className="flex flex-wrap items-center justify-center gap-3">
-          <Button href={localizePath(locale, "/shop")}>{t("continueShopping")}</Button>
+          <Button href={localizePath(locale, "/shop")}>
+            {t("continueShopping")}
+          </Button>
           <Button href={`/${locale}`} variant="ghost">
             {t("backHome")}
           </Button>
         </div>
 
-        <p className="text-xs text-muted">
+        <p className="text-muted text-xs">
           <Link
             href={localizePath(locale, "/cart")}
             className="underline-offset-4 hover:underline"

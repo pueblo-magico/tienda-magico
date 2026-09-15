@@ -8,7 +8,7 @@ export type DrawerProps = {
   onClose: () => void;
   title: string;
   children: ReactNode;
-  /** Optional sticky footer (e.g. cart subtotal + checkout). */
+  /** Optional footer rendered after the body inside the drawer scroll area. */
   footer?: ReactNode;
   side?: "left" | "right";
   className?: string;
@@ -75,7 +75,7 @@ export function Drawer({
         aria-modal="true"
         aria-labelledby={titleId}
         className={cn(
-          "bg-cream absolute top-0 flex h-full w-full max-w-md flex-col shadow-2xl transition-transform duration-300 ease-out",
+          "bg-cream absolute top-0 flex h-full w-full max-w-md flex-col overflow-hidden shadow-2xl transition-transform duration-300 ease-out",
           side === "right" ? "right-0" : "left-0",
           open
             ? "translate-x-0"
@@ -85,7 +85,7 @@ export function Drawer({
           className,
         )}
       >
-        <div className="border-border flex items-center justify-between border-b px-5 py-4">
+        <div className="border-border flex shrink-0 items-center justify-between border-b px-5 py-4">
           <h2 id={titleId} className="font-serif text-xl font-normal">
             {title}
           </h2>
@@ -98,10 +98,12 @@ export function Drawer({
             ✕
           </button>
         </div>
-        <div className="flex-1 overflow-y-auto px-5 py-4">{children}</div>
-        {footer ? (
-          <div className="border-border border-t px-5 py-4">{footer}</div>
-        ) : null}
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          <div className="px-5 py-4">{children}</div>
+          {footer ? (
+            <div className="border-border border-t px-5 py-4">{footer}</div>
+          ) : null}
+        </div>
       </aside>
     </div>
   );

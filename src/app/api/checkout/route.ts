@@ -14,6 +14,14 @@ import {
   parsePaymentMethod,
 } from "@/lib/checkout/payment-method";
 import { BANK_TRANSFER, MERCADO_PAGO } from "@/types/checkout";
+import {
+  bankTransferExpiry,
+  createBankTransferSession,
+} from "@/lib/checkout/bank-transfer";
+import {
+  CheckoutCustomerError,
+  validateCheckoutCustomer,
+} from "@/lib/checkout/customer";
 
 export const dynamic = "force-dynamic";
 
@@ -38,6 +46,10 @@ function errorResponse(error: unknown) {
   }
 
   if (error instanceof PaymentMethodError) {
+    return NextResponse.json({ error: error.message }, { status: 400 });
+  }
+
+  if (error instanceof CheckoutCustomerError) {
     return NextResponse.json({ error: error.message }, { status: 400 });
   }
 
@@ -149,18 +161,6 @@ export async function POST(request: Request) {
       locale,
     );
 
-    if (paymentMethod === BANK_TRANSFER) {
-      return NextResponse.json(
-        {
-          error:
-            locale === "es"
-              ? "La transferencia todavía no está disponible."
-              : "Bank transfer is not available yet.",
-        },
-        { status: 501 },
-      );
-    }
-
     if (paymentMethod === MERCADO_PAGO && !checkout.isConfigured()) {
       return NextResponse.json(
         {
@@ -185,11 +185,41 @@ export async function POST(request: Request) {
       process.env.CHECKOUT_WEBHOOK_URL?.trim() ||
       `${base}/api/checkout/webhooks/mercado-pago`;
 
-    const customer = {
-      email: body.email?.trim() || null,
-      name: body.name?.trim() || null,
-    };
-    const order = await commerce.createCheckoutOrder(cart, customer);
+    const customer = validateCheckoutCustomer(
+      {
+        email: body.email?.trim() || null,
+        name: body.name?.trim() || null,
+      },
+      locale,
+    );
+    const paymentExpiresAt =
+      paymentMethod === BANK_TRANSFER
+        ? bankTransferExpiry(commerceSettings.transfer.paymentWindowMinutes)
+        : null;
+    const order = await commerce.createCheckoutOrder(cart, customer, {
+      paymentMethod,
+      paymentExpiresAt,
+    });
+    if (paymentMethod === BANK_TRANSFER) {
+      if (!order) {
+        throw new CommerceError(
+          locale.startsWith("es")
+            ? "No se pudo crear el pedido pendiente."
+            : "Could not create the pending order.",
+          {
+            status: 502,
+          },
+        );
+      }
+      const session = createBankTransferSession({
+        baseUrl: base,
+        locale,
+        orderId: order.publicReference,
+        paymentWindowMinutes: commerceSettings.transfer.paymentWindowMinutes,
+        expiresAt: order.paymentExpiresAt ?? paymentExpiresAt ?? undefined,
+      });
+      return NextResponse.json({ session, configured: true });
+    }
     const session = await checkout.createCheckoutSession({
       cart,
       locale,

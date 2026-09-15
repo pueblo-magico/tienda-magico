@@ -54,6 +54,8 @@ type CartContextValue = {
   configured: boolean;
   commerceSettings: CommerceSettings;
   paymentMethod: PaymentMethod;
+  buyerName: string;
+  buyerEmail: string;
   itemCount: number;
   openCart: () => void;
   closeCart: () => void;
@@ -67,6 +69,8 @@ type CartContextValue = {
   removeItem: (lineId: string) => Promise<Cart | null>;
   checkout: () => Promise<void>;
   setPaymentMethod: (method: PaymentMethod) => void;
+  setBuyerName: (name: string) => void;
+  setBuyerEmail: (email: string) => void;
   clearError: () => void;
   confirmPrices: () => Promise<void>;
   setFulfillmentMode: (mode: FulfillmentMode) => Promise<void>;
@@ -110,6 +114,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
   );
   const [paymentMethod, setPaymentMethod] =
     useState<PaymentMethod>(MERCADO_PAGO);
+  const [buyerName, setBuyerName] = useState("");
+  const [buyerEmail, setBuyerEmail] = useState("");
   const persistedCartRef = useRef<Cart>(emptyCart());
   const fulfillmentModeRef = useRef<FulfillmentMode | null>(null);
   const fulfillmentMutationQueue = useRef<Promise<void>>(Promise.resolve());
@@ -292,6 +298,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
         cartId,
         locale,
         paymentMethod,
+        name: buyerName,
+        email: buyerEmail,
       });
       const redirectUrl = result.session?.redirectUrl;
       if (!redirectUrl) {
@@ -306,7 +314,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsMutating(false);
     }
-  }, [cart.id, cart.totalQuantity, locale, paymentMethod]);
+  }, [
+    buyerEmail,
+    buyerName,
+    cart.id,
+    cart.totalQuantity,
+    locale,
+    paymentMethod,
+  ]);
 
   const value = useMemo<CartContextValue>(
     () => ({
@@ -318,6 +333,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       configured,
       commerceSettings,
       paymentMethod,
+      buyerName,
+      buyerEmail,
       itemCount: cart.totalQuantity,
       openCart,
       closeCart,
@@ -328,6 +345,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       removeItem,
       checkout,
       setPaymentMethod,
+      setBuyerName,
+      setBuyerEmail,
       clearError,
       confirmPrices,
       setFulfillmentMode: setFulfillment,
@@ -341,6 +360,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       configured,
       commerceSettings,
       paymentMethod,
+      buyerName,
+      buyerEmail,
       openCart,
       closeCart,
       toggleCart,

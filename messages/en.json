@@ -175,6 +175,10 @@
     "mercadoPagoHint": "Pay in Mercado Pago using the methods available in your account.",
     "bankTransfer": "Bank transfer",
     "bankTransferHint": "Transfer the amount and complete payment within {minutes} minutes.",
+    "buyerLegend": "Your details",
+    "buyerName": "Name",
+    "buyerEmail": "Email",
+    "buyerRequired": "Enter your name and a valid email address to continue.",
     "summary": "Order summary",
     "item": "item",
     "items": "items",
@@ -323,7 +327,15 @@
     },
     "pending": {
       "title": "Payment pending",
-      "body": "We’re waiting for confirmation from the payment provider. This can take a few minutes."
+      "body": "We’re waiting for confirmation from the payment provider. This can take a few minutes.",
+      "transferBody": "Transfer the amount to the account shown and use the order reference to identify the payment. The order will be confirmed after we verify the transfer.",
+      "transferNotFound": "We could not find this pending transfer order. Return to your cart and try again.",
+      "accountHolder": "Account holder",
+      "amount": "Amount to transfer",
+      "alias": "Alias",
+      "cvu": "CVU",
+      "orderReference": "Order reference",
+      "expiresAt": "Pay before"
     },
     "startTitle": "Secure checkout",
     "startBody": "We’re preparing your payment session.",

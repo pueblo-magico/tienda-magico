@@ -175,6 +175,10 @@
     "mercadoPagoHint": "Pagá en Mercado Pago con los medios disponibles en tu cuenta.",
     "bankTransfer": "Transferencia",
     "bankTransferHint": "Transferí el importe y completá el pago dentro de {minutes} minutos.",
+    "buyerLegend": "Tus datos",
+    "buyerName": "Nombre",
+    "buyerEmail": "Email",
+    "buyerRequired": "Ingresá tu nombre y un email válido para continuar.",
     "summary": "Resumen del pedido",
     "item": "producto",
     "items": "productos",
@@ -323,7 +327,15 @@
     },
     "pending": {
       "title": "Pago pendiente",
-      "body": "Estamos esperando la confirmación del proveedor de pagos. Puede demorar unos minutos."
+      "body": "Estamos esperando la confirmación del proveedor de pagos. Puede demorar unos minutos.",
+      "transferBody": "Transferí el importe a la cuenta indicada y usá la referencia del pedido para identificar el pago. El pedido se confirmará cuando verifiquemos la transferencia.",
+      "transferNotFound": "No encontramos este pedido pendiente. Volvé al carrito e intentá nuevamente.",
+      "accountHolder": "Titular",
+      "amount": "Importe a transferir",
+      "alias": "Alias",
+      "cvu": "CVU",
+      "orderReference": "Referencia del pedido",
+      "expiresAt": "Pagá antes de"
     },
     "startTitle": "Pago seguro",
     "startBody": "Estamos preparando tu sesión de pago.",

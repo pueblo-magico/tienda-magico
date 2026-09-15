@@ -220,6 +220,19 @@ Uses `cart.checkoutUrl` from `@/lib/commerce` (Shopify Checkout).
 
 **Self-host guard:** if `checkoutUrl` points at this storefront’s `/checkout` or `/{locale}/checkout` (Payload placeholder), the provider throws instead of looping. Configure Mercado Pago for Payload carts.
 
+### Bank transfer
+
+Bank transfer is an internal pending-payment flow rather than an external checkout provider:
+
+1. The customer selects `bank-transfer` in the cart.
+2. The customer provides a name and valid email before checkout.
+3. `POST /api/checkout` creates an idempotent ecommerce order using a transfer-specific checkout key; Payload generates its public UUID reference and stores `paymentStatus: pending`.
+4. Payload creates the linked local-sale record with `pending_payment` / `pending` status.
+5. The order and local sale persist the payment method and payment deadline.
+6. The storefront redirects with only the public order reference. The pending page loads the exact amount, deadline, payment method, and status from the persisted order before showing the CMS-managed account instructions.
+
+Creating the pending order does not confirm payment, reserve stock, or reduce stock. Payment verification and expiry processing remain separate milestones.
+
 ---
 
 ## Routes (storefront)

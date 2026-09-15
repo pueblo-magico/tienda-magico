@@ -208,7 +208,20 @@ export type CartLineMerchandise = {
   price: Money;
 };
 
-export type CheckoutOrder = { id: string };
+export type CheckoutOrder = {
+  id: string;
+  publicReference: string;
+  paymentExpiresAt?: string | null;
+  paymentMethod: import("./checkout").PaymentMethod;
+  paymentStatus:
+    "pending" | "approved" | "rejected" | "cancelled" | "unverified";
+  total: Money;
+};
+
+export type CheckoutOrderOptions = {
+  paymentMethod?: import("./checkout").PaymentMethod;
+  paymentExpiresAt?: string | null;
+};
 
 export type CartLine = {
   issue?: "unavailable" | "priceChanged" | "quantityExceeded" | null;

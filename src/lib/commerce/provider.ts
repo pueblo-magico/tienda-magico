@@ -4,6 +4,7 @@ import type {
   CartLineUpdateInput,
   CartParams,
   CheckoutOrder,
+  CheckoutOrderOptions,
   Collection,
   CollectionSummary,
   CommerceProviderName,
@@ -72,5 +73,9 @@ export interface CommerceProvider {
   createCheckoutOrder(
     cart: Cart,
     customer?: CheckoutCustomer,
+    options?: CheckoutOrderOptions,
+  ): Promise<CheckoutOrder | null>;
+  getCheckoutOrderByPublicReference(
+    reference: string,
   ): Promise<CheckoutOrder | null>;
 }

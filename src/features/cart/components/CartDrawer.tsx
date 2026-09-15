@@ -26,6 +26,10 @@ export function CartDrawer() {
     commerceSettings,
     paymentMethod,
     setPaymentMethod,
+    buyerName,
+    buyerEmail,
+    setBuyerName,
+    setBuyerEmail,
   } = useCart();
 
   const busy = isLoading || isMutating;
@@ -49,6 +53,10 @@ export function CartDrawer() {
               onCheckout={checkout}
               paymentMethod={paymentMethod}
               onPaymentMethodChange={setPaymentMethod}
+              buyerName={buyerName}
+              buyerEmail={buyerEmail}
+              onBuyerNameChange={setBuyerName}
+              onBuyerEmailChange={setBuyerEmail}
               onFulfillmentModeChange={setFulfillmentMode}
               labels={{
                 subtotal: t("subtotal"),
@@ -67,6 +75,10 @@ export function CartDrawer() {
                 bankTransferHint: t("bankTransferHint", {
                   minutes: commerceSettings.transfer.paymentWindowMinutes,
                 }),
+                buyerLegend: t("buyerLegend"),
+                buyerName: t("buyerName"),
+                buyerEmail: t("buyerEmail"),
+                buyerRequired: t("buyerRequired"),
               }}
             />
             <Button

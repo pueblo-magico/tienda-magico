@@ -6,6 +6,8 @@ export const BANK_TRANSFER = "bank-transfer" as const;
 export type PaymentMethod = typeof MERCADO_PAGO | typeof BANK_TRANSFER;
 
 export type CheckoutProviderName = "mercado-pago" | "commerce-redirect";
+export type CheckoutSessionProviderName =
+  CheckoutProviderName | typeof BANK_TRANSFER;
 
 export type CheckoutItem = {
   id: string;
@@ -41,7 +43,7 @@ export type CreateCheckoutSessionInput = {
 
 export type CheckoutSession = {
   id: string;
-  provider: CheckoutProviderName;
+  provider: CheckoutSessionProviderName;
   /** URL the browser should navigate to complete payment. */
   redirectUrl: string;
   status: "ready" | "pending";

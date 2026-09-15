@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import { randomUUID } from 'node:crypto'
 
 const immutableAfterCreation = { update: () => false }
 
@@ -14,17 +15,23 @@ export const ordersCollectionOverride = ({
       ...(defaultCollection.hooks?.beforeValidate ?? []),
       ({ data, operation }) => {
         if (operation !== 'create') return data
+        const checkoutData: Record<string, unknown> = {
+          ...data,
+          publicReference: data?.publicReference ?? randomUUID(),
+        }
         for (const field of [
           'checkoutKey',
+          'publicReference',
           'cartReference',
           'fulfillmentMode',
+          'paymentMethod',
           'commercialSnapshot',
         ]) {
-          if (data?.[field] == null) {
+          if (checkoutData[field] == null) {
             throw new Error(`Falta el campo obligatorio del checkout: ${field}.`)
           }
         }
-        return data
+        return checkoutData
       },
     ],
     afterChange: [
@@ -51,6 +58,8 @@ export const ordersCollectionOverride = ({
               status: 'pending_payment',
               fulfillmentMode: 'local_collection',
               paymentStatus: 'pending',
+              paymentMethod: doc.paymentMethod,
+              paymentExpiresAt: doc.paymentExpiresAt ?? null,
               buyerContact: doc.buyerContact ?? null,
               snapshot: doc.commercialSnapshot,
             },
@@ -80,6 +89,16 @@ export const ordersCollectionOverride = ({
       admin: { readOnly: true },
     },
     {
+      name: 'publicReference',
+      type: 'text',
+      required: true,
+      unique: true,
+      index: true,
+      label: { es: 'Referencia pública', en: 'Public reference' },
+      access: immutableAfterCreation,
+      admin: { readOnly: true },
+    },
+    {
       name: 'fulfillmentMode',
       type: 'select',
       options: [
@@ -93,6 +112,41 @@ export const ordersCollectionOverride = ({
       name: 'buyerContact',
       type: 'json',
       access: immutableAfterCreation,
+      admin: { readOnly: true },
+    },
+    {
+      name: 'paymentMethod',
+      type: 'select',
+      required: true,
+      defaultValue: 'mercado-pago',
+      options: [
+        { label: 'Mercado Pago', value: 'mercado-pago' },
+        { label: { es: 'Transferencia', en: 'Bank transfer' }, value: 'bank-transfer' },
+      ],
+      label: { es: 'Medio de pago', en: 'Payment method' },
+      access: immutableAfterCreation,
+      admin: { readOnly: true },
+    },
+    {
+      name: 'paymentExpiresAt',
+      type: 'date',
+      label: { es: 'Vencimiento del pago', en: 'Payment expiry' },
+      access: immutableAfterCreation,
+      admin: { readOnly: true },
+    },
+    {
+      name: 'paymentStatus',
+      type: 'select',
+      required: true,
+      defaultValue: 'pending',
+      options: [
+        { label: { es: 'Pendiente', en: 'Pending' }, value: 'pending' },
+        { label: { es: 'Aprobado', en: 'Approved' }, value: 'approved' },
+        { label: { es: 'Rechazado', en: 'Rejected' }, value: 'rejected' },
+        { label: { es: 'Cancelado', en: 'Cancelled' }, value: 'cancelled' },
+        { label: { es: 'Sin verificar', en: 'Unverified' }, value: 'unverified' },
+      ],
+      label: { es: 'Estado del pago', en: 'Payment status' },
       admin: { readOnly: true },
     },
     {
