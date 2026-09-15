@@ -33,6 +33,14 @@ test("commerce settings default to local collection without delivery", () => {
   assert.deepEqual(DEFAULT_COMMERCE_SETTINGS, {
     localCollectionEnabled: true,
     deliveryEnabled: false,
+    transferEnabled: false,
+    transfer: {
+      accountHolder: "",
+      taxId: "",
+      alias: "",
+      cvu: "",
+      paymentWindowMinutes: 15,
+    },
   });
   assert.deepEqual(parseCommerceSettings({}), DEFAULT_COMMERCE_SETTINGS);
   assert.equal(
@@ -70,6 +78,22 @@ test("the CMS exposes admin-managed storefront commerce settings", () => {
         name: "deliveryEnabled",
         label: { es: "Habilitar entrega", en: "Enable delivery" },
         defaultValue: false,
+      },
+      {
+        name: "transferEnabled",
+        label: {
+          es: "Habilitar transferencia",
+          en: "Enable bank transfer",
+        },
+        defaultValue: false,
+      },
+      {
+        name: "transfer",
+        label: {
+          es: "Datos para transferencia",
+          en: "Bank transfer details",
+        },
+        defaultValue: undefined,
       },
     ],
   );

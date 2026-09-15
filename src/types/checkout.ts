@@ -1,5 +1,10 @@
 import type { Cart, Money } from "./commerce";
 
+export const MERCADO_PAGO = "mercado-pago" as const;
+export const BANK_TRANSFER = "bank-transfer" as const;
+
+export type PaymentMethod = typeof MERCADO_PAGO | typeof BANK_TRANSFER;
+
 export type CheckoutProviderName = "mercado-pago" | "commerce-redirect";
 
 export type CheckoutItem = {

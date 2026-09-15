@@ -4256,6 +4256,17 @@ export interface CommerceSetting {
    * Allows customers to receive their purchase by delivery.
    */
   deliveryEnabled: boolean;
+  /**
+   * Allows customers to choose bank transfer. Enable it only after completing the account details.
+   */
+  transferEnabled: boolean;
+  transfer?: {
+    accountHolder?: string | null;
+    taxId?: string | null;
+    alias?: string | null;
+    cvu?: string | null;
+    paymentWindowMinutes: number;
+  };
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -4435,6 +4446,16 @@ export interface SiteSettingsSelect<T extends boolean = true> {
 export interface CommerceSettingsSelect<T extends boolean = true> {
   localCollectionEnabled?: T;
   deliveryEnabled?: T;
+  transferEnabled?: T;
+  transfer?:
+    | T
+    | {
+        accountHolder?: T;
+        taxId?: T;
+        alias?: T;
+        cvu?: T;
+        paymentWindowMinutes?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

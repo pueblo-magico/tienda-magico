@@ -22,6 +22,7 @@ import * as migration_20260912_231908_cms_navigation_visibility from './20260912
 import * as migration_20260913_191156_category_lucide_icons from './20260913_191156_category_lucide_icons';
 import * as migration_20260913_220000_category_slogan from './20260913_220000_category_slogan';
 import * as migration_20260914_010000_site_shop_hero from './20260914_010000_site_shop_hero';
+import * as migration_20260915_120000_payment_method_transfer from './20260915_120000_payment_method_transfer';
 
 export const migrations = [
   {
@@ -143,5 +144,10 @@ export const migrations = [
     up: migration_20260914_010000_site_shop_hero.up,
     down: migration_20260914_010000_site_shop_hero.down,
     name: '20260914_010000_site_shop_hero',
+  },
+  {
+    up: migration_20260915_120000_payment_method_transfer.up,
+    down: migration_20260915_120000_payment_method_transfer.down,
+    name: '20260915_120000_payment_method_transfer',
   },
 ];

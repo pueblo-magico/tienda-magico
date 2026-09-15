@@ -13,6 +13,7 @@ import {
 import { useLocale, useTranslations } from "next-intl";
 import type { Cart, CartLineInput } from "@/types/commerce";
 import type { FulfillmentMode } from "@/lib/commerce/local-purchase";
+import { MERCADO_PAGO, type PaymentMethod } from "@/types/checkout";
 import { createCheckoutSession } from "@/features/checkout";
 import {
   addCartLines,
@@ -52,6 +53,7 @@ type CartContextValue = {
   error: string | null;
   configured: boolean;
   commerceSettings: CommerceSettings;
+  paymentMethod: PaymentMethod;
   itemCount: number;
   openCart: () => void;
   closeCart: () => void;
@@ -64,6 +66,7 @@ type CartContextValue = {
   ) => Promise<Cart | null>;
   removeItem: (lineId: string) => Promise<Cart | null>;
   checkout: () => Promise<void>;
+  setPaymentMethod: (method: PaymentMethod) => void;
   clearError: () => void;
   confirmPrices: () => Promise<void>;
   setFulfillmentMode: (mode: FulfillmentMode) => Promise<void>;
@@ -105,6 +108,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [commerceSettings, setCommerceSettings] = useState<CommerceSettings>(
     DEFAULT_COMMERCE_SETTINGS,
   );
+  const [paymentMethod, setPaymentMethod] =
+    useState<PaymentMethod>(MERCADO_PAGO);
   const persistedCartRef = useRef<Cart>(emptyCart());
   const fulfillmentModeRef = useRef<FulfillmentMode | null>(null);
   const fulfillmentMutationQueue = useRef<Promise<void>>(Promise.resolve());
@@ -286,6 +291,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const result = await createCheckoutSession({
         cartId,
         locale,
+        paymentMethod,
       });
       const redirectUrl = result.session?.redirectUrl;
       if (!redirectUrl) {
@@ -300,7 +306,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsMutating(false);
     }
-  }, [cart.id, cart.totalQuantity, locale]);
+  }, [cart.id, cart.totalQuantity, locale, paymentMethod]);
 
   const value = useMemo<CartContextValue>(
     () => ({
@@ -311,6 +317,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       error,
       configured,
       commerceSettings,
+      paymentMethod,
       itemCount: cart.totalQuantity,
       openCart,
       closeCart,
@@ -320,6 +327,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       updateItemQuantity,
       removeItem,
       checkout,
+      setPaymentMethod,
       clearError,
       confirmPrices,
       setFulfillmentMode: setFulfillment,
@@ -332,6 +340,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       error,
       configured,
       commerceSettings,
+      paymentMethod,
       openCart,
       closeCart,
       toggleCart,

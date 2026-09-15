@@ -9,6 +9,11 @@ import {
 } from "@/lib/commerce/local-purchase";
 import { getCommerceSettings } from "@/lib/cms";
 import { isFulfillmentModeEnabled } from "@/lib/commerce/commerce-settings";
+import {
+  PaymentMethodError,
+  parsePaymentMethod,
+} from "@/lib/checkout/payment-method";
+import { BANK_TRANSFER, MERCADO_PAGO } from "@/types/checkout";
 
 export const dynamic = "force-dynamic";
 
@@ -29,6 +34,10 @@ function siteUrl(request: Request): string {
 
 function errorResponse(error: unknown) {
   if (error instanceof FulfillmentModeError) {
+    return NextResponse.json({ error: error.message }, { status: 400 });
+  }
+
+  if (error instanceof PaymentMethodError) {
     return NextResponse.json({ error: error.message }, { status: 400 });
   }
 
@@ -88,6 +97,7 @@ type CheckoutBody = {
   locale?: string;
   email?: string;
   name?: string;
+  paymentMethod?: string;
 };
 
 /**
@@ -101,18 +111,6 @@ export async function POST(request: Request) {
         {
           error: "Commerce provider is not configured.",
           configured: false,
-        },
-        { status: 503 },
-      );
-    }
-
-    if (!checkout.isConfigured()) {
-      return NextResponse.json(
-        {
-          error:
-            "Checkout provider is not configured. Set CHECKOUT_PROVIDER and provider credentials.",
-          configured: false,
-          provider: checkout.provider.name,
         },
         { status: 503 },
       );
@@ -144,6 +142,35 @@ export async function POST(request: Request) {
     const commerceSettings = await getCommerceSettings();
     if (!isFulfillmentModeEnabled(fulfillmentMode, commerceSettings)) {
       throw new FulfillmentModeError(locale);
+    }
+    const paymentMethod = parsePaymentMethod(
+      body.paymentMethod,
+      commerceSettings,
+      locale,
+    );
+
+    if (paymentMethod === BANK_TRANSFER) {
+      return NextResponse.json(
+        {
+          error:
+            locale === "es"
+              ? "La transferencia todavía no está disponible."
+              : "Bank transfer is not available yet.",
+        },
+        { status: 501 },
+      );
+    }
+
+    if (paymentMethod === MERCADO_PAGO && !checkout.isConfigured()) {
+      return NextResponse.json(
+        {
+          error:
+            "Checkout provider is not configured. Set CHECKOUT_PROVIDER and provider credentials.",
+          configured: false,
+          provider: checkout.provider.name,
+        },
+        { status: 503 },
+      );
     }
 
     const base = siteUrl(request);
