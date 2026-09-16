@@ -27,6 +27,11 @@ export function __resetCommerceProviderForTests() {
 
 // Convenience facades so app code can call commerce helpers directly.
 export const commerce = {
+  getGuestOrders: (...args: Parameters<CommerceProvider["getGuestOrders"]>) =>
+    getCommerceProvider().getGuestOrders(...args),
+  reportGuestTransfer: (
+    ...args: Parameters<CommerceProvider["reportGuestTransfer"]>
+  ) => getCommerceProvider().reportGuestTransfer(...args),
   get provider() {
     return getCommerceProvider();
   },

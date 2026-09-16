@@ -1,3 +1,4 @@
+import * as migration_20260916_100000_transfer_reported from './20260916_100000_transfer_reported';
 import * as migration_20260825_001134_initial_schema from './20260825_001134_initial_schema';
 import * as migration_20260825_020000_spanish_ars_defaults from './20260825_020000_spanish_ars_defaults';
 import * as migration_20260825_020001_ars_defaults from './20260825_020001_ars_defaults';
@@ -161,5 +162,10 @@ export const migrations = [
     up: migration_20260915_160000_order_public_reference.up,
     down: migration_20260915_160000_order_public_reference.down,
     name: '20260915_160000_order_public_reference',
+  },
+  {
+    up: migration_20260916_100000_transfer_reported.up,
+    down: migration_20260916_100000_transfer_reported.down,
+    name: '20260916_100000_transfer_reported',
   },
 ];

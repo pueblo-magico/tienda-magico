@@ -78,4 +78,9 @@ export interface CommerceProvider {
   getCheckoutOrderByPublicReference(
     reference: string,
   ): Promise<CheckoutOrder | null>;
+  getGuestOrders(cartReferences: string[]): Promise<CheckoutOrder[]>;
+  reportGuestTransfer(
+    cartReferences: string[],
+    reference: string,
+  ): Promise<boolean>;
 }

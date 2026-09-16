@@ -13,6 +13,7 @@ import {
 } from "@/types/checkout";
 import { collectionPath, payloadFetch } from "./client";
 import { getPayloadEcommerceConfig } from "./config";
+import { parseGuestCartReferences } from "@/lib/commerce/guest-order-access";
 
 type CheckoutOrderInput = {
   checkoutKey: string;
@@ -142,6 +143,8 @@ export function buildCheckoutOrderInput(
 }
 
 type PayloadOrderResponse = {
+  cartReference?: string;
+  transferReportedAt?: string | null;
   id: string | number;
   publicReference?: string | null;
   paymentExpiresAt?: string | null;
@@ -163,6 +166,9 @@ export function normalizePayloadOrderResponse(
   }
   return {
     id: String(order.id),
+    ...(order.transferReportedAt
+      ? { transferReportedAt: order.transferReportedAt }
+      : {}),
     publicReference: order.publicReference,
     paymentExpiresAt: order.paymentExpiresAt ?? null,
     paymentMethod: order.paymentMethod ?? MERCADO_PAGO,
@@ -172,6 +178,85 @@ export function normalizePayloadOrderResponse(
       currencyCode: order.currency ?? "ARS",
     },
   };
+}
+
+export async function getGuestOrders(
+  cartReferences: string[],
+): Promise<CheckoutOrder[]> {
+  const references = parseGuestCartReferences(JSON.stringify(cartReferences));
+  if (!references.length) return [];
+  const orders: CheckoutOrder[] = [];
+  const latestByCart = new Map<string, string>();
+  let page = 1;
+  for (;;) {
+    const result = await payloadFetch<
+      PayloadOrderList & { hasNextPage?: boolean }
+    >({
+      path: collectionPath("orders"),
+      query: {
+        "where[cartReference][in]": references.join(","),
+        sort: "-createdAt",
+        depth: 0,
+        limit: 100,
+        page,
+      },
+    });
+    for (const doc of result.docs ?? []) {
+      const normalized = normalizePayloadOrderResponse(doc);
+      const newerReference = doc.cartReference
+        ? latestByCart.get(doc.cartReference)
+        : undefined;
+      if (doc.cartReference && !newerReference)
+        latestByCart.set(doc.cartReference, normalized.publicReference);
+      orders.push({
+        ...normalized,
+        ...(newerReference ? { newerReference } : {}),
+      });
+    }
+    if (!result.hasNextPage) return orders;
+    page++;
+  }
+}
+
+export async function reportGuestTransfer(
+  cartReferences: string[],
+  reference: string,
+): Promise<boolean> {
+  const references = parseGuestCartReferences(JSON.stringify(cartReferences));
+  if (!references.length) return false;
+  const owned = (await getGuestOrders(references)).find(
+    (order) => order.publicReference === reference,
+  );
+  if (
+    !owned ||
+    owned.paymentMethod !== BANK_TRANSFER ||
+    !["pending", "unverified"].includes(owned.paymentStatus)
+  )
+    return false;
+  if (owned.transferReportedAt) return true;
+  const result = await payloadFetch<{
+    docs?: PayloadOrderResponse[];
+    errors?: unknown[];
+  }>({
+    method: "PATCH",
+    path: collectionPath("orders"),
+    query: {
+      "where[and][0][publicReference][equals]": reference,
+      "where[and][1][cartReference][in]": references.join(","),
+      "where[and][2][transferReportedAt][exists]": false,
+    },
+    body: { transferReportedAt: new Date().toISOString() },
+  });
+  if (result.errors?.length)
+    throw new CommerceError("No se pudo guardar el aviso de transferencia.", {
+      status: 502,
+    });
+  if (result.docs?.some((order) => order.transferReportedAt)) return true;
+  return Boolean(
+    (await getGuestOrders(references)).find(
+      (order) => order.publicReference === reference,
+    )?.transferReportedAt,
+  );
 }
 
 export async function getCheckoutOrderByPublicReference(
@@ -230,6 +315,7 @@ export async function createCheckoutOrder(
     if (!existingOrder) break;
     const deadline = Date.parse(existingOrder.paymentExpiresAt ?? "");
     const canRetry =
+      !existingOrder.transferReportedAt &&
       options?.paymentMethod === BANK_TRANSFER &&
       (existingOrder.paymentStatus === "cancelled" ||
         existingOrder.paymentStatus === "rejected" ||

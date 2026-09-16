@@ -53,6 +53,13 @@ test("el mismo carrito renueva un intento vencido y reutiliza el nuevo intento",
       assert.equal(writes.length, 0);
     }
     expired.paymentStatus = "pending";
+    expired.transferReportedAt = "2000-01-01T00:00:00.000Z";
+    assert.equal(
+      (await createCheckoutOrder(cart, {}, options)).publicReference,
+      "old-reference",
+    );
+    assert.equal(writes.length, 0);
+    delete expired.transferReportedAt;
     const results = await Promise.all([
       createCheckoutOrder(
         cart,

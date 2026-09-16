@@ -15,6 +15,10 @@ type Props = {
   expiresAt: string | null;
   instructions: ReactNode;
   serverTime: number;
+  reference: string;
+  canReport: boolean;
+  reportedAt?: string | null;
+  newerReference?: string;
   children: ReactNode;
 };
 
@@ -23,11 +27,18 @@ export function TransferWaiting({
   expiresAt,
   instructions,
   serverTime,
+  reference,
+  canReport,
+  reportedAt,
+  newerReference,
   children,
 }: Props) {
   const t = useTranslations("checkout.transferWaiting");
   const locale = useLocale();
   const [alreadyTransferred, setAlreadyTransferred] = useState(false);
+  const [reporting, setReporting] = useState(false);
+  const [reportFailed, setReportFailed] = useState(false);
+  const hasReported = Boolean(reportedAt) || alreadyTransferred;
   const router = useRouter();
   const [now, setNow] = useState(serverTime);
   const [refreshing, startTransition] = useTransition();
@@ -82,36 +93,59 @@ export function TransferWaiting({
         </>
       ) : null}
       <dl className="border-border bg-card text-text-primary mx-auto w-full max-w-md space-y-3 rounded-2xl border px-5 py-4 text-left text-sm">
-        {state.canPay ? instructions : null}
+        {state.canPay && !hasReported && !newerReference ? instructions : null}
         {children}
       </dl>
+      {newerReference ? (
+        <p className="text-text-secondary" role="status">
+          {t("newerAttempt")}
+        </p>
+      ) : null}
       {state.status === "expired" ||
+      state.status === "pending" ||
+      state.status === "unverified" ||
       state.status === "rejected" ||
       state.status === "cancelled" ? (
         <div className="space-y-3">
-          {!alreadyTransferred ? (
+          {!hasReported &&
+          ["expired", "rejected", "cancelled"].includes(state.status) ? (
             <>
               <Body>{t("retryHint")}</Body>
               <Button href={localizePath(locale, "/cart")}>{t("retry")}</Button>
             </>
           ) : null}
-          {state.status === "expired" ? (
+          {canRefresh && canReport ? (
             <Button
               variant="secondary"
-              disabled={refreshing || alreadyTransferred}
-              onClick={() => {
-                setAlreadyTransferred(true);
-                startTransition(() => router.refresh());
+              disabled={refreshing || hasReported || reporting}
+              onClick={async () => {
+                setReporting(true);
+                setReportFailed(false);
+                try {
+                  const result = await fetch("/api/orders", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ reference }),
+                  });
+                  if (!result.ok) throw new Error();
+                  setAlreadyTransferred(true);
+                  startTransition(() => router.refresh());
+                } catch {
+                  setReportFailed(true);
+                } finally {
+                  setReporting(false);
+                }
               }}
             >
               {t("alreadyTransferred")}
             </Button>
           ) : null}
-          {alreadyTransferred ? (
+          {hasReported ? (
             <p className="text-text-secondary text-sm" role="status">
               {t("verificationHint")}
             </p>
           ) : null}
+          {reportFailed ? <p role="alert">{t("reportFailed")}</p> : null}
         </div>
       ) : null}
       {canRefresh ? (
@@ -123,6 +157,9 @@ export function TransferWaiting({
           {t(refreshing ? "checking" : "check")}
         </Button>
       ) : null}
+      <Button href={localizePath(locale, "/orders")} variant="ghost">
+        {t("myOrders")}
+      </Button>
     </div>
   );
 }

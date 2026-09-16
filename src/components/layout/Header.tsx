@@ -5,6 +5,8 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
+import { Package2 } from "lucide-react";
+import { Button } from "@/components/ui/Button";
 import {
   localizePath,
   mainNavigation,
@@ -38,14 +40,16 @@ export function Header({ className }: { className?: string }) {
     return () => window.removeEventListener("scroll", updateCompactState);
   }, []);
 
-  const items = mainNavigation.map((item) => {
-    return {
-      ...item,
-      href: resolveNavigationHref(item, locale),
-      isActive: isNavigationItemActive(item, locale, pathname),
-      label: t(item.labelKey),
-    };
-  });
+  const items = mainNavigation
+    .filter((item) => item.href !== "/orders")
+    .map((item) => {
+      return {
+        ...item,
+        href: resolveNavigationHref(item, locale),
+        isActive: isNavigationItemActive(item, locale, pathname),
+        label: t(item.labelKey),
+      };
+    });
 
   return (
     <>
@@ -126,6 +130,21 @@ export function Header({ className }: { className?: string }) {
               onClick={() => setSearchOpen(true)}
               className="text-text-black hover:bg-card-hover"
             />
+            <Button
+              href={localizePath(locale, "/orders")}
+              variant="ghost"
+              size="icon-sm"
+              aria-label={t("nav.orders")}
+              title={t("nav.orders")}
+              aria-current={
+                pathname === localizePath(locale, "/orders")
+                  ? "page"
+                  : undefined
+              }
+              className="text-text-black hover:bg-card-hover aria-[current=page]:bg-card-hover aria-[current=page]:text-text-highlight size-10 shrink-0"
+            >
+              <Package2 aria-hidden className="size-5" strokeWidth={2} />
+            </Button>
             <CartButton
               count={itemCount}
               onClick={openCart}

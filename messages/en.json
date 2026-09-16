@@ -119,6 +119,7 @@
     }
   },
   "nav": {
+    "orders": "My orders",
     "shop": "Shop",
     "stay": "Stay",
     "experiences": "Experiences",
@@ -306,6 +307,28 @@
     "securePayment": "Secure payment",
     "ethicallySourced": "Ethically sourced"
   },
+  "orders": {
+    "newer": "There is a newer attempt for this cart: {reference}. Review it before paying.",
+    "title": "My orders",
+    "browserHint": "Orders are remembered in this browser for 30 days, for up to 20 carts. If you clear cookies or change devices, you will need assistance recovering them. Email recovery is not available yet.",
+    "empty": "No orders are saved in this browser yet.",
+    "unavailable": "We could not load your orders. Please try again in a few minutes.",
+    "recover": "Find orders for the current cart",
+    "recoverFailed": "We could not find orders for this cart. If you used another browser, contact us with your reference.",
+    "loading": "Searching…",
+    "reference": "Reference: {reference}",
+    "deadline": "Deadline: {date}",
+    "view": "View order",
+    "states": {
+      "pending": "Awaiting payment",
+      "expired": "Deadline passed",
+      "approved": "Payment confirmed",
+      "rejected": "Payment rejected",
+      "cancelled": "Payment cancelled",
+      "unverified": "Awaiting verification",
+      "reported": "Transfer reported · awaiting verification"
+    }
+  },
   "checkout": {
     "eyebrow": "Checkout",
     "continueShopping": "Continue shopping",
@@ -340,6 +363,9 @@
       "expiresAt": "Pay before"
     },
     "transferWaiting": {
+      "myOrders": "My orders",
+      "newerAttempt": "There is a newer attempt for this cart. Open My orders to review it before paying.",
+      "reportFailed": "We could not save your report. Please try again from My orders.",
       "retry": "Try again",
       "retryHint": "If you have not paid yet, return to your cart to review products and details. Continuing will create a new order with a new reference and deadline.",
       "alreadyTransferred": "I already transferred",

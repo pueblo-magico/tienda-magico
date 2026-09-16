@@ -28,6 +28,8 @@ import { getProduct, getProducts } from "./products";
 import {
   createCheckoutOrder,
   getCheckoutOrderByPublicReference,
+  getGuestOrders,
+  reportGuestTransfer,
 } from "./orders";
 
 export class PayloadEcommerceProvider implements CommerceProvider {
@@ -108,6 +110,8 @@ export class PayloadEcommerceProvider implements CommerceProvider {
 
   createCheckoutOrder = createCheckoutOrder;
   getCheckoutOrderByPublicReference = getCheckoutOrderByPublicReference;
+  getGuestOrders = getGuestOrders;
+  reportGuestTransfer = reportGuestTransfer;
 }
 
 export const payloadEcommerceProvider = new PayloadEcommerceProvider();

@@ -7,6 +7,7 @@ export const routing = defineRouting({
   defaultLocale,
   localePrefix: "always",
   pathnames: {
+    "/orders": { en: "/orders", es: "/mis-pedidos" },
     "/shop": { en: "/shop", es: "/tienda" },
     "/shop/[handle]": { en: "/shop/[handle]", es: "/tienda/[handle]" },
     "/cart": { en: "/cart", es: "/carrito" },

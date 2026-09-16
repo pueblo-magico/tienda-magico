@@ -334,6 +334,10 @@ export interface Order {
   status?: OrderStatus;
   amount?: number | null;
   currency?: 'ARS' | null;
+  /**
+   * Does not confirm receipt of funds.
+   */
+  transferReportedAt?: string | null;
   checkoutKey?: string | null;
   cartReference?: string | null;
   publicReference: string;
@@ -4027,6 +4031,7 @@ export interface OrdersSelect<T extends boolean = true> {
   status?: T;
   amount?: T;
   currency?: T;
+  transferReportedAt?: T;
   checkoutKey?: T;
   cartReference?: T;
   publicReference?: T;

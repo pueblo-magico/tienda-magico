@@ -119,6 +119,7 @@
     }
   },
   "nav": {
+    "orders": "Mis pedidos",
     "shop": "Tienda",
     "stay": "Estadías",
     "experiences": "Experiencias",
@@ -306,6 +307,28 @@
     "securePayment": "Pago seguro",
     "ethicallySourced": "Origen ético"
   },
+  "orders": {
+    "newer": "Hay un intento más reciente para este carrito: {reference}. Revisalo antes de pagar.",
+    "title": "Mis pedidos",
+    "browserHint": "Mostramos los pedidos guardados en este navegador durante 30 días, hasta 20 carritos. Si borrás las cookies o cambiás de dispositivo, necesitarás asistencia para recuperarlos. La recuperación por email todavía no está disponible.",
+    "empty": "Todavía no hay pedidos guardados en este navegador.",
+    "unavailable": "No pudimos consultar tus pedidos. Volvé a intentar en unos minutos.",
+    "recover": "Buscar pedidos del carrito actual",
+    "recoverFailed": "No encontramos pedidos vinculados a este carrito. Si usaste otro navegador, contactanos con tu referencia.",
+    "loading": "Buscando…",
+    "reference": "Referencia: {reference}",
+    "deadline": "Vencimiento: {date}",
+    "view": "Ver pedido",
+    "states": {
+      "pending": "Pendiente de pago",
+      "expired": "Plazo vencido",
+      "approved": "Pago confirmado",
+      "rejected": "Pago rechazado",
+      "cancelled": "Pago cancelado",
+      "unverified": "Por verificar",
+      "reported": "Transferencia declarada · por verificar"
+    }
+  },
   "checkout": {
     "eyebrow": "Pago",
     "continueShopping": "Seguir comprando",
@@ -340,6 +363,9 @@
       "expiresAt": "Pagá antes de"
     },
     "transferWaiting": {
+      "myOrders": "Mis pedidos",
+      "newerAttempt": "Existe un intento más reciente para este carrito. Abrí Mis pedidos para revisarlo antes de pagar.",
+      "reportFailed": "No pudimos guardar tu aviso. Volvé a intentar desde Mis pedidos.",
       "retry": "Intentar de nuevo",
       "retryHint": "Si todavía no pagaste, volvé al carrito para revisar productos y datos. Al continuar se creará un nuevo pedido con otra referencia y plazo.",
       "alreadyTransferred": "Ya hice la transferencia",

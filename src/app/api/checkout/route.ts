@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { rememberGuestCart } from "@/lib/checkout/guest-orders";
 import { commerce } from "@/lib/commerce";
 import { checkout } from "@/lib/checkout";
 import { CheckoutConfigError, CheckoutError } from "@/types/checkout";
@@ -216,6 +217,8 @@ export async function POST(request: Request) {
       paymentMethod,
       paymentExpiresAt,
     });
+    if (order && commerce.provider.name === "payload")
+      await rememberGuestCart(cart.id);
     if (paymentMethod === BANK_TRANSFER) {
       if (!order) {
         throw new CommerceError(

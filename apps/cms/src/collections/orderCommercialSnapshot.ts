@@ -75,6 +75,18 @@ export const ordersCollectionOverride = ({
   fields: [
     ...defaultCollection.fields,
     {
+      name: 'transferReportedAt',
+      type: 'date',
+      label: { es: 'Transferencia declarada por el comprador', en: 'Transfer reported by buyer' },
+      admin: {
+        readOnly: true,
+        description: {
+          es: 'No confirma la recepción del dinero.',
+          en: 'Does not confirm receipt of funds.',
+        },
+      },
+    },
+    {
       name: 'checkoutKey',
       type: 'text',
       unique: true,

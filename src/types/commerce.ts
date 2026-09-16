@@ -209,6 +209,8 @@ export type CartLineMerchandise = {
 };
 
 export type CheckoutOrder = {
+  newerReference?: string;
+  transferReportedAt?: string | null;
   id: string;
   publicReference: string;
   paymentExpiresAt?: string | null;

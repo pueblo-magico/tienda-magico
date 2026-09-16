@@ -10,6 +10,7 @@ import { getCommerceSettings } from "@/lib/cms";
 import { BANK_TRANSFER } from "@/types/checkout";
 import { commerce, formatMoney } from "@/lib/commerce";
 import { TransferWaiting } from "@/features/checkout/TransferWaiting";
+import { guestCartReferences } from "@/lib/checkout/guest-orders";
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -43,6 +44,12 @@ export default async function CheckoutPendingPage({
       ? await commerce.getCheckoutOrderByPublicReference(orderReference)
       : null;
   const isBankTransfer = transferOrder?.paymentMethod === BANK_TRANSFER;
+  const ownedOrders = isBankTransfer
+    ? await commerce.getGuestOrders(await guestCartReferences())
+    : [];
+  const ownedOrder = ownedOrders.find(
+    (order) => order.publicReference === orderReference,
+  );
   const commerceSettings = isBankTransfer ? await getCommerceSettings() : null;
   const expiresAt = transferOrder?.paymentExpiresAt ?? null;
   const formattedExpiry = expiresAt
@@ -96,6 +103,10 @@ export default async function CheckoutPendingPage({
             paymentStatus={transferOrder.paymentStatus}
             expiresAt={expiresAt}
             serverTime={Date.now()}
+            reference={transferOrder.publicReference}
+            canReport={Boolean(ownedOrder)}
+            reportedAt={ownedOrder?.transferReportedAt}
+            newerReference={ownedOrder?.newerReference}
             instructions={
               <>
                 <div className="flex justify-between gap-4">

@@ -33,6 +33,12 @@ export const legalLinks = {
 export const mainNavigation: NavItem[] = [
   {
     kind: "internal",
+    href: "/orders",
+    labelKey: "nav.orders",
+    label: { en: "My orders", es: "Mis pedidos" },
+  },
+  {
+    kind: "internal",
     href: "/shop",
     labelKey: "nav.shop",
     label: { en: "Shop", es: "Tienda" },
@@ -87,6 +93,7 @@ export const defaultLocale: Locale = "es";
 
 const localizedSegments: Record<Locale, Record<string, string>> = {
   es: {
+    orders: "mis-pedidos",
     shop: "tienda",
     cart: "carrito",
     about: "nosotros",
@@ -95,6 +102,7 @@ const localizedSegments: Record<Locale, Record<string, string>> = {
     impact: "impacto",
   },
   en: {
+    orders: "orders",
     shop: "shop",
     cart: "cart",
     about: "about",
