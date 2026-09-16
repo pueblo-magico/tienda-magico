@@ -52,7 +52,7 @@ export async function loadShopCatalog(
   try {
     const [products, collectionsPage, siteSettings] = await Promise.all([
       commerce.getProducts(toCommerceProductsParams(query, locale)),
-      commerce.getCollections({ first: 24, locale }),
+      commerce.getCollections({ first: 100, locale }),
       siteSettingsPromise,
     ]);
 

@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils/cn";
 
 type SearchFormProps = {
   initialQuery?: string;
+  categoryPath?: string[];
   autoFocus?: boolean;
   className?: string;
   onSubmitted?: () => void;
@@ -16,6 +17,7 @@ type SearchFormProps = {
 
 export function SearchForm({
   initialQuery = "",
+  categoryPath = [],
   autoFocus = false,
   className,
   onSubmitted,
@@ -41,7 +43,10 @@ export function SearchForm({
         if (!searchQuery) return;
         const params = new URLSearchParams({ q: searchQuery });
         onSubmitted?.();
-        router.push(localizePath(locale, `/shop?${params.toString()}`));
+        const pathname = categoryPath.length
+          ? `/shop/categories/${categoryPath.map(encodeURIComponent).join("/")}`
+          : "/shop";
+        router.push(localizePath(locale, `${pathname}?${params.toString()}`));
       }}
     >
       <Search
@@ -68,7 +73,10 @@ export function SearchForm({
           onClick={() => {
             setQuery("");
             onSubmitted?.();
-            router.push(localizePath(locale, "/shop"));
+            const pathname = categoryPath.length
+              ? `/shop/categories/${categoryPath.map(encodeURIComponent).join("/")}`
+              : "/shop";
+            router.push(localizePath(locale, pathname));
           }}
         >
           <X aria-hidden className="size-4" strokeWidth={2} />

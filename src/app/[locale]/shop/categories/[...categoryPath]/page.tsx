@@ -1,65 +1,69 @@
 import type { Metadata } from "next";
-import { permanentRedirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { ShopPage, buildShopHref, parseShopQuery } from "@/features/shop";
-import { buildCategoryPath } from "@/features/shop/category-hierarchy";
+import { localizePath } from "@/config/navigation";
+import { ShopPage, parseShopQuery } from "@/features/shop";
+import { resolveCategoryPath } from "@/features/shop/category-hierarchy";
 import { commerce } from "@/lib/commerce";
 
 type Props = {
-  params: Promise<{ locale: string }>;
+  params: Promise<{ locale: string; categoryPath: string[] }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
+async function loadCategoryTrail(locale: string, categoryPath: string[]) {
+  if (!commerce.isConfigured()) return [];
+  const collections = await commerce.getCollections({ first: 100, locale });
+  return resolveCategoryPath(collections.items, categoryPath);
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: "shop" });
+  const { locale, categoryPath } = await params;
+  const trail = await loadCategoryTrail(locale, categoryPath);
+  const category = trail?.at(-1);
+  if (!category) return {};
+
   return {
-    title: t("title"),
-    description: t("subtitle"),
+    title: category.title,
+    description: category.description || undefined,
+    alternates: {
+      canonical: localizePath(
+        locale,
+        `/shop/categories/${categoryPath.join("/")}`,
+      ),
+      languages: {
+        es: localizePath("es", `/shop/categories/${categoryPath.join("/")}`),
+        en: localizePath("en", `/shop/categories/${categoryPath.join("/")}`),
+      },
+    },
+    openGraph: {
+      title: category.title,
+      description: category.description || undefined,
+      images: category.image?.url ? [{ url: category.image.url }] : undefined,
+    },
   };
 }
 
-export default async function ShopRoutePage({ params, searchParams }: Props) {
-  const { locale } = await params;
+export default async function CategoryShopRoutePage({
+  params,
+  searchParams,
+}: Props) {
+  const { locale, categoryPath } = await params;
   const raw = await searchParams;
   setRequestLocale(locale);
+
+  const trail = await loadCategoryTrail(locale, categoryPath);
+  if (commerce.isConfigured() && !trail) notFound();
 
   const [t, tProduct] = await Promise.all([
     getTranslations("shop"),
     getTranslations("product"),
   ]);
-  const query = parseShopQuery(raw);
-
-  if (query.collection && commerce.isConfigured()) {
-    const collections = await commerce.getCollections({ first: 100, locale });
-    const root = collections.items.find(
-      (category) => category.handle === query.collection,
-    );
-    if (root) {
-      const selectedCategory =
-        query.categories.length === 1
-          ? collections.items.find(
-              (category) =>
-                category.handle === query.categories[0] &&
-                buildCategoryPath(category)[0] === root.handle,
-            )
-          : null;
-      permanentRedirect(
-        buildShopHref(locale, {
-          ...query,
-          collection: selectedCategory?.handle ?? root.handle,
-          categoryPath: buildCategoryPath(selectedCategory ?? root),
-          categories: selectedCategory ? [] : query.categories,
-          after: "",
-        }),
-      );
-    }
-  }
 
   return (
     <ShopPage
       locale={locale}
-      query={query}
+      query={parseShopQuery(raw, categoryPath)}
       labels={{
         eyebrow: t("eyebrow"),
         title: t("title"),
