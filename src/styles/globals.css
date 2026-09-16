@@ -11,6 +11,9 @@
   --color-text-secondary: var(--text-secondary);
   --color-text-highlight: var(--text-highlight);
   --color-text-accent: var(--text-accent);
+  --color-terracotta: var(--terracotta);
+  --color-terracotta-hover: var(--terracotta-hover);
+  --color-terracotta-active: var(--terracotta-active);
   --color-forest: var(--forest);
   --color-forest-hover: var(--forest-hover);
   --color-forest-active: var(--forest-active);

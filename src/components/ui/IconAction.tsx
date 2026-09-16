@@ -25,7 +25,7 @@ export function IconAction({
           icon
         )}
       </span>
-      <span>{children}</span>
+      <span aria-busy={loading || undefined}>{children}</span>
     </Button>
   );
 }

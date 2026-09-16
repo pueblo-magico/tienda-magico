@@ -70,7 +70,7 @@ export function OrderList({
                           <Package2 className="size-10" strokeWidth={1.5} />
                         </div>
                         <div className="min-w-0 flex-1 space-y-2">
-                          <CardTitle className="inline-flex gap-2 items-center">{t(`states.${state}`)} <Circle aria-hidden strokeWidth={0} className="size-4" fill={state === "approved" ? "var(--text-secondary)" : state === "rejected" ? "red" : "var(--text-highlight)"} /> </CardTitle>
+                          <CardTitle className="inline-flex gap-2 items-center">{t(`states.${state}`)} <Circle aria-hidden strokeWidth={0} className="size-3" fill={state === "approved" ? "var(--text-secondary)" : state === "pending" ? "var(--text-highlight)" : "var(--terracotta)"} /> </CardTitle>
                           <div className="text-text-primary flex items-center gap-1 text-xs">
                             <span className="break-all">
                               {t("reference", {
