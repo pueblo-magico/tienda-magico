@@ -6,6 +6,9 @@ import { useLocale, useTranslations } from "next-intl";
 import { localizePath } from "@/config/navigation";
 import { Body, PageTitle } from "@/components/typography";
 import { Button } from "@/components/ui/Button";
+import { IconAction } from "@/components/ui/IconAction";
+import { Card, CardContent } from "@/components/ui/Card";
+import { ArrowRight, ClipboardList, Package2, Sprout } from "lucide-react";
 import { getTransferWaitingState } from "@/lib/checkout/transfer-waiting";
 import type { CheckoutOrder } from "@/types/commerce";
 import { startTransferPolling } from "./transfer-polling";
@@ -73,7 +76,7 @@ export function TransferWaiting({
   return (
     <div className="space-y-6">
       <div className="space-y-4" role="status" aria-live="polite">
-        <PageTitle as="h1" className="text-4xl sm:text-5xl">
+        <PageTitle as="h1">
           {t.rich(`${state.status}.title`, {
             highlight: (chunks) => (
               <span className="text-text-highlight">{chunks}</span>
@@ -92,10 +95,16 @@ export function TransferWaiting({
           </p>
         </>
       ) : null}
-      <dl className="border-border bg-card text-text-primary mx-auto w-full max-w-md space-y-3 rounded-2xl border px-5 py-4 text-left text-sm">
-        {state.canPay && !hasReported && !newerReference ? instructions : null}
-        {children}
-      </dl>
+      <Card>
+        <CardContent>
+          <dl className="text-text-primary space-y-3 text-left text-sm">
+            {state.canPay && !hasReported && !newerReference
+              ? instructions
+              : null}
+            {children}
+          </dl>
+        </CardContent>
+      </Card>
       {newerReference ? (
         <p className="text-text-secondary" role="status">
           {t("newerAttempt")}
@@ -110,13 +119,24 @@ export function TransferWaiting({
           {!hasReported &&
           ["expired", "rejected", "cancelled"].includes(state.status) ? (
             <>
-              <Body>{t("retryHint")}</Body>
-              <Button href={localizePath(locale, "/cart")}>{t("retry")}</Button>
+              <div className="bg-warm flex items-center gap-4 rounded-xl p-5">
+                <Sprout
+                  aria-hidden
+                  className="text-text-accent size-8 shrink-0"
+                  strokeWidth={1.5}
+                />
+                <Body size="sm">{t("retryHint")}</Body>
+              </div>
+              <Button className="w-full" href={localizePath(locale, "/cart")}>
+                {t("retry")}
+                <ArrowRight aria-hidden className="size-5" strokeWidth={2} />
+              </Button>
             </>
           ) : null}
           {canRefresh && canReport ? (
             <Button
               variant="secondary"
+              className="w-full"
               disabled={refreshing || hasReported || reporting}
               onClick={async () => {
                 setReporting(true);
@@ -148,18 +168,24 @@ export function TransferWaiting({
           {reportFailed ? <p role="alert">{t("reportFailed")}</p> : null}
         </div>
       ) : null}
-      {canRefresh ? (
-        <Button
-          variant="secondary"
-          disabled={refreshing}
-          onClick={() => startTransition(() => router.refresh())}
+      <div className="border-border flex flex-wrap items-center justify-center gap-4 border-t pt-6">
+        {canRefresh ? (
+          <IconAction
+            icon={<ClipboardList className="size-6" strokeWidth={1.5} />}
+            loading={refreshing}
+            disabled={refreshing}
+            onClick={() => startTransition(() => router.refresh())}
+          >
+            {t("check")}
+          </IconAction>
+        ) : null}
+        <IconAction
+          href={localizePath(locale, "/orders")}
+          icon={<Package2 className="size-6" strokeWidth={1.5} />}
         >
-          {t(refreshing ? "checking" : "check")}
-        </Button>
-      ) : null}
-      <Button href={localizePath(locale, "/orders")} variant="ghost">
-        {t("myOrders")}
-      </Button>
+          {t("myOrders")}
+        </IconAction>
+      </div>
     </div>
   );
 }

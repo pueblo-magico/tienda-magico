@@ -27,6 +27,7 @@ export function createBankTransferSession({
   const query = new URLSearchParams({
     payment_method: BANK_TRANSFER,
     order: orderId,
+    from: "cart",
   });
 
   return {

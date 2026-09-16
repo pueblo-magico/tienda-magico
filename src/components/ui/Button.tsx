@@ -6,7 +6,7 @@ import type {
 } from "react";
 import { cn } from "@/lib/utils/cn";
 
-type ButtonVariant = "primary" | "secondary" | "ghost" | "link";
+type ButtonVariant = "primary" | "secondary" | "ghost" | "link" | "icon-label";
 type ButtonSize = "sm" | "md" | "lg" | "icon-sm";
 type ButtonShape = "pill" | "rounded";
 
@@ -31,6 +31,8 @@ type ButtonAsLink = CommonProps &
 export type ButtonProps = ButtonAsButton | ButtonAsLink;
 
 const variantClasses: Record<ButtonVariant, string> = {
+  "icon-label":
+    "group flex-col bg-transparent px-4 py-2 text-sm font-light text-text-black hover:text-text-secondary active:text-brand-active",
   primary:
     "bg-brand text-brand-foreground hover:bg-brand-hover active:bg-brand-active border border-transparent",
   secondary:
@@ -53,7 +55,7 @@ const shapeClasses: Record<ButtonShape, string> = {
 };
 
 const baseClasses =
-  "inline-flex items-center justify-center gap-2 font-bold uppercase transition-colors duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50";
+  "inline-flex items-center justify-center gap-2 transition-colors duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50";
 
 export function Button({
   children,
@@ -65,9 +67,11 @@ export function Button({
 }: ButtonProps) {
   const classes = cn(
     baseClasses,
+    variant !== "icon-label" && "font-bold uppercase",
     variant !== "link" && shapeClasses[shape],
     variantClasses[variant],
-    variant === "link" ? "text-sm tracking-[0.08em]" : sizeClasses[size],
+    variant !== "icon-label" &&
+      (variant === "link" ? "text-sm tracking-[0.08em]" : sizeClasses[size]),
     className,
   );
 

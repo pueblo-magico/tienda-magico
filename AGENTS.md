@@ -80,6 +80,9 @@ Do not introduce imports in the opposite direction. If two features need the sam
 
 ### Design system and single sources of truth
 
+- Antes de crear o rediseñar una vista (incluidas tarjetas de pedidos y resúmenes), revisá los componentes y ejemplos de `/ui-system`. Reutilizá el componente canónico; si falta una capacidad, extendelo y documentá el nuevo estado o variante allí en el mismo cambio. No construyas tarjetas o controles equivalentes directamente en páginas.
+- Para primitivas nuevas, adoptá shadcn/ui y adaptá su composición a los tokens, tipografía y accesibilidad del proyecto. La migración es incremental: migrá los consumidores dentro del alcance del trabajo, sin reemplazos masivos ni una segunda implementación paralela del mismo control. Los componentes de dominio deben componer estas primitivas, no duplicarlas.
+
 Treat the existing design system as application architecture, not optional styling guidance. A visual or interaction pattern must have one authoritative definition and all consumers must reuse it.
 
 - `src/styles/tokens.css` is the source of truth for brand colors, semantic colors, radii, shared dimensions, and other global CSS values. Do not redefine those values in components, feature styles, route styles, or configuration files.

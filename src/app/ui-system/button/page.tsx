@@ -1,4 +1,6 @@
 import { Button } from "@/components/ui/Button";
+import { IconAction } from "@/components/ui/IconAction";
+import { ClipboardList, Package2 } from "lucide-react";
 import { DocsPageHeader } from "@/components/ui-system/DocsPageHeader";
 import { DocsSection } from "@/components/ui-system/DocsSection";
 import { ShoppingCart } from "lucide-react";
@@ -30,6 +32,28 @@ export default function ButtonPage() {
         <Button size="icon-sm" shape="rounded" aria-label="Quick add to cart">
           <ShoppingCart aria-hidden className="size-4" strokeWidth={2} />
         </Button>
+      </DocsSection>
+      <DocsSection title="IconAction · ícono circular con etiqueta">
+        <div className="border-border flex w-full flex-wrap justify-center gap-8 border-t pt-6">
+          <IconAction
+            icon={<ClipboardList className="size-6" strokeWidth={1.5} />}
+          >
+            Consultar estado
+          </IconAction>
+          <IconAction
+            href="/es/mis-pedidos"
+            icon={<Package2 className="size-6" strokeWidth={1.5} />}
+          >
+            Mis pedidos
+          </IconAction>
+          <IconAction
+            disabled
+            loading
+            icon={<ClipboardList className="size-6" strokeWidth={1.5} />}
+          >
+            Consultar estado
+          </IconAction>
+        </div>
       </DocsSection>
 
       <DocsSection title="States">

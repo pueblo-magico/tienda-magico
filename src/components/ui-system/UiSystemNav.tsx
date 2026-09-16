@@ -53,6 +53,7 @@ const groups = [
   {
     title: "Cards",
     items: [
+      { href: "/ui-system/card", label: "Card (shadcn/ui)" },
       { href: "/ui-system/product-card", label: "ProductCard" },
       { href: "/ui-system/article-card", label: "ArticleCard" },
       { href: "/ui-system/impact-card", label: "ImpactCard" },

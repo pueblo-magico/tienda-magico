@@ -5,7 +5,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { Package2 } from "lucide-react";
+import { Package, PackageOpen } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import {
   localizePath,
@@ -143,7 +143,11 @@ export function Header({ className }: { className?: string }) {
               }
               className="text-text-black hover:bg-card-hover aria-[current=page]:bg-card-hover aria-[current=page]:text-text-highlight size-10 shrink-0"
             >
-              <Package2 aria-hidden className="size-5" strokeWidth={2} />
+              {pathname === localizePath(locale, "/orders") ? (
+                <PackageOpen aria-hidden className="size-5" strokeWidth={2} />
+              ) : (
+                <Package aria-hidden className="size-5" strokeWidth={2} />
+              )}
             </Button>
             <CartButton
               count={itemCount}

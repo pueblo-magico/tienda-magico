@@ -199,7 +199,7 @@ test("crea una sesión pendiente de transferencia con vencimiento y referencia",
     id: "transfer:42",
     provider: BANK_TRANSFER,
     redirectUrl:
-      "https://tienda.example/es/checkout/pending?payment_method=bank-transfer&order=42",
+      "https://tienda.example/es/checkout/pending?payment_method=bank-transfer&order=42&from=cart",
     status: "pending",
     expiresAt: "2026-09-15T12:15:00.000Z",
   });
