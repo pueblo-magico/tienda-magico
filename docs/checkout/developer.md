@@ -231,7 +231,7 @@ Bank transfer is an internal pending-payment flow rather than an external checko
 5. The order and local sale persist the payment method and payment deadline.
 6. The storefront redirects with only the public order reference. The pending page loads the exact amount, deadline, payment method, and status from the persisted order before showing the CMS-managed account instructions.
 
-Creating the pending order does not confirm payment, reserve stock, or reduce stock. Payment verification and expiry processing remain separate milestones.
+Crear el pedido pendiente no confirma el pago, reserva ni reduce stock. La [confirmación manual de transferencias](manual-transfer-confirmation.md) permite a un administrador verificar recepción, revalidar catálogo/stock y confirmar atómicamente el pedido y su venta local. La conciliación automática y el procesamiento persistente del vencimiento siguen pendientes.
 
 Los reintentos de transferencia conservan el pedido anterior. Si el intento está vencido, rechazado o cancelado, el checkout deriva la siguiente clave idempotente de su ID interno y crea otro pedido con el carrito actual. La restricción única existente sobre `checkoutKey` resuelve solicitudes simultáneas; las repeticiones reutilizan el nuevo intento activo. Los estados aprobados o sin verificar no habilitan esta renovación. «Ya hice la transferencia» solo consulta el estado original. No se extienden plazos anteriores ni se procesan pagos tardíos automáticamente.
 

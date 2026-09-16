@@ -334,6 +334,16 @@ export interface Order {
   status?: OrderStatus;
   amount?: number | null;
   currency?: 'ARS' | null;
+  transferBankReference?: string | null;
+  transferVerification?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   /**
    * Does not confirm receipt of funds.
    */
@@ -4031,6 +4041,8 @@ export interface OrdersSelect<T extends boolean = true> {
   status?: T;
   amount?: T;
   currency?: T;
+  transferBankReference?: T;
+  transferVerification?: T;
   transferReportedAt?: T;
   checkoutKey?: T;
   cartReference?: T;

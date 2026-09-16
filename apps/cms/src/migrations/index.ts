@@ -27,6 +27,8 @@ import * as migration_20260915_120000_payment_method_transfer from './20260915_1
 import * as migration_20260915_150000_pending_transfer_orders from './20260915_150000_pending_transfer_orders';
 import * as migration_20260915_160000_order_public_reference from './20260915_160000_order_public_reference';
 
+import * as migration_20260917_100000_transfer_verification from './20260917_100000_transfer_verification';
+
 export const migrations = [
   {
     up: migration_20260825_001134_initial_schema.up,
@@ -167,5 +169,10 @@ export const migrations = [
     up: migration_20260916_100000_transfer_reported.up,
     down: migration_20260916_100000_transfer_reported.down,
     name: '20260916_100000_transfer_reported',
+  },
+  {
+    up: migration_20260917_100000_transfer_verification.up,
+    down: migration_20260917_100000_transfer_verification.down,
+    name: '20260917_100000_transfer_verification',
   },
 ];

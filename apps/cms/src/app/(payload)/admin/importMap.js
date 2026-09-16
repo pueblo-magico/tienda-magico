@@ -29,6 +29,7 @@ import { PriceCell as PriceCell_e27bf7b8cc50640dcdd584767b8eac3c } from '@payloa
 import { PriceInput as PriceInput_b91672ccd6e8b071c11142ab941fedfb } from '@payloadcms/plugin-ecommerce/rsc'
 import { default as default_877d7a52e86e775156f872750e2a9e89 } from '@/components/StableSKUField'
 import { default as default_49f71f6595bb3686e63393626f558d8f } from '@/components/DocumentLocaleSwitcher'
+import { default as default_4b66790fcd70e03821cf0f9aeaa7cb1f } from '@/components/ConfirmTransfer'
 import { default as default_4b59caa6cbd4315a7830cc8c5bf86d07 } from '@/components/CmsVisibilityRoleHeader'
 import { default as default_24780a6d18cc356188af0a675d10ee63 } from '@/components/CmsVisibilityRoleField'
 import { default as default_1b07acd750ce33c3a69608732c5a3a19 } from '@/components/ConfigurableNav'
@@ -67,6 +68,7 @@ export const importMap = {
   "@payloadcms/plugin-ecommerce/rsc#PriceInput": PriceInput_b91672ccd6e8b071c11142ab941fedfb,
   "@/components/StableSKUField#default": default_877d7a52e86e775156f872750e2a9e89,
   "@/components/DocumentLocaleSwitcher#default": default_49f71f6595bb3686e63393626f558d8f,
+  "@/components/ConfirmTransfer#default": default_4b66790fcd70e03821cf0f9aeaa7cb1f,
   "@/components/CmsVisibilityRoleHeader#default": default_4b59caa6cbd4315a7830cc8c5bf86d07,
   "@/components/CmsVisibilityRoleField#default": default_24780a6d18cc356188af0a675d10ee63,
   "@/components/ConfigurableNav#default": default_1b07acd750ce33c3a69608732c5a3a19,

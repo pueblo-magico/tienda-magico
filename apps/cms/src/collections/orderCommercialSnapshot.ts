@@ -1,5 +1,7 @@
 import type { CollectionConfig } from 'payload'
 import { randomUUID } from 'node:crypto'
+import { confirmTransferEndpoint, protectTransfer } from '../utilities/confirmTransfer'
+import { lockTransferWrite, protectTransferDeletion } from '../utilities/transferWriteLock'
 
 const immutableAfterCreation = { update: () => false }
 
@@ -9,8 +11,12 @@ export const ordersCollectionOverride = ({
   defaultCollection: CollectionConfig
 }): CollectionConfig => ({
   ...defaultCollection,
+  endpoints: [...(defaultCollection.endpoints || []), confirmTransferEndpoint],
   hooks: {
     ...defaultCollection.hooks,
+    beforeOperation: [lockTransferWrite, ...(defaultCollection.hooks?.beforeOperation ?? [])],
+    beforeDelete: [protectTransferDeletion, ...(defaultCollection.hooks?.beforeDelete ?? [])],
+    beforeChange: [...(defaultCollection.hooks?.beforeChange ?? []), protectTransfer],
     beforeValidate: [
       ...(defaultCollection.hooks?.beforeValidate ?? []),
       ({ data, operation }) => {
@@ -74,6 +80,38 @@ export const ordersCollectionOverride = ({
   },
   fields: [
     ...defaultCollection.fields,
+    {
+      name: 'confirmTransfer',
+      type: 'ui',
+      admin: {
+        condition: (data) => data.paymentMethod === 'bank-transfer',
+        components: { Field: '@/components/ConfirmTransfer' },
+      },
+    },
+    {
+      name: 'transferBankReference',
+      type: 'text',
+      unique: true,
+      index: true,
+      label: { es: 'Referencia bancaria verificada', en: 'Verified bank reference' },
+      access: {
+        create: () => false,
+        update: () => false,
+        read: ({ req }) => Boolean(req.user?.roles?.includes('admin')),
+      },
+      admin: { readOnly: true },
+    },
+    {
+      name: 'transferVerification',
+      type: 'json',
+      label: { es: 'Auditoría de verificación', en: 'Verification audit' },
+      access: {
+        create: () => false,
+        update: () => false,
+        read: ({ req }) => Boolean(req.user?.roles?.includes('admin')),
+      },
+      admin: { readOnly: true },
+    },
     {
       name: 'transferReportedAt',
       type: 'date',

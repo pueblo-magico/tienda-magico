@@ -1,4 +1,6 @@
 import type { CollectionConfig, PayloadRequest } from 'payload'
+import { protectLocalTransfer } from '../utilities/confirmTransfer'
+import { lockTransferWrite, protectTransferDeletion } from '../utilities/transferWriteLock'
 
 const operationalRoles = new Set(['admin', 'manager', 'staff', 'finance'])
 const immutableAfterCreation = { update: () => false }
@@ -14,6 +16,11 @@ function isAdministrator(req: PayloadRequest): boolean {
 
 export const LocalSales: CollectionConfig = {
   slug: 'localSales',
+  hooks: {
+    beforeOperation: [lockTransferWrite],
+    beforeChange: [protectLocalTransfer],
+    beforeDelete: [protectTransferDeletion],
+  },
   labels: {
     singular: { es: 'Venta local', en: 'Local sale' },
     plural: { es: 'Ventas locales', en: 'Local sales' },
