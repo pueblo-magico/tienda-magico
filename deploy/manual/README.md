@@ -228,7 +228,7 @@ will fail until a valid token is supplied.
 
 When deployment runs through GitHub Actions, the workflow derives the Payload
 commerce connection from `SHOP_URL` and `CMS_URL`. The staging Environment also
-manages `CHECKOUT_PROVIDER`, `MERCADOPAGO_ACCESS_TOKEN`,
+manages `CHECKOUT_PROVIDER`, `MERCADOPAGO_ACCESS_TOKEN`, `MERCADOPAGO_WEBHOOK_SECRET`,
 `MERCADOPAGO_SANDBOX`, and `MERCADOPAGO_WEBHOOK_URL`. The workflow updates only
 those managed keys and preserves the remaining values in `storefront.env`.
 Manual artifact deployments continue to use the values configured directly in

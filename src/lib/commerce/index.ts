@@ -63,3 +63,4 @@ export const commerce = {
     ...args: Parameters<CommerceProvider["getCheckoutOrderByPublicReference"]>
   ) => getCommerceProvider().getCheckoutOrderByPublicReference(...args),
 };
+export { recordPaymentNotification } from "./providers/payload-ecommerce/payment-notifications";

@@ -53,7 +53,7 @@ Cart UI / /[locale]/checkout
 | `src/lib/checkout/providers/commerce-redirect/*`      | Shopify / external `checkoutUrl`                       |
 | `src/features/checkout/*`                             | Client `createCheckoutSession`, `CheckoutStart`        |
 | `src/app/api/checkout/route.ts`                       | `GET` status / `POST` create session                   |
-| `src/app/api/checkout/webhooks/mercado-pago/route.ts` | IPN / webhook stub                                     |
+| `src/app/api/checkout/webhooks/mercado-pago/route.ts` | Recepción firmada y bandeja privada de notificaciones |
 | `src/app/[locale]/checkout/**`                        | Entry + success / failure / pending pages              |
 
 ---
@@ -265,12 +265,7 @@ Payload default `Cart.checkoutUrl` is `{SITE}/checkout?cart={id::secret}`, rewri
 
 `POST /api/checkout/webhooks/mercado-pago` (also accepts GET pings).
 
-Current behavior:
-
-- Parses JSON body, form body, or query (`topic` / `id` / `data.id`)
-- Optionally loads payment via `checkout.getPayment`
-- Always responds `200` with a small JSON ack (avoids aggressive MP retries in dev)
-- **Does not** yet mark orders fulfilled in Payload — extend here later
+Valida la firma y consulta el recurso de Payments antes de persistir una observación privada en el CMS. Solo reconoce recepción después de guardar o verificar un duplicado idéntico. Requiere `MERCADOPAGO_WEBHOOK_SECRET` y una credencial administrativa del CMS. No acepta IPN sin firma ni confirma pedidos automáticamente. Consultá [configuración, límites y pruebas](mercado-pago-notifications.md).
 
 For production notifications, set a **public HTTPS** `MERCADOPAGO_WEBHOOK_URL` (or rely on `{SITE}/api/checkout/webhooks/mercado-pago` when `NEXT_PUBLIC_SITE_URL` is public HTTPS).
 

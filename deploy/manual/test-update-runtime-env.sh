@@ -22,6 +22,7 @@ cat > "$target" <<'EOF'
 NODE_ENV=production
 CHECKOUT_PROVIDER=commerce-redirect
 MERCADOPAGO_ACCESS_TOKEN=old-token
+MERCADOPAGO_WEBHOOK_SECRET=old-test-secret
 UNMANAGED_SECRET=keep-me
 EOF
 
@@ -34,6 +35,7 @@ PAYLOAD_CMS_URL=https://cms.staging.example
 NEXT_PUBLIC_SITE_URL=https://shop.staging.example
 CHECKOUT_PROVIDER=mercado-pago
 MERCADOPAGO_ACCESS_TOKEN=new-token
+MERCADOPAGO_WEBHOOK_SECRET=new-test-secret
 MERCADOPAGO_SANDBOX=true
 MERCADOPAGO_WEBHOOK_URL=https://shop.staging.example/api/checkout/webhooks/mercado-pago
 EOF
@@ -49,6 +51,7 @@ assert_line "$target" 'PAYLOAD_CMS_URL=https://cms.staging.example'
 assert_line "$target" 'NEXT_PUBLIC_SITE_URL=https://shop.staging.example'
 assert_line "$target" 'CHECKOUT_PROVIDER=mercado-pago'
 assert_line "$target" 'MERCADOPAGO_ACCESS_TOKEN=new-token'
+assert_line "$target" 'MERCADOPAGO_WEBHOOK_SECRET=new-test-secret'
 assert_line "$target" 'MERCADOPAGO_SANDBOX=true'
 assert_line "$target" 'MERCADOPAGO_WEBHOOK_URL=https://shop.staging.example/api/checkout/webhooks/mercado-pago'
 assert_line "$target" 'UNMANAGED_SECRET=keep-me'

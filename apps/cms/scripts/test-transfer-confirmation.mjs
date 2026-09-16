@@ -430,12 +430,82 @@ try {
   })
   assert.equal((await confirm(variantOrder)).status, 200)
   assert.equal((await payload.findByID({ collection: 'variants', id: variant.id })).inventory, 0)
+  const notification = {
+    idempotencyKey: 'a'.repeat(64),
+    resourceId: '123456',
+    paymentStatus: 'approved',
+    amount: 10000,
+    currency: 'ARS',
+    publicReference: variantOrder.publicReference,
+    liveMode: false,
+    providerUpdatedAt: '2026-09-16T12:00:00.000Z',
+  }
+  for (const actor of [undefined, customer]) {
+    await assert.rejects(
+      payload.create({
+        collection: 'payment-notifications',
+        data: notification,
+        user: actor,
+        overrideAccess: false,
+      }),
+    )
+    await assert.rejects(
+      payload.find({ collection: 'payment-notifications', user: actor, overrideAccess: false }),
+    )
+  }
+  const writes = await Promise.allSettled(
+    [0, 1].map(() =>
+      payload.create({
+        collection: 'payment-notifications',
+        data: notification,
+        user,
+        overrideAccess: false,
+      }),
+    ),
+  )
+  assert.equal(writes.filter((result) => result.status === 'fulfilled').length, 1)
+  const notifications = await payload.find({
+    collection: 'payment-notifications',
+    user,
+    overrideAccess: false,
+  })
+  assert.equal(notifications.totalDocs, 1)
+  assert.equal(notifications.docs[0].amount, 10000)
+  await assert.rejects(
+    payload.update({
+      collection: 'payment-notifications',
+      id: notifications.docs[0].id,
+      data: { paymentStatus: 'pending' },
+      user,
+      overrideAccess: false,
+    }),
+  )
+  await assert.rejects(
+    payload.delete({
+      collection: 'payment-notifications',
+      id: notifications.docs[0].id,
+      user,
+      overrideAccess: false,
+    }),
+  )
+  assert.equal(
+    (await payload.findByID({ collection: 'orders', id: mismatchedSaleOrder.id })).paymentStatus,
+    'pending',
+  )
+  const inboxMigration = migrations.at(-1)
+  await payload.db.drizzle.transaction((db) => inboxMigration.down({ db, payload, req: {} }))
+  await payload.db.drizzle.transaction((db) => inboxMigration.up({ db, payload, req: {} }))
+  console.log(
+    'PASS: bandeja privada, deduplicación concurrente, registros inmutables y migración reversible',
+  )
   await payload.update({ collection: 'users', id: user.id, data: { roles: ['customer'] } })
   assert.equal((await confirm(variantOrder)).status, 403)
   console.log(
     'PASS: privacidad, declaración concurrente, rollback de vínculo local, variante y rol revocado',
   )
-  const lastMigration = migrations.at(-1)
+  const lastMigration = migrations.find(
+    (migration) => migration.name === '20260917_100000_transfer_verification',
+  )
   await payload.db.drizzle.transaction((db) => lastMigration.down({ db, payload, req: {} }))
   const persisted = await payload.db.pool.query('SELECT payment_status FROM orders WHERE id = $1', [
     firstOrder.id,

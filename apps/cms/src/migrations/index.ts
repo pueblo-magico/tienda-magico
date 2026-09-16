@@ -1,3 +1,4 @@
+import * as migration_20260917_110000_payment_notifications from './20260917_110000_payment_notifications';
 import * as migration_20260916_100000_transfer_reported from './20260916_100000_transfer_reported';
 import * as migration_20260825_001134_initial_schema from './20260825_001134_initial_schema';
 import * as migration_20260825_020000_spanish_ars_defaults from './20260825_020000_spanish_ars_defaults';
@@ -174,5 +175,10 @@ export const migrations = [
     up: migration_20260917_100000_transfer_verification.up,
     down: migration_20260917_100000_transfer_verification.down,
     name: '20260917_100000_transfer_verification',
+  },
+  {
+    up: migration_20260917_110000_payment_notifications.up,
+    down: migration_20260917_110000_payment_notifications.down,
+    name: '20260917_110000_payment_notifications',
   },
 ];

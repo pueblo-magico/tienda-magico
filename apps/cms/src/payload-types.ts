@@ -75,6 +75,7 @@ export interface Config {
     users: User;
     media: Media;
     localSales: LocalSale;
+    'payment-notifications': PaymentNotification;
     pages: Page;
     posts: Post;
     testimonials: Testimonial;
@@ -107,6 +108,7 @@ export interface Config {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     localSales: LocalSalesSelect<false> | LocalSalesSelect<true>;
+    'payment-notifications': PaymentNotificationsSelect<false> | PaymentNotificationsSelect<true>;
     pages: PagesSelect<false> | PagesSelect<true>;
     posts: PostsSelect<false> | PostsSelect<true>;
     testimonials: TestimonialsSelect<false> | TestimonialsSelect<true>;
@@ -2875,6 +2877,25 @@ export interface Cart {
   createdAt: string;
 }
 /**
+ * Private Mercado Pago observations awaiting manual reconciliation. They do not confirm orders or represent the current payment state. Always check the account before confirming.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payment-notifications".
+ */
+export interface PaymentNotification {
+  id: number;
+  idempotencyKey: string;
+  resourceId: string;
+  paymentStatus: string;
+  amount: number;
+  currency: string;
+  publicReference?: string | null;
+  liveMode: boolean;
+  providerUpdatedAt: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "pages".
  */
@@ -3351,6 +3372,10 @@ export interface PayloadLockedDocument {
         value: number | LocalSale;
       } | null)
     | ({
+        relationTo: 'payment-notifications';
+        value: number | PaymentNotification;
+      } | null)
+    | ({
         relationTo: 'pages';
         value: number | Page;
       } | null)
@@ -3513,6 +3538,22 @@ export interface LocalSalesSelect<T extends boolean = true> {
   buyerContact?: T;
   snapshot?: T;
   paymentEvidence?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payment-notifications_select".
+ */
+export interface PaymentNotificationsSelect<T extends boolean = true> {
+  idempotencyKey?: T;
+  resourceId?: T;
+  paymentStatus?: T;
+  amount?: T;
+  currency?: T;
+  publicReference?: T;
+  liveMode?: T;
+  providerUpdatedAt?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -4341,6 +4382,7 @@ export interface CmsSetting {
   faqs: boolean;
   header: boolean;
   footer: boolean;
+  paymentNotifications: boolean;
   localSales: boolean;
   categories: boolean;
   brands: boolean;
@@ -4521,6 +4563,7 @@ export interface CmsSettingsSelect<T extends boolean = true> {
   faqs?: T;
   header?: T;
   footer?: T;
+  paymentNotifications?: T;
   localSales?: T;
   categories?: T;
   brands?: T;

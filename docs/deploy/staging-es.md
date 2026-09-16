@@ -29,6 +29,7 @@ flujo normal, esto sucede al mergear un pull request contra esa rama.
 | `SSH_PRIVATE_KEY`          | Clave privada Ed25519 exclusiva para despliegues      |
 | `SSH_KNOWN_HOSTS`          | Clave de host de la VM verificada previamente         |
 | `MERCADOPAGO_ACCESS_TOKEN` | Credencial de prueba de Mercado Pago para el servidor |
+| `MERCADOPAGO_WEBHOOK_SECRET` | Clave de firma de Webhooks de la misma aplicación |
 
 5. Confirmá que el usuario SSH pueda ejecutar `sudo -n true` y que los archivos
    de entorno de `/opt/tienda-magico/env` no contengan placeholders.
@@ -48,6 +49,7 @@ datos, Payload, API del CMS y revalidación siguen administrados en la VM.
 | `MERCADOPAGO_SANDBOX`                                          | Variable de GitHub           | Despliegue en runtime                     |
 | `MERCADOPAGO_WEBHOOK_URL`                                      | Variable de GitHub           | Despliegue en runtime                     |
 | `MERCADOPAGO_ACCESS_TOKEN`                                     | Secreto de GitHub            | Despliegue en runtime                     |
+| `MERCADOPAGO_WEBHOOK_SECRET`                                   | Secreto de GitHub            | Despliegue en runtime                     |
 | Secretos de base de datos, Payload, API del CMS y revalidación | Archivos de entorno de la VM | Runtime                                   |
 
 Los secretos de runtime nunca se pasan como argumentos de build ni se escriben

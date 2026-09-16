@@ -106,6 +106,7 @@ Add these Environment secrets:
 | `SSH_PRIVATE_KEY`          | Complete dedicated private key, including BEGIN/END lines |
 | `SSH_KNOWN_HOSTS`          | Verified `known_hosts` entry for this VM and port         |
 | `MERCADOPAGO_ACCESS_TOKEN` | Server-side Mercado Pago test access token                |
+| `MERCADOPAGO_WEBHOOK_SECRET` | Webhook signing secret for the same application |
 
 `SHOP_URL` and `CMS_URL` must be HTTP(S) origins without a trailing slash, path,
 query, or fragment. They must match the URLs already configured on the VM.
@@ -116,7 +117,7 @@ The deployment sets `COMMERCE_PROVIDER=payload` and derives
 `PAYLOAD_ECOMMERCE_URL`, `PAYLOAD_CMS_URL`, and `NEXT_PUBLIC_SITE_URL` from the
 validated public URLs. It enforces `PAYLOAD_ECOMMERCE_CURRENCY=ARS` and
 `PAYLOAD_ECOMMERCE_AMOUNT_IS_CENTS=true`. It also updates `CHECKOUT_PROVIDER`,
-`MERCADOPAGO_ACCESS_TOKEN`, `MERCADOPAGO_SANDBOX`, and
+`MERCADOPAGO_ACCESS_TOKEN`, `MERCADOPAGO_WEBHOOK_SECRET`, `MERCADOPAGO_SANDBOX`, and
 `MERCADOPAGO_WEBHOOK_URL` in the VM's `storefront.env`. All unmanaged values
 remain unchanged. The previous runtime configuration and image tag are restored
 automatically if activation fails.
