@@ -1,5 +1,6 @@
 import {
   CommerceConfigError,
+  CommerceError,
   type Cart,
   type CheckoutOrder,
   type CheckoutOrderOptions,
@@ -217,8 +218,27 @@ export async function createCheckoutOrder(
         limit: 1,
       },
     });
-  const existingOrder = (await findExistingOrder()).docs?.[0];
-  if (existingOrder) return normalizePayloadOrderResponse(existingOrder);
+  const baseCheckoutKey = input.checkoutKey;
+  for (let attempt = 0; ; attempt++) {
+    if (attempt >= 100) {
+      throw new CommerceError(
+        "No se pudo recuperar el intento de pago. Contactá a la tienda.",
+        { status: 409 },
+      );
+    }
+    const existingOrder = (await findExistingOrder()).docs?.[0];
+    if (!existingOrder) break;
+    const deadline = Date.parse(existingOrder.paymentExpiresAt ?? "");
+    const canRetry =
+      options?.paymentMethod === BANK_TRANSFER &&
+      (existingOrder.paymentStatus === "cancelled" ||
+        existingOrder.paymentStatus === "rejected" ||
+        (existingOrder.paymentStatus === "pending" &&
+          Number.isFinite(deadline) &&
+          deadline <= Date.now()));
+    if (!canRetry) return normalizePayloadOrderResponse(existingOrder);
+    input.checkoutKey = `${baseCheckoutKey}:after:${existingOrder.id}`;
+  }
 
   let orderResponse: PayloadOrderCreateResponse;
   try {

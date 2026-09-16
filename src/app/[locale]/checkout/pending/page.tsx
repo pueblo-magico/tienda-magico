@@ -9,6 +9,7 @@ import { checkout } from "@/lib/checkout";
 import { getCommerceSettings } from "@/lib/cms";
 import { BANK_TRANSFER } from "@/types/checkout";
 import { commerce, formatMoney } from "@/lib/commerce";
+import { TransferWaiting } from "@/features/checkout/TransferWaiting";
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -60,7 +61,7 @@ export default async function CheckoutPendingPage({
     : null;
 
   let paymentStatus: string | null = null;
-  if (paymentId && checkout.provider.getPayment) {
+  if (!isBankTransferRequest && paymentId && checkout.provider.getPayment) {
     try {
       const payment = await checkout.getPayment(paymentId);
       paymentStatus = payment?.status ?? null;
@@ -73,63 +74,79 @@ export default async function CheckoutPendingPage({
     <Section spacing="lg">
       <Container className="mx-auto max-w-xl space-y-6 text-center">
         <Eyebrow>{t("eyebrow")}</Eyebrow>
-        <PageTitle as="h1" className="text-4xl sm:text-5xl">
-          {t("pending.title")}
-        </PageTitle>
-        <Body className="text-forest/80">
-          {t(
-            isBankTransferRequest && !transferOrder
-              ? "pending.transferNotFound"
-              : isBankTransfer
-                ? "pending.transferBody"
-                : "pending.body",
-          )}
-        </Body>
+        {!isBankTransfer ? (
+          <>
+            <PageTitle as="h1" className="text-4xl sm:text-5xl">
+              {t("pending.title")}
+            </PageTitle>
+            <Body className="text-forest/80">
+              {t(
+                isBankTransferRequest && !transferOrder
+                  ? "pending.transferNotFound"
+                  : isBankTransfer
+                    ? "pending.transferBody"
+                    : "pending.body",
+              )}
+            </Body>
+          </>
+        ) : null}
 
         {isBankTransfer && commerceSettings ? (
-          <dl className="border-border bg-card text-text-primary mx-auto w-full max-w-md space-y-3 rounded-2xl border px-5 py-4 text-left text-sm">
-            <div className="flex justify-between gap-4">
-              <dt className="text-text-secondary">
-                {t("pending.accountHolder")}
-              </dt>
-              <dd className="text-right font-semibold">
-                {commerceSettings.transfer.accountHolder}
-              </dd>
-            </div>
-            {commerceSettings.transfer.alias ? (
-              <div className="flex justify-between gap-4">
-                <dt className="text-text-secondary">{t("pending.alias")}</dt>
-                <dd className="font-mono text-xs">
-                  {commerceSettings.transfer.alias}
-                </dd>
-              </div>
-            ) : null}
-            {commerceSettings.transfer.cvu ? (
-              <div className="flex justify-between gap-4">
-                <dt className="text-text-secondary">{t("pending.cvu")}</dt>
-                <dd className="font-mono text-xs">
-                  {commerceSettings.transfer.cvu}
-                </dd>
-              </div>
-            ) : null}
+          <TransferWaiting
+            paymentStatus={transferOrder.paymentStatus}
+            expiresAt={expiresAt}
+            serverTime={Date.now()}
+            instructions={
+              <>
+                <div className="flex justify-between gap-4">
+                  <dt className="text-text-secondary">
+                    {t("pending.accountHolder")}
+                  </dt>
+                  <dd className="text-right font-semibold">
+                    {commerceSettings.transfer.accountHolder}
+                  </dd>
+                </div>
+                {commerceSettings.transfer.alias ? (
+                  <div className="flex justify-between gap-4">
+                    <dt className="text-text-secondary">
+                      {t("pending.alias")}
+                    </dt>
+                    <dd className="font-mono text-xs">
+                      {commerceSettings.transfer.alias}
+                    </dd>
+                  </div>
+                ) : null}
+                {commerceSettings.transfer.cvu ? (
+                  <div className="flex justify-between gap-4">
+                    <dt className="text-text-secondary">{t("pending.cvu")}</dt>
+                    <dd className="font-mono text-xs">
+                      {commerceSettings.transfer.cvu}
+                    </dd>
+                  </div>
+                ) : null}
+              </>
+            }
+          >
             <div className="flex justify-between gap-4">
               <dt className="text-text-secondary">
                 {t("pending.orderReference")}
               </dt>
-              <dd className="font-mono text-xs">
+              <dd className="text-right font-mono text-xs break-all">
                 {transferOrder.publicReference}
               </dd>
             </div>
             {formattedAmount ? (
               <div className="flex justify-between gap-4">
-                <dt className="text-text-secondary">{t("pending.amount")}</dt>
+                <dt className="text-text-secondary">
+                  {t("pending.orderAmount")}
+                </dt>
                 <dd className="font-semibold">{formattedAmount}</dd>
               </div>
             ) : null}
             {formattedExpiry ? (
               <div className="flex justify-between gap-4">
                 <dt className="text-text-secondary">
-                  {t("pending.expiresAt")}
+                  {t("pending.paymentDeadline")}
                 </dt>
                 <dd>
                   <time dateTime={expiresAt ?? undefined}>
@@ -138,14 +155,15 @@ export default async function CheckoutPendingPage({
                 </dd>
               </div>
             ) : null}
-          </dl>
+          </TransferWaiting>
         ) : null}
 
-        {paymentId ||
-        statusParam ||
-        preferenceId ||
-        externalReference ||
-        paymentStatus ? (
+        {!isBankTransferRequest &&
+        (paymentId ||
+          statusParam ||
+          preferenceId ||
+          externalReference ||
+          paymentStatus) ? (
           <dl className="border-border bg-card text-forest/80 mx-auto max-w-sm space-y-2 rounded-2xl border px-4 py-3 text-left text-sm">
             {paymentId ? (
               <div className="flex justify-between gap-3">

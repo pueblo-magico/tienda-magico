@@ -332,10 +332,46 @@
       "transferNotFound": "We could not find this pending transfer order. Return to your cart and try again.",
       "accountHolder": "Account holder",
       "amount": "Amount to transfer",
+      "orderAmount": "Order amount",
+      "paymentDeadline": "Payment deadline",
       "alias": "Alias",
       "cvu": "CVU",
       "orderReference": "Order reference",
       "expiresAt": "Pay before"
+    },
+    "transferWaiting": {
+      "retry": "Try again",
+      "retryHint": "If you have not paid yet, return to your cart to review products and details. Continuing will create a new order with a new reference and deadline.",
+      "alreadyTransferred": "I already transferred",
+      "verificationHint": "We are still checking the original payment. This does not confirm receipt of the money. Do not transfer again or start another payment while waiting for verification.",
+      "pending": {
+        "title": "Transfer <highlight>pending</highlight>",
+        "body": "Transfer the amount shown before the deadline. We refresh the payment status automatically while you wait."
+      },
+      "approved": {
+        "title": "Payment confirmed",
+        "body": "We received confirmation of your payment. Keep your order reference."
+      },
+      "expired": {
+        "title": "The transfer deadline <highlight>has passed</highlight>",
+        "body": "Do not make a new transfer for this order. If you already paid, wait for verification; the deadline does not mean your money was rejected."
+      },
+      "rejected": {
+        "title": "Payment rejected",
+        "body": "The payment was not approved. Contact us with your order reference before trying again."
+      },
+      "cancelled": {
+        "title": "Payment cancelled",
+        "body": "This payment is cancelled. Do not transfer money for this reference."
+      },
+      "unverified": {
+        "title": "Payment awaiting verification",
+        "body": "We cannot verify this payment yet. Do not repeat the transfer. Check again in a few minutes."
+      },
+      "remaining": "Time remaining: {minutes} min {seconds} s",
+      "reference": "Order reference: {reference}",
+      "check": "Check status",
+      "checking": "Checking…"
     },
     "startTitle": "Secure checkout",
     "startBody": "We’re preparing your payment session.",

@@ -147,6 +147,22 @@ export async function POST(request: Request) {
       );
     }
 
+    if (
+      cart.lines.some(
+        (line) =>
+          line.issue ||
+          (line.maxPurchaseQuantity != null &&
+            line.quantity > line.maxPurchaseQuantity),
+      )
+    ) {
+      throw new CommerceError(
+        locale.startsWith("es")
+          ? "Revisá los precios y la disponibilidad de los productos en tu carrito antes de pagar."
+          : "Review product prices and availability in your cart before paying.",
+        { status: 409 },
+      );
+    }
+
     const fulfillmentMode = validateFulfillmentModeForCheckout(
       cart.fulfillmentMode,
       locale,

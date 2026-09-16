@@ -332,10 +332,46 @@
       "transferNotFound": "No encontramos este pedido pendiente. Volvé al carrito e intentá nuevamente.",
       "accountHolder": "Titular",
       "amount": "Importe a transferir",
+      "orderAmount": "Importe del pedido",
+      "paymentDeadline": "Vencimiento del pago",
       "alias": "Alias",
       "cvu": "CVU",
       "orderReference": "Referencia del pedido",
       "expiresAt": "Pagá antes de"
+    },
+    "transferWaiting": {
+      "retry": "Intentar de nuevo",
+      "retryHint": "Si todavía no pagaste, volvé al carrito para revisar productos y datos. Al continuar se creará un nuevo pedido con otra referencia y plazo.",
+      "alreadyTransferred": "Ya hice la transferencia",
+      "verificationHint": "Seguimos consultando el pago original. Esto no confirma la recepción del dinero. No repitas la transferencia ni inicies otro pago mientras esperás la verificación.",
+      "pending": {
+        "title": "Transferencia <highlight>pendiente</highlight>",
+        "body": "Transferí el importe indicado antes del vencimiento. Actualizamos el estado automáticamente mientras esperás."
+      },
+      "approved": {
+        "title": "Pago confirmado",
+        "body": "Recibimos la confirmación de tu pago. Guardá la referencia de tu pedido."
+      },
+      "expired": {
+        "title": "El plazo para transferir <highlight>venció</highlight>",
+        "body": "No realices una nueva transferencia para este pedido. Si ya pagaste, esperá la verificación; el vencimiento no significa que el dinero haya sido rechazado."
+      },
+      "rejected": {
+        "title": "Pago rechazado",
+        "body": "El pago no fue aprobado. Contactanos con la referencia del pedido antes de intentar nuevamente."
+      },
+      "cancelled": {
+        "title": "Pago cancelado",
+        "body": "Este pago está cancelado. No transfieras dinero para esta referencia."
+      },
+      "unverified": {
+        "title": "Pago por verificar",
+        "body": "Todavía no podemos verificar el estado de este pago. No repitas la transferencia. Volvé a consultar en unos minutos."
+      },
+      "remaining": "Tiempo restante: {minutes} min {seconds} s",
+      "reference": "Referencia del pedido: {reference}",
+      "check": "Consultar estado",
+      "checking": "Consultando…"
     },
     "startTitle": "Pago seguro",
     "startBody": "Estamos preparando tu sesión de pago.",

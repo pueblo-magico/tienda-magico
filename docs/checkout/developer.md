@@ -233,6 +233,10 @@ Bank transfer is an internal pending-payment flow rather than an external checko
 
 Creating the pending order does not confirm payment, reserve stock, or reduce stock. Payment verification and expiry processing remain separate milestones.
 
+Los reintentos de transferencia conservan el pedido anterior. Si el intento está vencido, rechazado o cancelado, el checkout deriva la siguiente clave idempotente de su ID interno y crea otro pedido con el carrito actual. La restricción única existente sobre `checkoutKey` resuelve solicitudes simultáneas; las repeticiones reutilizan el nuevo intento activo. Los estados aprobados o sin verificar no habilitan esta renovación. «Ya hice la transferencia» solo consulta el estado original. No se extienden plazos anteriores ni se procesan pagos tardíos automáticamente.
+
+La página de espera consulta el estado persistido cada diez segundos con la pestaña visible y permite una consulta manual. La cuenta regresiva usa el vencimiento persistido y la hora del servidor. Al vencer, oculta las instrucciones sin modificar el pedido; continúa consultando para mostrar una eventual confirmación tardía. Los estados aprobado, rechazado y cancelado detienen la consulta automática. Ver [guía de prueba manual](transfer-waiting-manual-test.md).
+
 ---
 
 ## Routes (storefront)
