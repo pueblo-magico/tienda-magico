@@ -9,15 +9,47 @@ function relationId(value: unknown): string | number | null {
   return null
 }
 
+function maximumDepthError(locale: unknown) {
+  return new Error(
+    locale === 'es'
+      ? 'Las categorías pueden tener como máximo tres niveles.'
+      : 'Categories can have at most three levels.',
+  )
+}
+
+async function descendantDepth(
+  categoryId: string | number,
+  req: Parameters<CollectionBeforeChangeHook>[0]['req'],
+  visited = new Set<string>(),
+): Promise<number> {
+  const key = String(categoryId)
+  if (visited.has(key)) return 0
+  visited.add(key)
+
+  const result = await req.payload.find({
+    collection: 'categories',
+    where: { parent: { equals: categoryId } },
+    depth: 0,
+    pagination: false,
+    req,
+  })
+  const depths = await Promise.all(
+    result.docs.map(async (child) => {
+      const childId = relationId(child.id)
+      return childId ? 1 + (await descendantDepth(childId, req, visited)) : 0
+    }),
+  )
+  return depths.length ? Math.max(...depths) : 0
+}
+
 export const preventCategoryCycles: CollectionBeforeChangeHook = async ({
   data,
   originalDoc,
   req,
 }) => {
   const categoryId = relationId(originalDoc?.id)
-  let parentId = relationId(data.parent)
+  let parentId = relationId(data.parent === undefined ? originalDoc?.parent : data.parent)
 
-  if (!parentId) return data
   if (categoryId && String(parentId) === String(categoryId)) {
     throw new Error(
       req.locale === 'es'
@@ -40,11 +72,7 @@ export const preventCategoryCycles: CollectionBeforeChangeHook = async ({
     visited.add(key)
     ancestorCount += 1
     if (ancestorCount >= 3) {
-      throw new Error(
-        req.locale === 'es'
-          ? 'Las categorías pueden tener como máximo tres niveles.'
-          : 'Categories can have at most three levels.',
-      )
+      throw maximumDepthError(req.locale)
     }
 
     const parent = await req.payload.findByID({
@@ -54,6 +82,13 @@ export const preventCategoryCycles: CollectionBeforeChangeHook = async ({
       req,
     })
     parentId = relationId((parent as { parent?: unknown }).parent)
+  }
+
+  if (categoryId && typeof req.payload.find === 'function') {
+    const childDepth = await descendantDepth(categoryId, req)
+    if (ancestorCount + 1 + childDepth > 3) {
+      throw maximumDepthError(req.locale)
+    }
   }
 
   return data

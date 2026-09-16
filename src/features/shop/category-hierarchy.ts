@@ -104,3 +104,35 @@ export function resolveCategoryPath(
 
   return resolved;
 }
+
+export function resolveLegacyCategoryRoute(
+  categories: CollectionSummary[],
+  collectionHandle: string,
+  selectedHandles: string[],
+): { categoryPath: string[]; categories: string[] } | null {
+  const collection = categories.find(
+    (category) => category.handle === collectionHandle,
+  );
+  if (!collection) return null;
+
+  const collectionPath = buildCategoryPath(collection);
+  if (selectedHandles.length !== 1) {
+    return { categoryPath: collectionPath, categories: selectedHandles };
+  }
+
+  const selected = categories.find(
+    (category) => category.handle === selectedHandles[0],
+  );
+  if (!selected) {
+    return { categoryPath: collectionPath, categories: selectedHandles };
+  }
+
+  const selectedPath = buildCategoryPath(selected);
+  const isDescendant = collectionPath.every(
+    (handle, index) => selectedPath[index] === handle,
+  );
+
+  return isDescendant
+    ? { categoryPath: selectedPath, categories: [] }
+    : { categoryPath: collectionPath, categories: selectedHandles };
+}

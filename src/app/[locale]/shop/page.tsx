@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { permanentRedirect } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ShopPage, buildShopHref, parseShopQuery } from "@/features/shop";
-import { buildCategoryPath } from "@/features/shop/category-hierarchy";
+import { resolveLegacyCategoryRoute } from "@/features/shop/category-hierarchy";
 import { commerce } from "@/lib/commerce";
 
 type Props = {
@@ -32,24 +32,18 @@ export default async function ShopRoutePage({ params, searchParams }: Props) {
 
   if (query.collection && commerce.isConfigured()) {
     const collections = await commerce.getCollections({ first: 100, locale });
-    const root = collections.items.find(
-      (category) => category.handle === query.collection,
+    const legacyRoute = resolveLegacyCategoryRoute(
+      collections.items,
+      query.collection,
+      query.categories,
     );
-    if (root) {
-      const selectedCategory =
-        query.categories.length === 1
-          ? collections.items.find(
-              (category) =>
-                category.handle === query.categories[0] &&
-                buildCategoryPath(category)[0] === root.handle,
-            )
-          : null;
+    if (legacyRoute) {
       permanentRedirect(
         buildShopHref(locale, {
           ...query,
-          collection: selectedCategory?.handle ?? root.handle,
-          categoryPath: buildCategoryPath(selectedCategory ?? root),
-          categories: selectedCategory ? [] : query.categories,
+          collection: legacyRoute.categoryPath.at(-1) ?? "",
+          categoryPath: legacyRoute.categoryPath,
+          categories: legacyRoute.categories,
           after: "",
         }),
       );

@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 import {
   buildCategoryPath,
+  resolveLegacyCategoryRoute,
   resolveCategoryPath,
 } from "@/features/shop/category-hierarchy";
 import { buildShopHref, parseShopQuery } from "@/features/shop/search-params";
@@ -54,13 +54,28 @@ test("las rutas de categorías se localizan sin modificar las URLs de producto",
 
 test("la URL canónica conserva filtros secundarios y omite collection", () => {
   const query = parseShopQuery(
-    { q: "cacao", sort: "price-asc", collection: "obsoleto" },
+    {
+      q: "cacao",
+      sort: "price-asc",
+      collection: "obsoleto",
+      categories: "infusiones",
+      minPrice: "10",
+      maxPrice: "90",
+      tags: "organico,local",
+      origins: "AR,BO",
+      availability: "available",
+      after: "cursor",
+    },
     ["bienestar-y-rituales", "cacao"],
   );
 
   assert.equal(
     buildShopHref("es", query),
-    "/es/tienda/categorias/bienestar-y-rituales/cacao?q=cacao&sort=price-asc",
+    "/es/tienda/categorias/bienestar-y-rituales/cacao?q=cacao&categories=infusiones&sort=price-asc&minPrice=10&maxPrice=90&tags=organico%2Clocal&origins=AR%2CBO&availability=available&after=cursor",
+  );
+  assert.equal(
+    buildShopHref("es", query, { dropAfter: true }),
+    "/es/tienda/categorias/bienestar-y-rituales/cacao?q=cacao&categories=infusiones&sort=price-asc&minPrice=10&maxPrice=90&tags=organico%2Clocal&origins=AR%2CBO&availability=available",
   );
 });
 
@@ -83,12 +98,47 @@ test("la jerarquía se construye y valida por relaciones padre-hijo", () => {
   );
 });
 
-test("la tienda redirige URLs antiguas de categoría de forma permanente", async () => {
-  const [shopRoute, productRoute] = await Promise.all([
-    readFile("src/app/[locale]/shop/page.tsx", "utf8"),
-    readFile("src/app/[locale]/shop/[handle]/page.tsx", "utf8"),
-  ]);
+test("las URLs antiguas se convierten solamente cuando la jerarquía es válida", () => {
+  assert.deepEqual(
+    resolveLegacyCategoryRoute(
+      [root, child, grandchild],
+      "bienestar-y-rituales",
+      ["cacao"],
+    ),
+    { categoryPath: ["bienestar-y-rituales", "cacao"], categories: [] },
+  );
+  assert.deepEqual(
+    resolveLegacyCategoryRoute(
+      [root, child, grandchild],
+      "bienestar-y-rituales",
+      ["cacao", "ceremonial"],
+    ),
+    {
+      categoryPath: ["bienestar-y-rituales"],
+      categories: ["cacao", "ceremonial"],
+    },
+  );
+  assert.equal(
+    resolveLegacyCategoryRoute([root, child], "otra-coleccion", ["cacao"]),
+    null,
+  );
+});
 
-  assert.match(shopRoute, /query\.collection[\s\S]+permanentRedirect/);
-  assert.match(productRoute, /loadProductPage\(handle, locale\)/);
+test("una subcategoría ajena no reemplaza el alcance de la colección anterior", () => {
+  const anotherRoot = { ...root, id: "other", handle: "otra-coleccion" };
+  const anotherChild = {
+    ...child,
+    id: "other-child",
+    handle: "incienso",
+    parent: anotherRoot,
+  };
+
+  assert.deepEqual(
+    resolveLegacyCategoryRoute(
+      [root, child, anotherRoot, anotherChild],
+      root.handle,
+      [anotherChild.handle],
+    ),
+    { categoryPath: [root.handle], categories: [anotherChild.handle] },
+  );
 });
