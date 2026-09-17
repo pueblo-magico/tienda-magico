@@ -8,6 +8,7 @@ El equipo puede confirmar efectivo desde `/es/staff/cash` o `/en/staff/cash`, si
 2. Como administrador, abrí **Configuración de comercio** en el CMS.
 3. Activá **Habilitar caja en la tienda** e ingresá una **Nueva contraseña de caja** de entre 12 y 128 caracteres. Guardá ambos cambios juntos la primera vez.
 4. Para conservar la contraseña, dejá el campo vacío. Para rotarla, ingresá una nueva. Deshabilitar caja o cambiar la contraseña invalida todas las sesiones compartidas.
+   El botón **Mostrar contraseña / Ocultar contraseña** permite revisar únicamente el valor nuevo mientras lo escribís, sin guardar ni cambiar credenciales. Al salir del campo se vuelve a ocultar. La contraseña guardada no puede recuperarse ni mostrarse.
 5. Abrí la página de caja desde un pedido pendiente o pegá su referencia pública luego de ingresar.
 
 No se agrega una contraseña a `.env` ni a GitHub. El storefront reutiliza `PAYLOAD_CMS_URL` (o `PAYLOAD_ECOMMERCE_URL`) para comunicarse con el CMS. `NEXT_PUBLIC_SITE_URL` debe contener el origen público de la tienda y estar autorizado en `CORS_ORIGINS` del CMS; así también funciona cuando la URL interna del CMS difiere de su URL pública. En producción usá HTTPS en ambos servicios.
@@ -66,6 +67,7 @@ Desde `apps/cms`:
 
 ```powershell
 node --import tsx scripts/test-transfer-confirmation.mjs
+node --experimental-test-module-mocks --import tsx --test scripts/staff-cash-password.test.mjs
 ```
 
 La integración usa una base local descartable e incluye autorización, CSRF, privacidad, importe, idempotencia, cierre del carrito, logout, rotación, bloqueo, vencimiento de sesiones y protección contra cambios de rol.
