@@ -20,6 +20,24 @@ export async function recordPaymentNotification(
     Authorization: `${config.apiKeyCollection} API-Key ${config.apiKey}`,
     "Content-Type": "application/json",
   };
+  const reconcile = async () => {
+    const response = await fetch(
+      new URL(
+        `${config.apiPrefix}/payment-notifications/reconcile`,
+        `${config.baseUrl}/`,
+      ),
+      {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ idempotencyKey: notification.idempotencyKey }),
+        cache: "no-store",
+        redirect: "error",
+        signal: AbortSignal.timeout(15000),
+      },
+    );
+    if (!response.ok || (await response.json()).reconciled !== true)
+      throw new Error("No se pudo conciliar la notificación de pago.");
+  };
   const response = await fetch(url, {
     method: "POST",
     headers,
@@ -36,7 +54,7 @@ export async function recordPaymentNotification(
       "doc" in result &&
       matches(result.doc)
     )
-      return;
+      return reconcile();
     throw new Error("El CMS no confirmó la persistencia de la notificación.");
   }
   url.searchParams.set(
@@ -60,7 +78,7 @@ export async function recordPaymentNotification(
       Array.isArray(result.docs)
     ) {
       const saved: unknown = result.docs[0];
-      if (matches(saved)) return;
+      if (matches(saved)) return reconcile();
     }
   }
   throw new Error("No se pudo guardar la notificación de pago.");

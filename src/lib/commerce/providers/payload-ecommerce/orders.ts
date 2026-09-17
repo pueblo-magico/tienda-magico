@@ -21,6 +21,7 @@ type CheckoutOrderInput = {
   fulfillmentMode: NonNullable<Cart["fulfillmentMode"]>;
   customerEmail: string | null;
   buyerContact: { email: string | null; name: string | null };
+  transferIdentification?: { type: string; number: string };
   items: Array<{ product: number; variant?: number; quantity: number }>;
   amount: number;
   currency: string;
@@ -108,6 +109,9 @@ export function buildCheckoutOrderInput(
     cartReference: cart.id,
     fulfillmentMode: cart.fulfillmentMode,
     customerEmail: customer.email?.trim() || null,
+    ...(paymentMethod === BANK_TRANSFER && customer.identification
+      ? { transferIdentification: customer.identification }
+      : {}),
     buyerContact: {
       email: customer.email?.trim() || null,
       name: customer.name?.trim() || null,

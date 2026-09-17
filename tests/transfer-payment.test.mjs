@@ -459,6 +459,10 @@ test("los dos idiomas incluyen los textos del selector de pago", async () => {
       "bankTransfer",
       "bankTransferHint",
       "buyerRequired",
+      "senderIdentification",
+      "identificationType",
+      "identificationNumber",
+      "identificationHint",
     ]) {
       assert.equal(typeof messages.cart[key], "string", `${locale}.${key}`);
       assert.ok(messages.cart[key].length > 0, `${locale}.${key}`);

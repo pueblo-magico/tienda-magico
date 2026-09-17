@@ -27,6 +27,8 @@ export function CartPageContent() {
     setPaymentMethod,
     buyerName,
     buyerEmail,
+    identification,
+    setIdentification,
     setBuyerName,
     setBuyerEmail,
   } = useCart();
@@ -114,6 +116,8 @@ export function CartPageContent() {
               onPaymentMethodChange={setPaymentMethod}
               buyerName={buyerName}
               buyerEmail={buyerEmail}
+              identification={identification}
+              onIdentificationChange={setIdentification}
               onBuyerNameChange={setBuyerName}
               onBuyerEmailChange={setBuyerEmail}
               onFulfillmentModeChange={setFulfillmentMode}

@@ -1,7 +1,13 @@
 "use client";
 
 import { useId } from "react";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+import { Select } from "@/components/ui/Select";
+import {
+  IDENTIFICATION_TYPES,
+  normalizeTransferIdentification,
+  type TransferIdentification,
+} from "@/lib/checkout/transfer-identification";
 import type { Cart } from "@/types/commerce";
 import {
   DELIVERY,
@@ -31,6 +37,8 @@ type Props = {
   paymentMethod: PaymentMethod;
   buyerName: string;
   buyerEmail: string;
+  identification: TransferIdentification;
+  onIdentificationChange: (value: TransferIdentification) => void;
   onBuyerNameChange: (name: string) => void;
   onBuyerEmailChange: (email: string) => void;
   onPaymentMethodChange: (method: PaymentMethod) => void;
@@ -67,6 +75,8 @@ export function CartSummary({
   paymentMethod,
   buyerName,
   buyerEmail,
+  identification,
+  onIdentificationChange,
   onBuyerNameChange,
   onBuyerEmailChange,
   onPaymentMethodChange,
@@ -75,6 +85,8 @@ export function CartSummary({
   className,
 }: Props) {
   const locale = useLocale();
+  const t = useTranslations("cart");
+  const identificationHintId = useId();
   const fulfillmentGroupName = `fulfillment-mode-${useId()}`;
   const paymentGroupName = `payment-method-${useId()}`;
   const hasEnabledFulfillmentMode =
@@ -216,6 +228,49 @@ export function CartSummary({
           </label>
         ) : null}
       </fieldset>
+      {paymentMethod === BANK_TRANSFER ? (
+        <fieldset className="space-y-3" disabled={disabled}>
+          <legend className="text-text-black text-sm font-semibold">
+            {t("senderIdentification")}
+          </legend>
+          <Select
+            name={`${paymentGroupName}-identification-type`}
+            label={t("identificationType")}
+            value={identification.type}
+            options={IDENTIFICATION_TYPES.map((type) => ({
+              value: type,
+              label: type,
+            }))}
+            onChange={(event) =>
+              onIdentificationChange({
+                ...identification,
+                type: event.target.value,
+              })
+            }
+            aria-describedby={identificationHintId}
+            required
+          />
+          <Input
+            name={`${paymentGroupName}-identification-number`}
+            label={t("identificationNumber")}
+            value={identification.number}
+            onChange={(event) =>
+              onIdentificationChange({
+                ...identification,
+                number: event.target.value,
+              })
+            }
+            inputMode="numeric"
+            autoComplete="off"
+            maxLength={32}
+            aria-describedby={identificationHintId}
+            required
+          />
+          <p id={identificationHintId} className="text-text-secondary text-sm">
+            {t("identificationHint")}
+          </p>
+        </fieldset>
+      ) : null}
       <p className="text-muted text-xs leading-relaxed">{labels.taxesNote}</p>
       <Button
         type="button"
@@ -224,7 +279,9 @@ export function CartSummary({
           disabled ||
           cart.totalQuantity === 0 ||
           !hasEnabledFulfillmentMode ||
-          !hasBuyerDetails
+          !hasBuyerDetails ||
+          (paymentMethod === BANK_TRANSFER &&
+            !normalizeTransferIdentification(identification))
         }
         onClick={onCheckout}
       >

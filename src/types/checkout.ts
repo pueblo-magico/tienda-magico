@@ -19,6 +19,7 @@ export type CheckoutItem = {
 };
 
 export type CheckoutCustomer = {
+  identification?: { type: string; number: string } | null;
   email?: string | null;
   name?: string | null;
   phone?: string | null;

@@ -56,6 +56,8 @@ type CartContextValue = {
   paymentMethod: PaymentMethod;
   buyerName: string;
   buyerEmail: string;
+  identification: { type: string; number: string };
+  setIdentification: (value: { type: string; number: string }) => void;
   itemCount: number;
   openCart: () => void;
   closeCart: () => void;
@@ -116,6 +118,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
     useState<PaymentMethod>(MERCADO_PAGO);
   const [buyerName, setBuyerName] = useState("");
   const [buyerEmail, setBuyerEmail] = useState("");
+  const [identification, setIdentification] = useState({
+    type: "DNI",
+    number: "",
+  });
   const persistedCartRef = useRef<Cart>(emptyCart());
   const fulfillmentModeRef = useRef<FulfillmentMode | null>(null);
   const fulfillmentMutationQueue = useRef<Promise<void>>(Promise.resolve());
@@ -300,6 +306,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
         paymentMethod,
         name: buyerName,
         email: buyerEmail,
+        identification:
+          paymentMethod === "bank-transfer" ? identification : undefined,
       });
       const redirectUrl = result.session?.redirectUrl;
       if (!redirectUrl) {
@@ -317,6 +325,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [
     buyerEmail,
     buyerName,
+    identification,
     cart.id,
     cart.totalQuantity,
     locale,
@@ -335,6 +344,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       paymentMethod,
       buyerName,
       buyerEmail,
+      identification,
+      setIdentification,
       itemCount: cart.totalQuantity,
       openCart,
       closeCart,
@@ -362,6 +373,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       paymentMethod,
       buyerName,
       buyerEmail,
+      identification,
       openCart,
       closeCart,
       toggleCart,

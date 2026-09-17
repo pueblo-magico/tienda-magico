@@ -1,8 +1,25 @@
 import type { CollectionConfig, PayloadRequest } from 'payload'
 import { adminOnly } from '../access/adminOnly'
+import { reconcileTransferEndpoint } from '../utilities/reconcileTransfer'
+import { sql } from '@payloadcms/db-postgres'
+import { activeTransaction } from '../utilities/transferWriteLock'
 
 export const PaymentNotifications: CollectionConfig = {
   slug: 'payment-notifications',
+  endpoints: [reconcileTransferEndpoint],
+  hooks: {
+    beforeChange: [
+      async ({ data, operation, req }) => {
+        if (operation === 'create') {
+          const transaction = await activeTransaction(req)
+          await transaction.execute(
+            sql`SELECT pg_advisory_xact_lock(hashtextextended(${`transfer:${data.resourceId}`}, 0))`,
+          )
+        }
+        return data
+      },
+    ],
+  },
   labels: {
     singular: { es: 'Notificación de pago', en: 'Payment notification' },
     plural: { es: 'Notificaciones de pago', en: 'Payment notifications' },
@@ -10,15 +27,48 @@ export const PaymentNotifications: CollectionConfig = {
   admin: {
     group: { es: 'Tienda', en: 'Shop' },
     useAsTitle: 'resourceId',
-    defaultColumns: ['resourceId', 'paymentStatus', 'publicReference', 'createdAt'],
+    defaultColumns: ['resourceId', 'paymentStatus', 'reconciliation', 'createdAt'],
     hideAPIURL: true,
     description: {
-      es: 'Observaciones privadas de Mercado Pago pendientes de conciliación manual. No confirman pedidos ni representan el estado actual del pago. Consultá siempre la cuenta antes de confirmar.',
-      en: 'Private Mercado Pago observations awaiting manual reconciliation. They do not confirm orders or represent the current payment state. Always check the account before confirming.',
+      es: 'Observaciones privadas de Mercado Pago. La conciliación indica confirmación automática o revisión manual. Consultá la cuenta antes de resolver una excepción.',
+      en: 'Private Mercado Pago observations. Reconciliation indicates automatic confirmation or manual review. Check the account before resolving an exception.',
     },
   },
   access: { create: adminOnly, read: adminOnly, update: () => false, delete: () => false },
   fields: [
+    {
+      name: 'payerType',
+      type: 'text',
+      label: { es: 'Tipo de documento', en: 'Identification type' },
+    },
+    {
+      name: 'payerNumber',
+      type: 'text',
+      label: { es: 'Documento del pagador', en: 'Payer identification' },
+    },
+    { name: 'paymentType', type: 'text', label: { es: 'Tipo de pago', en: 'Payment type' } },
+    {
+      name: 'statusDetail',
+      type: 'text',
+      label: { es: 'Detalle del estado', en: 'Status detail' },
+    },
+    {
+      name: 'refundedAmount',
+      type: 'number',
+      label: { es: 'Importe devuelto en centavos', en: 'Refunded minor units' },
+    },
+    {
+      name: 'approvedAt',
+      type: 'date',
+      label: { es: 'Fecha de acreditación', en: 'Accredited at' },
+    },
+    {
+      name: 'reconciliation',
+      type: 'text',
+      label: { es: 'Conciliación', en: 'Reconciliation' },
+      admin: { readOnly: true },
+      access: { create: () => false, update: () => false },
+    },
     {
       name: 'idempotencyKey',
       type: 'text',

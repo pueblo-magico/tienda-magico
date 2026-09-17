@@ -1,6 +1,7 @@
 import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 import type { PaymentNotification } from "@/types/payment-notification";
 import { getMercadoPagoConfig } from "./config";
+import { normalizeTransferIdentification } from "../../transfer-identification";
 
 type Dependencies = {
   config: { secret?: string; accessToken?: string; sandbox: boolean };
@@ -127,23 +128,41 @@ export async function receiveMercadoPagoWebhook(
       load("/users/me"),
     ]);
     const collectorId = identifier(payment.collector_id);
-    if (
-      identifier(payment.id) !== resourceId ||
-      !collectorId ||
-      collectorId !== identifier(account.id) ||
-      payment.live_mode !== !config.sandbox ||
-      typeof payment.status !== "string" ||
-      !/^[a-z_]{1,50}$/.test(payment.status) ||
-      typeof payment.transaction_amount !== "number" ||
-      !Number.isFinite(payment.transaction_amount) ||
-      payment.transaction_amount < 0 ||
-      !/^\d+(\.\d{1,2})?$/.test(String(payment.transaction_amount)) ||
-      payment.currency_id !== "ARS" ||
-      typeof payment.date_last_updated !== "string" ||
-      !Number.isFinite(Date.parse(payment.date_last_updated))
-    )
-      return fail(502);
-    const amount = Math.round(payment.transaction_amount * 100);
+
+    const {
+      status: paymentStatus,
+      transaction_amount: transactionAmount,
+      currency_id: currency,
+      live_mode: liveMode,
+      date_last_updated: providerUpdatedAt,
+    } = payment;
+
+    const matchesRequestedPayment = identifier(payment.id) === resourceId;
+    const belongsToMerchant =
+      collectorId !== null && collectorId === identifier(account.id);
+    if (!matchesRequestedPayment || !belongsToMerchant) return fail(502);
+
+    const matchesEnvironment = liveMode === !config.sandbox;
+    if (!matchesEnvironment) return fail(502);
+
+    const hasValidStatus =
+      typeof paymentStatus === "string" && /^[a-z_]{1,50}$/.test(paymentStatus);
+    if (!hasValidStatus) return fail(502);
+
+    const hasValidAmount =
+      typeof transactionAmount === "number" &&
+      Number.isFinite(transactionAmount) &&
+      transactionAmount >= 0 &&
+      /^\d+(\.\d{1,2})?$/.test(String(transactionAmount));
+    const hasSupportedCurrency = currency === "ARS";
+    if (!hasValidAmount || !hasSupportedCurrency) return fail(502);
+
+    const hasValidUpdateTime =
+      typeof providerUpdatedAt === "string" &&
+      Number.isFinite(Date.parse(providerUpdatedAt));
+    if (!hasValidUpdateTime) return fail(502);
+
+    const amount = Math.round(transactionAmount * 100);
     if (!Number.isSafeInteger(amount)) return fail(502);
     const publicReference =
       typeof payment.external_reference === "string" &&
@@ -152,14 +171,55 @@ export async function receiveMercadoPagoWebhook(
       )
         ? payment.external_reference.toLowerCase()
         : null;
+    const identification = normalizeTransferIdentification(
+      object(payment.payer).identification,
+    );
+    const descriptionReference =
+      typeof payment.description === "string" &&
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        payment.description.trim(),
+      )
+        ? payment.description.trim().toLowerCase()
+        : null;
+    const refund = payment.transaction_amount_refunded;
+    const refundedAmount =
+      typeof refund === "number" &&
+      refund >= 0 &&
+      /^\d+(\.\d{1,2})?$/.test(String(refund)) &&
+      Number.isSafeInteger(Math.round(refund * 100))
+        ? Math.round(refund * 100)
+        : null;
     const notification = {
       resourceId,
-      paymentStatus: payment.status,
+      paymentStatus,
       amount,
-      currency: payment.currency_id,
-      publicReference,
-      liveMode: payment.live_mode,
-      providerUpdatedAt: new Date(payment.date_last_updated).toISOString(),
+      currency,
+      publicReference: publicReference ?? descriptionReference,
+      payerType: identification?.type ?? null,
+      payerNumber: identification?.number ?? null,
+      paymentType:
+        typeof payment.payment_type_id === "string" &&
+        /^[a-z_]{1,50}$/.test(payment.payment_type_id)
+          ? payment.payment_type_id
+          : null,
+      statusDetail:
+        !(
+          publicReference &&
+          descriptionReference &&
+          publicReference !== descriptionReference
+        ) &&
+        typeof payment.status_detail === "string" &&
+        /^[a-z_]{1,50}$/.test(payment.status_detail)
+          ? payment.status_detail
+          : null,
+      refundedAmount,
+      approvedAt:
+        typeof payment.date_approved === "string" &&
+        Number.isFinite(Date.parse(payment.date_approved))
+          ? new Date(payment.date_approved).toISOString()
+          : null,
+      liveMode,
+      providerUpdatedAt: new Date(providerUpdatedAt).toISOString(),
     };
     await dependencies.record({
       ...notification,

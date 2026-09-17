@@ -28,6 +28,8 @@ export function CartDrawer() {
     setPaymentMethod,
     buyerName,
     buyerEmail,
+    identification,
+    setIdentification,
     setBuyerName,
     setBuyerEmail,
   } = useCart();
@@ -55,6 +57,8 @@ export function CartDrawer() {
               onPaymentMethodChange={setPaymentMethod}
               buyerName={buyerName}
               buyerEmail={buyerEmail}
+              identification={identification}
+              onIdentificationChange={setIdentification}
               onBuyerNameChange={setBuyerName}
               onBuyerEmailChange={setBuyerEmail}
               onFulfillmentModeChange={setFulfillmentMode}

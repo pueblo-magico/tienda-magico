@@ -4,6 +4,8 @@ Provider-agnostic checkout for the Pueblo Mágico storefront. Feature code talks
 
 Related:
 
+- Conciliación por documento de transferencias → [Guía y pruebas](./transferencia-conciliacion.md)
+
 - Operator setup (Mercado Pago credentials, sandbox) → [operations.md](./operations.md)
 - Commerce carts / catalog → [commerce developer guide](../commerce/developer.md)
 - Payload cart `checkoutUrl` → [payload-ecommerce.md](../commerce/payload-ecommerce.md)

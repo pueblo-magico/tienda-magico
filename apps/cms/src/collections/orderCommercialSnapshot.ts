@@ -1,4 +1,7 @@
-import type { CollectionConfig } from 'payload'
+import { APIError, type CollectionConfig } from 'payload'
+import { sql } from '@payloadcms/db-postgres'
+import { normalizeTransferIdentification } from '../utilities/transferIdentification'
+import { activeTransaction } from '../utilities/transferWriteLock'
 import { randomUUID } from 'node:crypto'
 import { confirmTransferEndpoint, protectTransfer } from '../utilities/confirmTransfer'
 import { lockTransferWrite, protectTransferDeletion } from '../utilities/transferWriteLock'
@@ -16,7 +19,26 @@ export const ordersCollectionOverride = ({
     ...defaultCollection.hooks,
     beforeOperation: [lockTransferWrite, ...(defaultCollection.hooks?.beforeOperation ?? [])],
     beforeDelete: [protectTransferDeletion, ...(defaultCollection.hooks?.beforeDelete ?? [])],
-    beforeChange: [...(defaultCollection.hooks?.beforeChange ?? []), protectTransfer],
+    beforeChange: [
+      ...(defaultCollection.hooks?.beforeChange ?? []),
+      protectTransfer,
+      async ({ data, operation, req }) => {
+        if (operation === 'create' && data.paymentMethod === 'bank-transfer') {
+          const identification = normalizeTransferIdentification(data.transferIdentification)
+          if (!identification)
+            throw new APIError(
+              'Ingresá un documento válido del titular de la cuenta que transfiere.',
+              400,
+            )
+          data.transferIdentification = identification
+          const transaction = await activeTransaction(req)
+          await transaction.execute(
+            sql`SELECT pg_advisory_xact_lock(hashtextextended(${`payer:${identification.type}:${identification.number}`}, 0))`,
+          )
+        }
+        return data
+      },
+    ],
     beforeValidate: [
       ...(defaultCollection.hooks?.beforeValidate ?? []),
       ({ data, operation }) => {
@@ -162,6 +184,19 @@ export const ordersCollectionOverride = ({
       name: 'buyerContact',
       type: 'json',
       access: immutableAfterCreation,
+      admin: { readOnly: true },
+    },
+    {
+      name: 'transferIdentification',
+      type: 'json',
+      label: {
+        es: 'Documento del titular que transfiere',
+        en: 'Sending account holder identification',
+      },
+      access: {
+        read: ({ req }) => Boolean(req.user?.roles?.includes('admin')),
+        update: () => false,
+      },
       admin: { readOnly: true },
     },
     {

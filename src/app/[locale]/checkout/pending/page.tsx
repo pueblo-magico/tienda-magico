@@ -134,6 +134,12 @@ export default async function CheckoutPendingPage({
               newerReference={ownedOrder?.newerReference}
               instructions={
                 <>
+                  <div>
+                    <dt className="sr-only">{t("pending.orderReference")}</dt>
+                    <dd className="text-text-secondary text-sm">
+                      {t("pending.descriptionHint")}
+                    </dd>
+                  </div>
                   <div className="flex justify-between gap-4">
                     <dt className="text-text-secondary">
                       {t("pending.accountHolder")}

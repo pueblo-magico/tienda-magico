@@ -1,4 +1,5 @@
 import type { CheckoutCustomer } from "@/types/checkout";
+import { normalizeTransferIdentification } from "./transfer-identification";
 
 export class CheckoutCustomerError extends Error {
   constructor(message: string) {
@@ -10,7 +11,9 @@ export class CheckoutCustomerError extends Error {
 export function validateCheckoutCustomer(
   customer: CheckoutCustomer,
   locale?: string | null,
-): Required<Pick<CheckoutCustomer, "name" | "email">> {
+  paymentMethod?: string,
+): Required<Pick<CheckoutCustomer, "name" | "email">> &
+  Pick<CheckoutCustomer, "identification"> {
   const name = customer.name?.trim() ?? "";
   const email = customer.email?.trim().toLowerCase() ?? "";
   const isSpanish = locale?.toLowerCase().startsWith("es");
@@ -29,5 +32,17 @@ export function validateCheckoutCustomer(
     );
   }
 
+  if (paymentMethod === "bank-transfer") {
+    const identification = normalizeTransferIdentification(
+      customer.identification,
+    );
+    if (!identification)
+      throw new CheckoutCustomerError(
+        isSpanish
+          ? "Ingresá el tipo y número de documento del titular de la cuenta desde la que vas a transferir."
+          : "Enter the identification type and number of the account holder sending the transfer.",
+      );
+    return { name, email, identification };
+  }
   return { name, email };
 }

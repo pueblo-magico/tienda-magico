@@ -87,6 +87,7 @@ try {
         cartReference: randomUUID(),
         fulfillmentMode: 'local_collection',
         paymentMethod: 'bank-transfer',
+        transferIdentification: { type: 'DNI', number: '1111111' },
         paymentStatus: 'pending',
         status: 'processing',
         amount: products.length * 10000,
@@ -492,13 +493,221 @@ try {
     (await payload.findByID({ collection: 'orders', id: mismatchedSaleOrder.id })).paymentStatus,
     'pending',
   )
-  const inboxMigration = migrations.at(-1)
+  const { reconcileTransferEndpoint } = await import('../src/utilities/reconcileTransfer.ts')
+  const reconcile = async (notification, strategy = 'api-key') => {
+    const req = await createLocalReq(
+      { user: { ...user, collection: 'users', _strategy: strategy } },
+      payload,
+    )
+    req.json = async () => ({ idempotencyKey: notification.idempotencyKey })
+    return reconcileTransferEndpoint.handler(req)
+  }
+  const observation = async (document, overrides = {}) => {
+    const observedAt = new Date().toISOString()
+    return payload.create({
+      collection: 'payment-notifications',
+      data: {
+        idempotencyKey: randomBytes(32).toString('hex'),
+        resourceId: String(900000 + document.id),
+        paymentStatus: 'approved',
+        amount: document.amount,
+        currency: 'ARS',
+        publicReference: document.publicReference,
+        liveMode: false,
+        providerUpdatedAt: observedAt,
+        approvedAt: observedAt,
+        payerType: document.transferIdentification.type,
+        payerNumber: document.transferIdentification.number,
+        paymentType: 'bank_transfer',
+        statusDetail: 'accredited',
+        refundedAmount: 0,
+        ...overrides,
+      },
+    })
+  }
+  const autoProduct = await product(3)
+  const automaticOnlyOrder = await order([autoProduct], {
+    transferIdentification: { type: 'DNI', number: '9999999' },
+  })
+  const automaticOnlyNotification = await observation(automaticOnlyOrder)
+  assert.equal((await reconcile(automaticOnlyNotification)).status, 200)
+  const automaticallyConfirmed = await payload.findByID({
+    collection: 'orders',
+    id: automaticOnlyOrder.id,
+  })
+  assert.equal(automaticallyConfirmed.transferVerification.method, 'mercado-pago')
+  assert.equal(automaticallyConfirmed.paymentStatus, 'approved')
+  const automaticSale = await payload.find({
+    collection: 'localSales',
+    where: { order: { equals: automaticOnlyOrder.id } },
+  })
+  assert.equal(automaticSale.docs[0].status, 'paid')
+  assert.equal(automaticSale.docs[0].paymentEvidence.method, 'mercado-pago')
+  const autoOrder = await order([autoProduct], {
+    transferIdentification: { type: 'DNI', number: '2222222' },
+    customer: customer.id,
+  })
+  const incoming = await observation(autoOrder)
+  assert.equal((await reconcile(incoming, 'local-jwt')).status, 403)
+  const automaticResults = await Promise.all([
+    reconcile(incoming),
+    reconcile(incoming),
+    confirm(autoOrder, { reference: incoming.resourceId }),
+  ])
+  assert.deepEqual(
+    automaticResults.map((result) => result.status),
+    [200, 200, 200],
+  )
+  assert.equal(await stock(autoProduct), 1)
+  assert.equal(
+    (await payload.findByID({ collection: 'orders', id: autoOrder.id })).paymentStatus,
+    'approved',
+  )
+  const privateAutoOrder = await payload.findByID({
+    collection: 'orders',
+    id: autoOrder.id,
+    user: customer,
+    overrideAccess: false,
+  })
+  assert.equal(privateAutoOrder.id, autoOrder.id)
+  assert.equal(privateAutoOrder.transferIdentification, undefined)
+  const refund = await observation(autoOrder, {
+    paymentStatus: 'refunded',
+    refundedAmount: autoOrder.amount,
+  })
+  assert.equal((await reconcile(refund)).status, 200)
+  assert.match(
+    (await payload.findByID({ collection: 'payment-notifications', id: refund.id })).reconciliation,
+    /^manual_review:/,
+  )
+  assert.equal(
+    (await payload.findByID({ collection: 'orders', id: autoOrder.id })).paymentStatus,
+    'approved',
+  )
+  assert.equal(await stock(autoProduct), 1)
+
+  const recoveryProduct = await product(1)
+  const recoveryOrder = await order([recoveryProduct], {
+    transferIdentification: { type: 'DNI', number: '1234567' },
+  })
+  const recoveryNotification = await observation(recoveryOrder)
+  const originalUpdate = payload.update.bind(payload)
+  payload.update = async (args) => {
+    if (args.collection === 'payment-notifications')
+      throw new Error('Falla simulada al guardar el resultado')
+    return originalUpdate(args)
+  }
+  try {
+    assert.equal((await reconcile(recoveryNotification)).status, 503)
+  } finally {
+    payload.update = originalUpdate
+  }
+  assert.equal(
+    (await payload.findByID({ collection: 'orders', id: recoveryOrder.id })).paymentStatus,
+    'approved',
+  )
+  assert.equal(await stock(recoveryProduct), 0)
+  assert.equal((await reconcile(recoveryNotification)).status, 200)
+  assert.equal(await stock(recoveryProduct), 0)
+  const reviewProduct = await product()
+  const reviewOrder = await order([reviewProduct], {
+    transferIdentification: { type: 'DNI', number: '3333333' },
+  })
+  for (const changes of [
+    { payerNumber: '4444444' },
+    { amount: 1 },
+    { refundedAmount: 1 },
+    { paymentType: 'credit_card' },
+    { paymentStatus: 'refunded' },
+  ]) {
+    const incomingReview = await observation(reviewOrder, changes)
+    assert.equal((await reconcile(incomingReview)).status, 200)
+    const saved = await payload.findByID({
+      collection: 'payment-notifications',
+      id: incomingReview.id,
+    })
+    assert.match(saved.reconciliation, /^manual_review:/)
+    assert.equal(
+      (await payload.findByID({ collection: 'orders', id: reviewOrder.id })).paymentStatus,
+      'pending',
+    )
+  }
+  assert.equal(await stock(reviewProduct), 3)
+  const ambiguousOrder = await order([reviewProduct], {
+    transferIdentification: { type: 'DNI', number: '5555555' },
+  })
+  await order([reviewProduct], { transferIdentification: ambiguousOrder.transferIdentification })
+  const ambiguous = await observation(ambiguousOrder, { publicReference: null })
+  assert.equal((await reconcile(ambiguous)).status, 200)
+  assert.match(
+    (await payload.findByID({ collection: 'payment-notifications', id: ambiguous.id }))
+      .reconciliation,
+    /ambiguous/,
+  )
+  assert.equal(await stock(reviewProduct), 3)
+  await assert.rejects(order([reviewProduct], { transferIdentification: null }))
+  const lateOrder = await order([reviewProduct], {
+    transferIdentification: { type: 'DNI', number: '6666666' },
+    paymentExpiresAt: new Date(Date.now() - 1000).toISOString(),
+  })
+  const lateIncoming = await observation(lateOrder)
+  assert.equal((await reconcile(lateIncoming)).status, 200)
+  assert.match(
+    (await payload.findByID({ collection: 'payment-notifications', id: lateIncoming.id }))
+      .reconciliation,
+    /^manual_review:/,
+  )
+  const noStockProduct = await product(0)
+  const noStockOrder = await order([noStockProduct], {
+    transferIdentification: { type: 'DNI', number: '7777777' },
+  })
+  const noStockIncoming = await observation(noStockOrder)
+  assert.equal((await reconcile(noStockIncoming)).status, 200)
+  assert.match(
+    (await payload.findByID({ collection: 'payment-notifications', id: noStockIncoming.id }))
+      .reconciliation,
+    /^manual_review:/,
+  )
+  assert.equal(
+    (await payload.findByID({ collection: 'orders', id: noStockOrder.id })).paymentStatus,
+    'pending',
+  )
+  const staleOrder = await order([reviewProduct], {
+    transferIdentification: { type: 'DNI', number: '8888888' },
+  })
+  const staleIncoming = await observation(staleOrder, {
+    providerUpdatedAt: new Date(Date.now() - 1000).toISOString(),
+    approvedAt: new Date(Date.now() - 2000).toISOString(),
+  })
+  await observation(staleOrder, { paymentStatus: 'refunded' })
+  assert.equal((await reconcile(staleIncoming)).status, 200)
+  assert.match(
+    (await payload.findByID({ collection: 'payment-notifications', id: staleIncoming.id }))
+      .reconciliation,
+    /superseded/,
+  )
+  assert.equal(await stock(reviewProduct), 3)
+  console.log(
+    'PASS: conciliación automática/manual concurrente, privacidad, documento obligatorio y excepciones sin descuento de stock',
+  )
+  const inboxMigration = migrations.find(
+    (migration) => migration.name === '20260917_120000_transfer_identification',
+  )
   await payload.db.drizzle.transaction((db) => inboxMigration.down({ db, payload, req: {} }))
+  const baseInboxMigration = migrations.find(
+    (migration) => migration.name === '20260917_110000_payment_notifications',
+  )
+  await payload.db.drizzle.transaction((db) => baseInboxMigration.down({ db, payload, req: {} }))
+  await payload.db.drizzle.transaction((db) => baseInboxMigration.up({ db, payload, req: {} }))
   await payload.db.drizzle.transaction((db) => inboxMigration.up({ db, payload, req: {} }))
+  const migratedOrder = await payload.findByID({ collection: 'orders', id: autoOrder.id })
+  assert.equal(migratedOrder.paymentStatus, 'approved')
+  assert.equal(migratedOrder.transferIdentification, null)
   console.log(
     'PASS: bandeja privada, deduplicación concurrente, registros inmutables y migración reversible',
   )
   await payload.update({ collection: 'users', id: user.id, data: { roles: ['customer'] } })
+  assert.equal((await reconcile(incoming)).status, 403)
   assert.equal((await confirm(variantOrder)).status, 403)
   console.log(
     'PASS: privacidad, declaración concurrente, rollback de vínculo local, variante y rol revocado',

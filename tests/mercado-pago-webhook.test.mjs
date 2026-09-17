@@ -89,6 +89,37 @@ test("consulta el recurso firmado y guarda solo la proyección privada antes de 
   assert.match(deps.recorded[0].idempotencyKey, /^[a-f0-9]{64}$/);
 });
 
+test("extrae documento y descripción únicamente del recurso verificado", async () => {
+  const deps = dependencies({
+    external_reference: null,
+    description: payment.external_reference,
+    payer: {
+      identification: { type: "DNI", number: "1.111.111" },
+      email: "privado@example.test",
+    },
+    payment_type_id: "bank_transfer",
+    status_detail: "accredited",
+    transaction_amount_refunded: 0,
+    date_approved: payment.date_last_updated,
+  });
+  assert.equal((await receiveMercadoPagoWebhook(request(), deps)).status, 200);
+  assert.equal(deps.recorded[0].payerNumber, "1111111");
+  assert.equal(deps.recorded[0].payerType, "DNI");
+  assert.equal(deps.recorded[0].publicReference, payment.external_reference);
+  assert.equal(deps.recorded[0].refundedAmount, 0);
+  assert.equal(deps.recorded[0].paymentType, "bank_transfer");
+  assert.equal(JSON.stringify(deps.recorded).includes("privado"), false);
+});
+
+test("referencias contradictorias impiden la acreditación automática", async () => {
+  const deps = dependencies({
+    description: "00000000-0000-4000-8000-000000000001",
+    status_detail: "accredited",
+  });
+  assert.equal((await receiveMercadoPagoWebhook(request(), deps)).status, 200);
+  assert.equal(deps.recorded[0].statusDetail, null);
+});
+
 test("reintentos tienen la misma clave y una actualización tiene otra", async () => {
   const deps = dependencies();
   await receiveMercadoPagoWebhook(request(), deps);

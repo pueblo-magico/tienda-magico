@@ -363,6 +363,15 @@ export interface Order {
     | number
     | boolean
     | null;
+  transferIdentification?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   paymentMethod: 'mercado-pago' | 'bank-transfer';
   paymentExpiresAt?: string | null;
   paymentStatus: 'pending' | 'approved' | 'rejected' | 'cancelled' | 'unverified';
@@ -2877,13 +2886,20 @@ export interface Cart {
   createdAt: string;
 }
 /**
- * Private Mercado Pago observations awaiting manual reconciliation. They do not confirm orders or represent the current payment state. Always check the account before confirming.
+ * Private Mercado Pago observations. Reconciliation indicates automatic confirmation or manual review. Check the account before resolving an exception.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payment-notifications".
  */
 export interface PaymentNotification {
   id: number;
+  payerType?: string | null;
+  payerNumber?: string | null;
+  paymentType?: string | null;
+  statusDetail?: string | null;
+  refundedAmount?: number | null;
+  approvedAt?: string | null;
+  reconciliation?: string | null;
   idempotencyKey: string;
   resourceId: string;
   paymentStatus: string;
@@ -3546,6 +3562,13 @@ export interface LocalSalesSelect<T extends boolean = true> {
  * via the `definition` "payment-notifications_select".
  */
 export interface PaymentNotificationsSelect<T extends boolean = true> {
+  payerType?: T;
+  payerNumber?: T;
+  paymentType?: T;
+  statusDetail?: T;
+  refundedAmount?: T;
+  approvedAt?: T;
+  reconciliation?: T;
   idempotencyKey?: T;
   resourceId?: T;
   paymentStatus?: T;
@@ -4090,6 +4113,7 @@ export interface OrdersSelect<T extends boolean = true> {
   publicReference?: T;
   fulfillmentMode?: T;
   buyerContact?: T;
+  transferIdentification?: T;
   paymentMethod?: T;
   paymentExpiresAt?: T;
   paymentStatus?: T;

@@ -111,6 +111,7 @@ type CheckoutBody = {
   email?: string;
   name?: string;
   paymentMethod?: string;
+  identification?: { type: string; number: string };
 };
 
 /**
@@ -206,8 +207,10 @@ export async function POST(request: Request) {
       {
         email: body.email?.trim() || null,
         name: body.name?.trim() || null,
+        identification: body.identification,
       },
       locale,
+      paymentMethod,
     );
     const paymentExpiresAt =
       paymentMethod === BANK_TRANSFER
