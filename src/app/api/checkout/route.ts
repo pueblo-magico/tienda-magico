@@ -14,7 +14,7 @@ import {
   PaymentMethodError,
   parsePaymentMethod,
 } from "@/lib/checkout/payment-method";
-import { BANK_TRANSFER, MERCADO_PAGO } from "@/types/checkout";
+import { BANK_TRANSFER, CASH, MERCADO_PAGO } from "@/types/checkout";
 import {
   bankTransferExpiry,
   createBankTransferSession,
@@ -23,6 +23,7 @@ import {
   CheckoutCustomerError,
   validateCheckoutCustomer,
 } from "@/lib/checkout/customer";
+import { createCashSession } from "@/lib/checkout/cash";
 
 export const dynamic = "force-dynamic";
 
@@ -177,6 +178,7 @@ export async function POST(request: Request) {
       body.paymentMethod,
       commerceSettings,
       locale,
+      fulfillmentMode,
     );
 
     if (paymentMethod === MERCADO_PAGO && !checkout.isConfigured()) {
@@ -241,6 +243,24 @@ export async function POST(request: Request) {
         expiresAt: order.paymentExpiresAt ?? paymentExpiresAt ?? undefined,
       });
       return NextResponse.json({ session, configured: true });
+    }
+    if (paymentMethod === CASH) {
+      if (!order) {
+        throw new CommerceError(
+          locale.startsWith("es")
+            ? "No se pudo crear el pedido pendiente."
+            : "Could not create the pending order.",
+          { status: 502 },
+        );
+      }
+      return NextResponse.json({
+        session: createCashSession({
+          baseUrl: base,
+          locale,
+          orderId: order.publicReference,
+        }),
+        configured: true,
+      });
     }
     const session = await checkout.createCheckoutSession({
       cart,

@@ -4,6 +4,7 @@ import { DELIVERY, LOCAL_COLLECTION } from "./local-purchase";
 export type CommerceSettings = {
   localCollectionEnabled: boolean;
   deliveryEnabled: boolean;
+  cashEnabled: boolean;
   transferEnabled: boolean;
   transfer: {
     accountHolder: string;
@@ -17,6 +18,7 @@ export type CommerceSettings = {
 export const DEFAULT_COMMERCE_SETTINGS: CommerceSettings = {
   localCollectionEnabled: true,
   deliveryEnabled: false,
+  cashEnabled: false,
   transferEnabled: false,
   transfer: {
     accountHolder: "",
@@ -49,6 +51,10 @@ export function parseCommerceSettings(value: unknown): CommerceSettings {
       typeof settings.deliveryEnabled === "boolean"
         ? settings.deliveryEnabled
         : DEFAULT_COMMERCE_SETTINGS.deliveryEnabled,
+    cashEnabled:
+      typeof settings.cashEnabled === "boolean"
+        ? settings.cashEnabled
+        : DEFAULT_COMMERCE_SETTINGS.cashEnabled,
     transferEnabled:
       typeof settings.transferEnabled === "boolean"
         ? settings.transferEnabled

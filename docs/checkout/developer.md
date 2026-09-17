@@ -61,7 +61,7 @@ Cart UI / /[locale]/checkout
 | `src/lib/checkout/providers/commerce-redirect/*`      | Shopify / external `checkoutUrl`                       |
 | `src/features/checkout/*`                             | Client `createCheckoutSession`, `CheckoutStart`        |
 | `src/app/api/checkout/route.ts`                       | `GET` status / `POST` create session                   |
-| `src/app/api/checkout/webhooks/mercado-pago/route.ts` | Recepción firmada y bandeja privada de notificaciones |
+| `src/app/api/checkout/webhooks/mercado-pago/route.ts` | Recepción firmada y bandeja privada de notificaciones  |
 | `src/app/[locale]/checkout/**`                        | Entry + success / failure / pending pages              |
 
 ---
@@ -341,3 +341,8 @@ curl -s http://localhost:3000/api/checkout | jq
 - UI chrome: `next-intl` keys under `checkout.*` in `messages/en.json` / `messages/es.json`
 - Preference item titles come from commerce cart lines (already locale-aware when cart API passes `locale`)
 - Return URLs include the active locale segment (`/es/checkout/success`, …)
+
+## Flujos manuales
+
+- [Pago en efectivo con retiro local](./cash-payment.md)
+- [Confirmación manual de transferencias](./manual-transfer-confirmation.md)

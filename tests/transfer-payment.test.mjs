@@ -74,7 +74,7 @@ test("solo acepta los medios de pago soportados y habilitados", () => {
     BANK_TRANSFER,
   );
   assert.throws(
-    () => parsePaymentMethod("cash", DEFAULT_COMMERCE_SETTINGS, "en"),
+    () => parsePaymentMethod("cheque", DEFAULT_COMMERCE_SETTINGS, "en"),
     /valid payment method/i,
   );
 });

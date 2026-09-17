@@ -104,7 +104,7 @@ export function buildCheckoutOrderInput(
   const paymentMethod = options.paymentMethod ?? MERCADO_PAGO;
   return {
     checkoutKey: `checkout:${cart.id.trim()}${
-      paymentMethod === BANK_TRANSFER ? `:${BANK_TRANSFER}` : ""
+      paymentMethod === MERCADO_PAGO ? "" : `:${paymentMethod}`
     }`,
     cartReference: cart.id,
     fulfillmentMode: cart.fulfillmentMode,

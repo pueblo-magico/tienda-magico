@@ -8,11 +8,12 @@ import { pendingReturnLink } from "@/features/checkout/pending-navigation";
 import { checkout } from "@/lib/checkout";
 import { getCommerceSettings, getSiteSettings } from "@/lib/cms";
 import { CopyButton } from "@/components/ui/CopyButton";
-import { BANK_TRANSFER } from "@/types/checkout";
+import { BANK_TRANSFER, CASH } from "@/types/checkout";
 import { commerce, formatMoney } from "@/lib/commerce";
 import { TransferWaiting } from "@/features/checkout/TransferWaiting";
 import { guestCartReferences } from "@/lib/checkout/guest-orders";
 import { ArrowLeft } from "lucide-react";
+import { CashWaiting } from "@/features/checkout/CashWaiting";
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -43,19 +44,26 @@ export default async function CheckoutPendingPage({
   const orderReference = first(query.order);
   const isBankTransferRequest =
     paymentMethod === BANK_TRANSFER && Boolean(orderReference);
-  const transferOrder =
-    isBankTransferRequest && orderReference
+  const isCashRequest = paymentMethod === CASH && Boolean(orderReference);
+  const manualOrder =
+    (isBankTransferRequest || isCashRequest) && orderReference
       ? await commerce.getCheckoutOrderByPublicReference(orderReference)
       : null;
+  const transferOrder =
+    manualOrder?.paymentMethod === BANK_TRANSFER ? manualOrder : null;
+  const cashOrder = manualOrder?.paymentMethod === CASH ? manualOrder : null;
   const isBankTransfer = transferOrder?.paymentMethod === BANK_TRANSFER;
-  const ownedOrders = isBankTransfer
-    ? await commerce.getGuestOrders(await guestCartReferences())
-    : [];
+  const isCash = cashOrder?.paymentMethod === CASH;
+  const ownedOrders =
+    isBankTransfer || isCash
+      ? await commerce.getGuestOrders(await guestCartReferences())
+      : [];
   const ownedOrder = ownedOrders.find(
     (order) => order.publicReference === orderReference,
   );
   const commerceSettings = isBankTransfer ? await getCommerceSettings() : null;
-  const siteSettings = isBankTransfer ? await getSiteSettings(locale) : null;
+  const siteSettings =
+    isBankTransfer || isCash ? await getSiteSettings(locale) : null;
   const expiresAt = transferOrder?.paymentExpiresAt ?? null;
   const formattedExpiry = expiresAt
     ? (() => {
@@ -68,8 +76,9 @@ export default async function CheckoutPendingPage({
             }).format(date);
       })()
     : null;
-  const formattedAmount = transferOrder
-    ? formatMoney(transferOrder.total, locale)
+  const displayedOrder = transferOrder ?? cashOrder;
+  const formattedAmount = displayedOrder
+    ? formatMoney(displayedOrder.total, locale)
     : null;
 
   let paymentStatus: string | null = null;
@@ -83,8 +92,12 @@ export default async function CheckoutPendingPage({
   }
 
   return (
-    <div className={isBankTransfer ? "lg:grid lg:grid-cols-3" : undefined}>
-      {isBankTransfer ? (
+    <div
+      className={
+        isBankTransfer || isCash ? "lg:grid lg:grid-cols-3" : undefined
+      }
+    >
+      {isBankTransfer || isCash ? (
         <aside
           aria-hidden
           className="bg-warm relative hidden min-h-full overflow-hidden lg:block"
@@ -96,17 +109,17 @@ export default async function CheckoutPendingPage({
       ) : null}
       <Section
         spacing="lg"
-        className={isBankTransfer ? "lg:col-span-2" : undefined}
+        className={isBankTransfer || isCash ? "lg:col-span-2" : undefined}
       >
         <Container
           className={
-            isBankTransfer
+            isBankTransfer || isCash
               ? "mx-auto max-w-2xl space-y-6 text-left"
               : "mx-auto max-w-xl space-y-6 text-center"
           }
         >
           <Eyebrow>{t("eyebrow")}</Eyebrow>
-          {!isBankTransfer ? (
+          {!isBankTransfer && !isCash ? (
             <>
               <PageTitle as="h1" className="text-4xl sm:text-5xl">
                 {t("pending.title")}
@@ -119,6 +132,17 @@ export default async function CheckoutPendingPage({
                       ? "pending.transferBody"
                       : "pending.body",
                 )}
+              </Body>
+            </>
+          ) : null}
+
+          {isCash && !ownedOrder ? (
+            <>
+              <PageTitle as="h1" className="text-4xl sm:text-5xl">
+                {t("pending.title")}
+              </PageTitle>
+              <Body className="text-forest/80">
+                {t("pending.cashNotFound")}
               </Body>
             </>
           ) : null}
@@ -206,6 +230,37 @@ export default async function CheckoutPendingPage({
                 </div>
               ) : null}
             </TransferWaiting>
+          ) : null}
+
+          {isCash && cashOrder && ownedOrder ? (
+            <CashWaiting
+              title={t("pending.cashTitle")}
+              body={t("pending.cashBody")}
+              notice={t("pending.cashNotice")}
+            >
+              <div className="flex justify-between gap-4">
+                <dt className="text-text-secondary">
+                  {t("pending.orderReference")}
+                </dt>
+                <dd className="text-right font-mono text-xs break-all">
+                  {cashOrder.publicReference}
+                  <CopyButton
+                    value={cashOrder.publicReference}
+                    label={ordersText("copy")}
+                    copiedLabel={ordersText("copied")}
+                    errorLabel={ordersText("copyFailed")}
+                  />
+                </dd>
+              </div>
+              {formattedAmount ? (
+                <div className="flex justify-between gap-4">
+                  <dt className="text-text-secondary">
+                    {t("pending.orderAmount")}
+                  </dt>
+                  <dd className="font-semibold">{formattedAmount}</dd>
+                </div>
+              ) : null}
+            </CashWaiting>
           ) : null}
 
           {!isBankTransferRequest &&

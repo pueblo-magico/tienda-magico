@@ -34,6 +34,7 @@ import {
 } from "@/lib/commerce/commerce-settings";
 import {
   BANK_TRANSFER,
+  CASH,
   MERCADO_PAGO,
   type PaymentMethod,
 } from "@/types/checkout";
@@ -67,6 +68,8 @@ type Props = {
     mercadoPagoHint: string;
     bankTransfer: string;
     bankTransferHint: string;
+    cash: string;
+    cashHint: string;
     buyerLegend: string;
     buyerName: string;
     buyerEmail: string;
@@ -291,6 +294,28 @@ export function CartSummary({
                     </span>
                   </label>
                 ) : null}
+                {commerceSettings.cashEnabled &&
+                cart.fulfillmentMode === LOCAL_COLLECTION ? (
+                  <label className="flex cursor-pointer items-start gap-4 py-1">
+                    <input
+                      type="radio"
+                      className="accent-forest focus-visible:outline-forest mt-1 size-5 shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      name={paymentGroupName}
+                      value={CASH}
+                      checked={paymentMethod === CASH}
+                      disabled={fulfillmentDisabled}
+                      onChange={() => onPaymentMethodChange(CASH)}
+                    />
+                    <span className="space-y-1">
+                      <span className="text-text-secondary block text-base">
+                        {labels.cash}
+                      </span>
+                      <span className="text-text-primary block text-sm">
+                        {labels.cashHint}
+                      </span>
+                    </span>
+                  </label>
+                ) : null}
               </fieldset>
             ),
           },
@@ -372,6 +397,8 @@ export function CartSummary({
           cart.totalQuantity === 0 ||
           !hasEnabledFulfillmentMode ||
           !hasBuyerDetails ||
+          (paymentMethod === CASH &&
+            cart.fulfillmentMode !== LOCAL_COLLECTION) ||
           (paymentMethod === BANK_TRANSFER &&
             !normalizeTransferIdentification(identification))
         }

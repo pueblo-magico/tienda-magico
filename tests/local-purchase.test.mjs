@@ -33,6 +33,7 @@ test("commerce settings default to local collection without delivery", () => {
   assert.deepEqual(DEFAULT_COMMERCE_SETTINGS, {
     localCollectionEnabled: true,
     deliveryEnabled: false,
+    cashEnabled: false,
     transferEnabled: false,
     transfer: {
       accountHolder: "",
@@ -77,6 +78,11 @@ test("the CMS exposes admin-managed storefront commerce settings", () => {
       {
         name: "deliveryEnabled",
         label: { es: "Habilitar entrega", en: "Enable delivery" },
+        defaultValue: false,
+      },
+      {
+        name: "cashEnabled",
+        label: { es: "Habilitar efectivo", en: "Enable cash" },
         defaultValue: false,
       },
       {

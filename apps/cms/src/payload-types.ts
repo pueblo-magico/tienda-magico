@@ -262,7 +262,7 @@ export interface LocalSale {
   status: 'pending_payment' | 'paid' | 'cancelled' | 'conflict';
   fulfillmentMode: 'local_collection' | 'delivery';
   paymentStatus: 'pending' | 'approved' | 'rejected' | 'cancelled' | 'unverified';
-  paymentMethod: 'mercado-pago' | 'bank-transfer';
+  paymentMethod: 'mercado-pago' | 'bank-transfer' | 'cash';
   paymentExpiresAt?: string | null;
   /**
    * Optional private data allowed by checkout.
@@ -336,6 +336,15 @@ export interface Order {
   status?: OrderStatus;
   amount?: number | null;
   currency?: 'ARS' | null;
+  cashVerification?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   transferBankReference?: string | null;
   transferVerification?:
     | {
@@ -372,7 +381,7 @@ export interface Order {
     | number
     | boolean
     | null;
-  paymentMethod: 'mercado-pago' | 'bank-transfer';
+  paymentMethod: 'mercado-pago' | 'bank-transfer' | 'cash';
   paymentExpiresAt?: string | null;
   paymentStatus: 'pending' | 'approved' | 'rejected' | 'cancelled' | 'unverified';
   commercialSnapshot?:
@@ -4105,6 +4114,7 @@ export interface OrdersSelect<T extends boolean = true> {
   status?: T;
   amount?: T;
   currency?: T;
+  cashVerification?: T;
   transferBankReference?: T;
   transferVerification?: T;
   transferReportedAt?: T;
@@ -4351,6 +4361,10 @@ export interface CommerceSetting {
    */
   deliveryEnabled: boolean;
   /**
+   * Allows cash payment only with local collection. The order is confirmed in the CMS after receiving the exact amount.
+   */
+  cashEnabled: boolean;
+  /**
    * Allows customers to choose bank transfer. Enable it only after completing the account details.
    */
   transferEnabled: boolean;
@@ -4541,6 +4555,7 @@ export interface SiteSettingsSelect<T extends boolean = true> {
 export interface CommerceSettingsSelect<T extends boolean = true> {
   localCollectionEnabled?: T;
   deliveryEnabled?: T;
+  cashEnabled?: T;
   transferEnabled?: T;
   transfer?:
     | T

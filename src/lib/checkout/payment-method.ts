@@ -4,6 +4,7 @@ import {
 } from "@/lib/commerce/commerce-settings";
 import {
   BANK_TRANSFER,
+  CASH,
   MERCADO_PAGO,
   type PaymentMethod,
 } from "@/types/checkout";
@@ -23,10 +24,33 @@ export function parsePaymentMethod(
   value: unknown,
   settings: CommerceSettings,
   locale?: string | null,
+  fulfillmentMode?: string | null,
 ): PaymentMethod {
   const method = value == null || value === "" ? MERCADO_PAGO : value;
 
   if (method === MERCADO_PAGO) return MERCADO_PAGO;
+
+  if (method === CASH) {
+    if (!settings.cashEnabled) {
+      throw new PaymentMethodError(
+        message(
+          locale,
+          "El pago en efectivo no está habilitado.",
+          "Cash payment is not enabled.",
+        ),
+      );
+    }
+    if (fulfillmentMode !== "local_collection") {
+      throw new PaymentMethodError(
+        message(
+          locale,
+          "El pago en efectivo solo está disponible con retiro local.",
+          "Cash payment is only available with local collection.",
+        ),
+      );
+    }
+    return CASH;
+  }
 
   if (method !== BANK_TRANSFER) {
     throw new PaymentMethodError(

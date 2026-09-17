@@ -79,6 +79,8 @@ export function CartDrawer() {
                 bankTransferHint: t("bankTransferHint", {
                   minutes: commerceSettings.transfer.paymentWindowMinutes,
                 }),
+                cash: t("cash"),
+                cashHint: t("cashHint"),
                 buyerLegend: t("buyerLegend"),
                 buyerName: t("buyerName"),
                 buyerEmail: t("buyerEmail"),

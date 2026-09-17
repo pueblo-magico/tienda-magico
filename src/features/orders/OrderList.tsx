@@ -103,7 +103,9 @@ export function OrderList({
                             </p>
                           ) : null}
                         </div>
-                        {order.paymentMethod === "bank-transfer" ? (
+                        {["bank-transfer", "cash"].includes(
+                          order.paymentMethod,
+                        ) ? (
                           <Button
                             href={`/${locale}/checkout/pending?${query}`}
                             size="sm"

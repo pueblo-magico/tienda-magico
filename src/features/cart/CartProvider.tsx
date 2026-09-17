@@ -13,7 +13,7 @@ import {
 import { useLocale, useTranslations } from "next-intl";
 import type { Cart, CartLineInput } from "@/types/commerce";
 import type { FulfillmentMode } from "@/lib/commerce/local-purchase";
-import { MERCADO_PAGO, type PaymentMethod } from "@/types/checkout";
+import { CASH, MERCADO_PAGO, type PaymentMethod } from "@/types/checkout";
 import { createCheckoutSession } from "@/features/checkout";
 import {
   addCartLines,
@@ -258,6 +258,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const cartId = readStoredCartId() || cart.id;
       if (!cartId) return;
 
+      if (mode !== "local_collection" && paymentMethod === CASH) {
+        setPaymentMethod(MERCADO_PAGO);
+      }
+
       fulfillmentModeRef.current = mode;
       setCart((current) => ({ ...current, fulfillmentMode: mode }));
       pendingFulfillmentMutations.current += 1;
@@ -287,7 +291,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         }
       }
     },
-    [applyCart, cart.id, locale, tCommercial],
+    [applyCart, cart.id, locale, paymentMethod, tCommercial],
   );
 
   const checkout = useCallback(async () => {

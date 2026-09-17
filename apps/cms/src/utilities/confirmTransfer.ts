@@ -16,11 +16,12 @@ import { confirmOrderInventory } from './confirmOrderInventory'
 import { deferredCatalogRevalidation, notifyStorefront } from '../hooks/revalidateStorefrontCatalog'
 import { activeTransaction } from './transferWriteLock'
 
-const confirmationAuthority = Symbol('transfer-confirmation')
+export const paymentConfirmationAuthority = Symbol('payment-confirmation')
 const protectedFields = [
   'status',
   'paymentStatus',
   'transferVerification',
+  'cashVerification',
   'transferBankReference',
   'items',
   'amount',
@@ -41,17 +42,18 @@ export const protectTransfer: CollectionBeforeChangeHook = ({
   operation,
   req,
 }) => {
-  if (req.context.transferConfirmation === confirmationAuthority) return data
+  if (req.context.paymentConfirmation === paymentConfirmationAuthority) return data
   if (operation === 'create') {
     if (
       data.transferVerification ||
+      data.cashVerification ||
       data.transferBankReference ||
-      (data.paymentMethod === 'bank-transfer' && data.paymentStatus !== 'pending')
+      (['bank-transfer', 'cash'].includes(data.paymentMethod) && data.paymentStatus !== 'pending')
     )
       throw new APIError('La transferencia debe crearse pendiente de verificación.', 400)
   } else if (
-    originalDoc.paymentMethod === 'bank-transfer' ||
-    data.paymentMethod === 'bank-transfer'
+    ['bank-transfer', 'cash'].includes(originalDoc.paymentMethod) ||
+    ['bank-transfer', 'cash'].includes(data.paymentMethod)
   ) {
     if (req.context.transferBulkWrite)
       throw new APIError('Actualizá las transferencias individualmente.', 400)
@@ -61,7 +63,7 @@ export const protectTransfer: CollectionBeforeChangeHook = ({
         JSON.stringify(data[field]) !== JSON.stringify(originalDoc[field])
       )
         throw new APIError(
-          'Usá la acción de verificación para confirmar una transferencia. Los datos del pedido son inmutables.',
+          'Usá la acción de confirmación del pago. Los datos del pedido son inmutables.',
           403,
         )
     }
@@ -75,16 +77,17 @@ export const protectLocalTransfer: CollectionBeforeChangeHook = ({
   operation,
   req,
 }) => {
-  if (req.context.transferConfirmation === confirmationAuthority) return data
+  if (req.context.paymentConfirmation === paymentConfirmationAuthority) return data
   if (
     operation === 'create' &&
-    data.paymentMethod === 'bank-transfer' &&
+    ['bank-transfer', 'cash'].includes(data.paymentMethod) &&
     (data.paymentStatus !== 'pending' || data.status !== 'pending_payment' || data.paymentEvidence)
   )
     throw new APIError('La venta local debe crearse pendiente de pago.', 403)
   if (
     operation === 'update' &&
-    (originalDoc.paymentMethod === 'bank-transfer' || data.paymentMethod === 'bank-transfer')
+    (['bank-transfer', 'cash'].includes(originalDoc.paymentMethod) ||
+      ['bank-transfer', 'cash'].includes(data.paymentMethod))
   ) {
     if (req.context.transferBulkWrite)
       throw new APIError('Actualizá las transferencias individualmente.', 400)
@@ -100,7 +103,7 @@ export const protectLocalTransfer: CollectionBeforeChangeHook = ({
         data[field] !== undefined &&
         JSON.stringify(data[field]) !== JSON.stringify(originalDoc[field])
       )
-        throw new APIError('Confirmá la transferencia desde el pedido vinculado.', 403)
+        throw new APIError('Confirmá el pago desde el pedido vinculado.', 403)
     }
   }
   return data
@@ -304,7 +307,7 @@ export async function confirmTransfer(
           paymentStatus: 'approved',
           paymentEvidence: { order: id, method: matching ? 'mercado-pago' : 'manual' },
         },
-        context: { transferConfirmation: confirmationAuthority },
+        context: { paymentConfirmation: paymentConfirmationAuthority },
         req,
         overrideAccess: true,
       })
@@ -317,7 +320,7 @@ export async function confirmTransfer(
         transferBankReference: input.reference,
         transferVerification: verification,
       },
-      context: { transferConfirmation: confirmationAuthority },
+      context: { paymentConfirmation: paymentConfirmationAuthority },
       req,
       overrideAccess: true,
     })

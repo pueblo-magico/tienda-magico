@@ -42,7 +42,7 @@ export const protectTransferDeletion: CollectionBeforeDeleteHook = async ({
   const result = await transaction.execute(
     sql`SELECT payment_method FROM ${sql.identifier(table)} WHERE id = ${id} FOR UPDATE`,
   )
-  if (result.rows[0]?.payment_method === 'bank-transfer')
+  if (['bank-transfer', 'cash'].includes(String(result.rows[0]?.payment_method)))
     throw new APIError(
       'Los registros de transferencia se conservan para auditoría; no se pueden eliminar.',
       403,

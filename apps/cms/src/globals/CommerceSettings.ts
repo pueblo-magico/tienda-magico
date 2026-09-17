@@ -42,6 +42,19 @@ export const CommerceSettings: GlobalConfig = {
       },
     },
     {
+      name: 'cashEnabled',
+      label: { es: 'Habilitar efectivo', en: 'Enable cash' },
+      type: 'checkbox',
+      defaultValue: false,
+      required: true,
+      admin: {
+        description: {
+          es: 'Permite pagar en efectivo únicamente con retiro local. El pedido se confirma desde el CMS al recibir el importe exacto.',
+          en: 'Allows cash payment only with local collection. The order is confirmed in the CMS after receiving the exact amount.',
+        },
+      },
+    },
+    {
       name: 'transferEnabled',
       label: { es: 'Habilitar transferencia', en: 'Enable bank transfer' },
       type: 'checkbox',

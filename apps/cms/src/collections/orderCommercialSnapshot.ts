@@ -4,6 +4,7 @@ import { normalizeTransferIdentification } from '../utilities/transferIdentifica
 import { activeTransaction } from '../utilities/transferWriteLock'
 import { randomUUID } from 'node:crypto'
 import { confirmTransferEndpoint, protectTransfer } from '../utilities/confirmTransfer'
+import { confirmCashEndpoint } from '../utilities/confirmCash'
 import { lockTransferWrite, protectTransferDeletion } from '../utilities/transferWriteLock'
 
 const immutableAfterCreation = { update: () => false }
@@ -14,7 +15,7 @@ export const ordersCollectionOverride = ({
   defaultCollection: CollectionConfig
 }): CollectionConfig => ({
   ...defaultCollection,
-  endpoints: [...(defaultCollection.endpoints || []), confirmTransferEndpoint],
+  endpoints: [...(defaultCollection.endpoints || []), confirmTransferEndpoint, confirmCashEndpoint],
   hooks: {
     ...defaultCollection.hooks,
     beforeOperation: [lockTransferWrite, ...(defaultCollection.hooks?.beforeOperation ?? [])],
@@ -43,6 +44,8 @@ export const ordersCollectionOverride = ({
       ...(defaultCollection.hooks?.beforeValidate ?? []),
       ({ data, operation }) => {
         if (operation !== 'create') return data
+        if (data?.paymentMethod === 'cash' && data.fulfillmentMode !== 'local_collection')
+          throw new APIError('El efectivo solo está disponible con retiro local.', 400)
         const checkoutData: Record<string, unknown> = {
           ...data,
           publicReference: data?.publicReference ?? randomUUID(),
@@ -103,12 +106,31 @@ export const ordersCollectionOverride = ({
   fields: [
     ...defaultCollection.fields,
     {
+      name: 'confirmCash',
+      type: 'ui',
+      admin: {
+        condition: (data) => data.paymentMethod === 'cash',
+        components: { Field: '@/components/ConfirmCash' },
+      },
+    },
+    {
       name: 'confirmTransfer',
       type: 'ui',
       admin: {
         condition: (data) => data.paymentMethod === 'bank-transfer',
         components: { Field: '@/components/ConfirmTransfer' },
       },
+    },
+    {
+      name: 'cashVerification',
+      type: 'json',
+      label: { es: 'Auditoría de efectivo', en: 'Cash verification audit' },
+      access: {
+        create: () => false,
+        update: () => false,
+        read: ({ req }) => Boolean(req.user?.roles?.includes('admin')),
+      },
+      admin: { readOnly: true },
     },
     {
       name: 'transferBankReference',
@@ -207,6 +229,7 @@ export const ordersCollectionOverride = ({
       options: [
         { label: 'Mercado Pago', value: 'mercado-pago' },
         { label: { es: 'Transferencia', en: 'Bank transfer' }, value: 'bank-transfer' },
+        { label: { es: 'Efectivo', en: 'Cash' }, value: 'cash' },
       ],
       label: { es: 'Medio de pago', en: 'Payment method' },
       access: immutableAfterCreation,

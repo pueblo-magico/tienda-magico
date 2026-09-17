@@ -111,6 +111,7 @@ export const LocalSales: CollectionConfig = {
       options: [
         { label: 'Mercado Pago', value: 'mercado-pago' },
         { label: { es: 'Transferencia', en: 'Bank transfer' }, value: 'bank-transfer' },
+        { label: { es: 'Efectivo', en: 'Cash' }, value: 'cash' },
       ],
       label: { es: 'Medio de pago', en: 'Payment method' },
       access: immutableAfterCreation,
