@@ -1,5 +1,11 @@
 # Checkout developer guide
 
+## Pendiente para retomar: pago en efectivo
+
+- Implementar un flujo de pago en efectivo como medio adicional del checkout.
+- Estado: pendiente de definición e implementación; retomar al volver al trabajo.
+- Antes de implementar, acordar cuándo se cobra, quién confirma el cobro en el CMS y cómo se manejan el stock, el vencimiento y la cancelación del pedido. Estas decisiones todavía no están acordadas.
+
 Provider-agnostic checkout for the Pueblo Mágico storefront. Feature code talks to `@/lib/checkout` (or `POST /api/checkout`); payment gateways are swappable adapters.
 
 Related:
