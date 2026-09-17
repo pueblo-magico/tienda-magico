@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Body, PageTitle } from "@/components/typography";
-import { experienciaMagicoUrl } from "@/config/navigation";
+import { buildWhatsAppUrl } from "@/features/impact";
 import { OrderList } from "@/features/orders/OrderList";
 import { RecoverOrders } from "./RecoverOrders";
 
@@ -73,9 +73,14 @@ export default async function OrdersPage({
               <CardDescription>{t("supportBody")}</CardDescription>
             </div>
             <Button
-              href={experienciaMagicoUrl("/#contacto")}
+              href={buildWhatsAppUrl(
+                settings.contactPhone ?? undefined,
+                t("supportMessage"),
+              )}
               variant="secondary"
               size="sm"
+              target="_blank"
+              rel="noreferrer"
             >
               {t("support")}
             </Button>
