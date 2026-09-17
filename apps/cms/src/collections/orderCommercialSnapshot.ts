@@ -6,6 +6,7 @@ import { randomUUID } from 'node:crypto'
 import { confirmTransferEndpoint, protectTransfer } from '../utilities/confirmTransfer'
 import { confirmCashEndpoint } from '../utilities/confirmCash'
 import { replacePendingCash } from '../utilities/replacePendingCash'
+import { completePaidCart } from '../utilities/completePaidCart'
 import { lockTransferWrite, protectTransferDeletion } from '../utilities/transferWriteLock'
 
 const immutableAfterCreation = { update: () => false }
@@ -25,6 +26,35 @@ export const ordersCollectionOverride = ({
       ...(defaultCollection.hooks?.beforeChange ?? []),
       protectTransfer,
       replacePendingCash,
+      ({ data, operation, originalDoc }) => {
+        if (operation !== 'update' || !data) return data
+        const receiptFields = ['receivedAt', 'experienceRating', 'experienceComment'] as const
+        const changesReceipt = receiptFields.some((field) => field in data)
+        if (!changesReceipt) return data
+        if (originalDoc?.receivedAt) {
+          throw new APIError('La confirmación de recepción no se puede modificar.', 409)
+        }
+        if ((data.paymentStatus ?? originalDoc?.paymentStatus) !== 'approved') {
+          throw new APIError('Solo se puede confirmar la recepción de un pedido pagado.', 409)
+        }
+        if (!data.receivedAt) {
+          throw new APIError('Falta la fecha de recepción.', 400)
+        }
+        if (
+          !Number.isInteger(data.experienceRating) ||
+          data.experienceRating < 0 ||
+          data.experienceRating > 5
+        ) {
+          throw new APIError('La puntuación debe ser un número entero entre 0 y 5.', 400)
+        }
+        if (
+          data.experienceComment != null &&
+          (typeof data.experienceComment !== 'string' || data.experienceComment.length > 1000)
+        ) {
+          throw new APIError('El comentario no puede superar los 1000 caracteres.', 400)
+        }
+        return data
+      },
       async ({ data, operation, req }) => {
         if (operation === 'create' && data.paymentMethod === 'bank-transfer') {
           const identification = normalizeTransferIdentification(data.transferIdentification)
@@ -68,6 +98,7 @@ export const ordersCollectionOverride = ({
       },
     ],
     afterChange: [
+      completePaidCart,
       ...(defaultCollection.hooks?.afterChange ?? []),
       async ({ doc, operation, req }) => {
         if (operation !== 'create' || doc.fulfillmentMode !== 'local_collection') return doc
@@ -257,6 +288,27 @@ export const ordersCollectionOverride = ({
         { label: { es: 'Sin verificar', en: 'Unverified' }, value: 'unverified' },
       ],
       label: { es: 'Estado del pago', en: 'Payment status' },
+      admin: { readOnly: true },
+    },
+    {
+      name: 'receivedAt',
+      type: 'date',
+      label: { es: 'Recepción confirmada', en: 'Receipt confirmed' },
+      admin: { readOnly: true },
+    },
+    {
+      name: 'experienceRating',
+      type: 'number',
+      min: 0,
+      max: 5,
+      label: { es: 'Puntuación de la experiencia', en: 'Experience rating' },
+      admin: { readOnly: true },
+    },
+    {
+      name: 'experienceComment',
+      type: 'textarea',
+      maxLength: 1000,
+      label: { es: 'Comentario de la experiencia', en: 'Experience comment' },
       admin: { readOnly: true },
     },
     {

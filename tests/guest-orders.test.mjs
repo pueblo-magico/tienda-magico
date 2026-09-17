@@ -18,6 +18,116 @@ test("sin credenciales no consulta pedidos", async () => {
   assert.deepEqual(await orders.getGuestOrders([]), []);
   assert.deepEqual(await orders.getGuestOrders(["1"]), []);
   assert.equal(await orders.reportGuestTransfer([], "ref"), false);
+  assert.equal(
+    await orders.confirmGuestOrderReceipt([], "ref", {
+      rating: 5,
+      comment: "Excelente",
+    }),
+    false,
+  );
+});
+
+test("confirmar recepción exige propiedad y pago aprobado", async () => {
+  const original = globalThis.fetch;
+  const oldUrl = process.env.PAYLOAD_ECOMMERCE_URL;
+  process.env.PAYLOAD_ECOMMERCE_URL = "https://cms.example";
+  let writes = 0;
+  const approved = {
+    id: 1,
+    publicReference: "approved-order",
+    cartReference: cart,
+    amount: 100,
+    currency: "ARS",
+    paymentMethod: "cash",
+    paymentStatus: "approved",
+  };
+  globalThis.fetch = async (url, init = {}) => {
+    if (init.method === "PATCH") {
+      writes++;
+      const query = new URL(url).searchParams;
+      assert.equal(
+        query.get("where[and][0][publicReference][equals]"),
+        approved.publicReference,
+      );
+      assert.equal(query.get("where[and][1][cartReference][in]"), cart);
+      assert.equal(
+        query.get("where[and][2][paymentStatus][equals]"),
+        "approved",
+      );
+      assert.equal(query.get("where[and][3][receivedAt][exists]"), "false");
+      const body = JSON.parse(init.body);
+      assert.equal(typeof body.receivedAt, "string");
+      assert.deepEqual(
+        { rating: body.experienceRating, comment: body.experienceComment },
+        { rating: 4, comment: "Muy buena atención." },
+      );
+      return Response.json({ docs: [{ ...approved, ...body }] });
+    }
+    return Response.json({ docs: [approved], hasNextPage: false });
+  };
+  try {
+    assert.equal(
+      await orders.confirmGuestOrderReceipt([cart], "another-order", {
+        rating: 4,
+        comment: "Muy buena atención.",
+      }),
+      false,
+    );
+    assert.equal(writes, 0);
+    assert.equal(
+      await orders.confirmGuestOrderReceipt([cart], approved.publicReference, {
+        rating: 4,
+        comment: "  Muy buena atención.  ",
+      }),
+      true,
+    );
+    assert.equal(writes, 1);
+  } finally {
+    globalThis.fetch = original;
+    if (oldUrl === undefined) delete process.env.PAYLOAD_ECOMMERCE_URL;
+    else process.env.PAYLOAD_ECOMMERCE_URL = oldUrl;
+  }
+});
+
+test("la recepción es idempotente y no sobrescribe una reseña guardada", async () => {
+  const original = globalThis.fetch;
+  const oldUrl = process.env.PAYLOAD_ECOMMERCE_URL;
+  process.env.PAYLOAD_ECOMMERCE_URL = "https://cms.example";
+  let writes = 0;
+  globalThis.fetch = async (_url, init = {}) => {
+    if (init.method === "PATCH") writes++;
+    return Response.json({
+      docs: [
+        {
+          id: 1,
+          publicReference: "received-order",
+          cartReference: cart,
+          amount: 100,
+          currency: "ARS",
+          paymentMethod: "cash",
+          paymentStatus: "approved",
+          receivedAt: "2026-09-17T12:00:00.000Z",
+          experienceRating: 5,
+          experienceComment: "Original",
+        },
+      ],
+      hasNextPage: false,
+    });
+  };
+  try {
+    assert.equal(
+      await orders.confirmGuestOrderReceipt([cart], "received-order", {
+        rating: 1,
+        comment: "Replacement",
+      }),
+      true,
+    );
+    assert.equal(writes, 0);
+  } finally {
+    globalThis.fetch = original;
+    if (oldUrl === undefined) delete process.env.PAYLOAD_ECOMMERCE_URL;
+    else process.env.PAYLOAD_ECOMMERCE_URL = oldUrl;
+  }
 });
 
 test("limita el tamaño del historial de carritos", () => {

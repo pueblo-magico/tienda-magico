@@ -31,6 +31,7 @@ import { default as default_877d7a52e86e775156f872750e2a9e89 } from '@/component
 import { default as default_49f71f6595bb3686e63393626f558d8f } from '@/components/DocumentLocaleSwitcher'
 import { default as default_2cf362c95aeaa452f807ed65ad049cab } from '@/components/ConfirmCash'
 import { default as default_4b66790fcd70e03821cf0f9aeaa7cb1f } from '@/components/ConfirmTransfer'
+import { StaffCashPassword as StaffCashPassword_6f437786c4c4d64778f8c9c6805457ed } from '@/components/StaffCashPassword'
 import { default as default_4b59caa6cbd4315a7830cc8c5bf86d07 } from '@/components/CmsVisibilityRoleHeader'
 import { default as default_24780a6d18cc356188af0a675d10ee63 } from '@/components/CmsVisibilityRoleField'
 import { default as default_1b07acd750ce33c3a69608732c5a3a19 } from '@/components/ConfigurableNav'
@@ -71,6 +72,7 @@ export const importMap = {
   "@/components/DocumentLocaleSwitcher#default": default_49f71f6595bb3686e63393626f558d8f,
   "@/components/ConfirmCash#default": default_2cf362c95aeaa452f807ed65ad049cab,
   "@/components/ConfirmTransfer#default": default_4b66790fcd70e03821cf0f9aeaa7cb1f,
+  "@/components/StaffCashPassword#StaffCashPassword": StaffCashPassword_6f437786c4c4d64778f8c9c6805457ed,
   "@/components/CmsVisibilityRoleHeader#default": default_4b59caa6cbd4315a7830cc8c5bf86d07,
   "@/components/CmsVisibilityRoleField#default": default_24780a6d18cc356188af0a675d10ee63,
   "@/components/ConfigurableNav#default": default_1b07acd750ce33c3a69608732c5a3a19,

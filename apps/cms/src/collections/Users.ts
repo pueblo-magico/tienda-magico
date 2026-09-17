@@ -1,7 +1,13 @@
 import type { CollectionConfig } from 'payload'
 
 import { adminOnly } from '../access/adminOnly'
+import { adminOnlyFieldAccess } from '../access/adminOnlyFieldAccess'
 import { checkRole } from '../access/utilities'
+import {
+  cashStaffBeforeLogin,
+  isCashStaff,
+  protectCashStaffAccount,
+} from '../utilities/cashStaffAccess'
 
 export const Users: CollectionConfig = {
   slug: 'users',
@@ -12,16 +18,26 @@ export const Users: CollectionConfig = {
   },
   auth: {
     useAPIKey: true,
+    useSessions: true,
+    maxLoginAttempts: 5,
+    lockTime: 15 * 60 * 1000,
   },
+  hooks: { beforeChange: [protectCashStaffAccount], beforeLogin: [cashStaffBeforeLogin] },
   access: {
-    admin: ({ req: { user } }) => Boolean(user),
+    admin: ({ req: { user } }) => Boolean(user) && !isCashStaff(user),
     // Allow first user bootstrap; afterwards admins only
-    create: ({ req: { user } }) => {
-      if (!user) return true
+    create: async ({ req }) => {
+      const { user } = req
+      if (!user)
+        return (
+          (await req.payload.count({ collection: 'users', overrideAccess: true, req }))
+            .totalDocs === 0
+        )
       return checkRole(['admin'], user as any)
     },
     delete: adminOnly,
     read: ({ req: { user } }) => {
+      if (isCashStaff(user)) return false
       if (!user) return false
       if (checkRole(['admin'], user as any)) return true
       return {
@@ -31,6 +47,7 @@ export const Users: CollectionConfig = {
       }
     },
     update: ({ req: { user } }) => {
+      if (isCashStaff(user)) return false
       if (!user) return false
       if (checkRole(['admin'], user as any)) return true
       return {
@@ -61,6 +78,7 @@ export const Users: CollectionConfig = {
     },
     {
       name: 'roles',
+      access: { create: adminOnlyFieldAccess, update: adminOnlyFieldAccess },
       type: 'select',
       hasMany: true,
       defaultValue: ['admin'],

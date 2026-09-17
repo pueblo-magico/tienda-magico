@@ -384,6 +384,9 @@ export interface Order {
   paymentMethod: 'mercado-pago' | 'bank-transfer' | 'cash';
   paymentExpiresAt?: string | null;
   paymentStatus: 'pending' | 'approved' | 'rejected' | 'cancelled' | 'unverified';
+  receivedAt?: string | null;
+  experienceRating?: number | null;
+  experienceComment?: string | null;
   commercialSnapshot?:
     | {
         [k: string]: unknown;
@@ -4127,6 +4130,9 @@ export interface OrdersSelect<T extends boolean = true> {
   paymentMethod?: T;
   paymentExpiresAt?: T;
   paymentStatus?: T;
+  receivedAt?: T;
+  experienceRating?: T;
+  experienceComment?: T;
   commercialSnapshot?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -4319,6 +4325,11 @@ export interface Footer {
  */
 export interface SiteSetting {
   id: number;
+  cashStaffEnabled?: boolean | null;
+  /**
+   * 12–128 characters. Leave blank to keep the password. Changing it or disabling the cash desk signs staff out.
+   */
+  cashStaffPassword?: string | null;
   siteName: string;
   tagline?: string | null;
   logo?: (number | null) | Media;
@@ -4529,6 +4540,8 @@ export interface FooterSelect<T extends boolean = true> {
  * via the `definition` "site-settings_select".
  */
 export interface SiteSettingsSelect<T extends boolean = true> {
+  cashStaffEnabled?: T;
+  cashStaffPassword?: T;
   siteName?: T;
   tagline?: T;
   logo?: T;

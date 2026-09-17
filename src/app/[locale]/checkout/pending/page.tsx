@@ -14,6 +14,7 @@ import { TransferWaiting } from "@/features/checkout/TransferWaiting";
 import { guestCartReferences } from "@/lib/checkout/guest-orders";
 import { ArrowLeft } from "lucide-react";
 import { CashWaiting } from "@/features/checkout/CashWaiting";
+import { RefreshPaidCart } from "@/features/cart/RefreshPaidCart";
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -97,6 +98,7 @@ export default async function CheckoutPendingPage({
         isBankTransfer || isCash ? "lg:grid lg:grid-cols-3" : undefined
       }
     >
+      {ownedOrder?.paymentStatus === "approved" ? <RefreshPaidCart /> : null}
       {isBankTransfer || isCash ? (
         <aside
           aria-hidden
@@ -153,6 +155,7 @@ export default async function CheckoutPendingPage({
               expiresAt={expiresAt}
               serverTime={Date.now()}
               reference={transferOrder.publicReference}
+              receivedAt={ownedOrder?.receivedAt}
               canReport={Boolean(ownedOrder)}
               reportedAt={ownedOrder?.transferReportedAt}
               newerReference={ownedOrder?.newerReference}
@@ -234,6 +237,8 @@ export default async function CheckoutPendingPage({
 
           {isCash && cashOrder && ownedOrder ? (
             <CashWaiting
+              reference={ownedOrder.publicReference}
+              receivedAt={ownedOrder.receivedAt}
               paymentStatus={ownedOrder.paymentStatus}
               title={t("pending.cashTitle")}
               body={t("pending.cashBody")}

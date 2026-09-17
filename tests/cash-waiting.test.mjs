@@ -30,6 +30,7 @@ for (const locale of ["es", "en"]) {
               CashWaiting,
               {
                 paymentStatus,
+                reference: "00000000-0000-4000-8000-000000000001",
                 title: messages.checkout.pending.cashTitle,
                 body: messages.checkout.pending.cashBody,
                 notice: messages.checkout.pending.cashNotice,
@@ -41,6 +42,10 @@ for (const locale of ["es", "en"]) {
       );
       assert.match(html, new RegExp(messages.orders.states[paymentStatus]));
       const canRefresh = ["pending", "unverified"].includes(paymentStatus);
+      assert.equal(
+        html.includes(`/staff/cash?order=00000000-0000-4000-8000-000000000001`),
+        canRefresh,
+      );
       assert.equal(
         html.includes(messages.checkout.transferWaiting.check),
         canRefresh,

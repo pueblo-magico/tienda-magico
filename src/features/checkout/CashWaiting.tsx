@@ -6,11 +6,12 @@ import { useLocale, useTranslations } from "next-intl";
 import { Banknote, ClipboardList, Package2, ShieldCheck } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/Card";
 import { IconAction } from "@/components/ui/IconAction";
-import { localizePath } from "@/config/navigation";
+import { localizePath, staffCashPath } from "@/config/navigation";
 import type { CheckoutOrder } from "@/types/commerce";
 import { startTransferPolling } from "./transfer-polling";
 import { Body } from "@/components/typography/Body";
 import { PageTitle } from "@/components/typography/PageTitle";
+import { OrderReceiptFeedback } from "@/features/orders/OrderReceiptFeedback";
 
 export function CashWaiting({
   title,
@@ -18,12 +19,16 @@ export function CashWaiting({
   notice,
   children,
   paymentStatus,
+  reference,
+  receivedAt,
 }: {
   title: string;
   body: string;
   notice: string;
   children: ReactNode;
   paymentStatus: CheckoutOrder["paymentStatus"];
+  reference?: string;
+  receivedAt?: string | null;
 }) {
   const t = useTranslations("checkout.cashWaiting");
   const stateText = useTranslations("orders.states");
@@ -80,7 +85,7 @@ export function CashWaiting({
           <span>{notice}</span>
         </p>
       ) : null}
-      <div className="border-border flex justify-center gap-6 border-t pt-5">
+      <div className="border-border flex flex-wrap justify-center gap-6 border-t pt-5">
         {canRefresh ? (
           <IconAction
             icon={<ClipboardList className="size-6" strokeWidth={1.5} />}
@@ -97,7 +102,22 @@ export function CashWaiting({
         >
           {actions("myOrders")}
         </IconAction>
+
+        {canRefresh && reference ? (
+          <IconAction
+            icon={<Banknote className="size-6" strokeWidth={1.5} />}
+            href={localizePath(
+              locale,
+              `${staffCashPath}?order=${encodeURIComponent(reference)}`,
+            )}
+          >
+            {t("confirmPayment")}
+          </IconAction>
+        ) : null}
       </div>
+      {paymentStatus === "approved" && reference && !receivedAt ? (
+        <OrderReceiptFeedback reference={reference} />
+      ) : null}
     </div>
   );
 }

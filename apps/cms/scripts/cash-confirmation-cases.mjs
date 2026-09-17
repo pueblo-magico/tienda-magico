@@ -37,7 +37,11 @@ export async function cashConfirmationCases({
     return { status: response.status, body: await response.json() }
   }
   const item = await product()
-  const document = await cashOrder([item])
+  const cart = await payload.create({
+    collection: 'carts',
+    data: { currency: 'ARS', items: [{ product: item.id, quantity: 1 }] },
+  })
+  const document = await cashOrder([item], { cartReference: `${cart.id}::${cart.secret}` })
   assert.equal((await receive(document, {}, customer)).status, 403)
   assert.equal((await receive(document, {}, { ...customer, roles: ['admin'] })).status, 403)
   assert.equal((await receive(document, {}, user, 'https://otro.example')).status, 403)
@@ -50,6 +54,19 @@ export async function cashConfirmationCases({
   assert.equal(await stock(item), 2)
   const approved = await payload.findByID({ collection: 'orders', id: document.id })
   assert.equal(approved.paymentStatus, 'approved')
+  const completedCart = await payload.findByID({ collection: 'carts', id: cart.id })
+  assert.ok(completedCart.purchasedAt, 'El pago confirmado debe completar el carrito')
+  assert.equal(completedCart.items.length, 1)
+  await assert.rejects(payload.update({ collection: 'carts', id: cart.id, data: { items: [] } }))
+  await assert.rejects(
+    payload.update({ collection: 'carts', id: cart.id, data: { purchasedAt: null } }),
+  )
+  await assert.rejects(payload.delete({ collection: 'carts', id: cart.id }))
+  assert.equal((await receive(document)).status, 200)
+  assert.equal(
+    (await payload.findByID({ collection: 'carts', id: cart.id })).purchasedAt,
+    completedCart.purchasedAt,
+  )
   assert.equal(approved.cashVerification.verifiedBy, user.id)
   const sale = (
     await payload.find({ collection: 'localSales', where: { order: { equals: document.id } } })
@@ -70,15 +87,30 @@ export async function cashConfirmationCases({
     'pending',
   )
 
-  const partial = await cashOrder([available])
+  const partialCart = await payload.create({
+    collection: 'carts',
+    data: { currency: 'ARS', items: [{ product: available.id, quantity: 1 }] },
+  })
+  await assert.rejects(
+    payload.update({
+      collection: 'carts',
+      id: partialCart.id,
+      data: { purchasedAt: new Date().toISOString() },
+    }),
+  )
+  const partial = await cashOrder([available], {
+    cartReference: `${partialCart.id}::${partialCart.secret}`,
+  })
   const originalUpdate = payload.update
   payload.update = async function (args) {
     if (
       args.collection === 'orders' &&
       args.id === partial.id &&
       args.data.paymentStatus === 'approved'
-    )
-      throw new Error('Falla simulada después de actualizar stock y venta')
+    ) {
+      await originalUpdate.call(this, args)
+      throw new Error('Falla simulada después de actualizar stock, venta y carrito')
+    }
     return originalUpdate.call(this, args)
   }
   try {
@@ -88,6 +120,10 @@ export async function cashConfirmationCases({
   }
   assert.equal(await stock(available), 3)
   assert.equal(
+    (await payload.findByID({ collection: 'carts', id: partialCart.id })).purchasedAt,
+    null,
+  )
+  assert.equal(
     (await payload.findByID({ collection: 'orders', id: partial.id })).paymentStatus,
     'pending',
   )
@@ -95,6 +131,38 @@ export async function cashConfirmationCases({
     await payload.find({ collection: 'localSales', where: { order: { equals: partial.id } } })
   ).docs[0]
   assert.equal(rolledBack.status, 'pending_payment')
+
+  const lastItem = await product(1)
+  const transferCart = await payload.create({
+    collection: 'carts',
+    data: { currency: 'ARS', items: [{ product: lastItem.id, quantity: 1 }] },
+  })
+  const transferOrder = await order([lastItem], {
+    cartReference: `${transferCart.id}::${transferCart.secret}`,
+  })
+  assert.equal(
+    (await payload.findByID({ collection: 'carts', id: transferCart.id })).purchasedAt,
+    null,
+  )
+  assert.equal((await confirm(transferOrder)).status, 200)
+  assert.equal(await stock(lastItem), 0)
+  const paidTransferCart = await payload.findByID({ collection: 'carts', id: transferCart.id })
+  assert.ok(paidTransferCart.purchasedAt)
+  assert.equal(paidTransferCart.items.length, 1)
+  assert.equal(paidTransferCart.subtotal, transferCart.subtotal)
+
+  const unrelatedCart = await payload.create({
+    collection: 'carts',
+    data: { currency: 'ARS', items: [{ product: available.id, quantity: 1 }] },
+  })
+  const wrongReference = await cashOrder([available], {
+    cartReference: `${unrelatedCart.id}::otro-secreto`,
+  })
+  assert.equal((await receive(wrongReference)).status, 200)
+  assert.equal(
+    (await payload.findByID({ collection: 'carts', id: unrelatedCart.id })).purchasedAt,
+    null,
+  )
 
   const shared = randomUUID()
   const raceItem = await product()

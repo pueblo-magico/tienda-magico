@@ -44,7 +44,9 @@ Usá únicamente desarrollo local o un entorno de prueba. No hace falta entregar
 
 ## Límites conocidos
 
-- El pago aprobado todavía no completa ni vacía automáticamente el carrito activo. Para otra compra independiente, usá una nueva sesión de prueba. El cierre común del carrito es un trabajo posterior, no un resultado esperado de esta prueba.
+- Confirmá el pago desde el CMS con la pantalla de espera abierta: al actualizarse el estado, el contador y el carrito deben quedar vacíos. El pedido debe seguir visible en «Mis pedidos» y el carrito debe figurar como comprado en el CMS.
+- Agregá otro producto: debe crearse un carrito nuevo. Volvé al pedido aprobado anterior y comprobá que el carrito nuevo no se vacíe. Repetí con transferencia confirmada y con dos pestañas abiertas.
+- Un pago pendiente, vencido, rechazado o una confirmación fallida no debe completar el carrito. Una falla de red tampoco debe borrar la selección activa.
 - Pago confirmado no significa que el pedido se haya retirado o entregado.
 - No pruebes rollback sobre una base con datos reales. La suite de integración valida en una base descartable que el rollback se bloquee y conserve el historial de efectivo.
 
@@ -53,7 +55,7 @@ Usá únicamente desarrollo local o un entorno de prueba. No hace falta entregar
 Desde la raíz:
 
 ```powershell
-node --import ./tests/register.mjs --test tests/cash-*.test.mjs tests/transfer-retry.test.mjs tests/transfer-waiting.test.mjs tests/transfer-payment.test.mjs tests/transfer-confirmation.test.mjs
+node --import ./tests/register.mjs --test tests/completed-cart.test.mjs tests/cash-*.test.mjs tests/transfer-retry.test.mjs tests/transfer-waiting.test.mjs tests/transfer-payment.test.mjs tests/transfer-confirmation.test.mjs
 ```
 
 Desde `apps/cms`:

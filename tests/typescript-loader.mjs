@@ -19,9 +19,16 @@ async function resolveTypeScriptModule(baseUrl, context, nextResolve) {
 
 export function resolve(specifier, context, nextResolve) {
   if (
+    specifier === "server-only" &&
+    context.conditions.includes("react-server")
+  ) {
+    return nextResolve("next/dist/compiled/server-only/empty.js", context);
+  }
+  if (
     specifier === "next/image" ||
     specifier === "next/link" ||
-    specifier === "next/navigation"
+    specifier === "next/navigation" ||
+    specifier === "next/server"
   ) {
     return nextResolve(`${specifier}.js`, context);
   }

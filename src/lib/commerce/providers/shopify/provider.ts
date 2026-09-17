@@ -131,6 +131,9 @@ export class ShopifyCommerceProvider implements CommerceProvider {
   async reportGuestTransfer(): Promise<boolean> {
     return false;
   }
+  async confirmGuestOrderReceipt(): Promise<boolean> {
+    return false;
+  }
 }
 
 export const shopifyCommerceProvider = new ShopifyCommerceProvider();

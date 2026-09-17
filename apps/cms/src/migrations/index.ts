@@ -1,5 +1,7 @@
 import * as migration_20260917_120000_transfer_identification from './20260917_120000_transfer_identification'
 import * as migration_20260917_130000_cash_payment from './20260917_130000_cash_payment'
+import * as migration_20260917_140000_staff_cash from './20260917_140000_staff_cash'
+import * as migration_20260917_150000_order_receipt_feedback from './20260917_150000_order_receipt_feedback'
 import * as migration_20260917_110000_payment_notifications from './20260917_110000_payment_notifications'
 import * as migration_20260916_100000_transfer_reported from './20260916_100000_transfer_reported'
 import * as migration_20260825_001134_initial_schema from './20260825_001134_initial_schema'
@@ -192,5 +194,15 @@ export const migrations = [
     up: migration_20260917_130000_cash_payment.up,
     down: migration_20260917_130000_cash_payment.down,
     name: '20260917_130000_cash_payment',
+  },
+  {
+    up: migration_20260917_140000_staff_cash.up,
+    down: migration_20260917_140000_staff_cash.down,
+    name: '20260917_140000_staff_cash',
+  },
+  {
+    up: migration_20260917_150000_order_receipt_feedback.up,
+    down: migration_20260917_150000_order_receipt_feedback.down,
+    name: '20260917_150000_order_receipt_feedback',
   },
 ]

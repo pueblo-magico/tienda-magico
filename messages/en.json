@@ -343,6 +343,26 @@
     "reference": "Reference: {reference}",
     "deadline": "Deadline: {date}",
     "view": "View order",
+    "receipt": {
+      "open": "Have you received your products?",
+      "description": "Confirm receipt and, if you wish, tell us about your shopping experience.",
+      "ratingLabel": "Shopping experience rating (0 to 5)",
+      "ratingValues": {
+        "0": "No rating",
+        "1": "1 out of 5 stars",
+        "2": "2 out of 5 stars",
+        "3": "3 out of 5 stars",
+        "4": "4 out of 5 stars",
+        "5": "5 out of 5 stars"
+      },
+      "commentLabel": "Optional comment",
+      "commentPlaceholder": "Tell us what went well or what we can improve.",
+      "commentHint": "Up to 1000 characters.",
+      "confirm": "Confirm receipt",
+      "skip": "Not now",
+      "received": "Receipt confirmed. Thank you for sharing your experience.",
+      "error": "We could not save your confirmation. Refresh the order and try again."
+    },
     "states": {
       "pending": "Awaiting payment",
       "expired": "Deadline passed",
@@ -393,10 +413,43 @@
       "expiresAt": "Pay before"
     },
     "cashWaiting": {
+      "confirmPayment": "Confirm payment (staff)",
       "approvedBody": "We received your cash payment. You do not need to pay again. Keep your reference to arrange collection.",
       "cancelledBody": "This order was cancelled or replaced. Do not pay this reference. Check your latest order in My orders.",
       "rejectedBody": "This payment was not confirmed. Contact the shop with your reference before paying again.",
       "unverifiedBody": "Staff are checking the payment. Do not pay again while you wait for confirmation."
+    },
+    "staffCash": {
+      "title": "Cash desk · confirm cash",
+      "intro": "For Pueblo Mágico staff only. Sign in after receiving and counting the cash.",
+      "password": "Staff password",
+      "login": "Sign in",
+      "logout": "Sign out",
+      "session": "Your session expires after 15 minutes. Sign out when finished, especially on a customer's device.",
+      "loading": "Checking…",
+      "reference": "Order reference",
+      "lookup": "Find order",
+      "buyer": "Buyer",
+      "total": "Amount due",
+      "status": "Payment status",
+      "amount": "Cash received in ARS minor units",
+      "amountHint": "Enter the full amount in cents: for example, $1,000 = 100000.",
+      "warning": "By confirming, you declare that you received and counted the exact cash amount. This deducts stock and completes the cart but does not mark the order as delivered.",
+      "confirm": "Confirm cash received",
+      "success": "Payment confirmed. The customer can now check their updated order status.",
+      "errors": {
+        "unauthorized": "We could not verify access. Check your password or sign in again. After several failed attempts, wait 15 minutes.",
+        "origin": "This request is not allowed. Open this page from the shop and try again.",
+        "invalid": "Check the order reference and amount entered.",
+        "notFound": "No local-collection cash order was found for that reference.",
+        "amount": "The cash received must exactly match the order total.",
+        "state": "The current order status does not allow confirmation. Check the updated order.",
+        "stock": "Insufficient stock. Ask an administrator to review the order.",
+        "catalog": "The catalogue has changed. Ask an administrator to review the order.",
+        "duplicate": "This cart already has a confirmed payment. Do not charge again.",
+        "localSale": "The linked sale needs an administrator's review.",
+        "unavailable": "We could not complete the operation. Check the order before retrying; do not charge again."
+      }
     },
     "transferWaiting": {
       "myOrders": "My orders",
