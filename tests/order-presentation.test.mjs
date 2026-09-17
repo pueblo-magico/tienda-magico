@@ -6,6 +6,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { NextIntlClientProvider } from "next-intl";
 import { OrderList } from "../src/features/orders/OrderList.tsx";
 import * as presentation from "../src/features/orders/presentation.ts";
+import { buildWhatsAppUrl } from "../src/features/impact/whatsapp.ts";
 
 const order = {
   publicReference: "order-1",
@@ -90,4 +91,25 @@ test("filtra solo estados reales de pago sin inventar estados de entrega", () =>
   );
   assert.equal(presentation.filterOrders(orders, "pending", now).length, 0);
   assert.equal(presentation.filterOrders(orders, "expired", now).length, 1);
+});
+
+test("el contacto de soporte prepara un mensaje localizado para WhatsApp", async () => {
+  const [page, messagesEs, messagesEn] = await Promise.all([
+    readFile("src/app/[locale]/orders/page.tsx", "utf8"),
+    readFile("messages/es.json", "utf8").then(JSON.parse),
+    readFile("messages/en.json", "utf8").then(JSON.parse),
+  ]);
+
+  assert.equal(
+    buildWhatsAppUrl("+54 9 11 2345-6789", messagesEs.orders.supportMessage),
+    "https://wa.me/5491123456789?text=Hola%20Pueblo%20M%C3%A1gico%2C%20quiero%20pedir%20informaci%C3%B3n%20sobre%20mi%20pedido.%20Mi%20referencia%20es%3A%20",
+  );
+  assert.equal(
+    buildWhatsAppUrl("+54 9 11 2345-6789", messagesEn.orders.supportMessage),
+    "https://wa.me/5491123456789?text=Hello%20Pueblo%20M%C3%A1gico%2C%20I'd%20like%20to%20request%20information%20about%20my%20order.%20My%20order%20reference%20is%3A%20",
+  );
+  assert.match(page, /buildWhatsAppUrl/);
+  assert.match(page, /settings\.contactPhone/);
+  assert.match(page, /t\("supportMessage"\)/);
+  assert.doesNotMatch(page, /experienciaMagicoUrl\("\/#contacto"\)/);
 });
