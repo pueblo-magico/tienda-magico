@@ -29,6 +29,7 @@ type CommonProps = {
   size?: ButtonSize;
   shape?: ButtonShape;
   weight?: "bold" | "light";
+  textCase?: "uppercase" | "sentence";
   "aria-busy"?: AriaAttributes["aria-busy"];
   className?: string;
 };
@@ -77,6 +78,7 @@ export function Button({
   size = "md",
   shape = "pill",
   weight,
+  textCase = "uppercase",
   ...props
 }: ButtonProps) {
   const classes = cn(
@@ -86,7 +88,8 @@ export function Button({
     (weight ?? (variant === "icon-label" ? "light" : "bold")) === "light"
       ? "font-light"
       : "font-bold",
-    variant !== "icon-label" && "uppercase",
+    variant !== "icon-label" &&
+      (textCase === "uppercase" ? "uppercase" : "normal-case"),
     variant !== "link" && shapeClasses[shape],
     variantClasses[variant],
     variant !== "icon-label" &&

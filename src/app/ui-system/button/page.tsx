@@ -37,6 +37,15 @@ export default function ButtonPage() {
           No disponible
         </Button>
       </DocsSection>
+      <DocsSection
+        title="Texto sin transformar"
+        description="textCase=sentence conserva el texto original sin forzar mayúsculas."
+      >
+        <Button textCase="sentence">Pagar</Button>
+        <Button textCase="sentence" variant="secondary">
+          Seguir comprando
+        </Button>
+      </DocsSection>
 
       <DocsSection
         title="Peso liviano"
