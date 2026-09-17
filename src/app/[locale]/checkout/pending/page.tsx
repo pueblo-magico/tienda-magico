@@ -234,6 +234,7 @@ export default async function CheckoutPendingPage({
 
           {isCash && cashOrder && ownedOrder ? (
             <CashWaiting
+              paymentStatus={ownedOrder.paymentStatus}
               title={t("pending.cashTitle")}
               body={t("pending.cashBody")}
               notice={t("pending.cashNotice")}

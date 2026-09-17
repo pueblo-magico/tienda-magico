@@ -5,6 +5,7 @@ import { activeTransaction } from '../utilities/transferWriteLock'
 import { randomUUID } from 'node:crypto'
 import { confirmTransferEndpoint, protectTransfer } from '../utilities/confirmTransfer'
 import { confirmCashEndpoint } from '../utilities/confirmCash'
+import { replacePendingCash } from '../utilities/replacePendingCash'
 import { lockTransferWrite, protectTransferDeletion } from '../utilities/transferWriteLock'
 
 const immutableAfterCreation = { update: () => false }
@@ -23,6 +24,7 @@ export const ordersCollectionOverride = ({
     beforeChange: [
       ...(defaultCollection.hooks?.beforeChange ?? []),
       protectTransfer,
+      replacePendingCash,
       async ({ data, operation, req }) => {
         if (operation === 'create' && data.paymentMethod === 'bank-transfer') {
           const identification = normalizeTransferIdentification(data.transferIdentification)

@@ -1,3 +1,4 @@
+import { isDeepStrictEqual } from "node:util";
 import {
   CommerceConfigError,
   CommerceError,
@@ -7,6 +8,7 @@ import {
 } from "@/types/commerce";
 import {
   BANK_TRANSFER,
+  CASH,
   MERCADO_PAGO,
   type CheckoutCustomer,
   type PaymentMethod,
@@ -147,6 +149,8 @@ export function buildCheckoutOrderInput(
 }
 
 type PayloadOrderResponse = {
+  commercialSnapshot?: unknown;
+  buyerContact?: unknown;
   cartReference?: string;
   transferReportedAt?: string | null;
   id: string | number;
@@ -318,14 +322,28 @@ export async function createCheckoutOrder(
     const existingOrder = (await findExistingOrder()).docs?.[0];
     if (!existingOrder) break;
     const deadline = Date.parse(existingOrder.paymentExpiresAt ?? "");
-    const canRetry =
-      !existingOrder.transferReportedAt &&
-      options?.paymentMethod === BANK_TRANSFER &&
+    const cashCanRetry =
+      options?.paymentMethod === CASH &&
       (existingOrder.paymentStatus === "cancelled" ||
         existingOrder.paymentStatus === "rejected" ||
         (existingOrder.paymentStatus === "pending" &&
-          Number.isFinite(deadline) &&
-          deadline <= Date.now()));
+          (!isDeepStrictEqual(
+            existingOrder.commercialSnapshot,
+            input.commercialSnapshot,
+          ) ||
+            !isDeepStrictEqual(
+              existingOrder.buyerContact,
+              input.buyerContact,
+            ))));
+    const canRetry =
+      cashCanRetry ||
+      (!existingOrder.transferReportedAt &&
+        options?.paymentMethod === BANK_TRANSFER &&
+        (existingOrder.paymentStatus === "cancelled" ||
+          existingOrder.paymentStatus === "rejected" ||
+          (existingOrder.paymentStatus === "pending" &&
+            Number.isFinite(deadline) &&
+            deadline <= Date.now())));
     if (!canRetry) return normalizePayloadOrderResponse(existingOrder);
     input.checkoutKey = `${baseCheckoutKey}:after:${existingOrder.id}`;
   }
@@ -339,6 +357,19 @@ export async function createCheckoutOrder(
     });
   } catch (error) {
     const concurrentOrder = (await findExistingOrder()).docs?.[0];
+    if (
+      options?.paymentMethod === CASH &&
+      concurrentOrder &&
+      (!isDeepStrictEqual(
+        concurrentOrder.commercialSnapshot,
+        input.commercialSnapshot,
+      ) ||
+        !isDeepStrictEqual(concurrentOrder.buyerContact, input.buyerContact))
+    )
+      throw new CommerceError(
+        "El carrito cambió durante el checkout. Revisá el pedido antes de continuar.",
+        { status: 409 },
+      );
     if (concurrentOrder) return normalizePayloadOrderResponse(concurrentOrder);
     throw error;
   }

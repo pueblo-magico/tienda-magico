@@ -11,8 +11,13 @@ export async function up({ db }: MigrateUpArgs): Promise<void> {
 
 export async function down({ db }: MigrateDownArgs): Promise<void> {
   await db.execute(sql`
-    UPDATE "orders" SET "payment_method" = 'mercado-pago' WHERE "payment_method" = 'cash';
-    UPDATE "local_sales" SET "payment_method" = 'mercado-pago' WHERE "payment_method" = 'cash';
+    LOCK TABLE "orders", "local_sales" IN ACCESS EXCLUSIVE MODE;
+    DO $$ BEGIN
+      IF EXISTS (SELECT 1 FROM "orders" WHERE "payment_method" = 'cash' OR "cash_verification" IS NOT NULL)
+        OR EXISTS (SELECT 1 FROM "local_sales" WHERE "payment_method" = 'cash') THEN
+        RAISE EXCEPTION 'No se puede revertir efectivo mientras existan pedidos, ventas o auditorías de efectivo. Conservá estos registros y desplegá una corrección compatible.';
+      END IF;
+    END $$;
     ALTER TABLE "orders" ALTER COLUMN "payment_method" DROP DEFAULT;
     ALTER TABLE "local_sales" ALTER COLUMN "payment_method" DROP DEFAULT;
     ALTER TABLE "orders" ALTER COLUMN "payment_method" TYPE text USING "payment_method"::text;

@@ -13,8 +13,13 @@ export function cashConfirmationInput(value: unknown): CashConfirmationInput {
   if (!value || typeof value !== 'object' || Array.isArray(value))
     throw new TransferConfirmationError('invalid')
   const input = value as Record<string, unknown>
-  const amount = Number(input.amount)
-  if (!Number.isSafeInteger(amount) || amount <= 0 || input.received !== true)
+  const amount = input.amount
+  if (
+    typeof amount !== 'number' ||
+    !Number.isSafeInteger(amount) ||
+    amount <= 0 ||
+    input.received !== true
+  )
     throw new TransferConfirmationError('invalid')
   const note = typeof input.note === 'string' ? input.note.trim().slice(0, 500) : ''
   return { amount, received: true, note: note || null }
@@ -69,6 +74,17 @@ export async function confirmCash(
   try {
     const transaction = await activeTransaction(req)
     await transaction.execute(sql`SET LOCAL lock_timeout = '5s'`)
+    const initial = await req.payload.findByID({
+      collection: 'orders',
+      id: orderID,
+      depth: 0,
+      req,
+      overrideAccess: true,
+    })
+    if (!initial.cartReference) throw new TransferConfirmationError('invalid')
+    await transaction.execute(
+      sql`SELECT pg_advisory_xact_lock(hashtextextended(${`cart:${initial.cartReference}`}, 0))`,
+    )
     await transaction.execute(sql`SELECT id FROM orders WHERE id = ${orderID} FOR UPDATE`)
     const order = await req.payload.findByID({
       collection: 'orders',
@@ -97,9 +113,6 @@ export async function confirmCash(
     if (order.currency !== 'ARS' || order.amount !== input.amount)
       throw new TransferConfirmationError('amount')
     if (!order.cartReference) throw new TransferConfirmationError('invalid')
-    await transaction.execute(
-      sql`SELECT pg_advisory_xact_lock(hashtextextended(${`cart:${order.cartReference}`}, 0))`,
-    )
     const duplicates = await req.payload.find({
       collection: 'orders',
       where: {

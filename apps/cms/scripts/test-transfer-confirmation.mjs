@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import { randomBytes, randomUUID } from 'node:crypto'
+import { cashConfirmationCases } from './cash-confirmation-cases.mjs'
 
 const require = createRequire(new URL('../package.json', import.meta.url))
 const { parse } = require('dotenv')
@@ -125,6 +126,17 @@ try {
   }
   const stock = async (item) =>
     (await payload.findByID({ collection: 'products', id: item.id, depth: 0 })).inventory
+  await cashConfirmationCases({
+    payload,
+    createLocalReq,
+    user,
+    customer,
+    product,
+    order,
+    stock,
+    confirm,
+    migrations,
+  })
   const firstProduct = await product()
   const firstOrder = await order([firstProduct])
   assert.equal((await confirm(firstOrder, {}, customer)).status, 403)

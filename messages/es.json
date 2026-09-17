@@ -392,6 +392,12 @@
       "orderReference": "Referencia del pedido",
       "expiresAt": "Pagá antes de"
     },
+    "cashWaiting": {
+      "approvedBody": "Recibimos tu pago en efectivo. No tenés que volver a pagar. Guardá la referencia para coordinar el retiro.",
+      "cancelledBody": "Este pedido fue cancelado o reemplazado. No pagues esta referencia. Revisá el pedido más reciente en Mis pedidos.",
+      "rejectedBody": "No se confirmó este pago. Contactá a la tienda con la referencia antes de volver a pagar.",
+      "unverifiedBody": "El equipo está verificando el pago. No vuelvas a pagar mientras esperás la confirmación."
+    },
     "transferWaiting": {
       "myOrders": "Mis pedidos",
       "newerAttempt": "Existe un intento más reciente para este carrito. Abrí Mis pedidos para revisarlo antes de pagar.",

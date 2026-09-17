@@ -18,7 +18,11 @@ async function resolveTypeScriptModule(baseUrl, context, nextResolve) {
 }
 
 export function resolve(specifier, context, nextResolve) {
-  if (specifier === "next/image" || specifier === "next/link") {
+  if (
+    specifier === "next/image" ||
+    specifier === "next/link" ||
+    specifier === "next/navigation"
+  ) {
     return nextResolve(`${specifier}.js`, context);
   }
   if (specifier.startsWith("@/")) {

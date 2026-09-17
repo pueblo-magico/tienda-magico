@@ -139,6 +139,12 @@ test("la confirmación exige importe entero positivo y recepción explícita", (
     { amount: 12000 },
     { amount: 0, received: true },
     { amount: 1.5, received: true },
+    { amount: true, received: true },
+    { amount: [12000], received: true },
+    { amount: "12000", received: true },
+    { amount: Number.MAX_SAFE_INTEGER + 1, received: true },
+    { amount: Infinity, received: true },
+    { amount: 12000, received: "true" },
   ]) {
     assert.throws(() => cashConfirmationInput(input));
   }
@@ -169,7 +175,7 @@ test("nadie puede autoconfirmar efectivo por la API pública", async () => {
   );
 });
 
-test("la migración de efectivo es reversible y conserva valores anteriores", async () => {
+test("la migración de efectivo bloquea el rollback si hay historial de efectivo", async () => {
   const migration = await readFile(
     "apps/cms/src/migrations/20260917_130000_cash_payment.ts",
     "utf8",
@@ -178,6 +184,8 @@ test("la migración de efectivo es reversible y conserva valores anteriores", as
   assert.match(migration, /ADD COLUMN "cash_enabled"/);
   assert.match(migration, /ADD COLUMN "cash_verification"/);
   assert.match(migration, /WHERE "payment_method" = 'cash'/);
+  assert.match(migration, /RAISE EXCEPTION/);
+  assert.doesNotMatch(migration, /UPDATE "orders" SET "payment_method"/);
   assert.match(migration, /DROP COLUMN "cash_enabled"/);
   assert.match(migration, /DROP COLUMN "cash_verification"/);
 });
