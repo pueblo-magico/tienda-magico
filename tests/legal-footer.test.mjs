@@ -2,6 +2,21 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 
+test("desactiva enlaces automáticos de iOS sin ocultar errores de hidratación del pie legal", async () => {
+  const layout = await readFile("src/app/layout.tsx", "utf8");
+  const footer = await readFile(
+    "src/components/layout/LegalFooter.tsx",
+    "utf8",
+  );
+  const detection = layout.match(/formatDetection:\s*\{([^}]+)\}/)?.[1] ?? "";
+  for (const kind of ["telephone", "address", "email"]) {
+    assert.match(detection, new RegExp(`${kind}:\\s*false`));
+  }
+  assert.doesNotMatch(footer, /suppressHydrationWarning/);
+  assert.match(footer, /legalLinks\.terms/);
+  assert.match(footer, /legalLinks\.privacy/);
+});
+
 test("el pie legal reutiliza enlaces existentes y muestra el QR de ARCA", async () => {
   const [legalFooter, footer, navigation, nextConfig] = await Promise.all([
     readFile("src/components/layout/LegalFooter.tsx", "utf8"),
