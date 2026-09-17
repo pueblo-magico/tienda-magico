@@ -28,7 +28,7 @@ Usá únicamente desarrollo local o un entorno de prueba. No hace falta entregar
 
 1. Mantené abierta y visible la pantalla del pedido vigente.
 2. En el CMS, abrí ese pedido y la acción **Confirmar efectivo**. Ingresá primero un importe incorrecto y marcá la casilla de recepción: debe rechazarlo sin cambiar estado ni stock.
-3. Ingresá el importe exacto en **centavos ARS**. Ejemplo: para un pedido de **$ 1.000**, ingresá **100000**, sin puntos ni comas. Marcá la casilla que confirma la recepción del efectivo y confirmá.
+3. Ingresá el importe exacto en **pesos ARS enteros**. Ejemplo: para un pedido de **$ 20.000**, ingresá **20000**; el campo muestra **20.000** automáticamente. Marcá la casilla que confirma la recepción del efectivo y confirmá.
 4. Recargá el documento del CMS. Pedido aprobado, venta local pagada y auditoría con administrador, fecha, importe y movimientos de stock. Debe descontarse únicamente la cantidad comprada.
 5. La pantalla del comprador debe pasar a pago confirmado en la siguiente consulta automática, aproximadamente diez segundos más el tiempo de respuesta. También podés usar **Consultar estado**. No debe seguir pidiendo que pagues.
 6. Recargá la pantalla y abrí el pedido desde Mis pedidos: debe seguir aprobado. Reintentá la confirmación desde una segunda pestaña del CMS que quedó abierta antes de confirmar: no debe descontar stock otra vez.
