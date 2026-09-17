@@ -1,5 +1,11 @@
 import type { CollectionSummary } from "@/types/commerce";
 
+type CategoryPathNode = {
+  id: string;
+  handle: string;
+  parent?: CategoryPathNode | null;
+};
+
 export type CategoryTreeNode = {
   category: CollectionSummary;
   children: CategoryTreeNode[];
@@ -58,4 +64,75 @@ export function directChildCategories(
   return categories
     .filter((category) => category.parent?.id === parentId)
     .toSorted(compareCategories);
+}
+
+/** Return the canonical handle chain carried by a populated category reference. */
+export function buildCategoryPath(category: CategoryPathNode): string[] {
+  const path: string[] = [];
+  const visited = new Set<string>();
+  let current: CategoryPathNode | null | undefined = category;
+
+  while (current && !visited.has(current.id)) {
+    visited.add(current.id);
+    path.unshift(current.handle);
+    current = current.parent;
+  }
+
+  return path;
+}
+
+/** Resolve a URL only when every segment is the direct child of the previous one. */
+export function resolveCategoryPath(
+  categories: CollectionSummary[],
+  handles: string[],
+): CollectionSummary[] | null {
+  if (!handles.length) return null;
+
+  const resolved: CollectionSummary[] = [];
+  let parentId: string | null = null;
+
+  for (const handle of handles) {
+    const category = categories.find(
+      (candidate) =>
+        candidate.handle === handle &&
+        (candidate.parent?.id ?? null) === parentId,
+    );
+    if (!category) return null;
+    resolved.push(category);
+    parentId = category.id;
+  }
+
+  return resolved;
+}
+
+export function resolveLegacyCategoryRoute(
+  categories: CollectionSummary[],
+  collectionHandle: string,
+  selectedHandles: string[],
+): { categoryPath: string[]; categories: string[] } | null {
+  const collection = categories.find(
+    (category) => category.handle === collectionHandle,
+  );
+  if (!collection) return null;
+
+  const collectionPath = buildCategoryPath(collection);
+  if (selectedHandles.length !== 1) {
+    return { categoryPath: collectionPath, categories: selectedHandles };
+  }
+
+  const selected = categories.find(
+    (category) => category.handle === selectedHandles[0],
+  );
+  if (!selected) {
+    return { categoryPath: collectionPath, categories: selectedHandles };
+  }
+
+  const selectedPath = buildCategoryPath(selected);
+  const isDescendant = collectionPath.every(
+    (handle, index) => selectedPath[index] === handle,
+  );
+
+  return isDescendant
+    ? { categoryPath: selectedPath, categories: [] }
+    : { categoryPath: collectionPath, categories: selectedHandles };
 }

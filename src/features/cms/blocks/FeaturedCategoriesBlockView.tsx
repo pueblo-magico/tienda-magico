@@ -1,12 +1,16 @@
 import Image from "next/image";
 import Link from "next/link";
 import { localizePath } from "@/config/navigation";
+import { buildCategoryPath } from "@/features/shop/category-hierarchy";
 import { Container } from "@/components/layout/Container";
 import { Section } from "@/components/layout/Section";
 import { Body, Eyebrow, SectionTitle } from "@/components/typography";
 import { commerce } from "@/lib/commerce";
 import type { FeaturedCategoriesBlockData } from "@/lib/cms";
-import type { CategoryIcon as CategoryIconName, CollectionSummary } from "@/types/commerce";
+import type {
+  CategoryIcon as CategoryIconName,
+  CollectionSummary,
+} from "@/types/commerce";
 import { CategoryIcon } from "@/components/CategoryIcon";
 
 function refId(value: unknown): string | null {
@@ -102,7 +106,9 @@ export async function FeaturedCategoriesBlockView({
               <Link
                 href={localizePath(
                   locale,
-                  `/shop?collection=${encodeURIComponent(category.handle)}`,
+                  `/shop/categories/${buildCategoryPath(category)
+                    .map(encodeURIComponent)
+                    .join("/")}`,
                 )}
                 className="group border-border bg-card block overflow-hidden rounded-2xl border transition-shadow hover:shadow-md"
               >

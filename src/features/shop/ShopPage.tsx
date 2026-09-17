@@ -14,10 +14,9 @@ import type { CategoryReference } from "@/types/commerce";
 import { CategoryIcon } from "@/components/CategoryIcon";
 import { cn } from "@/lib/utils/cn";
 import { ArrowRight } from "lucide-react";
-import { directChildCategories } from "./category-hierarchy";
+import { buildCategoryPath, directChildCategories } from "./category-hierarchy";
 import { SearchForm } from "@/features/search";
 import { CommunityReviewCard } from "./CommunityReviewCard";
-import { ImpactFooter } from "./ImpactFooter";
 import { ImpactStoryCard } from "./ImpactStoryCard";
 
 type Labels = {
@@ -125,6 +124,7 @@ export async function ShopPage({ locale, query, labels }: Props) {
                 href={buildShopHref(locale, {
                   ...query,
                   collection: "",
+                  categoryPath: [],
                   categories: [],
                 })}
               >
@@ -137,6 +137,7 @@ export async function ShopPage({ locale, query, labels }: Props) {
                     href={buildShopHref(locale, {
                       ...query,
                       collection: parent.handle,
+                      categoryPath: buildCategoryPath(parent),
                       categories: [],
                       after: "",
                     })}
@@ -210,6 +211,7 @@ export async function ShopPage({ locale, query, labels }: Props) {
                       href={buildShopHref(locale, {
                         ...query,
                         collection: collection.handle,
+                        categoryPath: buildCategoryPath(collection),
                         categories: [],
                         after: "",
                       })}
@@ -307,7 +309,10 @@ export async function ShopPage({ locale, query, labels }: Props) {
 
       <Container className="mt-10 space-y-9">
         <div className="space-y-4">
-          <SearchForm initialQuery={query.q} />
+          <SearchForm
+            initialQuery={query.q}
+            categoryPath={query.categoryPath}
+          />
           {query.q ? (
             <div>
               <h2 className="font-serif text-2xl">

@@ -57,3 +57,19 @@ The `labelKey` must exist in both `messages/en.json` and `messages/es.json`. The
 6. Verify desktop and mobile menus, the footer, both storefront locales, and the final destination.
 
 Do not add placeholder internal navigation for planned pages. A link should be published only when its destination exists.
+
+## Category URLs
+
+Product URLs remain directly below the localized shop route. Category URLs use a
+separate localized namespace so product and category slugs cannot collide:
+
+```text
+/es/tienda/cacao-ceremonial
+/es/tienda/categorias/bienestar-y-rituales/cacao
+/en/shop/cacao-ceremonial
+/en/shop/categories/bienestar-y-rituales/cacao
+```
+
+Category handles are stable across locales. Each category URL contains the full
+parent chain. Search, sorting, price, origin, availability, tags, and pagination
+remain query parameters; the primary category scope does not.

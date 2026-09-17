@@ -10,6 +10,7 @@ export type ShopQuery = {
   q: string;
   sort: ShopSortValue;
   collection: string;
+  categoryPath: string[];
   categories: string[];
   minPrice: string;
   maxPrice: string;
@@ -31,6 +32,7 @@ const SORT_VALUES: ShopSortValue[] = [
 
 export function parseShopQuery(
   input: Record<string, string | string[] | undefined>,
+  categoryPath: string[] = [],
 ): ShopQuery {
   const read = (key: string) => {
     const value = input[key];
@@ -56,7 +58,8 @@ export function parseShopQuery(
   return {
     q: read("q").trim(),
     sort,
-    collection: read("collection").trim(),
+    collection: categoryPath.at(-1) ?? read("collection").trim(),
+    categoryPath,
     categories: readHandles("categories"),
     minPrice: read("minPrice").trim(),
     maxPrice: read("maxPrice").trim(),
@@ -118,7 +121,7 @@ export function buildShopHref(
 ): string {
   const params = new URLSearchParams();
   const q = query.q?.trim();
-  const collection = query.collection?.trim();
+  const categoryPath = query.categoryPath?.filter(Boolean) ?? [];
   const categories = query.categories?.filter(Boolean) ?? [];
   const sort = query.sort && query.sort !== DEFAULT_SHOP_SORT ? query.sort : "";
   const after = options?.dropAfter ? "" : query.after?.trim();
@@ -128,7 +131,6 @@ export function buildShopHref(
   const origins = query.origins?.filter(Boolean) ?? [];
 
   if (q) params.set("q", q);
-  if (collection) params.set("collection", collection);
   if (categories.length) params.set("categories", categories.join(","));
   if (sort) params.set("sort", sort);
   if (minPrice) params.set("minPrice", minPrice);
@@ -139,5 +141,8 @@ export function buildShopHref(
   if (after) params.set("after", after);
 
   const qs = params.toString();
-  return localizePath(locale, qs ? `/shop?${qs}` : "/shop");
+  const shopPath = categoryPath.length
+    ? `/shop/categories/${categoryPath.map(encodeURIComponent).join("/")}`
+    : "/shop";
+  return localizePath(locale, qs ? `${shopPath}?${qs}` : shopPath);
 }

@@ -97,6 +97,7 @@ const localizedSegments: Record<Locale, Record<string, string>> = {
   es: {
     orders: "mis-pedidos",
     shop: "tienda",
+    categories: "categorias",
     cart: "carrito",
     about: "nosotros",
     shipping: "envios",
@@ -106,6 +107,7 @@ const localizedSegments: Record<Locale, Record<string, string>> = {
   en: {
     orders: "orders",
     shop: "shop",
+    categories: "categories",
     cart: "cart",
     about: "about",
     shipping: "shipping",
@@ -123,6 +125,12 @@ export function localizePath(locale: Locale | string, path = "/"): string {
   const segments = url.pathname.split("/").filter(Boolean);
   if (segments[0]) {
     segments[0] = localizedSegments[safeLocale][segments[0]] ?? segments[0];
+  }
+  if (
+    segments[0] === localizedSegments[safeLocale].shop &&
+    segments[1] === "categories"
+  ) {
+    segments[1] = localizedSegments[safeLocale].categories;
   }
   const pathname = segments.length ? `/${segments.join("/")}` : "";
   return `/${safeLocale}${pathname}${url.search}${url.hash}`;
@@ -161,5 +169,8 @@ export function internalPath(pathname: string): string {
     ]),
   );
   if (segments[0]) segments[0] = reverse[segments[0]] ?? segments[0];
+  if (segments[0] === "shop" && segments[1]) {
+    segments[1] = reverse[segments[1]] ?? segments[1];
+  }
   return `/${segments.join("/")}`;
 }
