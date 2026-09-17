@@ -30,7 +30,8 @@ type ResolvedMerchandise = {
 export type PayloadCartParams = {
   locale?: string | null;
   acceptPriceChanges?: boolean;
-  fulfillmentMode?: import("@/lib/commerce/local-purchase").FulfillmentMode | null;
+  fulfillmentMode?:
+    import("@/lib/commerce/local-purchase").FulfillmentMode | null;
 };
 
 function cartPath(cartId: string, action?: string) {
@@ -284,6 +285,7 @@ export async function getCart(
 
   try {
     const cart = await fetchCartDocument(cartId, secret, locale);
+    if (cart.purchasedAt || cart.status === "purchased") return null;
     const mapped = mapCart(cart, {
       secret: secret ?? cart.secret,
       locale,

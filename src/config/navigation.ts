@@ -21,6 +21,8 @@ export const externalSites = {
   experienciaMagico: "https://experienciamagico.com",
 } as const;
 
+export const staffCashPath = "/staff/cash";
+
 export function experienciaMagicoUrl(path = "/"): string {
   return new URL(path, externalSites.experienciaMagico).toString();
 }

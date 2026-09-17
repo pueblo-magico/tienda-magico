@@ -11,6 +11,7 @@ import {
   type ReactNode,
 } from "react";
 import { useLocale, useTranslations } from "next-intl";
+import { usePathname } from "next/navigation";
 import type { Cart, CartLineInput } from "@/types/commerce";
 import type { FulfillmentMode } from "@/lib/commerce/local-purchase";
 import { CASH, MERCADO_PAGO, type PaymentMethod } from "@/types/checkout";
@@ -104,6 +105,7 @@ function writeStoredCartId(cartId: string | null) {
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const locale = useLocale();
+  const pathname = usePathname();
   const tCommercial = useTranslations("commercial");
   const [cart, setCart] = useState<Cart>(emptyCart);
   const [isOpen, setIsOpen] = useState(false);
@@ -123,11 +125,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
     number: "",
   });
   const persistedCartRef = useRef<Cart>(emptyCart());
+  const cartRevision = useRef(0);
+  const refreshSequence = useRef(0);
   const fulfillmentModeRef = useRef<FulfillmentMode | null>(null);
   const fulfillmentMutationQueue = useRef<Promise<void>>(Promise.resolve());
   const pendingFulfillmentMutations = useRef(0);
 
   const applyCart = useCallback((next: Cart, isConfigured = true) => {
+    cartRevision.current++;
     const normalized = next.id ? next : emptyCart();
     persistedCartRef.current = normalized;
     fulfillmentModeRef.current = normalized.fulfillmentMode;
@@ -138,10 +143,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const refreshCart = useCallback(async () => {
     const cartId = readStoredCartId();
+    const revision = cartRevision.current;
+    const sequence = ++refreshSequence.current;
     setIsLoading(true);
     setError(null);
     try {
       const result = await fetchCart(cartId, { locale });
+      if (
+        readStoredCartId() !== cartId ||
+        cartRevision.current !== revision ||
+        refreshSequence.current !== sequence
+      )
+        return;
       if (result.commerceSettings) setCommerceSettings(result.commerceSettings);
       applyCart(result.cart, result.configured !== false);
       if (cartId && !result.cart.id) {
@@ -151,13 +164,30 @@ export function CartProvider({ children }: { children: ReactNode }) {
       // A transient fetch/pricing failure must not discard an existing cart.
       setError(tCommercial("requestFailed"));
     } finally {
-      setIsLoading(false);
+      if (refreshSequence.current === sequence) setIsLoading(false);
     }
   }, [applyCart, locale, tCommercial]);
 
   useEffect(() => {
     void refreshCart();
-  }, [refreshCart]);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") void refreshCart();
+    };
+    const onStorage = (event: StorageEvent) => {
+      if (event.key === CART_ID_STORAGE_KEY || event.key === null)
+        void refreshCart();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("storage", onStorage);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("storage", onStorage);
+    };
+  }, [refreshCart, pathname]);
+
+  useEffect(() => {
+    if (isOpen) void refreshCart();
+  }, [isOpen, refreshCart]);
 
   const openCart = useCallback(() => setIsOpen(true), []);
   const closeCart = useCallback(() => setIsOpen(false), []);

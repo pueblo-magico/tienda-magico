@@ -6,6 +6,7 @@ import { randomUUID } from 'node:crypto'
 import { confirmTransferEndpoint, protectTransfer } from '../utilities/confirmTransfer'
 import { confirmCashEndpoint } from '../utilities/confirmCash'
 import { replacePendingCash } from '../utilities/replacePendingCash'
+import { completePaidCart } from '../utilities/completePaidCart'
 import { lockTransferWrite, protectTransferDeletion } from '../utilities/transferWriteLock'
 
 const immutableAfterCreation = { update: () => false }
@@ -68,6 +69,7 @@ export const ordersCollectionOverride = ({
       },
     ],
     afterChange: [
+      completePaidCart,
       ...(defaultCollection.hooks?.afterChange ?? []),
       async ({ doc, operation, req }) => {
         if (operation !== 'create' || doc.fulfillmentMode !== 'local_collection') return doc

@@ -331,10 +331,10 @@ test("la venta local vinculada recibe los datos pendientes de la transferencia",
   const collection = ordersCollectionOverride({
     defaultCollection: { fields: [], hooks: {} },
   });
-  const afterChange = collection.hooks?.afterChange?.[0];
+  const afterChangeHooks = collection.hooks?.afterChange ?? [];
   let createdData;
 
-  await afterChange({
+  const hookArguments = {
     operation: "create",
     doc: {
       id: 42,
@@ -352,7 +352,8 @@ test("la venta local vinculada recibe los datos pendientes de la transferencia",
         },
       },
     },
-  });
+  };
+  for (const afterChange of afterChangeHooks) await afterChange(hookArguments);
 
   assert.equal(createdData.paymentMethod, BANK_TRANSFER);
   assert.equal(createdData.paymentExpiresAt, "2026-09-15T12:15:00.000Z");

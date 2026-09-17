@@ -34,6 +34,7 @@ test("commerce settings default to local collection without delivery", () => {
     localCollectionEnabled: true,
     deliveryEnabled: false,
     cashEnabled: false,
+    cashStaffEnabled: false,
     transferEnabled: false,
     transfer: {
       accountHolder: "",
@@ -84,6 +85,19 @@ test("the CMS exposes admin-managed storefront commerce settings", () => {
         name: "cashEnabled",
         label: { es: "Habilitar efectivo", en: "Enable cash" },
         defaultValue: false,
+      },
+      {
+        name: "cashStaffEnabled",
+        label: {
+          es: "Habilitar caja en la tienda",
+          en: "Enable storefront cash desk",
+        },
+        defaultValue: false,
+      },
+      {
+        name: "cashStaffPassword",
+        label: { es: "Nueva contraseña de caja", en: "New cash desk password" },
+        defaultValue: undefined,
       },
       {
         name: "transferEnabled",

@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/Card";
 import { CopyButton } from "@/components/ui/CopyButton";
 import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
 import { DocsPageHeader } from "@/components/ui-system/DocsPageHeader";
 import { DocsSection } from "@/components/ui-system/DocsSection";
 
@@ -49,6 +50,28 @@ export default function CardPage() {
             <Button disabled size="sm" variant="secondary">
               Verificando
             </Button>
+          </CardFooter>
+        </Card>
+      </DocsSection>
+      <DocsSection title="Acceso privado de caja">
+        <Card className="w-full max-w-xl">
+          <CardHeader>
+            <CardTitle>Caja · confirmar efectivo</CardTitle>
+            <CardDescription>
+              Acceso del personal con contraseña. La autorización se verifica en
+              el servidor, no en esta tarjeta.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Input
+              name="cash-password-example"
+              type="password"
+              label="Contraseña del personal"
+              autoComplete="off"
+            />
+          </CardContent>
+          <CardFooter>
+            <Button disabled>Ingresar (ejemplo)</Button>
           </CardFooter>
         </Card>
       </DocsSection>
