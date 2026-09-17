@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/Button";
 import { localizePath } from "@/config/navigation";
+import { buildCategoryPath } from "@/features/shop/category-hierarchy";
 import { ImpactCard } from "@/components/cards/ImpactCard";
 import { ProductCard } from "@/components/cards/ProductCard";
 import { Container } from "@/components/layout/Container";
@@ -68,7 +69,9 @@ export async function FallbackHome({ locale }: { locale: string }) {
                   <a
                     href={localizePath(
                       locale,
-                      `/shop?collection=${encodeURIComponent(category.handle)}`,
+                      `/shop/categories/${buildCategoryPath(category)
+                        .map(encodeURIComponent)
+                        .join("/")}`,
                     )}
                     className="border-border bg-card block rounded-2xl border px-4 py-5 transition-shadow hover:shadow-md"
                   >

@@ -165,6 +165,7 @@ export function ShopFilters({
             q: query.q,
             sort: query.sort,
             collection: query.collection,
+            categoryPath: query.categoryPath,
             categories: [],
             minPrice: "",
             maxPrice: "",
