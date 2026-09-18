@@ -29,6 +29,37 @@ process.env.PAYLOAD_ECOMMERCE_URL = "http://cms.test";
 process.env.PAYLOAD_ECOMMERCE_CURRENCY = "ARS";
 process.env.PAYLOAD_ECOMMERCE_AMOUNT_IS_CENTS = "true";
 
+test("el carrito conserva el SKU del producto simple y el de la variante", () => {
+  const product = {
+    id: 2,
+    title: "Bruma",
+    sku: "BRUMA-1",
+    priceInARS: 3000000,
+    priceInARSEnabled: true,
+    inventory: 4,
+    _status: "published",
+  };
+  const simple = mapCart({
+    id: 1,
+    currency: "ARS",
+    items: [{ id: "line", product, quantity: 1 }],
+  });
+  assert.equal(simple.lines[0].merchandise.sku, "BRUMA-1");
+  const variant = mapCart({
+    id: 1,
+    currency: "ARS",
+    items: [
+      {
+        id: "line",
+        product,
+        variant: { id: 3, sku: "VARIANT-1", priceInARS: 3000000 },
+        quantity: 1,
+      },
+    ],
+  });
+  assert.equal(variant.lines[0].merchandise.sku, "VARIANT-1");
+});
+
 test("commerce settings default to local collection without delivery", () => {
   assert.deepEqual(DEFAULT_COMMERCE_SETTINGS, {
     localCollectionEnabled: true,

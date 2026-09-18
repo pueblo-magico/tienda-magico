@@ -31,6 +31,7 @@ import { startTransferPolling } from "./transfer-polling";
 import { Body } from "@/components/typography/Body";
 import { PageTitle } from "@/components/typography/PageTitle";
 import { OrderReceiptFeedback } from "@/features/orders/OrderReceiptFeedback";
+import { CashConfirmed } from "./CashConfirmed";
 
 export function CashWaiting({
   title,
@@ -43,6 +44,7 @@ export function CashWaiting({
   cashStaffEnabled = false,
   returnLink,
   summary,
+  feedbackSubmitted,
 }: {
   title: string;
   body: string;
@@ -54,6 +56,7 @@ export function CashWaiting({
   cashStaffEnabled?: boolean;
   returnLink?: ReactNode;
   summary?: ReactNode;
+  feedbackSubmitted?: boolean;
 }) {
   const t = useTranslations("checkout.cashWaiting");
   const checkoutText = useTranslations("checkout");
@@ -76,6 +79,17 @@ export function CashWaiting({
       },
     });
   }, [canRefresh, refreshing, router]);
+  if (paymentStatus === "approved" && reference && summary) {
+    return (
+      <CashConfirmed
+        feedbackSubmitted={feedbackSubmitted}
+        summary={summary}
+        reference={reference}
+        receivedAt={receivedAt}
+        returnLink={returnLink}
+      />
+    );
+  }
   return (
     <div className="space-y-6">
       <nav aria-label={t("breadcrumbLabel")}>

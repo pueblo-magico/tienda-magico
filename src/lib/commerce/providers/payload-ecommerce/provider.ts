@@ -28,6 +28,7 @@ import { getProduct, getProducts } from "./products";
 import {
   createCheckoutOrder,
   confirmGuestOrderReceipt,
+  submitGuestOrderFeedback,
   getCheckoutOrderByPublicReference,
   getGuestOrders,
   reportGuestTransfer,
@@ -114,6 +115,7 @@ export class PayloadEcommerceProvider implements CommerceProvider {
   getGuestOrders = getGuestOrders;
   reportGuestTransfer = reportGuestTransfer;
   confirmGuestOrderReceipt = confirmGuestOrderReceipt;
+  submitGuestOrderFeedback = submitGuestOrderFeedback;
 }
 
 export const payloadEcommerceProvider = new PayloadEcommerceProvider();

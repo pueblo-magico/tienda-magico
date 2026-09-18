@@ -33,19 +33,27 @@ export const ordersCollectionOverride = ({
           (field) => field in data && (data[field] ?? null) !== (originalDoc?.[field] ?? null),
         )
         if (!changesReceipt) return data
-        if (originalDoc?.receivedAt) {
+        const changesDelivery =
+          'receivedAt' in data && (data.receivedAt ?? null) !== (originalDoc?.receivedAt ?? null)
+        const changesFeedback = ['experienceRating', 'experienceComment'].some(
+          (field) => field in data && (data[field] ?? null) !== (originalDoc?.[field] ?? null),
+        )
+        if (changesDelivery && originalDoc?.receivedAt) {
           throw new APIError('La confirmación de recepción no se puede modificar.', 409)
         }
         if ((data.paymentStatus ?? originalDoc?.paymentStatus) !== 'approved') {
           throw new APIError('Solo se puede confirmar la recepción de un pedido pagado.', 409)
         }
-        if (!data.receivedAt) {
+        if (changesDelivery && !data.receivedAt) {
           throw new APIError('Falta la fecha de recepción.', 400)
         }
+        if (changesFeedback && originalDoc?.experienceRating != null)
+          throw new APIError('La opinión guardada no se puede modificar.', 409)
         if (
-          !Number.isInteger(data.experienceRating) ||
-          data.experienceRating < 0 ||
-          data.experienceRating > 5
+          changesFeedback &&
+          (!Number.isInteger(data.experienceRating) ||
+            data.experienceRating < 0 ||
+            data.experienceRating > 5)
         ) {
           throw new APIError('La puntuación debe ser un número entero entre 0 y 5.', 400)
         }

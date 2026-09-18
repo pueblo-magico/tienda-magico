@@ -7,6 +7,7 @@ export function RefreshPaidCart() {
   const { refreshCart } = useCart();
   useEffect(() => {
     void refreshCart();
+    window.dispatchEvent(new Event("orders-updated"));
   }, [refreshCart]);
   return null;
 }

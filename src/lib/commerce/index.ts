@@ -35,6 +35,9 @@ export const commerce = {
   confirmGuestOrderReceipt: (
     ...args: Parameters<CommerceProvider["confirmGuestOrderReceipt"]>
   ) => getCommerceProvider().confirmGuestOrderReceipt(...args),
+  submitGuestOrderFeedback: (
+    ...args: Parameters<CommerceProvider["submitGuestOrderFeedback"]>
+  ) => getCommerceProvider().submitGuestOrderFeedback(...args),
   get provider() {
     return getCommerceProvider();
   },

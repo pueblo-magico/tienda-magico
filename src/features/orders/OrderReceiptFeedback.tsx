@@ -12,8 +12,21 @@ import {
 } from "@/components/ui/Card";
 import { RatingInput } from "@/components/ui/Rating";
 import { Textarea } from "@/components/ui/Textarea";
+import { FeedbackThanksModal } from "./FeedbackThanksModal";
 
-export function OrderReceiptFeedback({ reference }: { reference: string }) {
+export function OrderReceiptFeedback({
+  reference,
+  layout = "stack",
+  onConfirmed,
+  formId,
+  feedbackOnly = false,
+}: {
+  reference: string;
+  layout?: "stack" | "wide";
+  onConfirmed?: () => void;
+  formId?: string;
+  feedbackOnly?: boolean;
+}) {
   const t = useTranslations("orders.receipt");
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
@@ -21,18 +34,33 @@ export function OrderReceiptFeedback({ reference }: { reference: string }) {
   const [saved, setSaved] = useState(false);
   const [failed, setFailed] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [thanksOpen, setThanksOpen] = useState(false);
 
-  if (dismissed || saved) return null;
+  if (dismissed) return null;
+  if (saved)
+    return feedbackOnly ? (
+      <>
+        <FeedbackThanksModal
+          open={thanksOpen}
+          onClose={() => setThanksOpen(false)}
+          rating={rating}
+        />
+        <p role="status" className="text-text-secondary">
+          {t("thanks")}
+        </p>
+      </>
+    ) : null;
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (saving) return;
     setFailed(false);
     setSaving(true);
     const response = await fetch("/api/orders", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        action: "confirm-receipt",
+        action: feedbackOnly ? "submit-feedback" : "confirm-receipt",
         reference,
         rating,
         comment,
@@ -44,11 +72,17 @@ export function OrderReceiptFeedback({ reference }: { reference: string }) {
       return;
     }
     setSaved(true);
+    setThanksOpen(feedbackOnly);
+    onConfirmed?.();
   }
 
   return (
     <Card className="mt-4">
-      <CardContent className="space-y-5">
+      <CardContent
+        className={
+          layout === "wide" ? "grid gap-6 lg:grid-cols-3" : "space-y-5"
+        }
+      >
         <div className="flex items-start gap-3">
           <CheckCircle2
             aria-hidden
@@ -56,11 +90,21 @@ export function OrderReceiptFeedback({ reference }: { reference: string }) {
             strokeWidth={1.5}
           />
           <div className="space-y-1">
-            <CardTitle>{t("open")}</CardTitle>
-            <CardDescription>{t("description")}</CardDescription>
+            <CardTitle>{t(feedbackOnly ? "feedbackTitle" : "open")}</CardTitle>
+            <CardDescription>
+              {t(feedbackOnly ? "feedbackDescription" : "description")}
+            </CardDescription>
           </div>
         </div>
-        <form className="space-y-4" onSubmit={submit}>
+        <form
+          id={formId}
+          className={
+            layout === "wide"
+              ? "grid gap-4 sm:grid-cols-2 lg:col-span-2"
+              : "space-y-4"
+          }
+          onSubmit={submit}
+        >
           <RatingInput
             value={rating}
             onChange={setRating}
@@ -84,17 +128,19 @@ export function OrderReceiptFeedback({ reference }: { reference: string }) {
               {t("error")}
             </p>
           ) : null}
-          <div className="flex flex-col gap-3 sm:flex-row">
+          <div className="flex flex-col gap-3 sm:col-span-2 sm:flex-row sm:justify-end">
             <Button type="submit" disabled={saving} aria-busy={saving}>
-              {t("confirm")}
+              {t(feedbackOnly ? "submitFeedback" : "confirm")}
             </Button>
-            <Button
-              variant="secondary"
-              disabled={saving}
-              onPress={() => setDismissed(true)}
-            >
-              {t("skip")}
-            </Button>
+            {!formId || feedbackOnly ? (
+              <Button
+                variant="secondary"
+                disabled={saving}
+                onPress={() => setDismissed(true)}
+              >
+                {t("skip")}
+              </Button>
+            ) : null}
           </div>
         </form>
       </CardContent>

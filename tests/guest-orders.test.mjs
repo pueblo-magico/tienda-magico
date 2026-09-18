@@ -4,6 +4,52 @@ import { parseGuestCartReferences } from "../src/lib/commerce/guest-order-access
 import * as orders from "../src/lib/commerce/providers/payload-ecommerce/orders.ts";
 
 const cart = `1::${"a".repeat(40)}`;
+test("la opinión se guarda sin confirmar recepción y la recepción no guarda una opinión", async () => {
+  const previousFetch = globalThis.fetch;
+  const previousUrl = process.env.PAYLOAD_ECOMMERCE_URL;
+  process.env.PAYLOAD_ECOMMERCE_URL = "https://cms.example";
+  const saved = {
+    id: 1,
+    publicReference: "owned",
+    paymentStatus: "approved",
+    paymentMethod: "cash",
+    amount: 100,
+    currency: "ARS",
+    cartReference: cart,
+  };
+  const writes = [];
+  globalThis.fetch = async (url, init = {}) => {
+    if (init.method === "PATCH") {
+      const body = JSON.parse(init.body);
+      writes.push(body);
+      Object.assign(saved, body);
+      return Response.json({ doc: saved });
+    }
+    return Response.json({ docs: [saved] });
+  };
+  try {
+    assert.equal(
+      await orders.submitGuestOrderFeedback([cart], "owned", {
+        rating: 4,
+        comment: "Bien",
+      }),
+      true,
+    );
+    assert.equal(saved.receivedAt, undefined);
+    assert.equal(await orders.confirmGuestOrderReceipt([cart], "owned"), true);
+    assert.deepEqual(Object.keys(writes[1]), ["receivedAt"]);
+    assert.equal(saved.experienceRating, 4);
+    assert.equal(
+      await orders.submitGuestOrderFeedback([cart], "owned", { rating: 1 }),
+      true,
+    );
+    assert.equal(writes.length, 2);
+  } finally {
+    globalThis.fetch = previousFetch;
+    if (previousUrl === undefined) delete process.env.PAYLOAD_ECOMMERCE_URL;
+    else process.env.PAYLOAD_ECOMMERCE_URL = previousUrl;
+  }
+});
 test("una recepción concurrente conserva la primera reseña y un fallo real se propaga", async () => {
   const original = globalThis.fetch;
   const oldUrl = process.env.PAYLOAD_ECOMMERCE_URL;

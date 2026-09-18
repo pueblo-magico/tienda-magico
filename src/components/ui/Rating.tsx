@@ -9,9 +9,16 @@ type RatingProps = {
   label: string;
   reviewCount?: string;
   className?: string;
+  size?: "sm" | "lg";
 };
 
-export function Rating({ value, label, reviewCount, className }: RatingProps) {
+export function Rating({
+  value,
+  label,
+  reviewCount,
+  className,
+  size = "sm",
+}: RatingProps) {
   const filledStars = Math.round(Math.min(5, Math.max(0, value)));
 
   return (
@@ -24,9 +31,11 @@ export function Rating({ value, label, reviewCount, className }: RatingProps) {
           <Star
             key={index}
             className={cn(
-              "size-3",
+              size === "lg" ? "size-7" : "size-3",
               index < filledStars
-                ? "text-text-highlight fill-current"
+                ? size === "lg"
+                  ? "text-text-accent fill-current"
+                  : "text-text-highlight fill-current"
                 : "text-text-secondary",
             )}
             strokeWidth={1.5}

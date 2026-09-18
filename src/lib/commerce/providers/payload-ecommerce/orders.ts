@@ -274,7 +274,7 @@ function orderSummaryItems(
 export async function confirmGuestOrderReceipt(
   cartReferences: string[],
   reference: string,
-  feedback: OrderReceiptFeedback,
+  feedback?: OrderReceiptFeedback,
 ): Promise<boolean> {
   const references = parseGuestCartReferences(JSON.stringify(cartReferences));
   if (!references.length) return false;
@@ -284,15 +284,18 @@ export async function confirmGuestOrderReceipt(
   if (!owned || owned.paymentStatus !== "approved") return false;
   if (owned.receivedAt) return true;
 
-  const comment = feedback.comment?.trim() || null;
   try {
     const result = await payloadFetch<{ doc?: PayloadOrderResponse }>({
       method: "PATCH",
       path: `${collectionPath("orders")}/${encodeURIComponent(owned.id)}`,
       body: {
         receivedAt: new Date().toISOString(),
-        experienceRating: feedback.rating,
-        experienceComment: comment,
+        ...(feedback
+          ? {
+              experienceRating: feedback.rating,
+              experienceComment: feedback.comment?.trim() || null,
+            }
+          : {}),
       },
     });
     if (result.doc?.receivedAt) return true;
@@ -308,6 +311,36 @@ export async function confirmGuestOrderReceipt(
       (order) => order.publicReference === reference,
     )?.receivedAt,
   );
+}
+
+export async function submitGuestOrderFeedback(
+  cartReferences: string[],
+  reference: string,
+  feedback: OrderReceiptFeedback,
+): Promise<boolean> {
+  const references = parseGuestCartReferences(JSON.stringify(cartReferences));
+  if (!references.length) return false;
+  const findOwned = async () =>
+    (await getGuestOrders(references)).find(
+      (order) => order.publicReference === reference,
+    );
+  const owned = await findOwned();
+  if (!owned || owned.paymentStatus !== "approved") return false;
+  if (owned.experienceRating != null) return true;
+  try {
+    const result = await payloadFetch<{ doc?: PayloadOrderResponse }>({
+      method: "PATCH",
+      path: `${collectionPath("orders")}/${encodeURIComponent(owned.id)}`,
+      body: {
+        experienceRating: feedback.rating,
+        experienceComment: feedback.comment?.trim() || null,
+      },
+    });
+    return result.doc?.experienceRating != null;
+  } catch (error) {
+    if ((await findOwned())?.experienceRating != null) return true;
+    throw error;
+  }
 }
 
 export async function getGuestOrders(

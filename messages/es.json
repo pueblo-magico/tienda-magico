@@ -321,6 +321,16 @@
     "ethicallySourced": "Origen ético"
   },
   "orders": {
+    "feedbackThanks": {
+      "eyebrow": "Opinión enviada",
+      "title": "¡Gracias por compartir tu experiencia!",
+      "body": "Tu opinión nos ayuda a cuidar cada detalle y a seguir construyendo una tienda más cercana y consciente.",
+      "sent": "Tu calificación fue enviada",
+      "rating": "Calificación enviada: {rating} de 5",
+      "continue": "Continuar",
+      "close": "Cerrar agradecimiento"
+    },
+    "pendingCount": "Mis pedidos: {count, plural, one {# pendiente de pago} other {# pendientes de pago}}",
     "summary": {
       "title": "Resumen del pedido",
       "placed": "Pedido realizado el {date}",
@@ -353,6 +363,10 @@
     "deadline": "Vencimiento: {date}",
     "view": "Ver pedido",
     "receipt": {
+      "feedbackTitle": "¿Cómo fue tu experiencia de compra?",
+      "feedbackDescription": "Tu opinión nos ayuda a mejorar. Responder es opcional y no confirma la entrega.",
+      "submitFeedback": "Enviar opinión",
+      "thanks": "¡Gracias por compartir tu opinión!",
       "open": "¿Ya recibiste tus productos?",
       "description": "Confirmá la recepción y, si querés, contanos cómo fue tu experiencia de compra.",
       "ratingLabel": "Puntuación de la experiencia (0 a 5)",
@@ -420,6 +434,28 @@
       "cvu": "CVU",
       "orderReference": "Referencia del pedido",
       "expiresAt": "Pagá antes de"
+    },
+    "cashConfirmed": {
+      "inspiration": "Quizás también te inspire",
+      "viewProduct": "Ver producto",
+      "noImage": "Imagen no disponible",
+      "eyebrow": "Pago en efectivo confirmado",
+      "title": "¡Gracias! Recibimos tu pago",
+      "description": "El equipo de Pueblo Mágico confirmó tu pago en efectivo. Cuando tengas los productos con vos, confirmá la recepción.",
+      "timeline": "Pago y entrega",
+      "timelineBody": "Revisá el estado de tu compra.",
+      "ordered": "Pedido confirmado",
+      "orderedBody": "Guardá la referencia para consultar tu pedido.",
+      "paid": "Pago en efectivo recibido",
+      "paidBody": "El equipo confirmó tu pago. No tenés que volver a pagar.",
+      "receive": "Si, recibí el pedido",
+      "receiveBody": "Cuando tengas todos los productos con vos, confirmá que recibiste el pedido.",
+      "receivedBody": "Ya confirmaste la recepción de tu compra.",
+      "orders": "Mis pedidos",
+      "warning": "Usá esta opción solo después de recibir tu compra. La opinión es opcional e independiente de la recepción.",
+      "impact": "Tu compra deja huella",
+      "impactBody": "Gracias por ser parte de Pueblo Mágico.",
+      "explore": "Seguir explorando"
     },
     "cashWaiting": {
       "nextTitle": "Qué hacer ahora",

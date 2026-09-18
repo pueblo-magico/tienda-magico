@@ -321,6 +321,16 @@
     "ethicallySourced": "Ethically sourced"
   },
   "orders": {
+    "feedbackThanks": {
+      "eyebrow": "Feedback sent",
+      "title": "Thank you for sharing your experience!",
+      "body": "Your feedback helps us care for every detail and keep building a more thoughtful, welcoming shop.",
+      "sent": "Your rating has been sent",
+      "rating": "Submitted rating: {rating} out of 5",
+      "continue": "Continue",
+      "close": "Close thank-you message"
+    },
+    "pendingCount": "My orders: {count, plural, one {# pending payment} other {# pending payments}}",
     "summary": {
       "title": "Order summary",
       "placed": "Order placed on {date}",
@@ -353,6 +363,10 @@
     "deadline": "Deadline: {date}",
     "view": "View order",
     "receipt": {
+      "feedbackTitle": "How was your shopping experience?",
+      "feedbackDescription": "Your feedback helps us improve. It is optional and does not confirm delivery.",
+      "submitFeedback": "Send feedback",
+      "thanks": "Thank you for sharing your feedback!",
       "open": "Have you received your products?",
       "description": "Confirm receipt and, if you wish, tell us about your shopping experience.",
       "ratingLabel": "Shopping experience rating (0 to 5)",
@@ -420,6 +434,28 @@
       "cvu": "CVU",
       "orderReference": "Order reference",
       "expiresAt": "Pay before"
+    },
+    "cashConfirmed": {
+      "inspiration": "You might also like",
+      "viewProduct": "View product",
+      "noImage": "Image unavailable",
+      "eyebrow": "Cash payment confirmed",
+      "title": "Thank you! We received your payment",
+      "description": "The Pueblo Mágico team confirmed your cash payment. Once you have your products, confirm receipt.",
+      "timeline": "Payment and collection",
+      "timelineBody": "Check the status of your purchase.",
+      "ordered": "Order confirmed",
+      "orderedBody": "Keep your reference to look up your order.",
+      "paid": "Cash payment received",
+      "paidBody": "Staff confirmed your payment. You do not need to pay again.",
+      "receive": "Confirm I received my order",
+      "receiveBody": "Confirm receipt once you have all your products.",
+      "receivedBody": "You already confirmed receipt of your purchase.",
+      "orders": "My orders",
+      "warning": "Only use this option after receiving your purchase. Feedback is optional and independent of receipt confirmation.",
+      "impact": "Your purchase makes a difference",
+      "impactBody": "Thank you for being part of Pueblo Mágico.",
+      "explore": "Keep exploring"
     },
     "cashWaiting": {
       "nextTitle": "What to do next",

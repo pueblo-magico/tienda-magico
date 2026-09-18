@@ -25,6 +25,7 @@ import {
   updateCartLines,
 } from "./api";
 import { CART_ID_STORAGE_KEY } from "./constants";
+import { shouldDefaultToPickup } from "./default-fulfillment";
 import {
   DEFAULT_COMMERCE_SETTINGS,
   type CommerceSettings,
@@ -130,6 +131,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const fulfillmentModeRef = useRef<FulfillmentMode | null>(null);
   const fulfillmentMutationQueue = useRef<Promise<void>>(Promise.resolve());
   const pendingFulfillmentMutations = useRef(0);
+  const defaultedCart = useRef<string | null>(null);
 
   const applyCart = useCallback((next: Cart, isConfigured = true) => {
     cartRevision.current++;
@@ -323,6 +325,26 @@ export function CartProvider({ children }: { children: ReactNode }) {
     },
     [applyCart, cart.id, locale, paymentMethod, tCommercial],
   );
+
+  useEffect(() => {
+    if (
+      isLoading ||
+      isMutating ||
+      !configured ||
+      defaultedCart.current === cart.id ||
+      !shouldDefaultToPickup(cart, commerceSettings.localCollectionEnabled)
+    )
+      return;
+    defaultedCart.current = cart.id;
+    void setFulfillment("local_collection");
+  }, [
+    cart,
+    commerceSettings.localCollectionEnabled,
+    configured,
+    isLoading,
+    isMutating,
+    setFulfillment,
+  ]);
 
   const checkout = useCallback(async () => {
     const cartId = readStoredCartId() || cart.id;

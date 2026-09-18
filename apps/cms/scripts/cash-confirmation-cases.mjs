@@ -292,4 +292,27 @@ export async function cashConfirmationCases({
     payload.db.drizzle.transaction((db) => receiptMigration.down({ db, payload, req: {} })),
   )
   console.log('PASS: recepción posterior al efectivo, inmutabilidad y rollback protegido')
+  for (const reviewFirst of [true, false]) {
+    const independentOrder = await cashOrder([await product()])
+    assert.equal((await receive(independentOrder)).status, 200)
+    const delivery = { receivedAt: new Date().toISOString() }
+    const feedback = { experienceRating: 4, experienceComment: 'Muy bien' }
+    await payload.update({
+      collection: 'orders',
+      id: independentOrder.id,
+      data: reviewFirst ? feedback : delivery,
+    })
+    const partial = await payload.findByID({ collection: 'orders', id: independentOrder.id })
+    if (reviewFirst) assert.equal(partial.receivedAt, null)
+    else assert.equal(partial.experienceRating, null)
+    await payload.update({
+      collection: 'orders',
+      id: independentOrder.id,
+      data: reviewFirst ? delivery : feedback,
+    })
+    const completed = await payload.findByID({ collection: 'orders', id: independentOrder.id })
+    assert.equal(completed.receivedAt, delivery.receivedAt)
+    assert.equal(completed.experienceRating, 4)
+  }
+  console.log('PASS: recepción y opinión independientes en ambos órdenes')
 }

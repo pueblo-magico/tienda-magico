@@ -6,6 +6,20 @@ import {
 } from "@/lib/checkout/guest-orders";
 import { parseGuestCartReferences } from "@/lib/commerce/guest-order-access";
 import { parseOrderReceiptInput } from "@/lib/checkout/order-receipt";
+import { orderCounts } from "@/lib/checkout/order-counts";
+
+export async function GET() {
+  const headers = { "Cache-Control": "private, no-store" };
+  try {
+    const orders = await commerce.getGuestOrders(await guestCartReferences());
+    return NextResponse.json(orderCounts(orders), { headers });
+  } catch {
+    return NextResponse.json(
+      { error: "unavailable" },
+      { status: 503, headers },
+    );
+  }
+}
 
 export async function POST(request: Request) {
   if (request.headers.get("origin") !== new URL(request.url).origin) {
@@ -28,16 +42,32 @@ export async function POST(request: Request) {
       await rememberGuestCart(body.cartReference);
       return NextResponse.json({ ok: true });
     }
-    if ("action" in body && body.action === "confirm-receipt") {
-      const receipt = parseOrderReceiptInput(body);
+    if (
+      "action" in body &&
+      (body.action === "confirm-receipt" || body.action === "submit-feedback")
+    ) {
+      const receipt = parseOrderReceiptInput({
+        ...body,
+        action: "confirm-receipt",
+        ...(!("rating" in body) && body.action === "confirm-receipt"
+          ? { rating: 0 }
+          : {}),
+      });
       if (!receipt) {
         return NextResponse.json({ error: "invalid" }, { status: 400 });
       }
-      const saved = await commerce.confirmGuestOrderReceipt(
-        await guestCartReferences(),
-        receipt.reference,
-        receipt,
-      );
+      const saved =
+        body.action === "submit-feedback"
+          ? await commerce.submitGuestOrderFeedback(
+              await guestCartReferences(),
+              receipt.reference,
+              receipt,
+            )
+          : await commerce.confirmGuestOrderReceipt(
+              await guestCartReferences(),
+              receipt.reference,
+              "rating" in body ? receipt : undefined,
+            );
       return NextResponse.json({ ok: saved }, { status: saved ? 200 : 404 });
     }
     if ("reference" in body && typeof body.reference === "string") {

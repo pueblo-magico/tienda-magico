@@ -14,6 +14,9 @@ import { TransferWaiting } from "@/features/checkout/TransferWaiting";
 import { guestCartReferences } from "@/lib/checkout/guest-orders";
 import { ArrowLeft } from "lucide-react";
 import { CashWaiting } from "@/features/checkout/CashWaiting";
+import { ProductCard } from "@/components/cards/ProductCard";
+import { Button } from "@/components/ui/Button";
+import { localizePath } from "@/config/navigation";
 import { OrderSummary } from "@/features/orders/OrderSummary";
 import { RefreshPaidCart } from "@/features/cart/RefreshPaidCart";
 
@@ -65,6 +68,18 @@ export default async function CheckoutPendingPage({
   );
   const commerceSettings =
     isBankTransfer || isCash ? await getCommerceSettings() : null;
+  const recommendations =
+    isCash && ownedOrder?.paymentStatus === "approved"
+      ? await commerce
+          .getProducts({ first: 3, locale })
+          .then((result) =>
+            result.items.filter((product) => product.availableForSale),
+          )
+          .catch(() => {
+            console.warn("No se pudieron cargar las sugerencias del pedido.");
+            return [];
+          })
+      : [];
   const siteSettings =
     isBankTransfer || isCash ? await getSiteSettings(locale) : null;
   const expiresAt = transferOrder?.paymentExpiresAt ?? null;
@@ -253,6 +268,7 @@ export default async function CheckoutPendingPage({
 
           {isCash && cashOrder && ownedOrder ? (
             <CashWaiting
+              feedbackSubmitted={ownedOrder.experienceRating != null}
               summary={<OrderSummary order={ownedOrder} />}
               cashStaffEnabled={commerceSettings?.cashStaffEnabled === true}
               reference={ownedOrder.publicReference}
@@ -298,6 +314,37 @@ export default async function CheckoutPendingPage({
             </CashWaiting>
           ) : null}
 
+          {recommendations.length ? (
+            <section className="space-y-4">
+              <PageTitle as="h2" className="text-3xl sm:text-4xl lg:text-4xl">
+                {t("cashConfirmed.inspiration")}
+              </PageTitle>
+              <div className="grid gap-4 sm:grid-cols-3">
+                {recommendations.map((product) => (
+                  <ProductCard
+                    key={product.id}
+                    title={product.title}
+                    href={localizePath(locale, `/shop/${product.handle}`)}
+                    price={formatMoney(
+                      product.priceRange.minVariantPrice,
+                      locale,
+                    )}
+                    imageSrc={product.featuredImage?.url}
+                    imageAlt={product.featuredImage?.altText ?? product.title}
+                    noMediaLabel={t("cashConfirmed.noImage")}
+                    action={
+                      <Button
+                        variant="secondary"
+                        href={localizePath(locale, `/shop/${product.handle}`)}
+                      >
+                        {t("cashConfirmed.viewProduct")}
+                      </Button>
+                    }
+                  />
+                ))}
+              </div>
+            </section>
+          ) : null}
           {!isBankTransferRequest &&
           (paymentId ||
             statusParam ||

@@ -1,5 +1,7 @@
 # Confirmación de recepción y experiencia de compra
 
+En la pantalla de efectivo confirmado, recepción y opinión son acciones independientes. Confirmar recepción envía únicamente `receivedAt`; enviar opinión guarda únicamente la puntuación y el comentario. El formulario de opinión permanece visible después de confirmar recepción hasta enviarlo o descartarlo. Descartar lo oculta durante la vista actual, sin modificar el pedido. Una opinión enviada no vuelve a solicitarse al recargar. Los clientes anteriores que envían ambos datos juntos siguen siendo compatibles.
+
 Después de que el pago queda aprobado, el comprador puede confirmar que recibió los productos desde la pantalla del pedido o desde «Mis pedidos». La confirmación acepta una puntuación entera de 0 a 5 y un comentario opcional de hasta 1000 caracteres.
 
 «Ahora no» solamente oculta el formulario durante la vista actual: no marca el pedido como recibido y permite volver más tarde. Una confirmación guardada es inmutable e idempotente; recargar o repetir la solicitud no reemplaza la reseña.

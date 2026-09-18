@@ -21,12 +21,14 @@ import { CartButton } from "./CartButton";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { MobileMenu } from "./MobileMenu";
 import { SearchButton } from "./SearchButton";
+import { useOrderCounts } from "@/features/orders/useOrderCounts";
 
 export function Header({ className }: { className?: string }) {
   const t = useTranslations();
   const locale = useLocale() as Locale;
   const pathname = usePathname();
-  const { openCart, itemCount } = useCart();
+  const { openCart, itemCount, refreshCart } = useCart();
+  const pendingOrders = useOrderCounts(refreshCart);
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [isCompact, setIsCompact] = useState(false);
@@ -134,20 +136,32 @@ export function Header({ className }: { className?: string }) {
               href={localizePath(locale, "/orders")}
               variant="ghost"
               size="icon-sm"
-              aria-label={t("nav.orders")}
+              aria-label={
+                pendingOrders
+                  ? t("orders.pendingCount", { count: pendingOrders })
+                  : t("nav.orders")
+              }
               title={t("nav.orders")}
               aria-current={
                 pathname === localizePath(locale, "/orders")
                   ? "page"
                   : undefined
               }
-              className="text-text-black hover:bg-card-hover aria-[current=page]:bg-card-hover aria-[current=page]:text-text-highlight size-10 shrink-0"
+              className="text-text-black hover:bg-card-hover aria-[current=page]:bg-card-hover aria-[current=page]:text-text-highlight relative size-10 shrink-0"
             >
               {pathname === localizePath(locale, "/orders") ? (
                 <PackageOpen aria-hidden className="size-5" strokeWidth={2} />
               ) : (
                 <Package aria-hidden className="size-5" strokeWidth={2} />
               )}
+              {pendingOrders > 0 ? (
+                <span
+                  aria-hidden
+                  className="bg-clay text-brand-foreground absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-xs font-bold"
+                >
+                  {pendingOrders}
+                </span>
+              ) : null}
             </Button>
             <CartButton
               count={itemCount}
