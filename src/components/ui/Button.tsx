@@ -1,26 +1,43 @@
+"use client";
+
 import Link from "next/link";
-import type {
-  AnchorHTMLAttributes,
-  ButtonHTMLAttributes,
-  ReactNode,
-} from "react";
+import {
+  Button as AriaButton,
+  type ButtonProps as AriaButtonProps,
+} from "react-aria-components";
+import type { AnchorHTMLAttributes, AriaAttributes, ReactNode } from "react";
 import { cn } from "@/lib/utils/cn";
 
-type ButtonVariant = "primary" | "secondary" | "ghost" | "link";
+type ButtonVariant = "primary" | "secondary" | "ghost" | "link" | "icon-label";
+export type ButtonColor =
+  | "forest"
+  | "terracotta"
+  | "gold"
+  | "earth"
+  | "gray"
+  | "black"
+  | "white"
+  | "cream"
+  | "warm";
 type ButtonSize = "sm" | "md" | "lg" | "icon-sm";
 type ButtonShape = "pill" | "rounded";
 
 type CommonProps = {
   children: ReactNode;
   variant?: ButtonVariant;
+  color?: ButtonColor;
   size?: ButtonSize;
   shape?: ButtonShape;
+  weight?: "bold" | "light";
+  textCase?: "uppercase" | "sentence";
+  "aria-busy"?: AriaAttributes["aria-busy"];
   className?: string;
 };
 
 type ButtonAsButton = CommonProps &
-  Omit<ButtonHTMLAttributes<HTMLButtonElement>, keyof CommonProps> & {
+  Omit<AriaButtonProps, keyof CommonProps> & {
     href?: undefined;
+    disabled?: boolean;
   };
 
 type ButtonAsLink = CommonProps &
@@ -31,13 +48,11 @@ type ButtonAsLink = CommonProps &
 export type ButtonProps = ButtonAsButton | ButtonAsLink;
 
 const variantClasses: Record<ButtonVariant, string> = {
-  primary:
-    "bg-brand text-brand-foreground hover:bg-brand-hover active:bg-brand-active border border-transparent",
-  secondary:
-    "bg-transparent text-brand border border-brand/30 hover:border-brand hover:bg-brand/5 active:bg-brand/10",
-  ghost:
-    "bg-transparent text-brand border border-transparent hover:bg-brand/5 active:bg-brand/10",
-  link: "bg-transparent border-transparent text-brand underline-offset-4 hover:underline px-0 h-auto rounded-none",
+  "icon-label": "group flex-col bg-transparent px-4 py-2 text-sm",
+  primary: "border border-transparent",
+  secondary: "bg-transparent border",
+  ghost: "bg-transparent border border-transparent",
+  link: "bg-transparent border-transparent underline-offset-4 hover:underline px-0 h-auto rounded-none",
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
@@ -53,21 +68,32 @@ const shapeClasses: Record<ButtonShape, string> = {
 };
 
 const baseClasses =
-  "inline-flex items-center justify-center gap-2 font-bold uppercase transition-colors duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50";
+  "inline-flex items-center justify-center gap-2 transition-colors duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50";
 
 export function Button({
   children,
   className,
   variant = "primary",
+  color = "forest",
   size = "md",
   shape = "pill",
+  weight,
+  textCase = "uppercase",
   ...props
 }: ButtonProps) {
   const classes = cn(
     baseClasses,
+    `button-color-${color}`,
+    `button-variant-${variant}`,
+    (weight ?? (variant === "icon-label" ? "light" : "bold")) === "light"
+      ? "font-light"
+      : "font-bold",
+    variant !== "icon-label" &&
+      (textCase === "uppercase" ? "uppercase" : "normal-case"),
     variant !== "link" && shapeClasses[shape],
     variantClasses[variant],
-    variant === "link" ? "text-sm tracking-[0.08em]" : sizeClasses[size],
+    variant !== "icon-label" &&
+      (variant === "link" ? "text-sm tracking-[0.08em]" : sizeClasses[size]),
     className,
   );
 
@@ -81,11 +107,25 @@ export function Button({
   }
 
   const buttonProps = props as ButtonAsButton;
-  const { type = "button", ...rest } = buttonProps;
+  const {
+    type = "button",
+    disabled,
+    value,
+    "aria-busy": busy,
+    ...rest
+  } = buttonProps;
 
   return (
-    <button type={type} className={classes} {...rest}>
+    <AriaButton
+      type={type}
+      isDisabled={disabled}
+      aria-busy={busy}
+      isPending={busy === true || busy === "true"}
+      value={value}
+      className={classes}
+      {...rest}
+    >
       {children}
-    </button>
+    </AriaButton>
   );
 }

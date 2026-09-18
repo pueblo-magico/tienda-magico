@@ -2,6 +2,7 @@ import { ValidationError } from 'payload'
 import type { CollectionOverride } from '@payloadcms/plugin-ecommerce/types'
 import type { CollectionBeforeChangeHook, Field } from 'payload'
 import { configuredVariantTypes, hasCompleteVariantOptions, relationID } from './sellableItems'
+import { protectCompletedCart, preserveCompletedCart } from '../utilities/completePaidCart'
 
 export const validateCartItems: CollectionBeforeChangeHook = async ({ data, originalDoc, req }) => {
   const next = { ...originalDoc, ...data }
@@ -156,6 +157,11 @@ export const cartsCollectionOverride: CollectionOverride = ({ defaultCollection 
   ],
   hooks: {
     ...defaultCollection.hooks,
-    beforeChange: [validateCartItems, ...(defaultCollection.hooks?.beforeChange ?? [])],
+    beforeChange: [
+      protectCompletedCart,
+      validateCartItems,
+      ...(defaultCollection.hooks?.beforeChange ?? []),
+    ],
+    beforeDelete: [preserveCompletedCart, ...(defaultCollection.hooks?.beforeDelete ?? [])],
   },
 })

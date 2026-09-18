@@ -17,12 +17,14 @@ test("la búsqueda dirige al catálogo y la página resume los resultados", asyn
   ]);
 
   assert.match(dialog, /<SearchForm/);
-  assert.match(form, /localizePath\(locale, `\/shop\?\$\{params/);
+  assert.match(form, /categoryPath\.length/);
+  assert.match(form, /`\/shop\/categories\/\$\{categoryPath/);
+  assert.match(form, /`\$\{pathname\}\?\$\{params\.toString\(\)\}`/);
   assert.match(form, /setQuery\(""\)/);
   assert.match(form, /value=\{query\}/);
   assert.match(
     page,
-    /<SearchForm initialQuery=\{query\.q\} \/>[\s\S]+\{query\.q \? \(/,
+    /<SearchForm[\s\S]+initialQuery=\{query\.q\}[\s\S]+categoryPath=\{query\.categoryPath\}[\s\S]+\{query\.q \? \(/,
   );
   assert.match(page, /t\("resultsFor"/);
   assert.match(page, /query\.q/);

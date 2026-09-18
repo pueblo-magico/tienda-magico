@@ -19,6 +19,7 @@ import { Brands } from './collections/Brands'
 import { FAQs } from './collections/FAQs'
 import { Media } from './collections/Media'
 import { LocalSales } from './collections/LocalSales'
+import { PaymentNotifications } from './collections/PaymentNotifications'
 import { Pages } from './collections/Pages'
 import { Posts } from './collections/Posts'
 import { productsCollectionOverride } from './collections/Products'
@@ -40,6 +41,7 @@ import { CommerceSettings } from './globals/CommerceSettings'
 import { CmsSettings } from './globals/CmsSettings'
 import { migrations } from './migrations'
 import { sellableSchema } from './utilities/sellableSchema'
+import { staffCashEndpoints } from './endpoints/staffCash'
 
 loadEnv()
 
@@ -57,6 +59,7 @@ const serverURL =
   'http://localhost:4000'
 
 export default buildConfig({
+  endpoints: staffCashEndpoints,
   serverURL,
   i18n: {
     fallbackLanguage: 'es',
@@ -78,6 +81,7 @@ export default buildConfig({
     Users,
     Media,
     LocalSales,
+    PaymentNotifications,
     // Content (Phase 6)
     Pages,
     Posts,

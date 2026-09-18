@@ -8,6 +8,25 @@ import {
   mainNavigation,
 } from "../src/config/navigation.ts";
 
+test("localiza las rutas de pago y caja conservando parámetros", () => {
+  for (const [internal, spanish] of [
+    ["/checkout", "/pago"],
+    ["/checkout/pending", "/pago/pendiente"],
+    ["/checkout/review", "/pago/revision"],
+    ["/checkout/success", "/pago/exito"],
+    ["/checkout/failure", "/pago/error"],
+    ["/staff/cash", "/personal/caja"],
+  ]) {
+    assert.equal(
+      localizePath("es", `${internal}?reference=abc&from=orders#details`),
+      `/es${spanish}?reference=abc&from=orders#details`,
+    );
+    assert.equal(localizePath("en", internal), `/en${internal}`);
+    assert.equal(internalPath(`/es${spanish}`), internal);
+  }
+  assert.equal(localizePath("es", "/shop/pending"), "/es/tienda/pending");
+});
+
 test("la ruta de impacto se localiza en español e inglés", () => {
   assert.equal(localizePath("es", "/impact"), "/es/impacto");
   assert.equal(localizePath("en", "/impact"), "/en/impact");

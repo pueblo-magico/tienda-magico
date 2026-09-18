@@ -14,11 +14,28 @@ async function resolveTypeScriptModule(baseUrl, context, nextResolve) {
       // Continue to the other supported TypeScript extension.
     }
   }
-  return nextResolve(`${baseUrl}.ts`, context);
+  try {
+    await access(new URL(`${baseUrl}/index.ts`));
+    return nextResolve(`${baseUrl}/index.ts`, context);
+  } catch {
+    return nextResolve(`${baseUrl}.ts`, context);
+  }
 }
 
 export function resolve(specifier, context, nextResolve) {
-  if (specifier === "next/image" || specifier === "next/link") {
+  if (
+    specifier === "server-only" &&
+    context.conditions.includes("react-server")
+  ) {
+    return nextResolve("next/dist/compiled/server-only/empty.js", context);
+  }
+  if (
+    specifier === "next/image" ||
+    specifier === "next/link" ||
+    specifier === "next/navigation" ||
+    specifier === "next/server" ||
+    specifier === "next/headers"
+  ) {
     return nextResolve(`${specifier}.js`, context);
   }
   if (specifier.startsWith("@/")) {

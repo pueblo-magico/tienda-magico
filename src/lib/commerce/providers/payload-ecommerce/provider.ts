@@ -25,7 +25,15 @@ import {
 import { getCollection, getCollections } from "./collections";
 import { isPayloadEcommerceConfigured } from "./config";
 import { getProduct, getProducts } from "./products";
-import { createCheckoutOrder } from "./orders";
+import {
+  createCheckoutOrder,
+  confirmGuestOrderReceipt,
+  submitGuestOrderFeedback,
+  cancelGuestCashOrder,
+  getCheckoutOrderByPublicReference,
+  getGuestOrders,
+  reportGuestTransfer,
+} from "./orders";
 
 export class PayloadEcommerceProvider implements CommerceProvider {
   readonly name = "payload" as const;
@@ -104,6 +112,12 @@ export class PayloadEcommerceProvider implements CommerceProvider {
   }
 
   createCheckoutOrder = createCheckoutOrder;
+  getCheckoutOrderByPublicReference = getCheckoutOrderByPublicReference;
+  getGuestOrders = getGuestOrders;
+  reportGuestTransfer = reportGuestTransfer;
+  confirmGuestOrderReceipt = confirmGuestOrderReceipt;
+  submitGuestOrderFeedback = submitGuestOrderFeedback;
+  cancelGuestCashOrder = cancelGuestCashOrder;
 }
 
 export const payloadEcommerceProvider = new PayloadEcommerceProvider();

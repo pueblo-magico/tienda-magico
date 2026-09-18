@@ -1,4 +1,6 @@
 import type { CollectionConfig, PayloadRequest } from 'payload'
+import { protectLocalTransfer } from '../utilities/confirmTransfer'
+import { lockTransferWrite, protectTransferDeletion } from '../utilities/transferWriteLock'
 
 const operationalRoles = new Set(['admin', 'manager', 'staff', 'finance'])
 const immutableAfterCreation = { update: () => false }
@@ -14,6 +16,11 @@ function isAdministrator(req: PayloadRequest): boolean {
 
 export const LocalSales: CollectionConfig = {
   slug: 'localSales',
+  hooks: {
+    beforeOperation: [lockTransferWrite],
+    beforeChange: [protectLocalTransfer],
+    beforeDelete: [protectTransferDeletion],
+  },
   labels: {
     singular: { es: 'Venta local', en: 'Local sale' },
     plural: { es: 'Ventas locales', en: 'Local sales' },
@@ -94,6 +101,25 @@ export const LocalSales: CollectionConfig = {
         { label: { es: 'No verificado', en: 'Unverified' }, value: 'unverified' },
       ],
       label: { es: 'Estado del pago', en: 'Payment status' },
+      access: immutableAfterCreation,
+    },
+    {
+      name: 'paymentMethod',
+      type: 'select',
+      required: true,
+      defaultValue: 'mercado-pago',
+      options: [
+        { label: 'Mercado Pago', value: 'mercado-pago' },
+        { label: { es: 'Transferencia', en: 'Bank transfer' }, value: 'bank-transfer' },
+        { label: { es: 'Efectivo', en: 'Cash' }, value: 'cash' },
+      ],
+      label: { es: 'Medio de pago', en: 'Payment method' },
+      access: immutableAfterCreation,
+    },
+    {
+      name: 'paymentExpiresAt',
+      type: 'date',
+      label: { es: 'Vencimiento del pago', en: 'Payment expiry' },
       access: immutableAfterCreation,
     },
     {

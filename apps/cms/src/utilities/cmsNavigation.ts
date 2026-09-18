@@ -24,6 +24,13 @@ export type CmsNavigationItem = {
 
 export const CMS_NAVIGATION_ITEMS: CmsNavigationItem[] = [
   {
+    key: 'paymentNotifications',
+    slug: 'payment-notifications',
+    entityType: 'collection',
+    group: 'shop',
+    label: { es: 'Notificaciones de pago', en: 'Payment notifications' },
+  },
+  {
     key: 'users',
     slug: 'users',
     entityType: 'collection',

@@ -21,6 +21,8 @@ export const externalSites = {
   experienciaMagico: "https://experienciamagico.com",
 } as const;
 
+export const staffCashPath = "/staff/cash";
+
 export function experienciaMagicoUrl(path = "/"): string {
   return new URL(path, externalSites.experienciaMagico).toString();
 }
@@ -31,6 +33,12 @@ export const legalLinks = {
 } as const;
 
 export const mainNavigation: NavItem[] = [
+  {
+    kind: "internal",
+    href: "/orders",
+    labelKey: "nav.orders",
+    label: { en: "My orders", es: "Mis pedidos" },
+  },
   {
     kind: "internal",
     href: "/shop",
@@ -85,9 +93,20 @@ export const locales = ["en", "es"] as const;
 export type Locale = (typeof locales)[number];
 export const defaultLocale: Locale = "es";
 
+export const paymentPathnames = {
+  "/checkout": { en: "/checkout", es: "/pago" },
+  "/checkout/pending": { en: "/checkout/pending", es: "/pago/pendiente" },
+  "/checkout/review": { en: "/checkout/review", es: "/pago/revision" },
+  "/checkout/success": { en: "/checkout/success", es: "/pago/exito" },
+  "/checkout/failure": { en: "/checkout/failure", es: "/pago/error" },
+  "/staff/cash": { en: "/staff/cash", es: "/personal/caja" },
+} as const;
+
 const localizedSegments: Record<Locale, Record<string, string>> = {
   es: {
+    orders: "mis-pedidos",
     shop: "tienda",
+    categories: "categorias",
     cart: "carrito",
     about: "nosotros",
     shipping: "envios",
@@ -95,7 +114,9 @@ const localizedSegments: Record<Locale, Record<string, string>> = {
     impact: "impacto",
   },
   en: {
+    orders: "orders",
     shop: "shop",
+    categories: "categories",
     cart: "cart",
     about: "about",
     shipping: "shipping",
@@ -110,9 +131,20 @@ export function localizePath(locale: Locale | string, path = "/"): string {
     ? (locale as Locale)
     : defaultLocale;
   const url = new URL(path, "https://local.invalid");
+  const paymentRoute = Object.entries(paymentPathnames).find(
+    ([route]) => route === url.pathname.replace(/\/$/, ""),
+  );
+  if (paymentRoute)
+    return `/${safeLocale}${paymentRoute[1][safeLocale]}${url.search}${url.hash}`;
   const segments = url.pathname.split("/").filter(Boolean);
   if (segments[0]) {
     segments[0] = localizedSegments[safeLocale][segments[0]] ?? segments[0];
+  }
+  if (
+    segments[0] === localizedSegments[safeLocale].shop &&
+    segments[1] === "categories"
+  ) {
+    segments[1] = localizedSegments[safeLocale].categories;
   }
   const pathname = segments.length ? `/${segments.join("/")}` : "";
   return `/${safeLocale}${pathname}${url.search}${url.hash}`;
@@ -144,6 +176,10 @@ export function internalPath(pathname: string): string {
   const locale = locales.includes(segments[0] as Locale)
     ? (segments.shift() as Locale)
     : defaultLocale;
+  const paymentRoute = Object.entries(paymentPathnames).find(
+    ([, paths]) => paths[locale] === `/${segments.join("/")}`,
+  );
+  if (paymentRoute) return paymentRoute[0];
   const reverse = Object.fromEntries(
     Object.entries(localizedSegments[locale]).map(([key, value]) => [
       value,
@@ -151,5 +187,8 @@ export function internalPath(pathname: string): string {
     ]),
   );
   if (segments[0]) segments[0] = reverse[segments[0]] ?? segments[0];
+  if (segments[0] === "shop" && segments[1]) {
+    segments[1] = reverse[segments[1]] ?? segments[1];
+  }
   return `/${segments.join("/")}`;
 }

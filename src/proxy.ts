@@ -1,6 +1,7 @@
 import createMiddleware from "next-intl/middleware";
 import { NextRequest, NextResponse } from "next/server";
 import { routing } from "./i18n/routing";
+import { localizePath, paymentPathnames } from "./config/navigation";
 
 const handleI18nRouting = createMiddleware(routing);
 
@@ -15,6 +16,12 @@ const legacySpanishSegments: Record<string, string> = {
 
 export default function proxy(request: NextRequest) {
   const segments = request.nextUrl.pathname.split("/").filter(Boolean);
+  const internal = `/${segments.slice(1).join("/")}`;
+  if (segments[0] === "es" && Object.hasOwn(paymentPathnames, internal)) {
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = localizePath("es", internal);
+    return NextResponse.redirect(redirectUrl, 308);
+  }
   if (segments[0] === "es" && legacySpanishSegments[segments[1]]) {
     segments[1] = legacySpanishSegments[segments[1]];
     const redirectUrl = request.nextUrl.clone();

@@ -8,6 +8,7 @@ import {
 import { DocsPageHeader } from "@/components/ui-system/DocsPageHeader";
 import { DocsSection } from "@/components/ui-system/DocsSection";
 import { RichText } from "@/components/typography/RichText";
+import { BackdropImage } from "@/components/layout/BackdropImage";
 
 export default function TypographyPage() {
   return (
@@ -35,6 +36,32 @@ export default function TypographyPage() {
           <p className="font-sans text-base font-bold">
             Jost Bold 700 is used for sans-serif titles and buttons.
           </p>
+        </div>
+      </DocsSection>
+      <DocsSection title="Título sobre imagen o superficie oscura">
+        <p>
+          BackdropImage es una imagen decorativa optimizada: requiere un
+          contenedor relativo y conserva su superficie de fondo si la imagen
+          falla. No reemplaza fotos de contenido ni necesita texto alternativo.
+        </p>
+        <div className="bg-background-secondary relative isolate w-full overflow-hidden rounded-xl p-6">
+          <BackdropImage
+            src="/favicon.svg"
+            sizes="320px"
+            className="-z-10 opacity-10"
+          />
+          <PageTitle as="h2" tone="inverse">
+            Imagen decorativa
+          </PageTitle>
+        </div>
+        <div className="bg-background-secondary rounded-xl p-6">
+          <PageTitle as="h2" tone="inverse">
+            Mis pedidos
+          </PageTitle>
+          <Body tone="inverse">
+            Usá el tono inverso en superficies oscuras sin sobrescribir colores
+            con clases en conflicto.
+          </Body>
         </div>
       </DocsSection>
       <DocsSection

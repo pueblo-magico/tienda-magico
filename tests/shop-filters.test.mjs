@@ -7,13 +7,15 @@ import {
   toCommerceProductsParams,
 } from "@/features/shop/search-params";
 
-test("los filtros nuevos se conservan en la URL", () => {
-  const query = parseShopQuery({
-    collection: "bienestar",
-    categories: "cacao,te,cacao,valor inválido",
-    origins: "AR,BO",
-    availability: "available",
-  });
+test("los filtros nuevos se conservan en la URL de la categoría", () => {
+  const query = parseShopQuery(
+    {
+      categories: "cacao,te,cacao,valor inválido",
+      origins: "AR,BO",
+      availability: "available",
+    },
+    ["bienestar"],
+  );
 
   assert.equal(query.collection, "bienestar");
   assert.deepEqual(query.categories, ["cacao", "te"]);
@@ -21,7 +23,7 @@ test("los filtros nuevos se conservan en la URL", () => {
   assert.equal(query.availableOnly, true);
   assert.match(
     buildShopHref("es", query),
-    /collection=bienestar&categories=cacao%2Cte[\s\S]*origins=AR%2CBO&availability=available/,
+    /^\/es\/tienda\/categorias\/bienestar\?categories=cacao%2Cte[\s\S]*origins=AR%2CBO&availability=available/,
   );
 });
 

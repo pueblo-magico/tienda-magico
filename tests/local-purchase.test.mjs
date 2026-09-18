@@ -29,10 +29,51 @@ process.env.PAYLOAD_ECOMMERCE_URL = "http://cms.test";
 process.env.PAYLOAD_ECOMMERCE_CURRENCY = "ARS";
 process.env.PAYLOAD_ECOMMERCE_AMOUNT_IS_CENTS = "true";
 
+test("el carrito conserva el SKU del producto simple y el de la variante", () => {
+  const product = {
+    id: 2,
+    title: "Bruma",
+    sku: "BRUMA-1",
+    priceInARS: 3000000,
+    priceInARSEnabled: true,
+    inventory: 4,
+    _status: "published",
+  };
+  const simple = mapCart({
+    id: 1,
+    currency: "ARS",
+    items: [{ id: "line", product, quantity: 1 }],
+  });
+  assert.equal(simple.lines[0].merchandise.sku, "BRUMA-1");
+  const variant = mapCart({
+    id: 1,
+    currency: "ARS",
+    items: [
+      {
+        id: "line",
+        product,
+        variant: { id: 3, sku: "VARIANT-1", priceInARS: 3000000 },
+        quantity: 1,
+      },
+    ],
+  });
+  assert.equal(variant.lines[0].merchandise.sku, "VARIANT-1");
+});
+
 test("commerce settings default to local collection without delivery", () => {
   assert.deepEqual(DEFAULT_COMMERCE_SETTINGS, {
     localCollectionEnabled: true,
     deliveryEnabled: false,
+    cashEnabled: false,
+    cashStaffEnabled: false,
+    transferEnabled: false,
+    transfer: {
+      accountHolder: "",
+      taxId: "",
+      alias: "",
+      cvu: "",
+      paymentWindowMinutes: 15,
+    },
   });
   assert.deepEqual(parseCommerceSettings({}), DEFAULT_COMMERCE_SETTINGS);
   assert.equal(
@@ -70,6 +111,40 @@ test("the CMS exposes admin-managed storefront commerce settings", () => {
         name: "deliveryEnabled",
         label: { es: "Habilitar entrega", en: "Enable delivery" },
         defaultValue: false,
+      },
+      {
+        name: "cashEnabled",
+        label: { es: "Habilitar efectivo", en: "Enable cash" },
+        defaultValue: false,
+      },
+      {
+        name: "cashStaffEnabled",
+        label: {
+          es: "Habilitar caja en la tienda",
+          en: "Enable storefront cash desk",
+        },
+        defaultValue: false,
+      },
+      {
+        name: "cashStaffPassword",
+        label: { es: "Nueva contraseña de caja", en: "New cash desk password" },
+        defaultValue: undefined,
+      },
+      {
+        name: "transferEnabled",
+        label: {
+          es: "Habilitar transferencia",
+          en: "Enable bank transfer",
+        },
+        defaultValue: false,
+      },
+      {
+        name: "transfer",
+        label: {
+          es: "Datos para transferencia",
+          en: "Bank transfer details",
+        },
+        defaultValue: undefined,
       },
     ],
   );
@@ -358,7 +433,7 @@ test("fails checkout order creation clearly when the Payload API key is missing"
   if (previousApiKey) process.env.PAYLOAD_ECOMMERCE_API_KEY = previousApiKey;
 });
 
-test("the order schema creates one linked local-sale record after local checkout", () => {
+test("the order schema creates one linked local-sale record after local checkout", async () => {
   const collection = ordersCollectionOverride({
     defaultCollection: { fields: [], hooks: {} },
   });
@@ -376,7 +451,31 @@ test("the order schema creates one linked local-sale record after local checkout
   ]) {
     assert.ok(names.has(name), `missing order field: ${name}`);
   }
-  assert.equal(collection.hooks?.afterChange?.length, 1);
+  const created = [];
+  const doc = {
+    id: 42,
+    fulfillmentMode: LOCAL_COLLECTION,
+    paymentStatus: "pending",
+    commercialSnapshot: { items: [] },
+  };
+  const req = {
+    payload: {
+      find: async () => ({ docs: created }),
+      create: async (input) => {
+        created.push(input);
+        return input.data;
+      },
+    },
+  };
+  for (let attempt = 0; attempt < 2; attempt++) {
+    for (const hook of collection.hooks.afterChange) {
+      await hook({ doc, operation: "create", req });
+    }
+  }
+  assert.equal(created.length, 1);
+  assert.equal(created[0].collection, "localSales");
+  assert.equal(created[0].data.order, 42);
+  assert.equal(created[0].data.idempotencyKey, "local-sale:42");
 });
 
 test("Shopify keeps native delivery orders and rejects unsupported local pickup", async () => {

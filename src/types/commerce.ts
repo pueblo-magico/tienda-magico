@@ -208,7 +208,37 @@ export type CartLineMerchandise = {
   price: Money;
 };
 
-export type CheckoutOrder = { id: string };
+export type CheckoutOrder = {
+  createdAt?: string;
+  items?: Array<{
+    title: string;
+    quantity: number;
+    total: Money;
+    image: CommerceImage | null;
+  }>;
+  newerReference?: string;
+  transferReportedAt?: string | null;
+  receivedAt?: string | null;
+  experienceRating?: number | null;
+  experienceComment?: string | null;
+  id: string;
+  publicReference: string;
+  paymentExpiresAt?: string | null;
+  paymentMethod: import("./checkout").PaymentMethod;
+  paymentStatus:
+    "pending" | "approved" | "rejected" | "cancelled" | "unverified";
+  total: Money;
+};
+
+export type OrderReceiptFeedback = {
+  rating: number;
+  comment?: string;
+};
+
+export type CheckoutOrderOptions = {
+  paymentMethod?: import("./checkout").PaymentMethod;
+  paymentExpiresAt?: string | null;
+};
 
 export type CartLine = {
   issue?: "unavailable" | "priceChanged" | "quantityExceeded" | null;

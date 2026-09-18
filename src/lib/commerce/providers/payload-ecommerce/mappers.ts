@@ -1161,7 +1161,11 @@ export function mapCart(
         },
         merchandise: {
           id: merchandiseId,
-          sku: variantDoc?.sku ?? null,
+          sku: variantDoc
+            ? (variantDoc.sku ?? null)
+            : typeof productDoc?.sku === "string"
+              ? productDoc.sku
+              : null,
           title: String(lineTitle),
           selectedOptions: variantDoc
             ? mapSelectedOptions(variantDoc, locale, productDoc)

@@ -12,6 +12,7 @@ import {
 } from "../apps/cms/src/utilities/cmsNavigation.ts";
 
 const expectedCollections = [
+  "payment-notifications",
   "users",
   "media",
   "localSales",

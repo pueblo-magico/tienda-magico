@@ -3,6 +3,12 @@ import { DocsPageHeader } from "@/components/ui-system/DocsPageHeader";
 
 const components = [
   {
+    href: "/ui-system/card",
+    name: "Card",
+    description:
+      "Primitiva shadcn/ui para tarjetas, resúmenes y acciones de copia.",
+  },
+  {
     href: "/ui-system/example",
     name: "Usage example",
     description:

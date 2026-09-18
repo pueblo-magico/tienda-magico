@@ -27,6 +27,20 @@ export function __resetCommerceProviderForTests() {
 
 // Convenience facades so app code can call commerce helpers directly.
 export const commerce = {
+  getGuestOrders: (...args: Parameters<CommerceProvider["getGuestOrders"]>) =>
+    getCommerceProvider().getGuestOrders(...args),
+  reportGuestTransfer: (
+    ...args: Parameters<CommerceProvider["reportGuestTransfer"]>
+  ) => getCommerceProvider().reportGuestTransfer(...args),
+  confirmGuestOrderReceipt: (
+    ...args: Parameters<CommerceProvider["confirmGuestOrderReceipt"]>
+  ) => getCommerceProvider().confirmGuestOrderReceipt(...args),
+  cancelGuestCashOrder: (
+    ...args: Parameters<CommerceProvider["cancelGuestCashOrder"]>
+  ) => getCommerceProvider().cancelGuestCashOrder(...args),
+  submitGuestOrderFeedback: (
+    ...args: Parameters<CommerceProvider["submitGuestOrderFeedback"]>
+  ) => getCommerceProvider().submitGuestOrderFeedback(...args),
   get provider() {
     return getCommerceProvider();
   },
@@ -54,4 +68,8 @@ export const commerce = {
   createCheckoutOrder: (
     ...args: Parameters<CommerceProvider["createCheckoutOrder"]>
   ) => getCommerceProvider().createCheckoutOrder(...args),
+  getCheckoutOrderByPublicReference: (
+    ...args: Parameters<CommerceProvider["getCheckoutOrderByPublicReference"]>
+  ) => getCommerceProvider().getCheckoutOrderByPublicReference(...args),
 };
+export { recordPaymentNotification } from "./providers/payload-ecommerce/payment-notifications";

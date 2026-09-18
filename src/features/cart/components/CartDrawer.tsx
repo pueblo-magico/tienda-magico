@@ -24,6 +24,14 @@ export function CartDrawer() {
     setFulfillmentMode,
     configured,
     commerceSettings,
+    paymentMethod,
+    setPaymentMethod,
+    buyerName,
+    buyerEmail,
+    identification,
+    setIdentification,
+    setBuyerName,
+    setBuyerEmail,
   } = useCart();
 
   const busy = isLoading || isMutating;
@@ -45,6 +53,14 @@ export function CartDrawer() {
               disabled={busy}
               fulfillmentDisabled={isLoading}
               onCheckout={checkout}
+              paymentMethod={paymentMethod}
+              onPaymentMethodChange={setPaymentMethod}
+              buyerName={buyerName}
+              buyerEmail={buyerEmail}
+              identification={identification}
+              onIdentificationChange={setIdentification}
+              onBuyerNameChange={setBuyerName}
+              onBuyerEmailChange={setBuyerEmail}
               onFulfillmentModeChange={setFulfillmentMode}
               labels={{
                 subtotal: t("subtotal"),
@@ -56,6 +72,19 @@ export function CartDrawer() {
                 delivery: t("delivery"),
                 deliveryHint: t("deliveryHint"),
                 fulfillmentRequired: t("fulfillmentRequired"),
+                paymentLegend: t("paymentLegend"),
+                mercadoPago: t("mercadoPago"),
+                mercadoPagoHint: t("mercadoPagoHint"),
+                bankTransfer: t("bankTransfer"),
+                bankTransferHint: t("bankTransferHint", {
+                  minutes: commerceSettings.transfer.paymentWindowMinutes,
+                }),
+                cash: t("cash"),
+                cashHint: t("cashHint"),
+                buyerLegend: t("buyerLegend"),
+                buyerName: t("buyerName"),
+                buyerEmail: t("buyerEmail"),
+                buyerRequired: t("buyerRequired"),
               }}
             />
             <Button

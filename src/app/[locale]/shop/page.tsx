@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
+import { permanentRedirect } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { ShopPage, parseShopQuery } from "@/features/shop";
+import { ShopPage, buildShopHref, parseShopQuery } from "@/features/shop";
+import { resolveLegacyCategoryRoute } from "@/features/shop/category-hierarchy";
+import { commerce } from "@/lib/commerce";
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -26,6 +29,26 @@ export default async function ShopRoutePage({ params, searchParams }: Props) {
     getTranslations("product"),
   ]);
   const query = parseShopQuery(raw);
+
+  if (query.collection && commerce.isConfigured()) {
+    const collections = await commerce.getCollections({ first: 100, locale });
+    const legacyRoute = resolveLegacyCategoryRoute(
+      collections.items,
+      query.collection,
+      query.categories,
+    );
+    if (legacyRoute) {
+      permanentRedirect(
+        buildShopHref(locale, {
+          ...query,
+          collection: legacyRoute.categoryPath.at(-1) ?? "",
+          categoryPath: legacyRoute.categoryPath,
+          categories: legacyRoute.categories,
+          after: "",
+        }),
+      );
+    }
+  }
 
   return (
     <ShopPage

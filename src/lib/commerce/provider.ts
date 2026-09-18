@@ -4,6 +4,8 @@ import type {
   CartLineUpdateInput,
   CartParams,
   CheckoutOrder,
+  CheckoutOrderOptions,
+  OrderReceiptFeedback,
   Collection,
   CollectionSummary,
   CommerceProviderName,
@@ -72,5 +74,28 @@ export interface CommerceProvider {
   createCheckoutOrder(
     cart: Cart,
     customer?: CheckoutCustomer,
+    options?: CheckoutOrderOptions,
   ): Promise<CheckoutOrder | null>;
+  getCheckoutOrderByPublicReference(
+    reference: string,
+  ): Promise<CheckoutOrder | null>;
+  getGuestOrders(cartReferences: string[]): Promise<CheckoutOrder[]>;
+  reportGuestTransfer(
+    cartReferences: string[],
+    reference: string,
+  ): Promise<boolean>;
+  confirmGuestOrderReceipt(
+    cartReferences: string[],
+    reference: string,
+    feedback?: OrderReceiptFeedback,
+  ): Promise<boolean>;
+  cancelGuestCashOrder(
+    cartReferences: string[],
+    reference: string,
+  ): Promise<boolean>;
+  submitGuestOrderFeedback(
+    cartReferences: string[],
+    reference: string,
+    feedback: OrderReceiptFeedback,
+  ): Promise<boolean>;
 }

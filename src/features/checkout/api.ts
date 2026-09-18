@@ -1,3 +1,5 @@
+import { hasCheckoutReview } from "@/lib/checkout/review";
+
 export type CheckoutSessionResponse = {
   session?: {
     id: string;
@@ -16,7 +18,17 @@ export async function createCheckoutSession(input: {
   locale?: string;
   email?: string;
   name?: string;
+  identification?: { type: string; number: string };
+  paymentMethod?: "mercado-pago" | "bank-transfer" | "cash";
+  acceptedTerms?: boolean;
+  reviewedCart?: string;
 }): Promise<CheckoutSessionResponse> {
+  if (!hasCheckoutReview(input))
+    throw new Error(
+      input.locale?.startsWith("es")
+        ? "Revisá tu compra y aceptá los términos antes de confirmar."
+        : "Review your purchase and accept the terms before confirming.",
+    );
   const response = await fetch("/api/checkout", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

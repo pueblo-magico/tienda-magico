@@ -38,6 +38,7 @@ const groups = [
       { href: "/ui-system/select", label: "Select" },
       { href: "/ui-system/textarea", label: "Textarea" },
       { href: "/ui-system/slider", label: "Slider" },
+      { href: "/ui-system/rating", label: "Rating" },
     ],
   },
   {
@@ -53,6 +54,7 @@ const groups = [
   {
     title: "Cards",
     items: [
+      { href: "/ui-system/card", label: "Card (shadcn/ui)" },
       { href: "/ui-system/product-card", label: "ProductCard" },
       { href: "/ui-system/article-card", label: "ArticleCard" },
       { href: "/ui-system/impact-card", label: "ImpactCard" },

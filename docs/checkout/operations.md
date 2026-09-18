@@ -103,7 +103,7 @@ MERCADOPAGO_WEBHOOK_URL=https://your-domain/api/checkout/webhooks/mercado-pago
 
 Register the same URL in the MP application notifications settings when you go live.
 
-**Today:** the route acknowledges notifications and can read payment status. It does **not** yet update Payload orders or send email — engineering follow-up.
+El endpoint ahora exige `MERCADOPAGO_WEBHOOK_SECRET`, consulta el recurso autenticado y guarda una observación privada en el CMS antes de responder `200`. No confirma pedidos automáticamente. Seguí la [guía de notificaciones](mercado-pago-notifications.md) para migración, credenciales, simulación y revisión manual.
 
 ---
 
