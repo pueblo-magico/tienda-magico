@@ -29,6 +29,7 @@ import {
   createCheckoutOrder,
   confirmGuestOrderReceipt,
   submitGuestOrderFeedback,
+  cancelGuestCashOrder,
   getCheckoutOrderByPublicReference,
   getGuestOrders,
   reportGuestTransfer,
@@ -116,6 +117,7 @@ export class PayloadEcommerceProvider implements CommerceProvider {
   reportGuestTransfer = reportGuestTransfer;
   confirmGuestOrderReceipt = confirmGuestOrderReceipt;
   submitGuestOrderFeedback = submitGuestOrderFeedback;
+  cancelGuestCashOrder = cancelGuestCashOrder;
 }
 
 export const payloadEcommerceProvider = new PayloadEcommerceProvider();

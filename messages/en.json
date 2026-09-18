@@ -458,6 +458,10 @@
       "explore": "Keep exploring"
     },
     "cashWaiting": {
+      "pickupDeadline": "Collect and pay for your order before {date}.",
+      "expiredBody": "The pickup and payment deadline has passed. Return to your cart to check prices and availability and create a new order before paying.",
+      "cancel": "Cancel order",
+      "cancelFailed": "We could not cancel the order. Check its status before trying again.",
       "nextTitle": "What to do next",
       "nextDescription": "Follow these steps to complete your purchase.",
       "saveTitle": "Keep your reference",
@@ -509,6 +513,7 @@
         "catalog": "The catalogue has changed. Ask an administrator to review the order.",
         "duplicate": "This cart already has a confirmed payment. Do not charge again.",
         "localSale": "The linked sale needs an administrator's review.",
+        "expired": "The deadline has passed. The buyer must create a new order from the cart before paying.",
         "unavailable": "We could not complete the operation. Check the order before retrying; do not charge again."
       }
     },

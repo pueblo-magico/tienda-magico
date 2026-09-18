@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict'
 import { randomUUID } from 'node:crypto'
 import { confirmCashEndpoint } from '../src/utilities/confirmCash.ts'
+import { cancelCashEndpoint } from '../src/utilities/cancelCash.ts'
+import { sql } from '@payloadcms/db-postgres'
 
 export async function cashConfirmationCases({
   payload,
@@ -37,6 +39,68 @@ export async function cashConfirmationCases({
     return { status: response.status, body: await response.json() }
   }
   const item = await product()
+  const cancel = async (document, actor = user) => {
+    const req = await createLocalReq({ user: { ...actor, collection: 'users' } }, payload)
+    req.headers = new Headers({ origin: new URL(payload.config.serverURL).origin })
+    req.routeParams = { id: String(document.id) }
+    return cancelCashEndpoint.handler(req)
+  }
+  const timed = await cashOrder([item])
+  assert.ok(Math.abs(Date.parse(timed.paymentExpiresAt) - Date.now() - 48 * 3600000) < 10000)
+  await payload.updateGlobal({ slug: 'commerce-settings', data: { cashPickupWindowHours: 24 } })
+  const configured = await cashOrder([item])
+  assert.ok(Math.abs(Date.parse(configured.paymentExpiresAt) - Date.now() - 24 * 3600000) < 10000)
+  assert.equal(
+    (await payload.findByID({ collection: 'orders', id: timed.id })).paymentExpiresAt,
+    timed.paymentExpiresAt,
+  )
+  await payload.updateGlobal({ slug: 'commerce-settings', data: { cashPickupWindowHours: 48 } })
+  await payload.db.drizzle.execute(
+    sql`UPDATE orders SET payment_expires_at = NOW() - INTERVAL '1 second' WHERE id = ${timed.id}`,
+  )
+  assert.equal((await receive(timed)).body.code, 'expired')
+  assert.equal(await stock(item), 3)
+  assert.equal((await cancel(timed, customer)).status, 403)
+  assert.equal((await cancel(timed, { ...customer, roles: ['admin'] })).status, 403)
+  assert.equal((await cancel(timed)).status, 200)
+  assert.equal((await cancel(timed)).status, 200)
+  assert.equal((await receive(timed)).body.code, 'state')
+  const timedSale = (
+    await payload.find({ collection: 'localSales', where: { order: { equals: timed.id } } })
+  ).docs[0]
+  assert.equal(timedSale.status, 'cancelled')
+  const cancellationItem = await product()
+  const rollbackOrder = await cashOrder([cancellationItem])
+  const updateBeforeCancellation = payload.update
+  payload.update = async function (args) {
+    if (args.collection === 'localSales' && args.data.status === 'cancelled')
+      throw new Error('Falla simulada de cancelación')
+    return updateBeforeCancellation.call(this, args)
+  }
+  try {
+    assert.equal((await cancel(rollbackOrder)).status, 503)
+  } finally {
+    payload.update = updateBeforeCancellation
+  }
+  assert.equal(
+    (await payload.findByID({ collection: 'orders', id: rollbackOrder.id })).paymentStatus,
+    'pending',
+  )
+  assert.equal(await stock(cancellationItem), 3)
+  const cancellationOrder = await cashOrder([cancellationItem])
+  const cancellationRace = await Promise.all([
+    cancel(cancellationOrder),
+    receive(cancellationOrder),
+  ])
+  assert.deepEqual(cancellationRace.map((result) => result.status).sort(), [200, 409])
+  const cancellationSaved = await payload.findByID({
+    collection: 'orders',
+    id: cancellationOrder.id,
+  })
+  assert.equal(
+    await stock(cancellationItem),
+    cancellationSaved.paymentStatus === 'approved' ? 2 : 3,
+  )
   const cart = await payload.create({
     collection: 'carts',
     data: { currency: 'ARS', items: [{ product: item.id, quantity: 1 }] },

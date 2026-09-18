@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useTransition, type ReactNode } from "react";
+import { useEffect, useState, useTransition, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import {
@@ -22,6 +22,7 @@ import {
   CardDescription,
 } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
 import { StepsCard } from "@/components/cards/StepsCard";
 import { Eyebrow } from "@/components/typography/Eyebrow";
 import { IconAction } from "@/components/ui/IconAction";
@@ -45,6 +46,8 @@ export function CashWaiting({
   returnLink,
   summary,
   feedbackSubmitted,
+  expiresAt,
+  serverTime = 0,
 }: {
   title: string;
   body: string;
@@ -57,6 +60,8 @@ export function CashWaiting({
   returnLink?: ReactNode;
   summary?: ReactNode;
   feedbackSubmitted?: boolean;
+  expiresAt?: string | null;
+  serverTime?: number;
 }) {
   const t = useTranslations("checkout.cashWaiting");
   const checkoutText = useTranslations("checkout");
@@ -65,6 +70,22 @@ export function CashWaiting({
   const locale = useLocale();
   const router = useRouter();
   const [refreshing, startTransition] = useTransition();
+  const [now, setNow] = useState(serverTime);
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelFailed, setCancelFailed] = useState(false);
+  const expired =
+    paymentStatus === "pending" &&
+    Boolean(expiresAt) &&
+    Date.parse(expiresAt ?? "") <= now;
+  useEffect(() => {
+    if (paymentStatus !== "pending" || !expiresAt) return;
+    const start = performance.now();
+    const timer = window.setInterval(
+      () => setNow(serverTime + performance.now() - start),
+      1000,
+    );
+    return () => window.clearInterval(timer);
+  }, [paymentStatus, expiresAt, serverTime]);
   const canRefresh =
     paymentStatus === "pending" || paymentStatus === "unverified";
   useEffect(() => {
@@ -129,7 +150,11 @@ export function CashWaiting({
         <div className="min-w-0 space-y-3" role="status" aria-live="polite">
           <Eyebrow>{checkoutText("eyebrow")}</Eyebrow>
           <PageTitle as="h1" className="text-3xl sm:text-4xl lg:text-5xl">
-            {paymentStatus === "pending" ? title : stateText(paymentStatus)}
+            {expired
+              ? stateText("expired")
+              : paymentStatus === "pending"
+                ? title
+                : stateText(paymentStatus)}
           </PageTitle>
           {paymentStatus === "pending" ? (
             <Badge
@@ -137,22 +162,37 @@ export function CashWaiting({
               className="gap-2 px-4 py-2 text-base font-normal tracking-normal normal-case"
             >
               <Clock aria-hidden className="size-5" />
-              {stateText(paymentStatus)}
+              {stateText(expired ? "expired" : paymentStatus)}
             </Badge>
           ) : null}
           <Body className="text-text-primary max-w-3xl">
-            {paymentStatus === "pending" ? body : t(`${paymentStatus}Body`)}
+            {expired
+              ? t("expiredBody")
+              : paymentStatus === "pending"
+                ? body
+                : t(`${paymentStatus}Body`)}
           </Body>
+          {expiresAt && paymentStatus === "pending" ? (
+            <p className="text-text-secondary">
+              {t("pickupDeadline", {
+                date: new Intl.DateTimeFormat(locale, {
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                  timeZone: "America/Argentina/Cordoba",
+                }).format(new Date(expiresAt)),
+              })}
+            </p>
+          ) : null}
         </div>
       </div>
       <div
         className={
-          paymentStatus === "pending"
+          paymentStatus === "pending" && !expired
             ? "grid gap-4 lg:grid-cols-5"
             : "max-w-3xl"
         }
       >
-        {paymentStatus === "pending" ? (
+        {paymentStatus === "pending" && !expired ? (
           <div className="lg:col-span-3">
             <StepsCard
               title={t("nextTitle")}
@@ -220,7 +260,7 @@ export function CashWaiting({
           </Card>
         )}
       </div>
-      {paymentStatus === "pending" ? (
+      {paymentStatus === "pending" && !expired ? (
         <p className="bg-warm text-text-secondary flex items-center gap-5 rounded-xl p-5 text-base">
           <ShieldCheck
             aria-hidden
@@ -229,6 +269,38 @@ export function CashWaiting({
           />
           <span>{notice}</span>
         </p>
+      ) : null}
+      {expired || paymentStatus === "cancelled" ? (
+        <Button href={localizePath(locale, "/cart")}>{actions("retry")}</Button>
+      ) : null}
+      {paymentStatus === "pending" && reference ? (
+        <div className="space-y-2">
+          <Button
+            variant="secondary"
+            disabled={cancelling || refreshing}
+            onClick={async () => {
+              setCancelling(true);
+              setCancelFailed(false);
+              try {
+                const response = await fetch("/api/orders", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ action: "cancel-cash", reference }),
+                });
+                if (!response.ok) throw new Error();
+                window.dispatchEvent(new Event("orders-updated"));
+                startTransition(() => router.refresh());
+              } catch {
+                setCancelFailed(true);
+              } finally {
+                setCancelling(false);
+              }
+            }}
+          >
+            {t("cancel")}
+          </Button>
+          {cancelFailed ? <p role="alert">{t("cancelFailed")}</p> : null}
+        </div>
       ) : null}
       <div className="border-border flex flex-col gap-6 border-t pt-5 sm:flex-row sm:items-center">
         {returnLink}
@@ -250,7 +322,7 @@ export function CashWaiting({
             {actions("myOrders")}
           </IconAction>
 
-          {cashStaffEnabled && canRefresh && reference ? (
+          {cashStaffEnabled && canRefresh && !expired && reference ? (
             <IconAction
               icon={<Banknote className="size-6" strokeWidth={1.5} />}
               href={localizePath(

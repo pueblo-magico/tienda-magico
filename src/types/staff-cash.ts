@@ -16,6 +16,7 @@ const errorCodes = new Set([
   "notFound",
   "amount",
   "state",
+  "expired",
   "stock",
   "catalog",
   "duplicate",

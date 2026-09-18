@@ -1,6 +1,24 @@
 # Pago en efectivo con retiro local
 
-El pago en efectivo es un medio manual y privado para pedidos con **retiro local**. No redirige a Mercado Pago, no vence automáticamente y nunca se confirma desde el navegador del comprador.
+El pago en efectivo es un medio manual y privado para pedidos con **retiro local**. No redirige a Mercado Pago y nunca se confirma desde el navegador del comprador.
+
+## Plazo de retiro y cancelación
+
+En Configuración de comercio, «Plazo para retirar y pagar (horas)» define el plazo de los pedidos nuevos: 48 horas por defecto, entre 1 y 720 horas enteras. El CMS guarda `paymentExpiresAt` al crear el pedido; los cambios posteriores de configuración no renuevan pedidos existentes. Los pedidos históricos sin fecha mantienen su comportamiento sin vencimiento.
+
+El vencimiento se deriva de la fecha guardada, sin cron ni modificación del estado contable: el pago sigue sin recibirse, pero Mis pedidos muestra «Plazo vencido» y el contador excluye el pedido. La confirmación de efectivo rechaza pedidos vencidos dentro de la transacción de pago. Un pago ya confirmado sigue siendo válido, incluso después del plazo.
+
+El comprador puede cancelar su pedido pendiente desde su detalle. La cancelación verifica la credencial de carrito y cancela pedido y venta local en una transacción, compartiendo los bloqueos de la confirmación. No borra registros, no modifica pagos aprobados o por verificar y no descuenta ni repone stock. Los pedidos cancelados o vencidos permiten «Intentar de nuevo» desde el carrito, con validación actual de catálogo, precio y disponibilidad.
+
+La migración `20260918_180000_cash_pickup_window` agrega la configuración con valor por defecto, sin modificar pedidos históricos. El rollback elimina solamente la configuración; conserva los vencimientos guardados. Una versión anterior del código no aplica esta política: no retrocedas el código de cobro mientras existan pedidos con vencimiento sin un procedimiento de revisión manual.
+
+### Prueba manual
+
+1. Ejecutá la migración y configurá un plazo de una hora. Creá un pedido nuevo y verificá la fecha en español e inglés; recargá y comprobá que no se renueve.
+2. Cancelalo desde su detalle. Verificá que desaparezca del contador y permanezca como cancelado en Mis pedidos; la caja debe rechazar el cobro.
+3. Elegí «Intentar de nuevo»: debe crear otra referencia, con un plazo nuevo y validación de precio y disponibilidad.
+4. Al vencer un pedido, verificá el estado vencido, la ausencia del botón de cobro y el rechazo desde la caja y el CMS. Las pruebas automatizadas simulan el vencimiento en una base descartable.
+5. Confirmá un pedido vigente y verificá que no pueda cancelarse ni mostrarse vencido después. Comprobá también un pedido histórico sin fecha.
 
 ## Activación
 

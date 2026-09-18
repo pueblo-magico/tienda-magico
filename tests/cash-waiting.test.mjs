@@ -7,6 +7,41 @@ import { NextIntlClientProvider } from "next-intl";
 import { AppRouterContext } from "next/dist/shared/lib/app-router-context.shared-runtime.js";
 import { CashWaiting } from "../src/features/checkout/CashWaiting.tsx";
 
+for (const locale of ["es", "en"]) {
+  test(`efectivo vencido ${locale}: muestra reintento, no ofrece cobro`, async () => {
+    const messages = JSON.parse(
+      await readFile(`messages/${locale}.json`, "utf8"),
+    );
+    const html = renderToStaticMarkup(
+      createElement(
+        NextIntlClientProvider,
+        { locale, messages, timeZone: "UTC" },
+        createElement(
+          AppRouterContext.Provider,
+          { value: { refresh() {} } },
+          createElement(CashWaiting, {
+            paymentStatus: "pending",
+            cashStaffEnabled: true,
+            reference: "00000000-0000-4000-8000-000000000001",
+            expiresAt: "2026-09-18T12:00:00Z",
+            serverTime: Date.parse("2026-09-18T12:00:00Z"),
+            title: "",
+            body: "",
+            notice: "",
+            children: "Referencia",
+          }),
+        ),
+      ),
+    );
+    assert.ok(html.includes(messages.orders.states.expired));
+    assert.ok(html.includes(messages.checkout.cashWaiting.expiredBody));
+    assert.ok(html.includes(messages.checkout.transferWaiting.retry));
+    assert.ok(html.includes(messages.checkout.cashWaiting.cancel));
+    assert.ok(!html.includes("/staff/cash?order="));
+    assert.ok(!html.includes(messages.checkout.cashWaiting.nextTitle));
+  });
+}
+
 for (const cashStaffEnabled of [true, false, undefined]) {
   for (const locale of ["es", "en"]) {
     for (const paymentStatus of [

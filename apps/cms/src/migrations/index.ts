@@ -1,3 +1,4 @@
+import * as cashPickupWindow from './20260918_180000_cash_pickup_window'
 import * as migration_20260917_150000_staff_cash_commerce from './20260917_150000_staff_cash_commerce'
 import * as migration_20260917_120000_transfer_identification from './20260917_120000_transfer_identification'
 import * as migration_20260917_130000_cash_payment from './20260917_130000_cash_payment'
@@ -210,5 +211,10 @@ export const migrations = [
     up: migration_20260917_150000_order_receipt_feedback.up,
     down: migration_20260917_150000_order_receipt_feedback.down,
     name: '20260917_150000_order_receipt_feedback',
+  },
+  {
+    name: '20260918_180000_cash_pickup_window',
+    up: cashPickupWindow.up,
+    down: cashPickupWindow.down,
   },
 ]

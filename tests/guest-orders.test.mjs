@@ -4,6 +4,49 @@ import { parseGuestCartReferences } from "../src/lib/commerce/guest-order-access
 import * as orders from "../src/lib/commerce/providers/payload-ecommerce/orders.ts";
 
 const cart = `1::${"a".repeat(40)}`;
+test("cancelar efectivo exige pertenencia y rechaza pagos aprobados", async () => {
+  const previousFetch = globalThis.fetch;
+  const previousUrl = process.env.PAYLOAD_ECOMMERCE_URL;
+  process.env.PAYLOAD_ECOMMERCE_URL = "https://cms.example";
+  let status = "pending";
+  let writes = 0;
+  globalThis.fetch = async (url, init = {}) => {
+    if (init.method === "POST") {
+      assert.equal(new URL(url).pathname, "/api/orders/1/cancel-cash");
+      writes++;
+      return Response.json({ cancelled: true });
+    }
+    assert.equal(
+      new URL(url).searchParams.get("where[cartReference][in]"),
+      cart,
+    );
+    return Response.json({
+      docs: [
+        {
+          id: 1,
+          publicReference: "owned",
+          paymentMethod: "cash",
+          paymentStatus: status,
+          amount: 100,
+          currency: "ARS",
+          cartReference: cart,
+        },
+      ],
+    });
+  };
+  try {
+    assert.equal(await orders.cancelGuestCashOrder([], "owned"), false);
+    assert.equal(await orders.cancelGuestCashOrder([cart], "other"), false);
+    assert.equal(await orders.cancelGuestCashOrder([cart], "owned"), true);
+    status = "approved";
+    assert.equal(await orders.cancelGuestCashOrder([cart], "owned"), false);
+    assert.equal(writes, 1);
+  } finally {
+    globalThis.fetch = previousFetch;
+    if (previousUrl === undefined) delete process.env.PAYLOAD_ECOMMERCE_URL;
+    else process.env.PAYLOAD_ECOMMERCE_URL = previousUrl;
+  }
+});
 test("la opinión se guarda sin confirmar recepción y la recepción no guarda una opinión", async () => {
   const previousFetch = globalThis.fetch;
   const previousUrl = process.env.PAYLOAD_ECOMMERCE_URL;

@@ -381,6 +381,27 @@ export async function getGuestOrders(
   }
 }
 
+export async function cancelGuestCashOrder(
+  cartReferences: string[],
+  reference: string,
+): Promise<boolean> {
+  const owned = (await getGuestOrders(cartReferences)).find(
+    (order) => order.publicReference === reference,
+  );
+  if (
+    !owned ||
+    owned.paymentMethod !== CASH ||
+    !["pending", "cancelled"].includes(owned.paymentStatus)
+  )
+    return false;
+  const result = await payloadFetch<{ cancelled?: boolean }>({
+    method: "POST",
+    path: `${collectionPath("orders")}/${owned.id}/cancel-cash`,
+    body: {},
+  });
+  return result.cancelled === true;
+}
+
 export async function reportGuestTransfer(
   cartReferences: string[],
   reference: string,
@@ -481,6 +502,9 @@ export async function createCheckoutOrder(
       options?.paymentMethod === CASH &&
       (existingOrder.paymentStatus === "cancelled" ||
         existingOrder.paymentStatus === "rejected" ||
+        (existingOrder.paymentStatus === "pending" &&
+          Number.isFinite(deadline) &&
+          deadline <= Date.now()) ||
         (existingOrder.paymentStatus === "pending" &&
           (!isDeepStrictEqual(
             existingOrder.commercialSnapshot,

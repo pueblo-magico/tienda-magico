@@ -29,6 +29,8 @@ const copy = {
       invalid: 'Revisá el importe y la aceptación.',
       amount: 'El importe debe coincidir exactamente con el pedido en ARS.',
       state: 'El estado actual no permite confirmar este pago.',
+      expired:
+        'El plazo venció. Creá un pedido nuevo con precios y stock actuales antes de cobrar.',
       stock: 'Stock insuficiente o artículo no disponible.',
       catalog: 'El catálogo cambió. No se confirmó el pedido.',
       duplicate: 'Este carrito ya tiene un pago confirmado.',
@@ -53,6 +55,8 @@ const copy = {
       invalid: 'Check the amount and acknowledgement.',
       amount: 'The amount must exactly match the order in ARS.',
       state: 'The current state does not allow this payment confirmation.',
+      expired:
+        'The deadline has passed. Create a new order with current prices and stock before collecting payment.',
       stock: 'Insufficient stock or unavailable item.',
       catalog: 'The catalog changed. The order was not confirmed.',
       duplicate: 'This cart already has a confirmed payment.',

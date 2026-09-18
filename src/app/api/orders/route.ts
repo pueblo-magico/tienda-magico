@@ -70,6 +70,18 @@ export async function POST(request: Request) {
             );
       return NextResponse.json({ ok: saved }, { status: saved ? 200 : 404 });
     }
+    if (
+      "action" in body &&
+      body.action === "cancel-cash" &&
+      "reference" in body &&
+      typeof body.reference === "string"
+    ) {
+      const saved = await commerce.cancelGuestCashOrder(
+        await guestCartReferences(),
+        body.reference,
+      );
+      return NextResponse.json({ ok: saved }, { status: saved ? 200 : 404 });
+    }
     if ("reference" in body && typeof body.reference === "string") {
       const saved = await commerce.reportGuestTransfer(
         await guestCartReferences(),

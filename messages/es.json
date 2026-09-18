@@ -458,6 +458,10 @@
       "explore": "Seguir explorando"
     },
     "cashWaiting": {
+      "pickupDeadline": "Retirá y pagá tu pedido antes del {date}.",
+      "expiredBody": "El plazo para retirar y pagar venció. Volvé al carrito para revisar precios y disponibilidad y crear un pedido nuevo antes de pagar.",
+      "cancel": "Cancelar pedido",
+      "cancelFailed": "No pudimos cancelar el pedido. Consultá su estado antes de intentar nuevamente.",
       "nextTitle": "Qué hacer ahora",
       "nextDescription": "Seguí estos pasos para completar tu compra.",
       "saveTitle": "Guardá la referencia",
@@ -509,6 +513,7 @@
         "catalog": "El catálogo cambió. Pedí a un administrador que revise el pedido.",
         "duplicate": "Este carrito ya tiene un pago confirmado. No vuelvas a cobrar.",
         "localSale": "La venta vinculada requiere revisión de un administrador.",
+        "expired": "El plazo venció. El comprador debe crear un pedido nuevo desde el carrito antes de pagar.",
         "unavailable": "No pudimos completar la operación. Consultá el pedido antes de reintentar; no vuelvas a cobrar."
       }
     },

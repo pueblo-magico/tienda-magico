@@ -3,7 +3,8 @@ import { getTransferWaitingState } from "@/lib/checkout/transfer-waiting";
 
 export function orderDisplayState(order: CheckoutOrder, now: number) {
   const state =
-    order.paymentMethod === "bank-transfer"
+    order.paymentMethod === "bank-transfer" ||
+    (order.paymentMethod === "cash" && Boolean(order.paymentExpiresAt))
       ? getTransferWaitingState(
           order.paymentStatus,
           order.paymentExpiresAt,

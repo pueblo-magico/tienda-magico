@@ -89,6 +89,10 @@ export interface CommerceProvider {
     reference: string,
     feedback?: OrderReceiptFeedback,
   ): Promise<boolean>;
+  cancelGuestCashOrder(
+    cartReferences: string[],
+    reference: string,
+  ): Promise<boolean>;
   submitGuestOrderFeedback(
     cartReferences: string[],
     reference: string,

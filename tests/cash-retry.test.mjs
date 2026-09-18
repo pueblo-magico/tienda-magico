@@ -81,6 +81,14 @@ test("efectivo: reutiliza envíos iguales y reemplaza un pedido si cambia el car
       assert.equal(retry.paymentStatus, "pending");
       assert.equal(retry.total.amount, "300");
     }
+    const expiring = [...orders.values()].at(-1);
+    expiring.paymentExpiresAt = "2000-01-01T00:00:00.000Z";
+    const renewed = await createCheckoutOrder(cart, customer, options);
+    assert.notEqual(renewed.id, String(expiring.id));
+    assert.equal(
+      (await createCheckoutOrder(cart, customer, options)).id,
+      renewed.id,
+    );
     const competing = await Promise.allSettled([
       createCheckoutOrder(
         {

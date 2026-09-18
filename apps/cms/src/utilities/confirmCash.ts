@@ -112,6 +112,8 @@ export async function confirmCash(
       throw new TransferConfirmationError('state')
     if (order.currency !== 'ARS' || order.amount !== input.amount)
       throw new TransferConfirmationError('amount')
+    if (order.paymentExpiresAt && Date.parse(order.paymentExpiresAt) <= Date.now())
+      throw new TransferConfirmationError('expired')
     if (!order.cartReference) throw new TransferConfirmationError('invalid')
     const duplicates = await req.payload.find({
       collection: 'orders',

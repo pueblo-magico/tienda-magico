@@ -134,6 +134,9 @@ export class ShopifyCommerceProvider implements CommerceProvider {
   async confirmGuestOrderReceipt(): Promise<boolean> {
     return false;
   }
+  async cancelGuestCashOrder(): Promise<boolean> {
+    return false;
+  }
   async submitGuestOrderFeedback(): Promise<boolean> {
     return false;
   }

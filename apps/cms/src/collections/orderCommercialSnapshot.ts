@@ -5,6 +5,7 @@ import { activeTransaction } from '../utilities/transferWriteLock'
 import { randomUUID } from 'node:crypto'
 import { confirmTransferEndpoint, protectTransfer } from '../utilities/confirmTransfer'
 import { confirmCashEndpoint } from '../utilities/confirmCash'
+import { cancelCashEndpoint } from '../utilities/cancelCash'
 import { replacePendingCash } from '../utilities/replacePendingCash'
 import { completePaidCart } from '../utilities/completePaidCart'
 import { lockTransferWrite, protectTransferDeletion } from '../utilities/transferWriteLock'
@@ -17,7 +18,12 @@ export const ordersCollectionOverride = ({
   defaultCollection: CollectionConfig
 }): CollectionConfig => ({
   ...defaultCollection,
-  endpoints: [...(defaultCollection.endpoints || []), confirmTransferEndpoint, confirmCashEndpoint],
+  endpoints: [
+    ...(defaultCollection.endpoints || []),
+    confirmTransferEndpoint,
+    confirmCashEndpoint,
+    cancelCashEndpoint,
+  ],
   hooks: {
     ...defaultCollection.hooks,
     beforeOperation: [lockTransferWrite, ...(defaultCollection.hooks?.beforeOperation ?? [])],
@@ -26,6 +32,17 @@ export const ordersCollectionOverride = ({
       ...(defaultCollection.hooks?.beforeChange ?? []),
       protectTransfer,
       replacePendingCash,
+      async ({ data, operation, req }) => {
+        if (operation !== 'create' || data.paymentMethod !== 'cash') return data
+        const settings = await req.payload.findGlobal({
+          slug: 'commerce-settings',
+          req,
+          overrideAccess: true,
+        })
+        const hours = settings.cashPickupWindowHours ?? 48
+        data.paymentExpiresAt = new Date(Date.now() + hours * 60 * 60 * 1000).toISOString()
+        return data
+      },
       ({ data, operation, originalDoc }) => {
         if (operation !== 'update' || !data) return data
         const receiptFields = ['receivedAt', 'experienceRating', 'experienceComment'] as const

@@ -4370,6 +4370,10 @@ export interface CommerceSetting {
    * Allows cash payment only with local collection. The order is confirmed in the CMS after receiving the exact amount.
    */
   cashEnabled: boolean;
+  /**
+   * Se aplica solo a pedidos nuevos de efectivo. No modifica plazos existentes.
+   */
+  cashPickupWindowHours: number;
   cashStaffEnabled?: boolean | null;
   /**
    * 12–128 characters. Leave blank to keep the password. Changing it or disabling the cash desk signs staff out.
@@ -4567,6 +4571,7 @@ export interface CommerceSettingsSelect<T extends boolean = true> {
   localCollectionEnabled?: T;
   deliveryEnabled?: T;
   cashEnabled?: T;
+  cashPickupWindowHours?: T;
   cashStaffEnabled?: T;
   cashStaffPassword?: T;
   transferEnabled?: T;

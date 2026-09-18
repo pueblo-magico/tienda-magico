@@ -268,6 +268,8 @@ export default async function CheckoutPendingPage({
 
           {isCash && cashOrder && ownedOrder ? (
             <CashWaiting
+              expiresAt={ownedOrder.paymentExpiresAt}
+              serverTime={Date.now()}
               feedbackSubmitted={ownedOrder.experienceRating != null}
               summary={<OrderSummary order={ownedOrder} />}
               cashStaffEnabled={commerceSettings?.cashStaffEnabled === true}

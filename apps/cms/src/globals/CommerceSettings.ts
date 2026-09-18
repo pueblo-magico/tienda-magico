@@ -58,6 +58,19 @@ export const CommerceSettings: GlobalConfig = {
       },
     },
     {
+      name: 'cashPickupWindowHours',
+      label: { es: 'Plazo para retirar y pagar (horas)', en: 'Pickup and payment window (hours)' },
+      type: 'number',
+      defaultValue: 48,
+      min: 1,
+      max: 720,
+      required: true,
+      validate: (value: unknown) => Number.isInteger(value) || 'Ingresá horas enteras.',
+      admin: {
+        description: 'Se aplica solo a pedidos nuevos de efectivo. No modifica plazos existentes.',
+      },
+    },
+    {
       name: 'cashStaffEnabled',
       type: 'checkbox',
       defaultValue: false,
