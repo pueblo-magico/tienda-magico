@@ -322,6 +322,15 @@
     "ethicallySourced": "Origen ético"
   },
   "orders": {
+    "receiptConfirmation": {
+      "eyebrow": "Confirmar acción",
+      "title": "¿Ya recibiste tu pedido?",
+      "description": "Confirmá solo si ya retiraste tu compra y tenés todos los productos con vos.",
+      "warning": "Al confirmar, el pedido se marcará como recibido y esta acción no se puede deshacer.",
+      "cancel": "Cancelar",
+      "confirm": "Sí, recibí mi pedido",
+      "saving": "Confirmando recepción…"
+    },
     "feedbackThanks": {
       "eyebrow": "Opinión enviada",
       "title": "¡Gracias por compartir tu experiencia!",

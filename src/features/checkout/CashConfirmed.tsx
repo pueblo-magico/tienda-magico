@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import {
   Check,
@@ -21,6 +21,8 @@ import { PageTitle } from "@/components/typography/PageTitle";
 import { Eyebrow } from "@/components/typography/Eyebrow";
 import { OrderReceiptFeedback } from "@/features/orders/OrderReceiptFeedback";
 import { localizePath } from "@/config/navigation";
+import { ReceiptConfirmationModal } from "@/features/orders/ReceiptConfirmationModal";
+import { receiptConfirmationBody } from "@/features/orders/receipt-confirmation";
 
 export function CashConfirmed({
   summary,
@@ -41,22 +43,28 @@ export function CashConfirmed({
   const [confirmed, setConfirmed] = useState(false);
   const [saving, setSaving] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [reviewingReceipt, setReviewingReceipt] = useState(false);
+  const submitting = useRef(false);
   async function confirmReceipt() {
-    if (saving) return;
+    const body = receiptConfirmationBody(reference, reviewingReceipt);
+    if (!body || submitting.current) return;
+    submitting.current = true;
     setSaving(true);
     setFailed(false);
     try {
       const response = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "confirm-receipt", reference }),
+        body: JSON.stringify(body),
       });
       if (!response.ok) throw new Error("receipt");
       setConfirmed(true);
+      setReviewingReceipt(false);
     } catch {
       setFailed(true);
     } finally {
       setSaving(false);
+      submitting.current = false;
     }
   }
   const receivedAt = Boolean(persistedReceivedAt) || confirmed;
@@ -71,6 +79,19 @@ export function CashConfirmed({
   ];
   return (
     <div className="space-y-6">
+      {reviewingReceipt && !receivedAt ? (
+        <ReceiptConfirmationModal
+          summary={summary}
+          busy={saving}
+          failed={failed}
+          onClose={() => {
+            if (!submitting.current) setReviewingReceipt(false);
+          }}
+          onConfirm={() => {
+            void confirmReceipt();
+          }}
+        />
+      ) : null}
       <header
         className="mx-auto max-w-3xl space-y-3 py-4 text-center"
         role="status"
@@ -130,7 +151,8 @@ export function CashConfirmed({
               <>
                 <Button
                   onPress={() => {
-                    void confirmReceipt();
+                    setFailed(false);
+                    setReviewingReceipt(true);
                   }}
                   disabled={saving}
                   aria-busy={saving}

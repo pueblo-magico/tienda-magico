@@ -322,6 +322,15 @@
     "ethicallySourced": "Ethically sourced"
   },
   "orders": {
+    "receiptConfirmation": {
+      "eyebrow": "Confirm action",
+      "title": "Have you received your order?",
+      "description": "Only confirm if you have collected your purchase and have all the products with you.",
+      "warning": "Confirming marks the order as received. This action cannot be undone.",
+      "cancel": "Cancel",
+      "confirm": "Yes, I received my order",
+      "saving": "Confirming receipt…"
+    },
     "feedbackThanks": {
       "eyebrow": "Feedback sent",
       "title": "Thank you for sharing your experience!",
