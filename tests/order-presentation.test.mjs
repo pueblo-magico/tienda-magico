@@ -114,7 +114,7 @@ test("un pedido aprobado pendiente de recepción muestra la acción de entrega",
       }),
     ),
   );
-  assert.ok(html.includes(messages.orders.receipt.open));
+  assert.ok(html.includes(messages.orders.receipt.inlineQuestion));
   assert.ok(html.includes(messages.orders.receipt.ratingLabel));
   assert.ok(html.includes(messages.orders.receipt.commentLabel));
 });

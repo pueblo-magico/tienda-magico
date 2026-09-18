@@ -14,6 +14,7 @@ import {
   type OrderFilter,
 } from "./presentation";
 import { OrderReceiptFeedback } from "./OrderReceiptFeedback";
+import { OrderReceiptPrompt } from "./OrderReceiptPrompt";
 import { localizePath } from "@/config/navigation";
 
 export function OrderList({
@@ -140,13 +141,17 @@ export function OrderList({
                         ) : null}
                       </CardContent>
                     </Card>
-                    {order.paymentStatus === "approved" && !order.receivedAt ? (
-                      <OrderReceiptFeedback reference={order.publicReference} />
-                    ) : null}
-                    {order.receivedAt ? (
-                      <p className="text-text-secondary mt-3 text-sm">
-                        {t("receipt.received")}
-                      </p>
+                    {order.paymentStatus === "approved" ? (
+                      <>
+                        <OrderReceiptPrompt order={order} />
+                        {order.experienceRating == null ? (
+                          <OrderReceiptFeedback
+                            reference={order.publicReference}
+                            layout="wide"
+                            feedbackOnly
+                          />
+                        ) : null}
+                      </>
                     ) : null}
                   </li>
                 );
