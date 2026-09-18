@@ -91,7 +91,14 @@ export function resolveCategoryPath(
   const resolved: CollectionSummary[] = [];
   let parentId: string | null = null;
 
-  for (const handle of handles) {
+  for (const segment of handles) {
+    let handle: string;
+    try {
+      handle = decodeURIComponent(segment);
+    } catch {
+      return null;
+    }
+    if (!handle || /[/\\]/.test(handle)) return null;
     const category = categories.find(
       (candidate) =>
         candidate.handle === handle &&

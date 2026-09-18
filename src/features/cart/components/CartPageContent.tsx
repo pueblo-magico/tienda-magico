@@ -23,6 +23,14 @@ export function CartPageContent() {
     checkout,
     setFulfillmentMode,
     commerceSettings,
+    paymentMethod,
+    setPaymentMethod,
+    buyerName,
+    buyerEmail,
+    identification,
+    setIdentification,
+    setBuyerName,
+    setBuyerEmail,
   } = useCart();
 
   const busy = isLoading || isMutating;
@@ -46,7 +54,7 @@ export function CartPageContent() {
         ) : null}
       </div>
 
-      <div className="grid gap-10 lg:grid-cols-[1fr_22rem]">
+      <div className="grid gap-8 lg:grid-cols-2">
         <div className="space-y-4">
           {!configured ? (
             <Body className="text-muted">{t("notConfigured")}</Body>
@@ -94,16 +102,21 @@ export function CartPageContent() {
         </div>
 
         {cart.lines.length > 0 ? (
-          <aside className="border-border bg-warm h-fit rounded-2xl border p-6 lg:sticky lg:top-28">
-            <h2 className="font-navigation text-text-black mb-5 text-2xl">
-              {t("summary")}
-            </h2>
+          <aside className="border-border bg-background-primary h-fit min-w-0 rounded-2xl border p-4 sm:p-6">
             <CartSummary
               cart={cart}
               commerceSettings={commerceSettings}
               disabled={busy}
               fulfillmentDisabled={isLoading}
               onCheckout={checkout}
+              paymentMethod={paymentMethod}
+              onPaymentMethodChange={setPaymentMethod}
+              buyerName={buyerName}
+              buyerEmail={buyerEmail}
+              identification={identification}
+              onIdentificationChange={setIdentification}
+              onBuyerNameChange={setBuyerName}
+              onBuyerEmailChange={setBuyerEmail}
               onFulfillmentModeChange={setFulfillmentMode}
               labels={{
                 subtotal: t("subtotal"),
@@ -115,17 +128,39 @@ export function CartPageContent() {
                 delivery: t("delivery"),
                 deliveryHint: t("deliveryHint"),
                 fulfillmentRequired: t("fulfillmentRequired"),
+                paymentLegend: t("paymentLegend"),
+                mercadoPago: t("mercadoPago"),
+                mercadoPagoHint: t("mercadoPagoHint"),
+                bankTransfer: t("bankTransfer"),
+                bankTransferHint: t("bankTransferHint", {
+                  minutes: commerceSettings.transfer.paymentWindowMinutes,
+                }),
+                cash: t("cash"),
+                cashHint: t("cashHint"),
+                buyerLegend: t("buyerLegend"),
+                buyerName: t("buyerName"),
+                buyerEmail: t("buyerEmail"),
+                buyerRequired: t("buyerRequired"),
               }}
             />
             <div className="mt-3">
               <Button
                 href={localizePath(locale, "/shop")}
-                variant="ghost"
+                variant="secondary"
                 className="w-full"
+                textCase="sentence"
               >
                 {t("continue")}
               </Button>
             </div>
+            <p className="text-text-secondary mt-5 flex items-center justify-center gap-2 text-center text-sm">
+              <LockKeyhole
+                aria-hidden
+                strokeWidth={1.5}
+                className="size-4 shrink-0"
+              />
+              {t("securePurchase")}
+            </p>
           </aside>
         ) : null}
       </div>

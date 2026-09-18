@@ -21,19 +21,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, categoryPath } = await params;
   const trail = await loadCategoryTrail(locale, categoryPath);
   const category = trail?.at(-1);
-  if (!category) return {};
+  if (!trail || !category) return {};
+  const canonicalPath = `/shop/categories/${trail.map((entry) => encodeURIComponent(entry.handle)).join("/")}`;
 
   return {
     title: category.title,
     description: category.description || undefined,
     alternates: {
-      canonical: localizePath(
-        locale,
-        `/shop/categories/${categoryPath.join("/")}`,
-      ),
+      canonical: localizePath(locale, canonicalPath),
       languages: {
-        es: localizePath("es", `/shop/categories/${categoryPath.join("/")}`),
-        en: localizePath("en", `/shop/categories/${categoryPath.join("/")}`),
+        es: localizePath("es", canonicalPath),
+        en: localizePath("en", canonicalPath),
       },
     },
     openGraph: {
@@ -63,7 +61,7 @@ export default async function CategoryShopRoutePage({
   return (
     <ShopPage
       locale={locale}
-      query={parseShopQuery(raw, categoryPath)}
+      query={parseShopQuery(raw, trail?.map((entry) => entry.handle) ?? [])}
       labels={{
         eyebrow: t("eyebrow"),
         title: t("title"),

@@ -11,6 +11,9 @@
   --text-secondary: #005333;
   --text-highlight: #d4af37;
   --text-accent: #8b6914;
+  --terracotta: #aa3e11;
+  --terracotta-hover: color-mix(in srgb, var(--terracotta) 88%, black);
+  --terracotta-active: color-mix(in srgb, var(--terracotta) 78%, black);
 
   /* Shared application semantics */
   --background: var(--surface-primary);

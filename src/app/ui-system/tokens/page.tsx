@@ -1,5 +1,6 @@
 import { DocsPageHeader } from "@/components/ui-system/DocsPageHeader";
 import { DocsSection } from "@/components/ui-system/DocsSection";
+import { Button } from "@/components/ui/Button";
 
 const backgrounds = [
   {
@@ -72,6 +73,38 @@ export default function TokensPage() {
             <p className="text-text-primary text-xs">{color.value}</p>
           </div>
         ))}
+      </DocsSection>
+
+      <DocsSection
+        title="Paleta adicional · Terracota"
+        description="Color adicional, sin reemplazar los colores existentes ni asignarle un estado semántico. Su valor se define únicamente en --terracotta."
+        className="grid w-full gap-4 sm:grid-cols-3"
+      >
+        <div className="space-y-2">
+          <div className="bg-terracotta text-brand-foreground flex h-20 items-center justify-center rounded-2xl">
+            Terracota
+          </div>
+          <code className="text-text-primary text-xs">bg-terracotta</code>
+        </div>
+        <div className="space-y-2">
+          <div className="text-terracotta bg-card flex h-20 items-center justify-center rounded-2xl">
+            Texto terracota
+          </div>
+          <code className="text-text-primary text-xs">text-terracotta</code>
+        </div>
+        <div className="space-y-2">
+          <div className="border-terracotta text-text-black flex h-20 items-center justify-center rounded-2xl border">
+            Borde terracota
+          </div>
+          <code className="text-text-primary text-xs">border-terracotta</code>
+        </div>
+      </DocsSection>
+
+      <DocsSection title="Botón terracota">
+        <Button color="terracotta">Continuar</Button>
+        <code className="text-text-primary text-xs">
+          {'<Button color="terracotta">'}
+        </code>
       </DocsSection>
 
       <DocsSection title="Typography" className="flex-col items-start gap-3">

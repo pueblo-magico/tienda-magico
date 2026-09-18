@@ -75,6 +75,7 @@ export interface Config {
     users: User;
     media: Media;
     localSales: LocalSale;
+    'payment-notifications': PaymentNotification;
     pages: Page;
     posts: Post;
     testimonials: Testimonial;
@@ -107,6 +108,7 @@ export interface Config {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     localSales: LocalSalesSelect<false> | LocalSalesSelect<true>;
+    'payment-notifications': PaymentNotificationsSelect<false> | PaymentNotificationsSelect<true>;
     pages: PagesSelect<false> | PagesSelect<true>;
     posts: PostsSelect<false> | PostsSelect<true>;
     testimonials: TestimonialsSelect<false> | TestimonialsSelect<true>;
@@ -260,6 +262,8 @@ export interface LocalSale {
   status: 'pending_payment' | 'paid' | 'cancelled' | 'conflict';
   fulfillmentMode: 'local_collection' | 'delivery';
   paymentStatus: 'pending' | 'approved' | 'rejected' | 'cancelled' | 'unverified';
+  paymentMethod: 'mercado-pago' | 'bank-transfer' | 'cash';
+  paymentExpiresAt?: string | null;
   /**
    * Optional private data allowed by checkout.
    */
@@ -332,8 +336,32 @@ export interface Order {
   status?: OrderStatus;
   amount?: number | null;
   currency?: 'ARS' | null;
+  cashVerification?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  transferBankReference?: string | null;
+  transferVerification?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Does not confirm receipt of funds.
+   */
+  transferReportedAt?: string | null;
   checkoutKey?: string | null;
   cartReference?: string | null;
+  publicReference: string;
   fulfillmentMode?: ('local_collection' | 'delivery') | null;
   buyerContact?:
     | {
@@ -344,6 +372,18 @@ export interface Order {
     | number
     | boolean
     | null;
+  transferIdentification?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  paymentMethod: 'mercado-pago' | 'bank-transfer' | 'cash';
+  paymentExpiresAt?: string | null;
+  paymentStatus: 'pending' | 'approved' | 'rejected' | 'cancelled' | 'unverified';
   commercialSnapshot?:
     | {
         [k: string]: unknown;
@@ -2855,6 +2895,32 @@ export interface Cart {
   createdAt: string;
 }
 /**
+ * Private Mercado Pago observations. Reconciliation indicates automatic confirmation or manual review. Check the account before resolving an exception.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payment-notifications".
+ */
+export interface PaymentNotification {
+  id: number;
+  payerType?: string | null;
+  payerNumber?: string | null;
+  paymentType?: string | null;
+  statusDetail?: string | null;
+  refundedAmount?: number | null;
+  approvedAt?: string | null;
+  reconciliation?: string | null;
+  idempotencyKey: string;
+  resourceId: string;
+  paymentStatus: string;
+  amount: number;
+  currency: string;
+  publicReference?: string | null;
+  liveMode: boolean;
+  providerUpdatedAt: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "pages".
  */
@@ -3331,6 +3397,10 @@ export interface PayloadLockedDocument {
         value: number | LocalSale;
       } | null)
     | ({
+        relationTo: 'payment-notifications';
+        value: number | PaymentNotification;
+      } | null)
+    | ({
         relationTo: 'pages';
         value: number | Page;
       } | null)
@@ -3488,9 +3558,34 @@ export interface LocalSalesSelect<T extends boolean = true> {
   status?: T;
   fulfillmentMode?: T;
   paymentStatus?: T;
+  paymentMethod?: T;
+  paymentExpiresAt?: T;
   buyerContact?: T;
   snapshot?: T;
   paymentEvidence?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payment-notifications_select".
+ */
+export interface PaymentNotificationsSelect<T extends boolean = true> {
+  payerType?: T;
+  payerNumber?: T;
+  paymentType?: T;
+  statusDetail?: T;
+  refundedAmount?: T;
+  approvedAt?: T;
+  reconciliation?: T;
+  idempotencyKey?: T;
+  resourceId?: T;
+  paymentStatus?: T;
+  amount?: T;
+  currency?: T;
+  publicReference?: T;
+  liveMode?: T;
+  providerUpdatedAt?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -4019,10 +4114,19 @@ export interface OrdersSelect<T extends boolean = true> {
   status?: T;
   amount?: T;
   currency?: T;
+  cashVerification?: T;
+  transferBankReference?: T;
+  transferVerification?: T;
+  transferReportedAt?: T;
   checkoutKey?: T;
   cartReference?: T;
+  publicReference?: T;
   fulfillmentMode?: T;
   buyerContact?: T;
+  transferIdentification?: T;
+  paymentMethod?: T;
+  paymentExpiresAt?: T;
+  paymentStatus?: T;
   commercialSnapshot?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -4256,6 +4360,26 @@ export interface CommerceSetting {
    * Allows customers to receive their purchase by delivery.
    */
   deliveryEnabled: boolean;
+  /**
+   * Allows cash payment only with local collection. The order is confirmed in the CMS after receiving the exact amount.
+   */
+  cashEnabled: boolean;
+  cashStaffEnabled?: boolean | null;
+  /**
+   * 12–128 characters. Leave blank to keep the password. Changing it or disabling the cash desk signs staff out.
+   */
+  cashStaffPassword?: string | null;
+  /**
+   * Allows customers to choose bank transfer. Enable it only after completing the account details.
+   */
+  transferEnabled: boolean;
+  transfer?: {
+    accountHolder?: string | null;
+    taxId?: string | null;
+    alias?: string | null;
+    cvu?: string | null;
+    paymentWindowMinutes: number;
+  };
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -4301,6 +4425,7 @@ export interface CmsSetting {
   faqs: boolean;
   header: boolean;
   footer: boolean;
+  paymentNotifications: boolean;
   localSales: boolean;
   categories: boolean;
   brands: boolean;
@@ -4435,6 +4560,19 @@ export interface SiteSettingsSelect<T extends boolean = true> {
 export interface CommerceSettingsSelect<T extends boolean = true> {
   localCollectionEnabled?: T;
   deliveryEnabled?: T;
+  cashEnabled?: T;
+  cashStaffEnabled?: T;
+  cashStaffPassword?: T;
+  transferEnabled?: T;
+  transfer?:
+    | T
+    | {
+        accountHolder?: T;
+        taxId?: T;
+        alias?: T;
+        cvu?: T;
+        paymentWindowMinutes?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
@@ -4471,6 +4609,7 @@ export interface CmsSettingsSelect<T extends boolean = true> {
   faqs?: T;
   header?: T;
   footer?: T;
+  paymentNotifications?: T;
   localSales?: T;
   categories?: T;
   brands?: T;

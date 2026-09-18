@@ -53,7 +53,9 @@ export function parseShopQuery(
     ),
   ];
   const readHandles = (key: string) =>
-    readList(key).filter((value) => /^[a-z0-9][a-z0-9_-]*$/i.test(value));
+    readList(key).filter((value) =>
+      /^[\p{L}\p{N}][\p{L}\p{M}\p{N}_-]*$/u.test(value),
+    );
 
   return {
     q: read("q").trim(),

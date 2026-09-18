@@ -73,3 +73,5 @@ separate localized namespace so product and category slugs cannot collide:
 Category handles are stable across locales. Each category URL contains the full
 parent chain. Search, sorting, price, origin, availability, tags, and pagination
 remain query parameters; the primary category scope does not.
+
+Los segmentos de categoría se decodifican una sola vez al resolver la ruta. Los slugs con Unicode, como `montaña-y-regeneracion`, se conservan en los filtros y se codifican al generar enlaces (`monta%C3%B1a-y-regeneracion`). Una codificación inválida o una cadena padre-hijo inexistente devuelve 404; no se modifican los slugs del CMS.

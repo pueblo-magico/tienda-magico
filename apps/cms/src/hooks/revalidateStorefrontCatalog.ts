@@ -2,7 +2,9 @@ import type { CollectionAfterChangeHook, CollectionAfterDeleteHook } from 'paylo
 
 type CatalogDocument = { slug?: unknown }
 
-async function notifyStorefront(
+export const deferredCatalogRevalidation = Symbol('deferred-catalog-revalidation')
+
+export async function notifyStorefront(
   resource: 'product' | 'media',
   documents: Array<CatalogDocument | null | undefined>,
   logger: { warn: (message: string) => void },
@@ -34,6 +36,7 @@ export const revalidateStorefrontProduct: CollectionAfterChangeHook = async ({
   previousDoc,
   req,
 }) => {
+  if (req.context.catalogRevalidation === deferredCatalogRevalidation) return doc
   await notifyStorefront('product', [doc, previousDoc], req.payload.logger)
   return doc
 }

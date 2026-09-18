@@ -1,6 +1,15 @@
 import type { Cart, Money } from "./commerce";
 
+export const MERCADO_PAGO = "mercado-pago" as const;
+export const BANK_TRANSFER = "bank-transfer" as const;
+export const CASH = "cash" as const;
+
+export type PaymentMethod =
+  typeof MERCADO_PAGO | typeof BANK_TRANSFER | typeof CASH;
+
 export type CheckoutProviderName = "mercado-pago" | "commerce-redirect";
+export type CheckoutSessionProviderName =
+  CheckoutProviderName | typeof BANK_TRANSFER | typeof CASH;
 
 export type CheckoutItem = {
   id: string;
@@ -12,6 +21,7 @@ export type CheckoutItem = {
 };
 
 export type CheckoutCustomer = {
+  identification?: { type: string; number: string } | null;
   email?: string | null;
   name?: string | null;
   phone?: string | null;
@@ -36,7 +46,7 @@ export type CreateCheckoutSessionInput = {
 
 export type CheckoutSession = {
   id: string;
-  provider: CheckoutProviderName;
+  provider: CheckoutSessionProviderName;
   /** URL the browser should navigate to complete payment. */
   redirectUrl: string;
   status: "ready" | "pending";

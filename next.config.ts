@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
+import { developmentOrigins } from "./src/config/development-origins";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
@@ -53,6 +54,10 @@ function cmsMediaPatterns(): RemotePattern[] {
 }
 
 const nextConfig: NextConfig = {
+  allowedDevOrigins: developmentOrigins(
+    process.env.DEV_STOREFRONT_URL,
+    process.env.NODE_ENV,
+  ),
   output: process.env.STANDALONE_OUTPUT === "true" ? "standalone" : undefined,
   images: {
     // Local Payload runs on loopback. Keep private-network fetching blocked

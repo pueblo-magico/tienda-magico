@@ -42,6 +42,7 @@ jobs:
         shell: bash
         env:
           MERCADOPAGO_ACCESS_TOKEN: ${{ secrets.MERCADOPAGO_ACCESS_TOKEN }}
+          MERCADOPAGO_WEBHOOK_SECRET: ${{ secrets.MERCADOPAGO_WEBHOOK_SECRET }}
         run: |
           set -euo pipefail
 
@@ -80,6 +81,10 @@ jobs:
             echo "Missing staging GitHub Environment secret: MERCADOPAGO_ACCESS_TOKEN"
             exit 1
           }
+          [[ -n "$MERCADOPAGO_WEBHOOK_SECRET" ]] || {
+            echo "Falta el secreto de staging MERCADOPAGO_WEBHOOK_SECRET."
+            exit 1
+          }
           [[ "$MERCADOPAGO_WEBHOOK_URL" == "$SHOP_URL/api/checkout/webhooks/mercado-pago" ]] || {
             echo "MERCADOPAGO_WEBHOOK_URL must use SHOP_URL and the Mercado Pago webhook path."
             exit 1
@@ -88,6 +93,7 @@ jobs:
           runtime_values=(
             "$CHECKOUT_PROVIDER" "$MERCADOPAGO_SANDBOX"
             "$MERCADOPAGO_WEBHOOK_URL" "$MERCADOPAGO_ACCESS_TOKEN"
+            "$MERCADOPAGO_WEBHOOK_SECRET"
           )
           for value in "${runtime_values[@]}"; do
             [[ "$value" != *$'\n'* && "$value" != *$'\r'* ]] || {
@@ -118,6 +124,7 @@ jobs:
         shell: bash
         env:
           MERCADOPAGO_ACCESS_TOKEN: ${{ secrets.MERCADOPAGO_ACCESS_TOKEN }}
+          MERCADOPAGO_WEBHOOK_SECRET: ${{ secrets.MERCADOPAGO_WEBHOOK_SECRET }}
         run: |
           set -euo pipefail
           runtime_file="$RUNNER_TEMP/storefront-runtime.env"
@@ -131,6 +138,7 @@ jobs:
             printf 'NEXT_PUBLIC_SITE_URL=%s\n' "$SHOP_URL"
             printf 'CHECKOUT_PROVIDER=%s\n' "$CHECKOUT_PROVIDER"
             printf 'MERCADOPAGO_ACCESS_TOKEN=%s\n' "$MERCADOPAGO_ACCESS_TOKEN"
+            printf 'MERCADOPAGO_WEBHOOK_SECRET=%s\n' "$MERCADOPAGO_WEBHOOK_SECRET"
             printf 'MERCADOPAGO_SANDBOX=%s\n' "$MERCADOPAGO_SANDBOX"
             printf 'MERCADOPAGO_WEBHOOK_URL=%s\n' "$MERCADOPAGO_WEBHOOK_URL"
           } > "$runtime_file"

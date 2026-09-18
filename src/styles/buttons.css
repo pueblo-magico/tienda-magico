@@ -1,0 +1,71 @@
+@layer components {
+  .button-color-forest {
+    --button-color: var(--brand);
+    --button-foreground: var(--brand-foreground);
+  }
+  .button-color-terracotta {
+    --button-color: var(--terracotta);
+    --button-foreground: var(--brand-foreground);
+  }
+  .button-color-gold {
+    --button-color: var(--text-highlight);
+    --button-foreground: var(--text-black);
+  }
+  .button-color-earth {
+    --button-color: var(--text-accent);
+    --button-foreground: var(--brand-foreground);
+  }
+  .button-color-gray {
+    --button-color: var(--text-primary);
+    --button-foreground: var(--brand-foreground);
+  }
+  .button-color-black {
+    --button-color: var(--text-black);
+    --button-foreground: var(--brand-foreground);
+  }
+  .button-color-white {
+    --button-color: var(--surface-card);
+    --button-foreground: var(--text-black);
+  }
+  .button-color-cream {
+    --button-color: var(--surface-primary);
+    --button-foreground: var(--text-black);
+  }
+  .button-color-warm {
+    --button-color: var(--surface-warm);
+    --button-foreground: var(--text-black);
+  }
+
+  .button-variant-primary {
+    background: var(--button-color);
+    color: var(--button-foreground);
+  }
+  .button-variant-primary:hover {
+    background: color-mix(in srgb, var(--button-color) 88%, var(--text-black));
+  }
+  .button-variant-primary:active {
+    background: color-mix(in srgb, var(--button-color) 78%, var(--text-black));
+  }
+  .button-variant-secondary,
+  .button-variant-ghost,
+  .button-variant-link,
+  .button-variant-icon-label {
+    color: var(--button-color);
+  }
+  .button-variant-secondary {
+    border-color: color-mix(in srgb, var(--button-color) 30%, transparent);
+  }
+  .button-variant-secondary:hover {
+    border-color: var(--button-color);
+  }
+  .button-variant-secondary:hover,
+  .button-variant-ghost:hover,
+  .button-variant-icon-label:hover {
+    background: color-mix(in srgb, var(--button-color) 5%, transparent);
+  }
+  .button-variant-secondary:active,
+  .button-variant-ghost:active,
+  .button-variant-icon-label:active {
+    background: color-mix(in srgb, var(--button-color) 10%, transparent);
+  }
+}

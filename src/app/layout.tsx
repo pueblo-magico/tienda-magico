@@ -24,6 +24,11 @@ export const metadata: Metadata = {
   description:
     "Conscious products inspired by the mountains, community, and regenerative living.",
   icons: "/favicon.svg",
+  formatDetection: {
+    telephone: false,
+    address: false,
+    email: false,
+  },
 };
 
 export default function RootLayout({

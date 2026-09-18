@@ -16,6 +16,8 @@ export async function createCheckoutSession(input: {
   locale?: string;
   email?: string;
   name?: string;
+  identification?: { type: string; number: string };
+  paymentMethod?: "mercado-pago" | "bank-transfer" | "cash";
 }): Promise<CheckoutSessionResponse> {
   const response = await fetch("/api/checkout", {
     method: "POST",

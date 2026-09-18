@@ -29,6 +29,7 @@ normal workflow, this happens when a pull request is merged into that branch.
 | `SSH_PRIVATE_KEY`          | Dedicated Ed25519 private deployment key |
 | `SSH_KNOWN_HOSTS`          | Previously verified VM host key          |
 | `MERCADOPAGO_ACCESS_TOKEN` | Server-side Mercado Pago test credential |
+| `MERCADOPAGO_WEBHOOK_SECRET` | Webhook signing secret for the same application |
 
 5. Confirm that the SSH user can run `sudo -n true` and that the environment
    files under `/opt/tienda-magico/env` contain no placeholders.
@@ -48,6 +49,7 @@ API, and revalidation secrets remain VM-managed.
 | `MERCADOPAGO_SANDBOX`                                | GitHub variable      | Runtime deployment                 |
 | `MERCADOPAGO_WEBHOOK_URL`                            | GitHub variable      | Runtime deployment                 |
 | `MERCADOPAGO_ACCESS_TOKEN`                           | GitHub secret        | Runtime deployment                 |
+| `MERCADOPAGO_WEBHOOK_SECRET`                         | GitHub secret        | Runtime deployment                 |
 | Database, Payload, CMS API, and revalidation secrets | VM environment files | Runtime                            |
 
 Runtime secrets are never passed as Docker build arguments or written to the

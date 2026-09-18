@@ -33,6 +33,57 @@ const grandchild = {
   parent: child,
 };
 
+test("resuelve categorías con ñ codificada y conserva la jerarquía", () => {
+  const mountain = {
+    ...root,
+    id: "mountain",
+    handle: "montaña-y-regeneracion",
+  };
+  const cosmetics = {
+    ...child,
+    id: "cosmetics",
+    handle: "cosmetica",
+    parent: mountain,
+  };
+  for (const handle of [mountain.handle, encodeURIComponent(mountain.handle)]) {
+    assert.deepEqual(resolveCategoryPath([mountain, cosmetics], [handle]), [
+      mountain,
+    ]);
+    assert.deepEqual(
+      resolveCategoryPath([mountain, cosmetics], [handle, "cosmetica"]),
+      [mountain, cosmetics],
+    );
+  }
+  assert.equal(
+    resolveCategoryPath(
+      [root, mountain, cosmetics],
+      [root.handle, "cosmetica"],
+    ),
+    null,
+  );
+});
+
+test("rechaza segmentos mal codificados o separadores sin lanzar errores", () => {
+  for (const handle of ["%", "%C3", "%2F", "%5C", "%252F"]) {
+    assert.equal(resolveCategoryPath([root], [handle]), null);
+  }
+});
+
+test("conserva filtros de categorías Unicode y codifica sus enlaces una sola vez", () => {
+  const query = parseShopQuery(
+    { categories: "montaña-y-regeneracion,artesania-y-cultura" },
+    ["montaña-y-regeneracion"],
+  );
+  assert.deepEqual(query.categories, [
+    "montaña-y-regeneracion",
+    "artesania-y-cultura",
+  ]);
+  assert.equal(
+    buildShopHref("es", query),
+    "/es/tienda/categorias/monta%C3%B1a-y-regeneracion?categories=monta%C3%B1a-y-regeneracion%2Cartesania-y-cultura",
+  );
+});
+
 test("las rutas de categorías se localizan sin modificar las URLs de producto", () => {
   assert.equal(
     localizePath("es", "/shop/categories/bienestar-y-rituales/cacao"),

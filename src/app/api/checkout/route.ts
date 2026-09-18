@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { rememberGuestCart } from "@/lib/checkout/guest-orders";
 import { commerce } from "@/lib/commerce";
 import { checkout } from "@/lib/checkout";
 import { CheckoutConfigError, CheckoutError } from "@/types/checkout";
@@ -9,6 +10,20 @@ import {
 } from "@/lib/commerce/local-purchase";
 import { getCommerceSettings } from "@/lib/cms";
 import { isFulfillmentModeEnabled } from "@/lib/commerce/commerce-settings";
+import {
+  PaymentMethodError,
+  parsePaymentMethod,
+} from "@/lib/checkout/payment-method";
+import { BANK_TRANSFER, CASH, MERCADO_PAGO } from "@/types/checkout";
+import {
+  bankTransferExpiry,
+  createBankTransferSession,
+} from "@/lib/checkout/bank-transfer";
+import {
+  CheckoutCustomerError,
+  validateCheckoutCustomer,
+} from "@/lib/checkout/customer";
+import { createCashSession } from "@/lib/checkout/cash";
 
 export const dynamic = "force-dynamic";
 
@@ -29,6 +44,14 @@ function siteUrl(request: Request): string {
 
 function errorResponse(error: unknown) {
   if (error instanceof FulfillmentModeError) {
+    return NextResponse.json({ error: error.message }, { status: 400 });
+  }
+
+  if (error instanceof PaymentMethodError) {
+    return NextResponse.json({ error: error.message }, { status: 400 });
+  }
+
+  if (error instanceof CheckoutCustomerError) {
     return NextResponse.json({ error: error.message }, { status: 400 });
   }
 
@@ -88,6 +111,8 @@ type CheckoutBody = {
   locale?: string;
   email?: string;
   name?: string;
+  paymentMethod?: string;
+  identification?: { type: string; number: string };
 };
 
 /**
@@ -101,18 +126,6 @@ export async function POST(request: Request) {
         {
           error: "Commerce provider is not configured.",
           configured: false,
-        },
-        { status: 503 },
-      );
-    }
-
-    if (!checkout.isConfigured()) {
-      return NextResponse.json(
-        {
-          error:
-            "Checkout provider is not configured. Set CHECKOUT_PROVIDER and provider credentials.",
-          configured: false,
-          provider: checkout.provider.name,
         },
         { status: 503 },
       );
@@ -137,6 +150,22 @@ export async function POST(request: Request) {
       );
     }
 
+    if (
+      cart.lines.some(
+        (line) =>
+          line.issue ||
+          (line.maxPurchaseQuantity != null &&
+            line.quantity > line.maxPurchaseQuantity),
+      )
+    ) {
+      throw new CommerceError(
+        locale.startsWith("es")
+          ? "Revisá los precios y la disponibilidad de los productos en tu carrito antes de pagar."
+          : "Review product prices and availability in your cart before paying.",
+        { status: 409 },
+      );
+    }
+
     const fulfillmentMode = validateFulfillmentModeForCheckout(
       cart.fulfillmentMode,
       locale,
@@ -144,6 +173,24 @@ export async function POST(request: Request) {
     const commerceSettings = await getCommerceSettings();
     if (!isFulfillmentModeEnabled(fulfillmentMode, commerceSettings)) {
       throw new FulfillmentModeError(locale);
+    }
+    const paymentMethod = parsePaymentMethod(
+      body.paymentMethod,
+      commerceSettings,
+      locale,
+      fulfillmentMode,
+    );
+
+    if (paymentMethod === MERCADO_PAGO && !checkout.isConfigured()) {
+      return NextResponse.json(
+        {
+          error:
+            "Checkout provider is not configured. Set CHECKOUT_PROVIDER and provider credentials.",
+          configured: false,
+          provider: checkout.provider.name,
+        },
+        { status: 503 },
+      );
     }
 
     const base = siteUrl(request);
@@ -158,11 +205,63 @@ export async function POST(request: Request) {
       process.env.CHECKOUT_WEBHOOK_URL?.trim() ||
       `${base}/api/checkout/webhooks/mercado-pago`;
 
-    const customer = {
-      email: body.email?.trim() || null,
-      name: body.name?.trim() || null,
-    };
-    const order = await commerce.createCheckoutOrder(cart, customer);
+    const customer = validateCheckoutCustomer(
+      {
+        email: body.email?.trim() || null,
+        name: body.name?.trim() || null,
+        identification: body.identification,
+      },
+      locale,
+      paymentMethod,
+    );
+    const paymentExpiresAt =
+      paymentMethod === BANK_TRANSFER
+        ? bankTransferExpiry(commerceSettings.transfer.paymentWindowMinutes)
+        : null;
+    const order = await commerce.createCheckoutOrder(cart, customer, {
+      paymentMethod,
+      paymentExpiresAt,
+    });
+    if (order && commerce.provider.name === "payload")
+      await rememberGuestCart(cart.id);
+    if (paymentMethod === BANK_TRANSFER) {
+      if (!order) {
+        throw new CommerceError(
+          locale.startsWith("es")
+            ? "No se pudo crear el pedido pendiente."
+            : "Could not create the pending order.",
+          {
+            status: 502,
+          },
+        );
+      }
+      const session = createBankTransferSession({
+        baseUrl: base,
+        locale,
+        orderId: order.publicReference,
+        paymentWindowMinutes: commerceSettings.transfer.paymentWindowMinutes,
+        expiresAt: order.paymentExpiresAt ?? paymentExpiresAt ?? undefined,
+      });
+      return NextResponse.json({ session, configured: true });
+    }
+    if (paymentMethod === CASH) {
+      if (!order) {
+        throw new CommerceError(
+          locale.startsWith("es")
+            ? "No se pudo crear el pedido pendiente."
+            : "Could not create the pending order.",
+          { status: 502 },
+        );
+      }
+      return NextResponse.json({
+        session: createCashSession({
+          baseUrl: base,
+          locale,
+          orderId: order.publicReference,
+        }),
+        configured: true,
+      });
+    }
     const session = await checkout.createCheckoutSession({
       cart,
       locale,

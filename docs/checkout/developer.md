@@ -1,8 +1,16 @@
 # Checkout developer guide
 
+## Pendiente para retomar: pago en efectivo
+
+- Implementar un flujo de pago en efectivo como medio adicional del checkout.
+- Estado: pendiente de definición e implementación; retomar al volver al trabajo.
+- Antes de implementar, acordar cuándo se cobra, quién confirma el cobro en el CMS y cómo se manejan el stock, el vencimiento y la cancelación del pedido. Estas decisiones todavía no están acordadas.
+
 Provider-agnostic checkout for the Pueblo Mágico storefront. Feature code talks to `@/lib/checkout` (or `POST /api/checkout`); payment gateways are swappable adapters.
 
 Related:
+
+- Conciliación por documento de transferencias → [Guía y pruebas](./transferencia-conciliacion.md)
 
 - Operator setup (Mercado Pago credentials, sandbox) → [operations.md](./operations.md)
 - Commerce carts / catalog → [commerce developer guide](../commerce/developer.md)
@@ -53,7 +61,7 @@ Cart UI / /[locale]/checkout
 | `src/lib/checkout/providers/commerce-redirect/*`      | Shopify / external `checkoutUrl`                       |
 | `src/features/checkout/*`                             | Client `createCheckoutSession`, `CheckoutStart`        |
 | `src/app/api/checkout/route.ts`                       | `GET` status / `POST` create session                   |
-| `src/app/api/checkout/webhooks/mercado-pago/route.ts` | IPN / webhook stub                                     |
+| `src/app/api/checkout/webhooks/mercado-pago/route.ts` | Recepción firmada y bandeja privada de notificaciones  |
 | `src/app/[locale]/checkout/**`                        | Entry + success / failure / pending pages              |
 
 ---
@@ -220,6 +228,23 @@ Uses `cart.checkoutUrl` from `@/lib/commerce` (Shopify Checkout).
 
 **Self-host guard:** if `checkoutUrl` points at this storefront’s `/checkout` or `/{locale}/checkout` (Payload placeholder), the provider throws instead of looping. Configure Mercado Pago for Payload carts.
 
+### Bank transfer
+
+Bank transfer is an internal pending-payment flow rather than an external checkout provider:
+
+1. The customer selects `bank-transfer` in the cart.
+2. The customer provides a name and valid email before checkout.
+3. `POST /api/checkout` creates an idempotent ecommerce order using a transfer-specific checkout key; Payload generates its public UUID reference and stores `paymentStatus: pending`.
+4. Payload creates the linked local-sale record with `pending_payment` / `pending` status.
+5. The order and local sale persist the payment method and payment deadline.
+6. The storefront redirects with only the public order reference. The pending page loads the exact amount, deadline, payment method, and status from the persisted order before showing the CMS-managed account instructions.
+
+Crear el pedido pendiente no confirma el pago, reserva ni reduce stock. La [confirmación manual de transferencias](manual-transfer-confirmation.md) permite a un administrador verificar recepción, revalidar catálogo/stock y confirmar atómicamente el pedido y su venta local. La conciliación automática y el procesamiento persistente del vencimiento siguen pendientes.
+
+Los reintentos de transferencia conservan el pedido anterior. Si el intento está vencido, rechazado o cancelado, el checkout deriva la siguiente clave idempotente de su ID interno y crea otro pedido con el carrito actual. La restricción única existente sobre `checkoutKey` resuelve solicitudes simultáneas; las repeticiones reutilizan el nuevo intento activo. Los estados aprobados o sin verificar no habilitan esta renovación. «Ya hice la transferencia» solo consulta el estado original. No se extienden plazos anteriores ni se procesan pagos tardíos automáticamente.
+
+La página de espera consulta el estado persistido cada diez segundos con la pestaña visible y permite una consulta manual. La cuenta regresiva usa el vencimiento persistido y la hora del servidor. Al vencer, oculta las instrucciones sin modificar el pedido; continúa consultando para mostrar una eventual confirmación tardía. Los estados aprobado, rechazado y cancelado detienen la consulta automática. Ver [guía de prueba manual](transfer-waiting-manual-test.md).
+
 ---
 
 ## Routes (storefront)
@@ -248,12 +273,7 @@ Payload default `Cart.checkoutUrl` is `{SITE}/checkout?cart={id::secret}`, rewri
 
 `POST /api/checkout/webhooks/mercado-pago` (also accepts GET pings).
 
-Current behavior:
-
-- Parses JSON body, form body, or query (`topic` / `id` / `data.id`)
-- Optionally loads payment via `checkout.getPayment`
-- Always responds `200` with a small JSON ack (avoids aggressive MP retries in dev)
-- **Does not** yet mark orders fulfilled in Payload — extend here later
+Valida la firma y consulta el recurso de Payments antes de persistir una observación privada en el CMS. Solo reconoce recepción después de guardar o verificar un duplicado idéntico. Requiere `MERCADOPAGO_WEBHOOK_SECRET` y una credencial administrativa del CMS. No acepta IPN sin firma ni confirma pedidos automáticamente. Consultá [configuración, límites y pruebas](mercado-pago-notifications.md).
 
 For production notifications, set a **public HTTPS** `MERCADOPAGO_WEBHOOK_URL` (or rely on `{SITE}/api/checkout/webhooks/mercado-pago` when `NEXT_PUBLIC_SITE_URL` is public HTTPS).
 
@@ -321,3 +341,8 @@ curl -s http://localhost:3000/api/checkout | jq
 - UI chrome: `next-intl` keys under `checkout.*` in `messages/en.json` / `messages/es.json`
 - Preference item titles come from commerce cart lines (already locale-aware when cart API passes `locale`)
 - Return URLs include the active locale segment (`/es/checkout/success`, …)
+
+## Flujos manuales
+
+- [Pago en efectivo con retiro local](./cash-payment.md)
+- [Confirmación manual de transferencias](./manual-transfer-confirmation.md)

@@ -121,6 +121,16 @@ export class ShopifyCommerceProvider implements CommerceProvider {
     }
     return null;
   }
+
+  async getCheckoutOrderByPublicReference(): Promise<CheckoutOrder | null> {
+    return null;
+  }
+  async getGuestOrders(): Promise<CheckoutOrder[]> {
+    return [];
+  }
+  async reportGuestTransfer(): Promise<boolean> {
+    return false;
+  }
 }
 
 export const shopifyCommerceProvider = new ShopifyCommerceProvider();

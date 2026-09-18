@@ -43,3 +43,4 @@ export const checkout = {
     return provider.getPayment(paymentId);
   },
 };
+export { receivePaymentNotification } from "./receive-notification";
