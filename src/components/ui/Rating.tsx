@@ -1,6 +1,6 @@
 "use client";
 
-import { Star, X } from "lucide-react";
+import { Star } from "lucide-react";
 import { Radio, RadioGroup } from "react-aria-components";
 import { cn } from "@/lib/utils/cn";
 
@@ -69,13 +69,6 @@ export function RatingInput({
         isDisabled={disabled}
         className="flex flex-wrap items-center gap-1"
       >
-        <Radio
-          value="0"
-          aria-label={clearLabel}
-          className="text-text-secondary focus-visible:ring-brand/40 mr-2 inline-flex size-9 cursor-pointer items-center justify-center rounded-full focus-visible:ring-2 focus-visible:outline-none data-disabled:cursor-not-allowed data-disabled:opacity-50"
-        >
-          <X aria-hidden className="size-4" strokeWidth={2} />
-        </Radio>
         {Array.from({ length: 5 }, (_, index) => {
           const starValue = index + 1;
           return (

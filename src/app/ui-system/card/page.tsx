@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { DocsPageHeader } from "@/components/ui-system/DocsPageHeader";
 import { DocsSection } from "@/components/ui-system/DocsSection";
+import { StepsCard } from "@/components/cards/StepsCard";
+import { FileText, Store, Banknote } from "lucide-react";
 
 export default function CardPage() {
   return (
@@ -20,6 +22,30 @@ export default function CardPage() {
         description="Primitiva composable de shadcn/ui adaptada a los tokens de Pueblo Mágico. Base para resúmenes y tarjetas de dominio; no reemplaza las variantes editoriales de InfoCard."
       />
       <DocsSection title="Resumen y acciones">
+        <StepsCard
+          title="Qué hacer ahora"
+          description="Tarjeta de pasos numerados, adaptable a móvil. Composición de Card; los textos se localizan en cada consumidor."
+          steps={[
+            {
+              id: "reference",
+              icon: <FileText className="size-9" strokeWidth={1.5} />,
+              title: "Guardá la referencia",
+              description: "Copiá la referencia para identificar el pedido.",
+            },
+            {
+              id: "collection",
+              icon: <Store className="size-9" strokeWidth={1.5} />,
+              title: "Coordiná el retiro",
+              description: "Contactá a la tienda antes de acercarte.",
+            },
+            {
+              id: "payment",
+              icon: <Banknote className="size-9" strokeWidth={1.5} />,
+              title: "Pagá al retirar",
+              description: "El personal confirma el pago recibido.",
+            },
+          ]}
+        />
         <Card className="max-w-xl">
           <CardHeader>
             <CardTitle>Transferencia pendiente</CardTitle>

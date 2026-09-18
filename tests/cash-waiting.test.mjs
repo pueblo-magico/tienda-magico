@@ -64,6 +64,12 @@ for (const cashStaffEnabled of [true, false, undefined]) {
         );
         assert.match(html, /role="status" aria-live="polite"/);
         assert.equal(
+          html.includes(messages.checkout.cashWaiting.nextTitle),
+          paymentStatus === "pending",
+        );
+        assert.ok(html.includes(messages.checkout.cashWaiting.summaryTitle));
+        assert.ok(html.includes(messages.checkout.cashWaiting.paymentMethod));
+        assert.equal(
           html.includes(messages.orders.receipt.confirm),
           paymentStatus === "approved",
         );

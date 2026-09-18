@@ -95,12 +95,22 @@ export default async function CheckoutPendingPage({
 
   return (
     <div
-      className={
-        isBankTransfer || isCash ? "lg:grid lg:grid-cols-3" : undefined
-      }
+      className={isBankTransfer ? "lg:grid lg:grid-cols-3" : "relative isolate"}
     >
       {ownedOrder?.paymentStatus === "approved" ? <RefreshPaidCart /> : null}
-      {isBankTransfer || isCash ? (
+      {isCash ? (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-96 overflow-hidden"
+        >
+          <BackdropImage
+            src="/images/cash-order-background.png"
+            sizes="100vw"
+            className="object-top"
+          />
+        </div>
+      ) : null}
+      {isBankTransfer ? (
         <aside
           aria-hidden
           className="bg-warm relative hidden min-h-full overflow-hidden lg:block"
@@ -112,16 +122,20 @@ export default async function CheckoutPendingPage({
       ) : null}
       <Section
         spacing="lg"
-        className={isBankTransfer || isCash ? "lg:col-span-2" : undefined}
+        className={
+          isBankTransfer ? "lg:col-span-2" : isCash ? "pt-5 sm:pt-6" : undefined
+        }
       >
         <Container
           className={
-            isBankTransfer || isCash
-              ? "mx-auto max-w-2xl space-y-6 text-left"
-              : "mx-auto max-w-xl space-y-6 text-center"
+            isCash
+              ? "mx-auto max-w-7xl space-y-6 text-left"
+              : isBankTransfer
+                ? "mx-auto max-w-2xl space-y-6 text-left"
+                : "mx-auto max-w-xl space-y-6 text-center"
           }
         >
-          <Eyebrow>{t("eyebrow")}</Eyebrow>
+          {!isCash ? <Eyebrow>{t("eyebrow")}</Eyebrow> : null}
           {!isBankTransfer && !isCash ? (
             <>
               <PageTitle as="h1" className="text-4xl sm:text-5xl">
@@ -245,12 +259,21 @@ export default async function CheckoutPendingPage({
               title={t("pending.cashTitle")}
               body={t("pending.cashBody")}
               notice={t("pending.cashNotice")}
+              returnLink={
+                <Link
+                  href={backLink.href}
+                  className="text-text-secondary inline-flex items-center gap-2 underline-offset-4 hover:underline"
+                >
+                  <ArrowLeft aria-hidden className="size-5" strokeWidth={2} />
+                  {t(backLink.labelKey)}
+                </Link>
+              }
             >
-              <div className="flex justify-between gap-4">
+              <div className="space-y-2">
                 <dt className="text-text-secondary">
                   {t("pending.orderReference")}
                 </dt>
-                <dd className="text-right font-mono text-xs break-all">
+                <dd className="bg-text-primary/10 flex items-center justify-between gap-2 rounded-lg p-3 font-mono text-sm break-all">
                   {cashOrder.publicReference}
                   <CopyButton
                     value={cashOrder.publicReference}
@@ -265,7 +288,9 @@ export default async function CheckoutPendingPage({
                   <dt className="text-text-secondary">
                     {t("pending.orderAmount")}
                   </dt>
-                  <dd className="font-semibold">{formattedAmount}</dd>
+                  <dd className="text-text-secondary text-2xl font-bold">
+                    {formattedAmount}
+                  </dd>
                 </div>
               ) : null}
             </CashWaiting>
@@ -307,15 +332,17 @@ export default async function CheckoutPendingPage({
             </dl>
           ) : null}
 
-          <p className="text-muted text-xs">
-            <Link
-              href={backLink.href}
-              className="inline-flex items-center gap-2 underline-offset-4 hover:underline"
-            >
-              <ArrowLeft aria-hidden className="size-4" strokeWidth={2} />
-              {t(backLink.labelKey)}
-            </Link>
-          </p>
+          {!(isCash && ownedOrder) ? (
+            <p className="text-muted text-xs">
+              <Link
+                href={backLink.href}
+                className="inline-flex items-center gap-2 underline-offset-4 hover:underline"
+              >
+                <ArrowLeft aria-hidden className="size-4" strokeWidth={2} />
+                {t(backLink.labelKey)}
+              </Link>
+            </p>
+          ) : null}
         </Container>
       </Section>
     </div>
