@@ -321,6 +321,14 @@
     "ethicallySourced": "Origen ético"
   },
   "orders": {
+    "summary": {
+      "title": "Resumen del pedido",
+      "placed": "Pedido realizado el {date}",
+      "quantity": "Cantidad: {quantity}",
+      "unavailable": "El detalle de productos no está disponible para este pedido.",
+      "paid": "Total pagado",
+      "total": "Total"
+    },
     "search": "Buscar",
     "filterLabel": "Filtrar pedidos por estado de pago",
     "all": "Todos",

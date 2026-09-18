@@ -6,6 +6,8 @@ Después de que el pago queda aprobado, el comprador puede confirmar que recibi�
 
 ## Seguridad y datos
 
+El resumen del pedido en efectivo muestra cantidades e importes del snapshot comercial histórico. Las imágenes provienen del producto relacionado y pueden cambiar; si ya no está disponible, se muestra un ícono. La referencia abreviada es solo visual: copiar mantiene el UUID completo. Los detalles se incluyen únicamente en la consulta de pedidos del comprador autenticada por su credencial de carrito. No se infiere envío gratuito ni se muestra «Total pagado» antes de aprobar el pago.
+
 - El storefront solo acepta la solicitud desde el mismo origen.
 - La referencia pública no alcanza para autorizar: el pedido debe pertenecer a una credencial de carrito guardada en la cookie `HttpOnly` del navegador.
 - El pedido debe tener el pago aprobado y no puede estar confirmado previamente.

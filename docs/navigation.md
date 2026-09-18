@@ -1,5 +1,7 @@
 # Storefront navigation
 
+El selector de idioma conserva todos los parámetros de consulta al traducir la ruta, incluidos el pedido, el método de pago, el origen de navegación y los filtros repetidos del catálogo.
+
 The store is the commerce experience for [Experiencia Mágico](https://experienciamagico.com/), not a separate brand. Its navigation intentionally combines shop-owned destinations with selected destinations on the main website.
 
 ## Navigation model

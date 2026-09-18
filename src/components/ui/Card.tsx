@@ -14,21 +14,40 @@ export function Card({ className, ...props }: ComponentProps<"div">) {
   );
 }
 
-export function CardHeader({ className, ...props }: ComponentProps<"div">) {
+export function CardHeader({
+  className,
+  layout = "stack",
+  ...props
+}: ComponentProps<"div"> & { layout?: "stack" | "split" }) {
   return (
     <div
       data-slot="card-header"
-      className={cn("grid gap-2 px-5", className)}
+      className={cn(
+        layout === "split"
+          ? "flex flex-wrap items-start justify-between gap-3 px-5"
+          : "grid gap-2 px-5",
+        className,
+      )}
       {...props}
     />
   );
 }
 
-export function CardTitle({ className, ...props }: ComponentProps<"h2">) {
+export function CardTitle({
+  className,
+  variant = "default",
+  ...props
+}: ComponentProps<"h2"> & { variant?: "default" | "editorial" }) {
   return (
     <h2
       data-slot="card-title"
-      className={cn("text-base leading-snug font-bold", className)}
+      className={cn(
+        "leading-snug",
+        variant === "editorial"
+          ? "text-text-secondary font-serif text-2xl font-normal sm:text-3xl"
+          : "text-base font-bold",
+        className,
+      )}
       {...props}
     />
   );

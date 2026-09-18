@@ -17,6 +17,7 @@ import {
 import { collectionPath, payloadFetch } from "./client";
 import { getPayloadEcommerceConfig } from "./config";
 import { parseGuestCartReferences } from "@/lib/commerce/guest-order-access";
+import { mapProductSummary } from "./mappers";
 
 type CheckoutOrderInput = {
   checkoutKey: string;
@@ -150,6 +151,8 @@ export function buildCheckoutOrderInput(
 }
 
 type PayloadOrderResponse = {
+  createdAt?: string;
+  items?: Array<{ product?: unknown }>;
   commercialSnapshot?: unknown;
   buyerContact?: unknown;
   cartReference?: string;
@@ -171,12 +174,19 @@ type PayloadOrderList = { docs?: PayloadOrderResponse[] };
 
 export function normalizePayloadOrderResponse(
   response: PayloadOrderCreateResponse,
+  includeDetails = false,
 ): CheckoutOrder {
   const order = "doc" in response ? response.doc : response;
   if (order.id == null || !order.publicReference?.trim()) {
     throw new Error("Payload order response is missing its public reference.");
   }
   return {
+    ...(includeDetails
+      ? {
+          createdAt: order.createdAt,
+          items: orderSummaryItems(order),
+        }
+      : {}),
     id: String(order.id),
     ...(order.transferReportedAt
       ? { transferReportedAt: order.transferReportedAt }
@@ -193,6 +203,72 @@ export function normalizePayloadOrderResponse(
       currencyCode: order.currency ?? "ARS",
     },
   };
+}
+
+function orderSummaryItems(
+  order: PayloadOrderResponse,
+): NonNullable<CheckoutOrder["items"]> {
+  const snapshot = order.commercialSnapshot;
+  if (
+    !snapshot ||
+    typeof snapshot !== "object" ||
+    !("items" in snapshot) ||
+    !Array.isArray(snapshot.items)
+  )
+    return [];
+  return snapshot.items.flatMap((item: unknown) => {
+    if (
+      !item ||
+      typeof item !== "object" ||
+      !("title" in item) ||
+      typeof item.title !== "string" ||
+      !("quantity" in item) ||
+      typeof item.quantity !== "number" ||
+      !Number.isSafeInteger(item.quantity) ||
+      item.quantity <= 0 ||
+      !("total" in item)
+    )
+      return [];
+    const total = item.total;
+    if (
+      !total ||
+      typeof total !== "object" ||
+      !("amount" in total) ||
+      typeof total.amount !== "string" ||
+      !total.amount.trim() ||
+      !Number.isFinite(Number(total.amount)) ||
+      Number(total.amount) < 0 ||
+      !("currencyCode" in total) ||
+      typeof total.currencyCode !== "string" ||
+      !/^[A-Z]{3}$/.test(total.currencyCode)
+    )
+      return [];
+    const productId = "productId" in item ? String(item.productId) : "";
+    const product = order.items
+      ?.map((row) => row.product)
+      .find(
+        (value) =>
+          value &&
+          typeof value === "object" &&
+          "id" in value &&
+          String(value.id) === productId,
+      );
+    const image =
+      product &&
+      typeof product === "object" &&
+      "id" in product &&
+      (typeof product.id === "string" || typeof product.id === "number")
+        ? mapProductSummary({ ...product, id: product.id }).featuredImage
+        : null;
+    return [
+      {
+        title: item.title,
+        quantity: item.quantity,
+        total: { amount: total.amount, currencyCode: total.currencyCode },
+        image,
+      },
+    ];
+  });
 }
 
 export async function confirmGuestOrderReceipt(
@@ -250,13 +326,13 @@ export async function getGuestOrders(
       query: {
         "where[cartReference][in]": references.join(","),
         sort: "-createdAt",
-        depth: 0,
+        depth: 2,
         limit: 100,
         page,
       },
     });
     for (const doc of result.docs ?? []) {
-      const normalized = normalizePayloadOrderResponse(doc);
+      const normalized = normalizePayloadOrderResponse(doc, true);
       const newerReference = doc.cartReference
         ? latestByCart.get(doc.cartReference)
         : undefined;

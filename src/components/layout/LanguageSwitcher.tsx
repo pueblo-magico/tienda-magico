@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useLocale } from "next-intl";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import {
   internalPath,
   localizePath,
@@ -16,8 +17,18 @@ function swapLocaleInPath(pathname: string, nextLocale: Locale) {
 }
 
 export function LanguageSwitcher({ className }: { className?: string }) {
+  return (
+    <Suspense fallback={null}>
+      <LanguageSwitcherLinks className={className} />
+    </Suspense>
+  );
+}
+
+function LanguageSwitcherLinks({ className }: { className?: string }) {
   const locale = useLocale() as Locale;
   const pathname = usePathname() || "/";
+  const searchParams = useSearchParams();
+  const query = searchParams.toString();
 
   return (
     <div
@@ -32,7 +43,7 @@ export function LanguageSwitcher({ className }: { className?: string }) {
         return (
           <Link
             key={item}
-            href={swapLocaleInPath(pathname, item)}
+            href={`${swapLocaleInPath(pathname, item)}${query ? `?${query}` : ""}`}
             hrefLang={item}
             aria-current={active ? "page" : undefined}
             className={cn(

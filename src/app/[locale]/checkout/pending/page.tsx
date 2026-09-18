@@ -14,6 +14,7 @@ import { TransferWaiting } from "@/features/checkout/TransferWaiting";
 import { guestCartReferences } from "@/lib/checkout/guest-orders";
 import { ArrowLeft } from "lucide-react";
 import { CashWaiting } from "@/features/checkout/CashWaiting";
+import { OrderSummary } from "@/features/orders/OrderSummary";
 import { RefreshPaidCart } from "@/features/cart/RefreshPaidCart";
 
 type Props = {
@@ -252,6 +253,7 @@ export default async function CheckoutPendingPage({
 
           {isCash && cashOrder && ownedOrder ? (
             <CashWaiting
+              summary={<OrderSummary order={ownedOrder} />}
               cashStaffEnabled={commerceSettings?.cashStaffEnabled === true}
               reference={ownedOrder.publicReference}
               receivedAt={ownedOrder.receivedAt}

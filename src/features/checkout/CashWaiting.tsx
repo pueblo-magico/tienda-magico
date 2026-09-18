@@ -42,6 +42,7 @@ export function CashWaiting({
   receivedAt,
   cashStaffEnabled = false,
   returnLink,
+  summary,
 }: {
   title: string;
   body: string;
@@ -52,6 +53,7 @@ export function CashWaiting({
   receivedAt?: string | null;
   cashStaffEnabled?: boolean;
   returnLink?: ReactNode;
+  summary?: ReactNode;
 }) {
   const t = useTranslations("checkout.cashWaiting");
   const checkoutText = useTranslations("checkout");
@@ -164,43 +166,45 @@ export function CashWaiting({
             />
           </div>
         ) : null}
-        <Card className="min-w-0 lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="text-text-secondary font-serif text-2xl font-normal sm:text-3xl">
-              {t("summaryTitle")}
-            </CardTitle>
-            <CardDescription className="text-base">
-              {t("summaryDescription")}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <dl className="divide-border divide-y [&>div]:py-5 [&>div:first-child]:pt-0">
-              {children}
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <dt className="text-text-secondary">{t("paymentMethod")}</dt>
-                <dd className="flex items-center gap-3">
-                  <Banknote
-                    aria-hidden
-                    className="text-text-secondary size-6"
-                    strokeWidth={1.5}
-                  />
-                  {t("cashMethod")}
-                </dd>
-              </div>
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <dt className="text-text-secondary">{t("paymentState")}</dt>
-                <dd className="flex items-center gap-3">
-                  <Store
-                    aria-hidden
-                    className="text-text-secondary size-6"
-                    strokeWidth={1.5}
-                  />
-                  {stateText(paymentStatus)}
-                </dd>
-              </div>
-            </dl>
-          </CardContent>
-        </Card>
+        {summary ?? (
+          <Card className="min-w-0 lg:col-span-2">
+            <CardHeader>
+              <CardTitle className="text-text-secondary font-serif text-2xl font-normal sm:text-3xl">
+                {t("summaryTitle")}
+              </CardTitle>
+              <CardDescription className="text-base">
+                {t("summaryDescription")}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <dl className="divide-border divide-y [&>div]:py-5 [&>div:first-child]:pt-0">
+                {children}
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <dt className="text-text-secondary">{t("paymentMethod")}</dt>
+                  <dd className="flex items-center gap-3">
+                    <Banknote
+                      aria-hidden
+                      className="text-text-secondary size-6"
+                      strokeWidth={1.5}
+                    />
+                    {t("cashMethod")}
+                  </dd>
+                </div>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <dt className="text-text-secondary">{t("paymentState")}</dt>
+                  <dd className="flex items-center gap-3">
+                    <Store
+                      aria-hidden
+                      className="text-text-secondary size-6"
+                      strokeWidth={1.5}
+                    />
+                    {stateText(paymentStatus)}
+                  </dd>
+                </div>
+              </dl>
+            </CardContent>
+          </Card>
+        )}
       </div>
       {paymentStatus === "pending" ? (
         <p className="bg-warm text-text-secondary flex items-center gap-5 rounded-xl p-5 text-base">

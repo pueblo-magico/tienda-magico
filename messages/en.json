@@ -321,6 +321,14 @@
     "ethicallySourced": "Ethically sourced"
   },
   "orders": {
+    "summary": {
+      "title": "Order summary",
+      "placed": "Order placed on {date}",
+      "quantity": "Quantity: {quantity}",
+      "unavailable": "Product details are unavailable for this order.",
+      "paid": "Total paid",
+      "total": "Total"
+    },
     "search": "Search",
     "filterLabel": "Filter orders by payment status",
     "all": "All",

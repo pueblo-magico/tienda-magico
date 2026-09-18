@@ -47,8 +47,8 @@ export default function CardPage() {
           ]}
         />
         <Card className="max-w-xl">
-          <CardHeader>
-            <CardTitle>Transferencia pendiente</CardTitle>
+          <CardHeader layout="split">
+            <CardTitle variant="editorial">Transferencia pendiente</CardTitle>
             <CardDescription>
               El aviso de transferencia no confirma el pago.
             </CardDescription>
@@ -107,7 +107,11 @@ export default function CardPage() {
           CardFooter. Usá un encabezado semántico y conservá las reglas de
           negocio fuera de estas primitivas. CopyButton anuncia éxito o error y
           requiere etiquetas localizadas. El portado manual de Card no requiere
-          dependencias adicionales.
+          dependencias adicionales. CardHeader admite la distribución split para
+          separar título y referencia; CardTitle admite la variante editorial
+          para títulos serif sin clases tipográficas incompatibles. Para
+          referencias con texto forest, usá bg-warm en lugar del fondo forest de
+          bg-background-secondary.
         </p>
         <a
           href="https://ui.shadcn.com/docs/components/card"

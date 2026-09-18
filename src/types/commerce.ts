@@ -209,6 +209,13 @@ export type CartLineMerchandise = {
 };
 
 export type CheckoutOrder = {
+  createdAt?: string;
+  items?: Array<{
+    title: string;
+    quantity: number;
+    total: Money;
+    image: CommerceImage | null;
+  }>;
   newerReference?: string;
   transferReportedAt?: string | null;
   receivedAt?: string | null;
