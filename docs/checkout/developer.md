@@ -1,5 +1,21 @@
 # Checkout developer guide
 
+## Revisión final antes de crear el pedido
+
+El botón del carrito y del drawer abre `/{locale}/checkout/review` sin crear pedidos. La ruta antigua `/{locale}/checkout` redirige a la revisión, sin iniciar pagos automáticamente ni trasladar credenciales por URL.
+
+La revisión usa las tarjetas canónicas del sistema UI y muestra productos, cantidades, importes, comprador, entrega y medio de pago. No inventa direcciones, gastos gratuitos ni cantidades de artesanos. Los enlaces «Editar» vuelven al carrito sin perder los datos durante la navegación interna. Una recarga completa requiere volver a completar nombre, email y documento: no se guardan datos personales nuevos en almacenamiento del navegador.
+
+Solo «Confirmar compra» inicia `POST /api/checkout`. Requiere `acceptedTerms: true` y `reviewedCart`, una representación del carrito mostrado sin su credencial. El servidor vuelve a cargar el carrito y rechaza diferencias de productos, cantidades, importes o entrega con 409 antes de crear el pedido. La representación no reemplaza autorización ni validación comercial. Los clientes anteriores de este endpoint deben pasar por la revisión; no se conserva el inicio automático.
+
+### Verificación manual
+
+1. En español e inglés, completá el carrito y elegí efectivo, transferencia o Mercado Pago. «Revisar compra» no debe crear un pedido.
+2. Verificá los datos y los enlaces Editar/Volver. La confirmación queda deshabilitada hasta aceptar los términos. Cambiar el carrito invalida la aceptación.
+3. Confirmá una vez: efectivo y transferencia abren su espera; Mercado Pago abre el proveedor. Un doble clic no debe duplicar solicitudes.
+4. Cambiá el carrito desde otra pestaña antes de confirmar: el servidor debe rechazar la revisión desactualizada, sin crear el pedido.
+5. Abrí la revisión con un carrito vacío o recargala sin datos personales: debe ofrecer volver al carrito y no permitir comprar. Comprobá móvil y teclado.
+
 ## Pendiente para retomar: pago en efectivo
 
 - Implementar un flujo de pago en efectivo como medio adicional del checkout.

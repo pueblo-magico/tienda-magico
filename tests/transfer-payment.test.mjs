@@ -178,6 +178,8 @@ test("el cliente serializa la transferencia en la solicitud de checkout", async 
       cartId: "cart-1",
       locale: "es",
       paymentMethod: BANK_TRANSFER,
+      acceptedTerms: true,
+      reviewedCart: "reviewed-test-cart",
     });
   } finally {
     globalThis.fetch = originalFetch;

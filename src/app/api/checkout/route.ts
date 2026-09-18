@@ -24,6 +24,10 @@ import {
   validateCheckoutCustomer,
 } from "@/lib/checkout/customer";
 import { createCashSession } from "@/lib/checkout/cash";
+import {
+  checkoutReviewSnapshot,
+  hasCheckoutReview,
+} from "@/lib/checkout/review";
 
 export const dynamic = "force-dynamic";
 
@@ -113,6 +117,8 @@ type CheckoutBody = {
   name?: string;
   paymentMethod?: string;
   identification?: { type: string; number: string };
+  acceptedTerms?: boolean;
+  reviewedCart?: string;
 };
 
 /**
@@ -134,6 +140,16 @@ export async function POST(request: Request) {
     const body = (await request.json()) as CheckoutBody;
     const cartId = body.cartId?.trim();
     const locale = (body.locale?.trim() || "en").toLowerCase();
+    if (!hasCheckoutReview(body)) {
+      return NextResponse.json(
+        {
+          error: locale.startsWith("es")
+            ? "Revisá tu compra y aceptá los términos antes de confirmar."
+            : "Review your purchase and accept the terms before confirming.",
+        },
+        { status: 400 },
+      );
+    }
 
     if (!cartId) {
       return NextResponse.json(
@@ -170,6 +186,14 @@ export async function POST(request: Request) {
       cart.fulfillmentMode,
       locale,
     );
+    if (body.reviewedCart !== checkoutReviewSnapshot(cart)) {
+      throw new CommerceError(
+        locale.startsWith("es")
+          ? "El carrito cambió. Volvé al carrito y revisá los datos antes de confirmar."
+          : "Your cart changed. Return to the cart and review it before confirming.",
+        { status: 409 },
+      );
+    }
     const commerceSettings = await getCommerceSettings();
     if (!isFulfillmentModeEnabled(fulfillmentMode, commerceSettings)) {
       throw new FulfillmentModeError(locale);

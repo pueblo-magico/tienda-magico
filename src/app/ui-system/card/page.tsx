@@ -12,6 +12,8 @@ import { Input } from "@/components/ui/Input";
 import { DocsPageHeader } from "@/components/ui-system/DocsPageHeader";
 import { DocsSection } from "@/components/ui-system/DocsSection";
 import { StepsCard } from "@/components/cards/StepsCard";
+import { ReviewCard } from "@/components/cards/ReviewCard";
+import { Checkbox } from "@/components/ui/Checkbox";
 import { FileText, Store, Banknote } from "lucide-react";
 
 export default function CardPage() {
@@ -22,6 +24,22 @@ export default function CardPage() {
         description="Primitiva composable de shadcn/ui adaptada a los tokens de Pueblo Mágico. Base para resúmenes y tarjetas de dominio; no reemplaza las variantes editoriales de InfoCard."
       />
       <DocsSection title="Resumen y acciones">
+        <ReviewCard
+          title="Revisión de datos"
+          description="Tarjeta editable antes de confirmar una operación."
+          icon={<FileText className="size-9" strokeWidth={1.5} />}
+          editHref="/ui-system/input"
+          editLabel="Editar"
+        >
+          <p>
+            Contenido de ejemplo. El consumidor proporciona datos y textos
+            localizados.
+          </p>
+          <Checkbox defaultSelected>
+            Aceptación explícita: estado seleccionado, foco visible y teclado.
+          </Checkbox>
+          <Checkbox isDisabled>Estado deshabilitado</Checkbox>
+        </ReviewCard>
         <StepsCard
           title="Qué hacer ahora"
           description="Tarjeta de pasos numerados, adaptable a móvil. Composición de Card; los textos se localizan en cada consumidor."

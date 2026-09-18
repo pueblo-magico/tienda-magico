@@ -50,7 +50,7 @@ for (const locale of ["es", "en"]) {
   test(`el resumen ${locale} muestra secciones abiertas y el importe real`, async () => {
     const html = await renderSummary(locale);
     assert.equal((html.match(/aria-expanded="true"/g) ?? []).length, 3);
-    assert.match(html, locale === "es" ? /Pagar.*84\.000/ : /Pay.*84,000/);
+    assert.match(html, locale === "es" ? /Revisar compra/ : /Review purchase/);
     assert.doesNotMatch(html, /value="delivery"/);
     assert.doesNotMatch(html, /identification-number/);
     assert.doesNotMatch(html, /<button[^>]* disabled=""/);

@@ -404,7 +404,7 @@ export function CartSummary({
         }
         onClick={onCheckout}
       >
-        {t("payAmount", { amount: formatMoney(cart.cost.totalAmount, locale) })}
+        {t("reviewPurchase")}
         <ArrowRight aria-hidden strokeWidth={2} className="size-5" />
       </Button>
     </div>

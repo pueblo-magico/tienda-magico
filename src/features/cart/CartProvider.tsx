@@ -11,7 +11,8 @@ import {
   type ReactNode,
 } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { localizePath } from "@/config/navigation";
 import type { Cart, CartLineInput } from "@/types/commerce";
 import type { FulfillmentMode } from "@/lib/commerce/local-purchase";
 import { CASH, MERCADO_PAGO, type PaymentMethod } from "@/types/checkout";
@@ -72,6 +73,10 @@ type CartContextValue = {
   ) => Promise<Cart | null>;
   removeItem: (lineId: string) => Promise<Cart | null>;
   checkout: () => Promise<void>;
+  confirmCheckout: (
+    acceptedTerms: boolean,
+    reviewedCart: string,
+  ) => Promise<void>;
   setPaymentMethod: (method: PaymentMethod) => void;
   setBuyerName: (name: string) => void;
   setBuyerEmail: (email: string) => void;
@@ -107,6 +112,8 @@ function writeStoredCartId(cartId: string | null) {
 export function CartProvider({ children }: { children: ReactNode }) {
   const locale = useLocale();
   const pathname = usePathname();
+  const router = useRouter();
+  const checkoutInFlight = useRef(false);
   const tCommercial = useTranslations("commercial");
   const [cart, setCart] = useState<Cart>(emptyCart);
   const [isOpen, setIsOpen] = useState(false);
@@ -347,46 +354,59 @@ export function CartProvider({ children }: { children: ReactNode }) {
   ]);
 
   const checkout = useCallback(async () => {
-    const cartId = readStoredCartId() || cart.id;
-    if (!cartId || cart.totalQuantity <= 0) {
-      setError("Checkout is not available for this cart yet.");
-      return;
-    }
+    setIsOpen(false);
+    router.push(localizePath(locale, "/checkout/review"));
+  }, [locale, router]);
 
-    setIsMutating(true);
-    setError(null);
-    try {
-      const result = await createCheckoutSession({
-        cartId,
-        locale,
-        paymentMethod,
-        name: buyerName,
-        email: buyerEmail,
-        identification:
-          paymentMethod === "bank-transfer" ? identification : undefined,
-      });
-      const redirectUrl = result.session?.redirectUrl;
-      if (!redirectUrl) {
+  const confirmCheckout = useCallback(
+    async (acceptedTerms: boolean, reviewedCart: string) => {
+      if (checkoutInFlight.current) return;
+      const cartId = cart.id;
+      if (!cartId || cart.totalQuantity <= 0) {
         setError("Checkout is not available for this cart yet.");
         return;
       }
-      window.location.assign(redirectUrl);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Could not start checkout.",
-      );
-    } finally {
-      setIsMutating(false);
-    }
-  }, [
-    buyerEmail,
-    buyerName,
-    identification,
-    cart.id,
-    cart.totalQuantity,
-    locale,
-    paymentMethod,
-  ]);
+
+      checkoutInFlight.current = true;
+      setIsMutating(true);
+      setError(null);
+      try {
+        const result = await createCheckoutSession({
+          acceptedTerms,
+          reviewedCart,
+          cartId,
+          locale,
+          paymentMethod,
+          name: buyerName,
+          email: buyerEmail,
+          identification:
+            paymentMethod === "bank-transfer" ? identification : undefined,
+        });
+        const redirectUrl = result.session?.redirectUrl;
+        if (!redirectUrl) {
+          setError("Checkout is not available for this cart yet.");
+          return;
+        }
+        window.location.assign(redirectUrl);
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : "Could not start checkout.",
+        );
+      } finally {
+        checkoutInFlight.current = false;
+        setIsMutating(false);
+      }
+    },
+    [
+      buyerEmail,
+      buyerName,
+      identification,
+      cart.id,
+      cart.totalQuantity,
+      locale,
+      paymentMethod,
+    ],
+  );
 
   const value = useMemo<CartContextValue>(
     () => ({
@@ -411,6 +431,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       updateItemQuantity,
       removeItem,
       checkout,
+      confirmCheckout,
       setPaymentMethod,
       setBuyerName,
       setBuyerEmail,
@@ -438,6 +459,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       updateItemQuantity,
       removeItem,
       checkout,
+      confirmCheckout,
       clearError,
       confirmPrices,
       setFulfillment,

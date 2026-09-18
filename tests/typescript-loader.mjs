@@ -14,7 +14,12 @@ async function resolveTypeScriptModule(baseUrl, context, nextResolve) {
       // Continue to the other supported TypeScript extension.
     }
   }
-  return nextResolve(`${baseUrl}.ts`, context);
+  try {
+    await access(new URL(`${baseUrl}/index.ts`));
+    return nextResolve(`${baseUrl}/index.ts`, context);
+  } catch {
+    return nextResolve(`${baseUrl}.ts`, context);
+  }
 }
 
 export function resolve(specifier, context, nextResolve) {
@@ -28,7 +33,8 @@ export function resolve(specifier, context, nextResolve) {
     specifier === "next/image" ||
     specifier === "next/link" ||
     specifier === "next/navigation" ||
-    specifier === "next/server"
+    specifier === "next/server" ||
+    specifier === "next/headers"
   ) {
     return nextResolve(`${specifier}.js`, context);
   }
