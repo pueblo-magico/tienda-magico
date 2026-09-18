@@ -1,4 +1,23 @@
-# Automated staging deployment with GitHub Actions
+# Despliegue automático de staging y producción
+
+## Rama production
+
+Cada compilación de producción usa una etiqueta única `production-SHA-RUN_ID-RUN_ATTEMPT`, evitando sobrescribir imágenes al reejecutar un commit. El workflow transfiere el archivo con checksum por SSH y activa las imágenes en la VM. Docker Compose espera los health checks internos de storefront, CMS y PostgreSQL (`--wait`); después se comprueban los endpoints públicos de tienda y CMS.
+
+Solo si esas verificaciones pasan se crea y publica una etiqueta Git **anotada**, con el mismo nombre que la imagen, apuntando al commit desplegado. El token de Actions necesita `contents: write` y las reglas del repositorio deben permitir crear esas etiquetas. No se fuerzan ni se reemplazan etiquetas existentes. Una activación manual mediante `existing_tag` no crea otra etiqueta: conserva la trazabilidad del artefacto original. Si falla la publicación de la etiqueta, el workflow falla aunque la versión ya esté activa; ese fallo no revierte la base de datos ni la aplicación.
+
+El workflow `.github/workflows/deploy.yml` despliega automáticamente los pushes a `staging` y `production`. Cada rama utiliza el GitHub Environment del mismo nombre, una cola independiente y etiquetas `staging-SHA` o `production-SHA`. Las ejecuciones manuales desde otras ramas se omiten. `main` no dispara despliegues.
+
+Antes del primer despliegue de producción:
+
+1. Creá el Environment `production` en GitHub y restringí sus ramas de despliegue a `production`. Configurá revisores obligatorios si necesitás una aprobación antes de publicar.
+2. Prepará una VM de producción independiente siguiendo `deploy/manual/README.md`. No reutilices el destino de staging: el directorio remoto es `/opt/tienda-magico` en ambos casos. Configurá allí los secretos de base de datos y CMS, los dominios y las credenciales privadas de integración.
+3. Cargá en ese Environment las variables `SHOP_URL`, `CMS_URL`, `DEPLOY_PLATFORM`, `SSH_HOST`, `SSH_PORT` (opcional; 22 por defecto), `SSH_USER`, `CHECKOUT_PROVIDER=mercado-pago`, `MERCADOPAGO_SANDBOX=false` y `MERCADOPAGO_WEBHOOK_URL`. Las dos URLs públicas deben usar HTTPS; el webhook debe ser `SHOP_URL/api/checkout/webhooks/mercado-pago`.
+4. Cargá los secretos `SSH_PRIVATE_KEY`, `SSH_KNOWN_HOSTS`, `MERCADOPAGO_ACCESS_TOKEN` y `MERCADOPAGO_WEBHOOK_SECRET` con valores exclusivos de producción. Staging conserva `MERCADOPAGO_SANDBOX=true`.
+5. Aplicá las migraciones pendientes del CMS según el procedimiento del release antes de publicar código que dependa de ellas. Este cambio no agrega ejecución automática de migraciones ni rollback de datos.
+6. Fusioná el release en `production`. Verificá el resultado de Actions y los flujos de compra; los chequeos automáticos de endpoints no prueban un pago real.
+
+Para activar una imagen existente, ejecutá manualmente el workflow seleccionando la rama correspondiente y su `existing_tag`. La reversión de imágenes no revierte migraciones de base de datos. No se configura ningún Environment ni se ejecuta un despliegue por modificar este archivo.
 
 The staging workflow reproduces the proven manual artifact deployment without a
 container registry. GitHub Actions builds all four Linux images, exports them as
