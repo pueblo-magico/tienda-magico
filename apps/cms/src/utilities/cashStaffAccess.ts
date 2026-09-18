@@ -19,14 +19,14 @@ export const protectCashStaffAccount: CollectionBeforeChangeHook = ({ data, orig
     (isCashStaff(data) || isCashStaff(originalDoc)) &&
     req.context.cashStaffAuthority !== cashStaffAuthority
   )
-    throw new APIError('Administrá el acceso de caja desde Configuración del sitio.', 403)
+    throw new APIError('Administrá el acceso de caja desde Configuración de comercio.', 403)
   return data
 }
 
 export const cashStaffBeforeLogin: CollectionBeforeLoginHook = async ({ user, req }) => {
   if (isCashStaff(user)) {
     const settings = await req.payload.findGlobal({
-      slug: 'site-settings',
+      slug: 'commerce-settings',
       overrideAccess: true,
       depth: 0,
       req,
@@ -125,7 +125,7 @@ export async function authorizeCashStaff(req: PayloadRequest): Promise<boolean> 
   )
     return false
   const settings = await req.payload.findGlobal({
-    slug: 'site-settings',
+    slug: 'commerce-settings',
     depth: 0,
     overrideAccess: true,
     req,

@@ -62,7 +62,8 @@ export default async function CheckoutPendingPage({
   const ownedOrder = ownedOrders.find(
     (order) => order.publicReference === orderReference,
   );
-  const commerceSettings = isBankTransfer ? await getCommerceSettings() : null;
+  const commerceSettings =
+    isBankTransfer || isCash ? await getCommerceSettings() : null;
   const siteSettings =
     isBankTransfer || isCash ? await getSiteSettings(locale) : null;
   const expiresAt = transferOrder?.paymentExpiresAt ?? null;
@@ -237,6 +238,7 @@ export default async function CheckoutPendingPage({
 
           {isCash && cashOrder && ownedOrder ? (
             <CashWaiting
+              cashStaffEnabled={commerceSettings?.cashStaffEnabled === true}
               reference={ownedOrder.publicReference}
               receivedAt={ownedOrder.receivedAt}
               paymentStatus={ownedOrder.paymentStatus}

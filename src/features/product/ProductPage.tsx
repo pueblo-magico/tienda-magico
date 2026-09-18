@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { localizePath } from "@/config/navigation";
+import { buildCategoryPath } from "@/features/shop/category-hierarchy";
 import { Badge } from "@/components/ui/Badge";
 import { Accordion } from "@/components/ui/Accordion";
 import { Container } from "@/components/layout/Container";
@@ -122,7 +123,9 @@ export function ProductPageView({ locale, product, related, labels }: Props) {
                 <Link
                   href={localizePath(
                     locale,
-                    `/shop?collection=${encodeURIComponent(item.handle)}`,
+                    `/shop/categories/${buildCategoryPath(item)
+                      .map(encodeURIComponent)
+                      .join("/")}`,
                   )}
                   className="hover:text-forest transition-colors"
                 >

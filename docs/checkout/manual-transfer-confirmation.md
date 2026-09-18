@@ -34,7 +34,7 @@ El rollback elimina las nuevas columnas de auditoría y el índice, **pero no re
 Usá únicamente un entorno de prueba y evidencia ficticia. Repetí en ES/EN, a 390 px y 1440 px, con teclado.
 
 1. Publicá un producto simple con SKU, precio ARS y stock conocido. Creá un pedido por transferencia desde el carrito, con nombre/email y retiro local. Abrí la página de espera en otra pestaña.
-2. En CMS → Pedidos, abrí la referencia correspondiente. En **Verificar transferencia recibida**, ingresá un ID bancario de prueba único y el importe en centavos: `$ 1.000` corresponde a `100000`.
+2. En CMS → Pedidos, abrí la referencia correspondiente. En **Verificar transferencia recibida**, ingresá un ID bancario de prueba único y el importe en pesos enteros: para `$ 20.000`, ingresá `20000`; el campo muestra `20.000`.
 3. El botón debe permanecer deshabilitado sin referencia válida, importe entero positivo y aceptación de recepción. Confirmá la recepción y enviá. Mientras guarda, los controles no permiten otro envío; al terminar aparece éxito. Recargá el documento.
 4. Verificá `paymentStatus: approved`, auditoría con tu ID y fecha, y stock descontado una sola vez. La venta local debe quedar `paid`/`approved`. El estado del pedido sigue `processing`, no entregado. La página de espera debe mostrar pago confirmado en su próxima consulta; Mis pedidos debe reflejarlo al actualizar.
 5. Repetí la solicitud con la misma referencia/importe: debe ser idempotente. Probá otra referencia en ese pedido y reutilizá la referencia anterior en otro pedido: deben rechazarse sin cambiar stock.

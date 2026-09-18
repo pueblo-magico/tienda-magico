@@ -1,13 +1,14 @@
 # Caja del storefront
 
-El equipo puede confirmar efectivo desde `/es/staff/cash` o `/en/staff/cash`, sin entrar al CMS. La pantalla de espera de efectivo incluye **Confirmar pago (personal)** y pasa únicamente la referencia pública del pedido. El enlace no autoriza el cobro por sí solo.
+El equipo puede confirmar efectivo desde `/es/staff/cash` o `/en/staff/cash`, sin entrar al CMS. La pantalla de espera de efectivo muestra **Confirmar pago (personal)** solo cuando caja está habilitada y pasa únicamente la referencia pública del pedido. Si la configuración no está disponible, oculta el enlace. El indicador de habilitación es público para controlar esta visibilidad; la contraseña sigue siendo privada. El enlace no autoriza el cobro por sí solo: deshabilitar caja también bloquea el acceso directo y las acciones del servidor.
 
 ## Configuración y despliegue
 
-1. Desplegá el CMS y ejecutá sus migraciones, incluida `20260917_140000_staff_cash`, antes de habilitar la funcionalidad en la tienda.
-2. Como administrador, abrí **Configuración del sitio** en el CMS.
+1. Desplegá el CMS y ejecutá sus migraciones, incluidas `20260917_140000_staff_cash` y `20260917_150000_staff_cash_commerce`, antes de habilitar la funcionalidad en la tienda.
+2. Como administrador, abrí **Configuración de comercio** en el CMS.
 3. Activá **Habilitar caja en la tienda** e ingresá una **Nueva contraseña de caja** de entre 12 y 128 caracteres. Guardá ambos cambios juntos la primera vez.
 4. Para conservar la contraseña, dejá el campo vacío. Para rotarla, ingresá una nueva. Deshabilitar caja o cambiar la contraseña invalida todas las sesiones compartidas.
+   El botón **Mostrar contraseña / Ocultar contraseña** permite revisar únicamente el valor nuevo mientras lo escribís, sin guardar ni cambiar credenciales. Al salir del campo se vuelve a ocultar. La contraseña guardada no puede recuperarse ni mostrarse.
 5. Abrí la página de caja desde un pedido pendiente o pegá su referencia pública luego de ingresar.
 
 No se agrega una contraseña a `.env` ni a GitHub. El storefront reutiliza `PAYLOAD_CMS_URL` (o `PAYLOAD_ECOMMERCE_URL`) para comunicarse con el CMS. `NEXT_PUBLIC_SITE_URL` debe contener el origen público de la tienda y estar autorizado en `CORS_ORIGINS` del CMS; así también funciona cuando la URL interna del CMS difiere de su URL pública. En producción usá HTTPS en ambos servicios.
@@ -19,7 +20,7 @@ La contraseña es un campo virtual de escritura: nunca se guarda en el global ni
 1. Recibí y contá el efectivo antes de confirmar.
 2. Ingresá la contraseña del equipo. La referencia se carga automáticamente si llegaste desde el pedido.
 3. Revisá comprador, referencia, estado e importe. Solo se admiten pedidos de efectivo con retiro local.
-4. Ingresá el importe recibido en **centavos ARS**: `$ 1.000` se ingresa como `100000`.
+4. Ingresá el importe recibido en **pesos ARS enteros**: `20000` se muestra como `20.000`. No ingreses centavos.
 5. Seleccioná **Confirmar efectivo recibido**. Esta acción declara que contaste el importe exacto.
 6. La operación reutiliza las validaciones, el bloqueo transaccional, el descuento único de stock, la venta vinculada y la auditoría del CMS. Completa el carrito, pero no marca entrega o retiro.
 7. Cerrá la sesión al terminar, especialmente si usaste el teléfono del comprador.
@@ -38,9 +39,9 @@ Si se pierde la conexión, consultá nuevamente la misma referencia antes de rei
 
 ## Compatibilidad y rollback
 
-La migración agrega únicamente `site_settings.cash_staff_enabled`, deshabilitado por defecto. La contraseña usa las tablas de autenticación existentes. No se modifican pedidos ni sus auditorías.
+La migración inicial agrega `site_settings.cash_staff_enabled`, deshabilitado por defecto. La migración `20260917_150000_staff_cash_commerce` traslada ese estado a `commerce_settings.cash_staff_enabled` y elimina la columna anterior. Conserva la contraseña y las sesiones existentes; su rollback devuelve el estado a Configuración del sitio sin modificar credenciales. Ejecutá las migraciones antes de iniciar el CMS actualizado; no reemplaces este traslado por un schema push. La contraseña usa las tablas de autenticación existentes. No se modifican pedidos ni sus auditorías.
 
-El rollback revoca las sesiones de la cuenta técnica, elimina su hash y salt y quita la columna de configuración. Conserva la cuenta para no perder la identidad de la auditoría. Después de volver a desplegar, configurá una contraseña nueva antes de habilitar caja. No reviertas las correcciones de autorización de usuarios al restaurar una versión anterior.
+El rollback de la migración inicial (después de revertir el traslado) revoca las sesiones de la cuenta técnica, elimina su hash y salt y quita la columna de configuración. Conserva la cuenta para no perder la identidad de la auditoría. Después de volver a desplegar, configurá una contraseña nueva antes de habilitar caja. No reviertas las correcciones de autorización de usuarios al restaurar una versión anterior.
 
 ## Pruebas manuales
 
@@ -66,6 +67,7 @@ Desde `apps/cms`:
 
 ```powershell
 node --import tsx scripts/test-transfer-confirmation.mjs
+node --experimental-test-module-mocks --import tsx --test scripts/staff-cash-password.test.mjs
 ```
 
 La integración usa una base local descartable e incluye autorización, CSRF, privacidad, importe, idempotencia, cierre del carrito, logout, rotación, bloqueo, vencimiento de sesiones y protección contra cambios de rol.

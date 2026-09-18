@@ -273,4 +273,23 @@ export async function cashConfirmationCases({
   assert.equal(preserved.paymentMethod, 'cash')
   assert.deepEqual(preserved.cashVerification, approved.cashVerification)
   console.log('PASS: reemplazo de efectivo y rollback bloqueado sin pérdida de auditoría')
+  const receivedAt = new Date().toISOString()
+  const receipt = { receivedAt, experienceRating: 5, experienceComment: 'Excelente atención' }
+  await assert.rejects(payload.update({ collection: 'orders', id: reviewOrder.id, data: receipt }))
+  await payload.update({ collection: 'orders', id: document.id, data: receipt })
+  assert.equal((await receive(document)).status, 200)
+  await assert.rejects(
+    payload.update({ collection: 'orders', id: document.id, data: { experienceRating: 1 } }),
+  )
+  const received = await payload.findByID({ collection: 'orders', id: document.id })
+  assert.equal(received.receivedAt, receivedAt)
+  assert.equal(received.experienceRating, 5)
+  assert.equal(received.experienceComment, receipt.experienceComment)
+  const receiptMigration = migrations.find(
+    (item) => item.name === '20260917_150000_order_receipt_feedback',
+  )
+  await assert.rejects(
+    payload.db.drizzle.transaction((db) => receiptMigration.down({ db, payload, req: {} })),
+  )
+  console.log('PASS: recepción posterior al efectivo, inmutabilidad y rollback protegido')
 }

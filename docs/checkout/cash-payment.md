@@ -15,7 +15,7 @@ Si el cliente cambia a entrega, la tienda vuelve a Mercado Pago y el servidor re
 1. El comprador elige retiro local y efectivo, completa nombre y email, y confirma el pedido.
 2. La tienda crea un pedido `pending` idempotente y una venta local vinculada; todavía no descuenta stock.
 3. La pantalla pendiente muestra la referencia pública y el importe exacto. Solo el navegador que creó el pedido puede ver esos datos mediante su credencial de carrito guardada.
-4. Al recibir el dinero, un administrador puede confirmar desde el CMS o el equipo puede usar [la caja del storefront](./staff-cash.md) con su contraseña compartida. En ambos casos se ingresa el importe en centavos ARS y se confirma que se recibió y contó el efectivo.
+4. Al recibir el dinero, un administrador puede confirmar desde el CMS o el equipo puede usar [la caja del storefront](./staff-cash.md) con su contraseña compartida. En ambos casos se ingresa el importe en pesos ARS enteros (20000 se muestra como 20.000) y se confirma que se recibió y contó el efectivo.
 5. En una transacción PostgreSQL, el CMS vuelve a validar catálogo, precio y stock, descuenta inventario una sola vez, marca pedido y venta local como pagados y guarda la auditoría privada.
 
 La pantalla consulta el estado cada diez segundos mientras el pago está pendiente o por verificar y la pestaña está visible. También permite consultar manualmente. Un pedido aprobado nunca vuelve a pedir dinero; un pedido cancelado indica que no debe pagarse.

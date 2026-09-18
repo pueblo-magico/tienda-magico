@@ -5,6 +5,7 @@ export type CommerceSettings = {
   localCollectionEnabled: boolean;
   deliveryEnabled: boolean;
   cashEnabled: boolean;
+  cashStaffEnabled: boolean;
   transferEnabled: boolean;
   transfer: {
     accountHolder: string;
@@ -19,6 +20,7 @@ export const DEFAULT_COMMERCE_SETTINGS: CommerceSettings = {
   localCollectionEnabled: true,
   deliveryEnabled: false,
   cashEnabled: false,
+  cashStaffEnabled: false,
   transferEnabled: false,
   transfer: {
     accountHolder: "",
@@ -59,6 +61,7 @@ export function parseCommerceSettings(value: unknown): CommerceSettings {
       typeof settings.transferEnabled === "boolean"
         ? settings.transferEnabled
         : DEFAULT_COMMERCE_SETTINGS.transferEnabled,
+    cashStaffEnabled: settings.cashStaffEnabled === true,
     transfer: {
       accountHolder: stringValue(transfer.accountHolder),
       taxId: stringValue(transfer.taxId),

@@ -10,12 +10,14 @@ import {
   useTranslation,
 } from '@payloadcms/ui'
 import { useState } from 'react'
+import { ArsAmountInput } from './ArsAmountInput'
+import { arsPesosToMinorUnits } from '../utilities/arsInput'
 
 const copy = {
   es: {
     title: 'Verificar transferencia recibida',
     reference: 'ID de la operación bancaria (no DNI ni referencia del pedido)',
-    amount: 'Importe recibido en centavos ARS (ej.: $ 1.000 = 100000)',
+    amount: 'Importe recibido en pesos ARS (sin centavos)',
     received: 'Verifiqué la recepción del importe exacto en la cuenta del comercio.',
     late: 'Si venció el plazo, autorizo la confirmación tardía, sujeta a stock.',
     submit: 'Confirmar transferencia',
@@ -44,7 +46,7 @@ const copy = {
   en: {
     title: 'Verify received transfer',
     reference: 'Bank transaction ID (not national ID or order reference)',
-    amount: 'Received amount in ARS minor units (e.g. $1,000 = 100000)',
+    amount: 'Received amount in ARS pesos (whole pesos)',
     received: 'I verified receipt of the exact amount in the merchant account.',
     late: 'If expired, I authorize late confirmation, subject to available stock.',
     submit: 'Confirm transfer',
@@ -88,6 +90,7 @@ function TransferConfirmationForm({ id }: { id: string | number }) {
   const text = copy[i18n.language === 'en' ? 'en' : 'es']
   const [reference, setReference] = useState('')
   const [amount, setAmount] = useState('')
+  const minorAmount = arsPesosToMinorUnits(amount)
   const [received, setReceived] = useState(false)
   const [acceptLate, setAcceptLate] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -95,7 +98,7 @@ function TransferConfirmationForm({ id }: { id: string | number }) {
   const [message, setMessage] = useState('')
 
   const confirm = async () => {
-    if (busy || confirmed) return
+    if (busy || confirmed || minorAmount === null) return
     setBusy(true)
     setMessage('')
     try {
@@ -105,7 +108,7 @@ function TransferConfirmationForm({ id }: { id: string | number }) {
           method: 'POST',
           credentials: 'same-origin',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ reference, amount: Number(amount), received, acceptLate }),
+          body: JSON.stringify({ reference, amount: minorAmount, received, acceptLate }),
           signal: AbortSignal.timeout(15000),
         },
       )
@@ -145,12 +148,11 @@ function TransferConfirmationForm({ id }: { id: string | number }) {
         onChange={(event) => setReference(event.target.value)}
         readOnly={busy || confirmed}
       />
-      <TextInput
-        hasMany={false}
+      <ArsAmountInput
         path="transfer-confirmation-amount"
         label={text.amount}
         value={amount}
-        onChange={(event) => setAmount(event.target.value)}
+        onValueChange={setAmount}
         readOnly={busy || confirmed}
       />
       <CheckboxInput
@@ -174,9 +176,7 @@ function TransferConfirmationForm({ id }: { id: string | number }) {
           confirmed ||
           !received ||
           !/^[a-zA-Z0-9_-]{3,100}$/.test(reference.trim()) ||
-          !/^\d+$/.test(amount) ||
-          !Number.isSafeInteger(Number(amount)) ||
-          Number(amount) <= 0
+          minorAmount === null
         }
         onClick={() => void confirm()}
       >

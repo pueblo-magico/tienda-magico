@@ -10,11 +10,13 @@ import {
   useTranslation,
 } from '@payloadcms/ui'
 import { useState } from 'react'
+import { ArsAmountInput } from './ArsAmountInput'
+import { arsPesosToMinorUnits } from '../utilities/arsInput'
 
 const copy = {
   es: {
     title: 'Confirmar efectivo recibido',
-    amount: 'Importe recibido en centavos ARS (ej.: $ 1.000 = 100000)',
+    amount: 'Importe recibido en pesos ARS (sin centavos)',
     received: 'Recibí y conté el importe exacto en efectivo.',
     note: 'Nota interna opcional',
     submit: 'Confirmar efectivo',
@@ -38,7 +40,7 @@ const copy = {
   },
   en: {
     title: 'Confirm cash received',
-    amount: 'Amount received in ARS minor units (e.g. $1,000 = 100000)',
+    amount: 'Amount received in ARS pesos (whole pesos)',
     received: 'I received and counted the exact cash amount.',
     note: 'Optional internal note',
     submit: 'Confirm cash',
@@ -77,6 +79,7 @@ function CashConfirmationForm({ id }: { id: string | number }) {
   const { i18n } = useTranslation()
   const text = copy[i18n.language === 'en' ? 'en' : 'es']
   const [amount, setAmount] = useState('')
+  const minorAmount = arsPesosToMinorUnits(amount)
   const [note, setNote] = useState('')
   const [received, setReceived] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -84,7 +87,7 @@ function CashConfirmationForm({ id }: { id: string | number }) {
   const [message, setMessage] = useState('')
 
   const confirm = async () => {
-    if (busy || confirmed) return
+    if (busy || confirmed || minorAmount === null) return
     setBusy(true)
     setMessage('')
     try {
@@ -94,7 +97,7 @@ function CashConfirmationForm({ id }: { id: string | number }) {
           method: 'POST',
           credentials: 'same-origin',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ amount: Number(amount), received, note }),
+          body: JSON.stringify({ amount: minorAmount, received, note }),
           signal: AbortSignal.timeout(15000),
         },
       )
@@ -126,12 +129,11 @@ function CashConfirmationForm({ id }: { id: string | number }) {
     <fieldset disabled={busy || confirmed}>
       <legend>{text.title}</legend>
       <p>{text.persisted}</p>
-      <TextInput
-        hasMany={false}
+      <ArsAmountInput
         path="cash-confirmation-amount"
         label={text.amount}
         value={amount}
-        onChange={(event) => setAmount(event.target.value)}
+        onValueChange={setAmount}
         readOnly={busy || confirmed}
       />
       <TextInput
@@ -151,14 +153,7 @@ function CashConfirmationForm({ id }: { id: string | number }) {
       />
       <Button
         type="button"
-        disabled={
-          busy ||
-          confirmed ||
-          !received ||
-          !/^\d+$/.test(amount) ||
-          !Number.isSafeInteger(Number(amount)) ||
-          Number(amount) <= 0
-        }
+        disabled={busy || confirmed || !received || minorAmount === null}
         onClick={() => void confirm()}
       >
         {busy ? text.saving : text.submit}

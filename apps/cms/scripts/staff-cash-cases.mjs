@@ -12,8 +12,9 @@ export async function staffCashCases({
 }) {
   const password = randomBytes(24).toString('hex')
   const adminReq = await createLocalReq({ user: { ...user, collection: 'users' } }, payload)
+  const moveMigration = await import('../src/migrations/20260917_150000_staff_cash_commerce.ts')
   const settings = await payload.updateGlobal({
-    slug: 'site-settings',
+    slug: 'commerce-settings',
     data: { cashStaffEnabled: true, cashStaffPassword: password },
     req: adminReq,
   })
@@ -23,6 +24,19 @@ export async function staffCashCases({
       where: { email: { equals: 'cash-staff@storefront.invalid' } },
     })
   ).docs[0]
+  for (const enabled of [false, true]) {
+    await payload.updateGlobal({
+      slug: 'commerce-settings',
+      data: { cashStaffEnabled: enabled },
+      req: adminReq,
+    })
+    await payload.db.drizzle.transaction((db) => moveMigration.down({ db, payload, req: {} }))
+    await payload.db.drizzle.transaction((db) => moveMigration.up({ db, payload, req: {} }))
+    assert.equal(
+      (await payload.findGlobal({ slug: 'commerce-settings', req: adminReq })).cashStaffEnabled,
+      enabled,
+    )
+  }
   assert.ok(
     staff,
     'Configurar la contraseña debe crear una identidad de caja sin permisos de administrador',
@@ -56,6 +70,9 @@ export async function staffCashCases({
     401,
   )
   assert.equal((await request('/storefront-staff/session', { token })).status, 200)
+  await payload.db.drizzle.transaction((db) => moveMigration.down({ db, payload, req: {} }))
+  await payload.db.drizzle.transaction((db) => moveMigration.up({ db, payload, req: {} }))
+  assert.equal((await request('/storefront-staff/session', { token })).status, 200)
   const staffReq = await createLocalReq({ user: { ...staff, collection: 'users' } }, payload)
   assert.equal(await payload.collections.users.config.access.admin({ req: staffReq }), false)
   assert.equal(await payload.collections.users.config.access.update({ req: staffReq }), false)
@@ -64,7 +81,7 @@ export async function staffCashCases({
   )
   await assert.rejects(
     payload.updateGlobal({
-      slug: 'site-settings',
+      slug: 'commerce-settings',
       data: { cashStaffPassword: 'corta' },
       req: adminReq,
     }),
@@ -85,15 +102,15 @@ export async function staffCashCases({
   })
   assert.deepEqual(unchangedRole.roles, ['customer'], 'Un cliente no puede elevar su propio rol')
   const publicSettings = await payload.findGlobal({
-    slug: 'site-settings',
+    slug: 'commerce-settings',
     overrideAccess: false,
     req: anonymous,
   })
   assert.equal(publicSettings.cashStaffPassword, undefined)
-  assert.equal(publicSettings.cashStaffEnabled, undefined)
+  assert.equal(publicSettings.cashStaffEnabled, true)
   await assert.rejects(
     payload.updateGlobal({
-      slug: 'site-settings',
+      slug: 'commerce-settings',
       data: { cashStaffEnabled: false },
       req: anonymous,
       overrideAccess: false,
@@ -169,7 +186,7 @@ export async function staffCashCases({
   const nextToken = (await request('/storefront-staff/login', { body: { password } })).body.token
   const replacement = randomBytes(24).toString('hex')
   await payload.updateGlobal({
-    slug: 'site-settings',
+    slug: 'commerce-settings',
     data: { cashStaffPassword: replacement },
     req: adminReq,
   })
@@ -179,7 +196,7 @@ export async function staffCashCases({
     await request('/storefront-staff/login', { body: { password: replacement } })
   ).body.token
   await payload.updateGlobal({
-    slug: 'site-settings',
+    slug: 'commerce-settings',
     data: { cashStaffEnabled: false },
     req: adminReq,
   })
@@ -189,7 +206,7 @@ export async function staffCashCases({
     401,
   )
   await payload.updateGlobal({
-    slug: 'site-settings',
+    slug: 'commerce-settings',
     data: { cashStaffEnabled: true },
     req: adminReq,
   })
@@ -211,11 +228,12 @@ export async function staffCashCases({
     401,
   )
   await payload.updateGlobal({
-    slug: 'site-settings',
+    slug: 'commerce-settings',
     data: { cashStaffEnabled: false },
     req: adminReq,
   })
   const migration = await import('../src/migrations/20260917_140000_staff_cash.ts')
+  await payload.db.drizzle.transaction((db) => moveMigration.down({ db, payload, req: {} }))
   await payload.db.drizzle.transaction((db) => migration.down({ db, payload, req: {} }))
   const { sql } = await import('@payloadcms/db-postgres')
   const rollback = await payload.db.drizzle.execute(
@@ -228,6 +246,7 @@ export async function staffCashCases({
     staff.id,
   )
   await payload.db.drizzle.transaction((db) => migration.up({ db, payload, req: {} }))
+  await payload.db.drizzle.transaction((db) => moveMigration.up({ db, payload, req: {} }))
   console.log(
     'PASS: caja del storefront, permisos, CSRF, confirmación, cierre del carrito, logout y rotación',
   )

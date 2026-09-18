@@ -33,13 +33,13 @@ export const Users: CollectionConfig = {
           (await req.payload.count({ collection: 'users', overrideAccess: true, req }))
             .totalDocs === 0
         )
-      return checkRole(['admin'], user as any)
+      return checkRole(['admin'], user)
     },
     delete: adminOnly,
     read: ({ req: { user } }) => {
       if (isCashStaff(user)) return false
       if (!user) return false
-      if (checkRole(['admin'], user as any)) return true
+      if (checkRole(['admin'], user)) return true
       return {
         id: {
           equals: user.id,
@@ -49,7 +49,7 @@ export const Users: CollectionConfig = {
     update: ({ req: { user } }) => {
       if (isCashStaff(user)) return false
       if (!user) return false
-      if (checkRole(['admin'], user as any)) return true
+      if (checkRole(['admin'], user)) return true
       return {
         id: {
           equals: user.id,

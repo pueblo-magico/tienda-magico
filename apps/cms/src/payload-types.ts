@@ -4325,11 +4325,6 @@ export interface Footer {
  */
 export interface SiteSetting {
   id: number;
-  cashStaffEnabled?: boolean | null;
-  /**
-   * 12–128 characters. Leave blank to keep the password. Changing it or disabling the cash desk signs staff out.
-   */
-  cashStaffPassword?: string | null;
   siteName: string;
   tagline?: string | null;
   logo?: (number | null) | Media;
@@ -4375,6 +4370,11 @@ export interface CommerceSetting {
    * Allows cash payment only with local collection. The order is confirmed in the CMS after receiving the exact amount.
    */
   cashEnabled: boolean;
+  cashStaffEnabled?: boolean | null;
+  /**
+   * 12–128 characters. Leave blank to keep the password. Changing it or disabling the cash desk signs staff out.
+   */
+  cashStaffPassword?: string | null;
   /**
    * Allows customers to choose bank transfer. Enable it only after completing the account details.
    */
@@ -4540,8 +4540,6 @@ export interface FooterSelect<T extends boolean = true> {
  * via the `definition` "site-settings_select".
  */
 export interface SiteSettingsSelect<T extends boolean = true> {
-  cashStaffEnabled?: T;
-  cashStaffPassword?: T;
   siteName?: T;
   tagline?: T;
   logo?: T;
@@ -4569,6 +4567,8 @@ export interface CommerceSettingsSelect<T extends boolean = true> {
   localCollectionEnabled?: T;
   deliveryEnabled?: T;
   cashEnabled?: T;
+  cashStaffEnabled?: T;
+  cashStaffPassword?: T;
   transferEnabled?: T;
   transfer?:
     | T

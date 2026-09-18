@@ -21,6 +21,7 @@ export function CashWaiting({
   paymentStatus,
   reference,
   receivedAt,
+  cashStaffEnabled = false,
 }: {
   title: string;
   body: string;
@@ -29,6 +30,7 @@ export function CashWaiting({
   paymentStatus: CheckoutOrder["paymentStatus"];
   reference?: string;
   receivedAt?: string | null;
+  cashStaffEnabled?: boolean;
 }) {
   const t = useTranslations("checkout.cashWaiting");
   const stateText = useTranslations("orders.states");
@@ -103,7 +105,7 @@ export function CashWaiting({
           {actions("myOrders")}
         </IconAction>
 
-        {canRefresh && reference ? (
+        {cashStaffEnabled && canRefresh && reference ? (
           <IconAction
             icon={<Banknote className="size-6" strokeWidth={1.5} />}
             href={localizePath(

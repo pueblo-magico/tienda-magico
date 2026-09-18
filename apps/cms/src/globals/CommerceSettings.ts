@@ -1,6 +1,8 @@
 import type { GlobalConfig } from 'payload'
 
 import { adminOnly } from '../access/adminOnly'
+import { adminOnlyFieldAccess } from '../access/adminOnlyFieldAccess'
+import { configureCashStaff } from '../utilities/cashStaffAccess'
 import { validateTransferSettings } from './commerceSettingsValidation'
 
 export const CommerceSettings: GlobalConfig = {
@@ -13,6 +15,7 @@ export const CommerceSettings: GlobalConfig = {
   },
   hooks: {
     beforeValidate: [validateTransferSettings],
+    beforeChange: [configureCashStaff],
   },
   fields: [
     {
@@ -51,6 +54,28 @@ export const CommerceSettings: GlobalConfig = {
         description: {
           es: 'Permite pagar en efectivo únicamente con retiro local. El pedido se confirma desde el CMS al recibir el importe exacto.',
           en: 'Allows cash payment only with local collection. The order is confirmed in the CMS after receiving the exact amount.',
+        },
+      },
+    },
+    {
+      name: 'cashStaffEnabled',
+      type: 'checkbox',
+      defaultValue: false,
+      label: { es: 'Habilitar caja en la tienda', en: 'Enable storefront cash desk' },
+      access: { read: () => true, update: adminOnlyFieldAccess },
+    },
+    {
+      name: 'cashStaffPassword',
+      type: 'text',
+      virtual: true,
+      label: { es: 'Nueva contraseña de caja', en: 'New cash desk password' },
+      access: { read: adminOnlyFieldAccess, update: adminOnlyFieldAccess },
+      hooks: { afterRead: [() => ''] },
+      admin: {
+        components: { Field: '@/components/StaffCashPassword#StaffCashPassword' },
+        description: {
+          es: 'Entre 12 y 128 caracteres. Dejá vacío para conservar la contraseña. Cambiarla o deshabilitar caja cierra las sesiones del equipo.',
+          en: '12–128 characters. Leave blank to keep the password. Changing it or disabling the cash desk signs staff out.',
         },
       },
     },

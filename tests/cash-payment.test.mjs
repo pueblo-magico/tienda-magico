@@ -20,6 +20,19 @@ const cashSettings = {
   cashEnabled: true,
 };
 
+test("la visibilidad de caja requiere habilitación explícita y no habilita el pago en efectivo", () => {
+  for (const cashStaffEnabled of [undefined, null, false, "true", 1]) {
+    assert.equal(
+      parseCommerceSettings({ cashStaffEnabled }).cashStaffEnabled,
+      false,
+    );
+  }
+  assert.equal(parseCommerceSettings(null).cashStaffEnabled, false);
+  const settings = parseCommerceSettings({ cashStaffEnabled: true });
+  assert.equal(settings.cashStaffEnabled, true);
+  assert.equal(settings.cashEnabled, false);
+});
+
 test("el efectivo queda deshabilitado por defecto y se publica desde el CMS", () => {
   assert.equal(DEFAULT_COMMERCE_SETTINGS.cashEnabled, false);
   assert.equal(parseCommerceSettings({ cashEnabled: true }).cashEnabled, true);

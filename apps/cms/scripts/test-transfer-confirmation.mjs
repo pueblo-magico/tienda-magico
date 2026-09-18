@@ -39,6 +39,8 @@ try {
     await payload.db.drizzle.transaction((db) => migration.up({ db, payload, req: {} }))
   const user = await payload.create({
     collection: 'users',
+    overrideAccess: false,
+    req: await createLocalReq({ user: null }, payload),
     data: {
       email: 'admin@example.test',
       password: randomBytes(24).toString('hex'),

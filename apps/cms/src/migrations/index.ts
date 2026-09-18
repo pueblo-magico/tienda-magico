@@ -1,3 +1,4 @@
+import * as migration_20260917_150000_staff_cash_commerce from './20260917_150000_staff_cash_commerce'
 import * as migration_20260917_120000_transfer_identification from './20260917_120000_transfer_identification'
 import * as migration_20260917_130000_cash_payment from './20260917_130000_cash_payment'
 import * as migration_20260917_140000_staff_cash from './20260917_140000_staff_cash'
@@ -199,6 +200,11 @@ export const migrations = [
     up: migration_20260917_140000_staff_cash.up,
     down: migration_20260917_140000_staff_cash.down,
     name: '20260917_140000_staff_cash',
+  },
+  {
+    up: migration_20260917_150000_staff_cash_commerce.up,
+    down: migration_20260917_150000_staff_cash_commerce.down,
+    name: '20260917_150000_staff_cash_commerce',
   },
   {
     up: migration_20260917_150000_order_receipt_feedback.up,

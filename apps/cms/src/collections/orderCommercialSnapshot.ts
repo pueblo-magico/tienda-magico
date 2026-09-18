@@ -29,7 +29,9 @@ export const ordersCollectionOverride = ({
       ({ data, operation, originalDoc }) => {
         if (operation !== 'update' || !data) return data
         const receiptFields = ['receivedAt', 'experienceRating', 'experienceComment'] as const
-        const changesReceipt = receiptFields.some((field) => field in data)
+        const changesReceipt = receiptFields.some(
+          (field) => field in data && (data[field] ?? null) !== (originalDoc?.[field] ?? null),
+        )
         if (!changesReceipt) return data
         if (originalDoc?.receivedAt) {
           throw new APIError('La confirmación de recepción no se puede modificar.', 409)

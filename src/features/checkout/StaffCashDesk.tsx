@@ -10,6 +10,7 @@ import {
   CardContent,
 } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
+import { arsPesosToMinorUnits } from "@/lib/money/ars-input";
 import { PageTitle } from "@/components/typography/PageTitle";
 import { Button } from "@/components/ui/Button";
 import { formatMoney } from "@/lib/commerce/utils/format";
@@ -249,9 +250,13 @@ export function StaffCashDesk({
                     className="space-y-4"
                     onSubmit={(event) => {
                       event.preventDefault();
-                      const amount = Number(
+                      const amount = arsPesosToMinorUnits(
                         new FormData(event.currentTarget).get("amount"),
                       );
+                      if (amount === null) {
+                        setError("invalid");
+                        return;
+                      }
                       void run(async () => {
                         await request("confirm", {
                           reference: order.reference,
@@ -265,9 +270,7 @@ export function StaffCashDesk({
                   >
                     <Input
                       name="amount"
-                      type="number"
-                      min={1}
-                      step={1}
+                      format="ars-pesos"
                       label={t("amount")}
                       hint={t("amountHint")}
                       required
