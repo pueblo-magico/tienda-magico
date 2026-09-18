@@ -209,30 +209,24 @@ export async function confirmGuestOrderReceipt(
   if (owned.receivedAt) return true;
 
   const comment = feedback.comment?.trim() || null;
-  const result = await payloadFetch<{
-    docs?: PayloadOrderResponse[];
-    errors?: unknown[];
-  }>({
-    method: "PATCH",
-    path: collectionPath("orders"),
-    query: {
-      "where[and][0][publicReference][equals]": reference,
-      "where[and][1][cartReference][in]": references.join(","),
-      "where[and][2][paymentStatus][equals]": "approved",
-      "where[and][3][receivedAt][exists]": false,
-    },
-    body: {
-      receivedAt: new Date().toISOString(),
-      experienceRating: feedback.rating,
-      experienceComment: comment,
-    },
-  });
-  if (result.errors?.length) {
-    throw new CommerceError("No se pudo confirmar la recepción del pedido.", {
-      status: 502,
+  try {
+    const result = await payloadFetch<{ doc?: PayloadOrderResponse }>({
+      method: "PATCH",
+      path: `${collectionPath("orders")}/${encodeURIComponent(owned.id)}`,
+      body: {
+        receivedAt: new Date().toISOString(),
+        experienceRating: feedback.rating,
+        experienceComment: comment,
+      },
     });
+    if (result.doc?.receivedAt) return true;
+  } catch (error) {
+    const current = (await getGuestOrders(references)).find(
+      (order) => order.publicReference === reference,
+    );
+    if (current?.receivedAt) return true;
+    throw error;
   }
-  if (result.docs?.some((order) => order.receivedAt)) return true;
   return Boolean(
     (await getGuestOrders(references)).find(
       (order) => order.publicReference === reference,

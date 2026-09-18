@@ -4,6 +4,52 @@ import { parseGuestCartReferences } from "../src/lib/commerce/guest-order-access
 import * as orders from "../src/lib/commerce/providers/payload-ecommerce/orders.ts";
 
 const cart = `1::${"a".repeat(40)}`;
+test("una recepción concurrente conserva la primera reseña y un fallo real se propaga", async () => {
+  const original = globalThis.fetch;
+  const oldUrl = process.env.PAYLOAD_ECOMMERCE_URL;
+  process.env.PAYLOAD_ECOMMERCE_URL = "https://cms.example";
+  let receivedAt = null;
+  let concurrent = true;
+  globalThis.fetch = async (url, init = {}) => {
+    if (init.method === "PATCH") {
+      assert.equal(new URL(url).pathname, "/api/orders/1");
+      if (concurrent) receivedAt = "2026-09-17T12:00:00.000Z";
+      return Response.json(
+        { errors: [{ message: "Conflict" }] },
+        { status: 409 },
+      );
+    }
+    return Response.json({
+      docs: [
+        {
+          id: 1,
+          publicReference: "owned",
+          cartReference: cart,
+          paymentStatus: "approved",
+          paymentMethod: "cash",
+          amount: 100,
+          currency: "ARS",
+          receivedAt,
+        },
+      ],
+    });
+  };
+  try {
+    assert.equal(
+      await orders.confirmGuestOrderReceipt([cart], "owned", { rating: 4 }),
+      true,
+    );
+    receivedAt = null;
+    concurrent = false;
+    await assert.rejects(
+      orders.confirmGuestOrderReceipt([cart], "owned", { rating: 4 }),
+    );
+  } finally {
+    globalThis.fetch = original;
+    if (oldUrl === undefined) delete process.env.PAYLOAD_ECOMMERCE_URL;
+    else process.env.PAYLOAD_ECOMMERCE_URL = oldUrl;
+  }
+});
 test("las referencias públicas e IDs sin secreto no autorizan historial", () => {
   for (const value of [undefined, "broken", "{}", '["1"]', '["public-uuid"]']) {
     assert.deepEqual(parseGuestCartReferences(value), []);
@@ -44,24 +90,15 @@ test("confirmar recepción exige propiedad y pago aprobado", async () => {
   globalThis.fetch = async (url, init = {}) => {
     if (init.method === "PATCH") {
       writes++;
-      const query = new URL(url).searchParams;
-      assert.equal(
-        query.get("where[and][0][publicReference][equals]"),
-        approved.publicReference,
-      );
-      assert.equal(query.get("where[and][1][cartReference][in]"), cart);
-      assert.equal(
-        query.get("where[and][2][paymentStatus][equals]"),
-        "approved",
-      );
-      assert.equal(query.get("where[and][3][receivedAt][exists]"), "false");
+      assert.equal(new URL(url).pathname, "/api/orders/1");
+      assert.equal(new URL(url).search, "");
       const body = JSON.parse(init.body);
       assert.equal(typeof body.receivedAt, "string");
       assert.deepEqual(
         { rating: body.experienceRating, comment: body.experienceComment },
         { rating: 4, comment: "Muy buena atención." },
       );
-      return Response.json({ docs: [{ ...approved, ...body }] });
+      return Response.json({ doc: { ...approved, ...body } });
     }
     return Response.json({ docs: [approved], hasNextPage: false });
   };
