@@ -38,6 +38,7 @@ const groups = [
       { href: "/ui-system/select", label: "Select" },
       { href: "/ui-system/textarea", label: "Textarea" },
       { href: "/ui-system/slider", label: "Slider" },
+      { href: "/ui-system/rating", label: "Rating" },
     ],
   },
   {

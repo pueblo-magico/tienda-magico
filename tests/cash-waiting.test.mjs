@@ -63,6 +63,10 @@ for (const cashStaffEnabled of [true, false, undefined]) {
           ),
         );
         assert.match(html, /role="status" aria-live="polite"/);
+        assert.equal(
+          html.includes(messages.orders.receipt.confirm),
+          paymentStatus === "approved",
+        );
         if (paymentStatus !== "pending") {
           assert.ok(
             html.includes(
@@ -81,3 +85,29 @@ for (const cashStaffEnabled of [true, false, undefined]) {
     }
   }
 }
+
+test("un pedido en efectivo recibido no vuelve a mostrar el formulario de recepción", async () => {
+  const messages = JSON.parse(await readFile("messages/es.json", "utf8"));
+  const html = renderToStaticMarkup(
+    createElement(
+      NextIntlClientProvider,
+      { locale: "es", messages, timeZone: "UTC" },
+      createElement(
+        AppRouterContext.Provider,
+        { value: { refresh() {} } },
+        createElement(CashWaiting, {
+          paymentStatus: "approved",
+          cashStaffEnabled: true,
+          reference: "00000000-0000-4000-8000-000000000001",
+          receivedAt: "2026-09-17T12:00:00.000Z",
+          title: messages.checkout.pending.cashTitle,
+          body: messages.checkout.pending.cashBody,
+          notice: messages.checkout.pending.cashNotice,
+          children: "Referencia",
+        }),
+      ),
+    ),
+  );
+  assert.ok(!html.includes(messages.orders.receipt.confirm));
+  assert.ok(!html.includes("/staff/cash?order="));
+});

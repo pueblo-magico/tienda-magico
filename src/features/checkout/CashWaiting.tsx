@@ -11,6 +11,7 @@ import type { CheckoutOrder } from "@/types/commerce";
 import { startTransferPolling } from "./transfer-polling";
 import { Body } from "@/components/typography/Body";
 import { PageTitle } from "@/components/typography/PageTitle";
+import { OrderReceiptFeedback } from "@/features/orders/OrderReceiptFeedback";
 
 export function CashWaiting({
   title,
@@ -19,6 +20,7 @@ export function CashWaiting({
   children,
   paymentStatus,
   reference,
+  receivedAt,
   cashStaffEnabled = false,
 }: {
   title: string;
@@ -27,6 +29,7 @@ export function CashWaiting({
   children: ReactNode;
   paymentStatus: CheckoutOrder["paymentStatus"];
   reference?: string;
+  receivedAt?: string | null;
   cashStaffEnabled?: boolean;
 }) {
   const t = useTranslations("checkout.cashWaiting");
@@ -114,6 +117,9 @@ export function CashWaiting({
           </IconAction>
         ) : null}
       </div>
+      {paymentStatus === "approved" && reference && !receivedAt ? (
+        <OrderReceiptFeedback reference={reference} />
+      ) : null}
     </div>
   );
 }

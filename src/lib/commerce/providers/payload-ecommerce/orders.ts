@@ -5,6 +5,7 @@ import {
   type Cart,
   type CheckoutOrder,
   type CheckoutOrderOptions,
+  type OrderReceiptFeedback,
 } from "@/types/commerce";
 import {
   BANK_TRANSFER,
@@ -153,6 +154,9 @@ type PayloadOrderResponse = {
   buyerContact?: unknown;
   cartReference?: string;
   transferReportedAt?: string | null;
+  receivedAt?: string | null;
+  experienceRating?: number | null;
+  experienceComment?: string | null;
   id: string | number;
   publicReference?: string | null;
   paymentExpiresAt?: string | null;
@@ -177,6 +181,9 @@ export function normalizePayloadOrderResponse(
     ...(order.transferReportedAt
       ? { transferReportedAt: order.transferReportedAt }
       : {}),
+    receivedAt: order.receivedAt ?? null,
+    experienceRating: order.experienceRating ?? null,
+    experienceComment: order.experienceComment ?? null,
     publicReference: order.publicReference,
     paymentExpiresAt: order.paymentExpiresAt ?? null,
     paymentMethod: order.paymentMethod ?? MERCADO_PAGO,
@@ -186,6 +193,45 @@ export function normalizePayloadOrderResponse(
       currencyCode: order.currency ?? "ARS",
     },
   };
+}
+
+export async function confirmGuestOrderReceipt(
+  cartReferences: string[],
+  reference: string,
+  feedback: OrderReceiptFeedback,
+): Promise<boolean> {
+  const references = parseGuestCartReferences(JSON.stringify(cartReferences));
+  if (!references.length) return false;
+  const owned = (await getGuestOrders(references)).find(
+    (order) => order.publicReference === reference,
+  );
+  if (!owned || owned.paymentStatus !== "approved") return false;
+  if (owned.receivedAt) return true;
+
+  const comment = feedback.comment?.trim() || null;
+  try {
+    const result = await payloadFetch<{ doc?: PayloadOrderResponse }>({
+      method: "PATCH",
+      path: `${collectionPath("orders")}/${encodeURIComponent(owned.id)}`,
+      body: {
+        receivedAt: new Date().toISOString(),
+        experienceRating: feedback.rating,
+        experienceComment: comment,
+      },
+    });
+    if (result.doc?.receivedAt) return true;
+  } catch (error) {
+    const current = (await getGuestOrders(references)).find(
+      (order) => order.publicReference === reference,
+    );
+    if (current?.receivedAt) return true;
+    throw error;
+  }
+  return Boolean(
+    (await getGuestOrders(references)).find(
+      (order) => order.publicReference === reference,
+    )?.receivedAt,
+  );
 }
 
 export async function getGuestOrders(

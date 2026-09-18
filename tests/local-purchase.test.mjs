@@ -402,7 +402,7 @@ test("fails checkout order creation clearly when the Payload API key is missing"
   if (previousApiKey) process.env.PAYLOAD_ECOMMERCE_API_KEY = previousApiKey;
 });
 
-test("the order schema creates one linked local-sale record after local checkout", () => {
+test("the order schema creates one linked local-sale record after local checkout", async () => {
   const collection = ordersCollectionOverride({
     defaultCollection: { fields: [], hooks: {} },
   });
@@ -420,7 +420,31 @@ test("the order schema creates one linked local-sale record after local checkout
   ]) {
     assert.ok(names.has(name), `missing order field: ${name}`);
   }
-  assert.equal(collection.hooks?.afterChange?.length, 1);
+  const created = [];
+  const doc = {
+    id: 42,
+    fulfillmentMode: LOCAL_COLLECTION,
+    paymentStatus: "pending",
+    commercialSnapshot: { items: [] },
+  };
+  const req = {
+    payload: {
+      find: async () => ({ docs: created }),
+      create: async (input) => {
+        created.push(input);
+        return input.data;
+      },
+    },
+  };
+  for (let attempt = 0; attempt < 2; attempt++) {
+    for (const hook of collection.hooks.afterChange) {
+      await hook({ doc, operation: "create", req });
+    }
+  }
+  assert.equal(created.length, 1);
+  assert.equal(created[0].collection, "localSales");
+  assert.equal(created[0].data.order, 42);
+  assert.equal(created[0].data.idempotencyKey, "local-sale:42");
 });
 
 test("Shopify keeps native delivery orders and rejects unsupported local pickup", async () => {

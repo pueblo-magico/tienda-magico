@@ -156,6 +156,7 @@ export default async function CheckoutPendingPage({
               expiresAt={expiresAt}
               serverTime={Date.now()}
               reference={transferOrder.publicReference}
+              receivedAt={ownedOrder?.receivedAt}
               canReport={Boolean(ownedOrder)}
               reportedAt={ownedOrder?.transferReportedAt}
               newerReference={ownedOrder?.newerReference}
@@ -239,6 +240,7 @@ export default async function CheckoutPendingPage({
             <CashWaiting
               cashStaffEnabled={commerceSettings?.cashStaffEnabled === true}
               reference={ownedOrder.publicReference}
+              receivedAt={ownedOrder.receivedAt}
               paymentStatus={ownedOrder.paymentStatus}
               title={t("pending.cashTitle")}
               body={t("pending.cashBody")}

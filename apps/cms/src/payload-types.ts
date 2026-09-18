@@ -384,6 +384,9 @@ export interface Order {
   paymentMethod: 'mercado-pago' | 'bank-transfer' | 'cash';
   paymentExpiresAt?: string | null;
   paymentStatus: 'pending' | 'approved' | 'rejected' | 'cancelled' | 'unverified';
+  receivedAt?: string | null;
+  experienceRating?: number | null;
+  experienceComment?: string | null;
   commercialSnapshot?:
     | {
         [k: string]: unknown;
@@ -4127,6 +4130,9 @@ export interface OrdersSelect<T extends boolean = true> {
   paymentMethod?: T;
   paymentExpiresAt?: T;
   paymentStatus?: T;
+  receivedAt?: T;
+  experienceRating?: T;
+  experienceComment?: T;
   commercialSnapshot?: T;
   updatedAt?: T;
   createdAt?: T;

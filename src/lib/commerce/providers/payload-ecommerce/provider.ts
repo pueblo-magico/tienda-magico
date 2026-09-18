@@ -27,6 +27,7 @@ import { isPayloadEcommerceConfigured } from "./config";
 import { getProduct, getProducts } from "./products";
 import {
   createCheckoutOrder,
+  confirmGuestOrderReceipt,
   getCheckoutOrderByPublicReference,
   getGuestOrders,
   reportGuestTransfer,
@@ -112,6 +113,7 @@ export class PayloadEcommerceProvider implements CommerceProvider {
   getCheckoutOrderByPublicReference = getCheckoutOrderByPublicReference;
   getGuestOrders = getGuestOrders;
   reportGuestTransfer = reportGuestTransfer;
+  confirmGuestOrderReceipt = confirmGuestOrderReceipt;
 }
 
 export const payloadEcommerceProvider = new PayloadEcommerceProvider();

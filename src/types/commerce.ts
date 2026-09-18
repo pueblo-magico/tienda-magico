@@ -211,6 +211,9 @@ export type CartLineMerchandise = {
 export type CheckoutOrder = {
   newerReference?: string;
   transferReportedAt?: string | null;
+  receivedAt?: string | null;
+  experienceRating?: number | null;
+  experienceComment?: string | null;
   id: string;
   publicReference: string;
   paymentExpiresAt?: string | null;
@@ -218,6 +221,11 @@ export type CheckoutOrder = {
   paymentStatus:
     "pending" | "approved" | "rejected" | "cancelled" | "unverified";
   total: Money;
+};
+
+export type OrderReceiptFeedback = {
+  rating: number;
+  comment?: string;
 };
 
 export type CheckoutOrderOptions = {

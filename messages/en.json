@@ -344,6 +344,26 @@
     "reference": "Reference: {reference}",
     "deadline": "Deadline: {date}",
     "view": "View order",
+    "receipt": {
+      "open": "Have you received your products?",
+      "description": "Confirm receipt and, if you wish, tell us about your shopping experience.",
+      "ratingLabel": "Shopping experience rating (0 to 5)",
+      "ratingValues": {
+        "0": "No rating",
+        "1": "1 out of 5 stars",
+        "2": "2 out of 5 stars",
+        "3": "3 out of 5 stars",
+        "4": "4 out of 5 stars",
+        "5": "5 out of 5 stars"
+      },
+      "commentLabel": "Optional comment",
+      "commentPlaceholder": "Tell us what went well or what we can improve.",
+      "commentHint": "Up to 1000 characters.",
+      "confirm": "Confirm receipt",
+      "skip": "Not now",
+      "received": "Receipt confirmed. Thank you for sharing your experience.",
+      "error": "We could not save your confirmation. Refresh the order and try again."
+    },
     "states": {
       "pending": "Awaiting payment",
       "expired": "Deadline passed",

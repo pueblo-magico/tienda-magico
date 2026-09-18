@@ -344,6 +344,26 @@
     "reference": "Referencia: {reference}",
     "deadline": "Vencimiento: {date}",
     "view": "Ver pedido",
+    "receipt": {
+      "open": "¿Ya recibiste tus productos?",
+      "description": "Confirmá la recepción y, si querés, contanos cómo fue tu experiencia de compra.",
+      "ratingLabel": "Puntuación de la experiencia (0 a 5)",
+      "ratingValues": {
+        "0": "Sin puntuación",
+        "1": "1 de 5 estrellas",
+        "2": "2 de 5 estrellas",
+        "3": "3 de 5 estrellas",
+        "4": "4 de 5 estrellas",
+        "5": "5 de 5 estrellas"
+      },
+      "commentLabel": "Comentario opcional",
+      "commentPlaceholder": "Contanos qué salió bien o qué podemos mejorar.",
+      "commentHint": "Hasta 1000 caracteres.",
+      "confirm": "Confirmar recepción",
+      "skip": "Ahora no",
+      "received": "Recepción confirmada. Gracias por compartir tu experiencia.",
+      "error": "No pudimos guardar la confirmación. Actualizá el pedido y volvé a intentar."
+    },
     "states": {
       "pending": "Pendiente de pago",
       "expired": "Plazo vencido",

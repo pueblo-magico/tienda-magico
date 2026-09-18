@@ -93,6 +93,58 @@ test("filtra solo estados reales de pago sin inventar estados de entrega", () =>
   assert.equal(presentation.filterOrders(orders, "expired", now).length, 1);
 });
 
+test("un pedido aprobado pendiente de recepción muestra la acción de entrega", async () => {
+  const messages = JSON.parse(
+    await readFile(new URL("../messages/es.json", import.meta.url), "utf8"),
+  );
+  const html = renderToStaticMarkup(
+    createElement(
+      NextIntlClientProvider,
+      { locale: "es", messages, timeZone: "UTC" },
+      createElement(OrderList, {
+        serverTime: now,
+        orders: [
+          {
+            ...order,
+            id: "1",
+            paymentStatus: "approved",
+            total: { amount: "70000", currencyCode: "ARS" },
+          },
+        ],
+      }),
+    ),
+  );
+  assert.ok(html.includes(messages.orders.receipt.open));
+  assert.ok(html.includes(messages.orders.receipt.ratingLabel));
+  assert.ok(html.includes(messages.orders.receipt.commentLabel));
+});
+
+test("un pedido recibido no vuelve a pedir confirmación", async () => {
+  const messages = JSON.parse(
+    await readFile(new URL("../messages/es.json", import.meta.url), "utf8"),
+  );
+  const html = renderToStaticMarkup(
+    createElement(
+      NextIntlClientProvider,
+      { locale: "es", messages, timeZone: "UTC" },
+      createElement(OrderList, {
+        serverTime: now,
+        orders: [
+          {
+            ...order,
+            id: "1",
+            paymentStatus: "approved",
+            receivedAt: "2026-09-17T12:00:00.000Z",
+            total: { amount: "70000", currencyCode: "ARS" },
+          },
+        ],
+      }),
+    ),
+  );
+  assert.ok(html.includes(messages.orders.receipt.received));
+  assert.ok(!html.includes(messages.orders.receipt.confirm));
+});
+
 test("el contacto de soporte prepara un mensaje localizado para WhatsApp", async () => {
   const [page, messagesEs, messagesEn] = await Promise.all([
     readFile("src/app/[locale]/orders/page.tsx", "utf8"),

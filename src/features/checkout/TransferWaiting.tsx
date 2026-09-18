@@ -12,6 +12,7 @@ import { ArrowRight, ClipboardList, Package2, Sprout } from "lucide-react";
 import { getTransferWaitingState } from "@/lib/checkout/transfer-waiting";
 import type { CheckoutOrder } from "@/types/commerce";
 import { startTransferPolling } from "./transfer-polling";
+import { OrderReceiptFeedback } from "@/features/orders/OrderReceiptFeedback";
 
 type Props = {
   paymentStatus: CheckoutOrder["paymentStatus"];
@@ -19,6 +20,7 @@ type Props = {
   instructions: ReactNode;
   serverTime: number;
   reference: string;
+  receivedAt?: string | null;
   canReport: boolean;
   reportedAt?: string | null;
   newerReference?: string;
@@ -31,6 +33,7 @@ export function TransferWaiting({
   instructions,
   serverTime,
   reference,
+  receivedAt,
   canReport,
   reportedAt,
   newerReference,
@@ -186,6 +189,9 @@ export function TransferWaiting({
           {t("myOrders")}
         </IconAction>
       </div>
+      {state.status === "approved" && !receivedAt ? (
+        <OrderReceiptFeedback reference={reference} />
+      ) : null}
     </div>
   );
 }

@@ -5,6 +5,7 @@ import type {
   CartParams,
   CheckoutOrder,
   CheckoutOrderOptions,
+  OrderReceiptFeedback,
   Collection,
   CollectionSummary,
   CommerceProviderName,
@@ -82,5 +83,10 @@ export interface CommerceProvider {
   reportGuestTransfer(
     cartReferences: string[],
     reference: string,
+  ): Promise<boolean>;
+  confirmGuestOrderReceipt(
+    cartReferences: string[],
+    reference: string,
+    feedback: OrderReceiptFeedback,
   ): Promise<boolean>;
 }

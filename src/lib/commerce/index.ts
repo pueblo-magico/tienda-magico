@@ -32,6 +32,9 @@ export const commerce = {
   reportGuestTransfer: (
     ...args: Parameters<CommerceProvider["reportGuestTransfer"]>
   ) => getCommerceProvider().reportGuestTransfer(...args),
+  confirmGuestOrderReceipt: (
+    ...args: Parameters<CommerceProvider["confirmGuestOrderReceipt"]>
+  ) => getCommerceProvider().confirmGuestOrderReceipt(...args),
   get provider() {
     return getCommerceProvider();
   },

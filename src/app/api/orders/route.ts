@@ -5,6 +5,7 @@ import {
   rememberGuestCart,
 } from "@/lib/checkout/guest-orders";
 import { parseGuestCartReferences } from "@/lib/commerce/guest-order-access";
+import { parseOrderReceiptInput } from "@/lib/checkout/order-receipt";
 
 export async function POST(request: Request) {
   if (request.headers.get("origin") !== new URL(request.url).origin) {
@@ -26,6 +27,18 @@ export async function POST(request: Request) {
       }
       await rememberGuestCart(body.cartReference);
       return NextResponse.json({ ok: true });
+    }
+    if ("action" in body && body.action === "confirm-receipt") {
+      const receipt = parseOrderReceiptInput(body);
+      if (!receipt) {
+        return NextResponse.json({ error: "invalid" }, { status: 400 });
+      }
+      const saved = await commerce.confirmGuestOrderReceipt(
+        await guestCartReferences(),
+        receipt.reference,
+        receipt,
+      );
+      return NextResponse.json({ ok: saved }, { status: saved ? 200 : 404 });
     }
     if ("reference" in body && typeof body.reference === "string") {
       const saved = await commerce.reportGuestTransfer(
