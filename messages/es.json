@@ -520,6 +520,17 @@
       "unverifiedBody": "El equipo está verificando el pago. No vuelvas a pagar mientras esperás la confirmación."
     },
     "staffCash": {
+      "review": {
+        "open": "Revisar cobro",
+        "eyebrow": "Confirmar cobro",
+        "title": "¿Confirmás que recibiste el efectivo?",
+        "body": "Revisá el importe antes de actualizar el pedido. Esta acción quedará registrada en la sesión del personal.",
+        "method": "Pago en efectivo · Retiro en tienda",
+        "received": "Efectivo recibido",
+        "change": "Vuelto a entregar",
+        "back": "Volver y revisar",
+        "confirm": "Confirmar cobro · {amount}"
+      },
       "title": "Caja · confirmar efectivo",
       "intro": "Acceso exclusivo para el equipo de Pueblo Mágico. Ingresá después de recibir y contar el dinero.",
       "password": "Contraseña del personal",

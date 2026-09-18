@@ -9,10 +9,24 @@ import { Rating } from "@/components/ui/Rating";
 export function ModalDemo() {
   const [open, setOpen] = useState(false);
   const [celebrating, setCelebrating] = useState(false);
+  const [locked, setLocked] = useState(false);
 
   return (
     <>
       <Button onClick={() => setOpen(true)}>Open modal</Button>
+      <Button onPress={() => setLocked(true)}>
+        Ver operación no descartable
+      </Button>
+      <Modal
+        open={locked}
+        onClose={() => setLocked(false)}
+        title="Operación en curso"
+        size="wide"
+        isDismissable={false}
+      >
+        <p>Durante un cobro, Escape y el cierre no interrumpen la operación.</p>
+        <Button onPress={() => setLocked(false)}>Finalizar ejemplo</Button>
+      </Modal>
       <Button onPress={() => setCelebrating(true)}>Ver agradecimiento</Button>
       <Modal
         open={celebrating}

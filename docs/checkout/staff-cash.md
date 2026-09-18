@@ -21,7 +21,7 @@ La contraseña es un campo virtual de escritura: nunca se guarda en el global ni
 2. Ingresá la contraseña del equipo. La referencia se carga automáticamente si llegaste desde el pedido.
 3. Revisá comprador, referencia, estado e importe. Solo se admiten pedidos de efectivo con retiro local.
 4. Ingresá el importe recibido en **pesos ARS enteros**: `20000` se muestra como `20.000`. No ingreses centavos.
-5. Seleccioná **Confirmar efectivo recibido**. Esta acción declara que contaste el importe exacto.
+5. Seleccioná **Revisar cobro** después de ingresar el importe exacto. Se abre un resumen con comprador, referencia, total, efectivo recibido y vuelto (cero: se conserva la política de importe exacto). Abrir o cerrar el resumen no modifica el pedido. **Volver y revisar** conserva el importe ingresado. Solo **Confirmar cobro** envía la operación; durante el envío se bloquean el cierre y los clics repetidos. Los errores se muestran dentro del diálogo.
 6. La operación reutiliza las validaciones, el bloqueo transaccional, el descuento único de stock, la venta vinculada y la auditoría del CMS. Completa el carrito, pero no marca entrega o retiro.
 7. Cerrá la sesión al terminar, especialmente si usaste el teléfono del comprador.
 

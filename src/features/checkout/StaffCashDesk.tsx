@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Banknote, LockKeyhole } from "lucide-react";
 import {
@@ -10,7 +10,8 @@ import {
   CardContent,
 } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
-import { arsPesosToMinorUnits } from "@/lib/money/ars-input";
+import { cashReview } from "./cash-review";
+import { CashPaymentConfirmation } from "./CashPaymentConfirmation";
 import { PageTitle } from "@/components/typography/PageTitle";
 import { Button } from "@/components/ui/Button";
 import { formatMoney } from "@/lib/commerce/utils/format";
@@ -36,6 +37,11 @@ export function StaffCashDesk({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [confirmed, setConfirmed] = useState(false);
+  const [review, setReview] = useState<{
+    order: StaffCashOrder;
+    received: number;
+  } | null>(null);
+  const confirming = useRef(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -92,6 +98,7 @@ export function StaffCashDesk({
         setAccess("guest");
         setOrder(null);
         setConfirmed(false);
+        setReview(null);
       }
       throw new Error(staffCashErrorCode(body.code));
     }
@@ -250,21 +257,18 @@ export function StaffCashDesk({
                     className="space-y-4"
                     onSubmit={(event) => {
                       event.preventDefault();
-                      const amount = arsPesosToMinorUnits(
+                      const calculation = cashReview(
+                        order.amount,
                         new FormData(event.currentTarget).get("amount"),
                       );
-                      if (amount === null) {
-                        setError("invalid");
+                      if (!calculation) {
+                        setError("amount");
                         return;
                       }
-                      void run(async () => {
-                        await request("confirm", {
-                          reference: order.reference,
-                          amount,
-                          received: true,
-                        });
-                        setOrder({ ...order, status: "approved" });
-                        setConfirmed(true);
+                      setError("");
+                      setReview({
+                        order: { ...order },
+                        received: calculation.received,
                       });
                     }}
                   >
@@ -286,7 +290,7 @@ export function StaffCashDesk({
                       textCase="sentence"
                     >
                       <Banknote aria-hidden strokeWidth={2} />
-                      {busy ? t("loading") : t("confirm")}
+                      {busy ? t("loading") : t("review.open")}
                     </Button>
                   </form>
                 ) : null}
@@ -294,6 +298,33 @@ export function StaffCashDesk({
             ) : null}
           </>
         )}
+        {review && access === "staff" ? (
+          <CashPaymentConfirmation
+            order={review.order}
+            received={review.received}
+            busy={busy}
+            error={error}
+            onClose={() => {
+              if (!confirming.current) setReview(null);
+            }}
+            onConfirm={() => {
+              if (confirming.current) return;
+              confirming.current = true;
+              void run(async () => {
+                await request("confirm", {
+                  reference: review.order.reference,
+                  amount: review.received,
+                  received: true,
+                });
+                setOrder({ ...review.order, status: "approved" });
+                setConfirmed(true);
+                setReview(null);
+              }).finally(() => {
+                confirming.current = false;
+              });
+            }}
+          />
+        ) : null}
         {confirmed ? (
           <p role="status" className="text-text-primary">
             {t("success")}

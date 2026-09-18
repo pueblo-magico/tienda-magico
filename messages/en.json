@@ -520,6 +520,17 @@
       "unverifiedBody": "Staff are checking the payment. Do not pay again while you wait for confirmation."
     },
     "staffCash": {
+      "review": {
+        "open": "Review payment",
+        "eyebrow": "Confirm payment",
+        "title": "Have you received the cash?",
+        "body": "Review the amount before updating the order. This action will be recorded against the staff session.",
+        "method": "Cash payment · Store pickup",
+        "received": "Cash received",
+        "change": "Change due",
+        "back": "Back to review",
+        "confirm": "Confirm payment · {amount}"
+      },
       "title": "Cash desk · confirm cash",
       "intro": "For Pueblo Mágico staff only. Sign in after receiving and counting the cash.",
       "password": "Staff password",
