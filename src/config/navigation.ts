@@ -93,6 +93,15 @@ export const locales = ["en", "es"] as const;
 export type Locale = (typeof locales)[number];
 export const defaultLocale: Locale = "es";
 
+export const paymentPathnames = {
+  "/checkout": { en: "/checkout", es: "/pago" },
+  "/checkout/pending": { en: "/checkout/pending", es: "/pago/pendiente" },
+  "/checkout/review": { en: "/checkout/review", es: "/pago/revision" },
+  "/checkout/success": { en: "/checkout/success", es: "/pago/exito" },
+  "/checkout/failure": { en: "/checkout/failure", es: "/pago/error" },
+  "/staff/cash": { en: "/staff/cash", es: "/personal/caja" },
+} as const;
+
 const localizedSegments: Record<Locale, Record<string, string>> = {
   es: {
     orders: "mis-pedidos",
@@ -122,6 +131,11 @@ export function localizePath(locale: Locale | string, path = "/"): string {
     ? (locale as Locale)
     : defaultLocale;
   const url = new URL(path, "https://local.invalid");
+  const paymentRoute = Object.entries(paymentPathnames).find(
+    ([route]) => route === url.pathname.replace(/\/$/, ""),
+  );
+  if (paymentRoute)
+    return `/${safeLocale}${paymentRoute[1][safeLocale]}${url.search}${url.hash}`;
   const segments = url.pathname.split("/").filter(Boolean);
   if (segments[0]) {
     segments[0] = localizedSegments[safeLocale][segments[0]] ?? segments[0];
@@ -162,6 +176,10 @@ export function internalPath(pathname: string): string {
   const locale = locales.includes(segments[0] as Locale)
     ? (segments.shift() as Locale)
     : defaultLocale;
+  const paymentRoute = Object.entries(paymentPathnames).find(
+    ([, paths]) => paths[locale] === `/${segments.join("/")}`,
+  );
+  if (paymentRoute) return paymentRoute[0];
   const reverse = Object.fromEntries(
     Object.entries(localizedSegments[locale]).map(([key, value]) => [
       value,

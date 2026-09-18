@@ -46,7 +46,7 @@ for (const locale of ["es", "en"]) {
     assert.ok(html.includes("order-2"));
     assert.ok(
       html.includes(
-        `/${locale}/checkout/pending?payment_method=bank-transfer&amp;order=order-1&amp;from=orders`,
+        `/${locale}/${locale === "es" ? "pago/pendiente" : "checkout/pending"}?payment_method=bank-transfer&amp;order=order-1&amp;from=orders`,
       ),
     );
     assert.ok(html.includes(messages.orders.copy));

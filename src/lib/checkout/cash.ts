@@ -1,4 +1,5 @@
 import { CASH, type CheckoutSession } from "@/types/checkout";
+import { localizePath } from "@/config/navigation";
 
 export function createCashSession({
   baseUrl,
@@ -18,7 +19,7 @@ export function createCashSession({
   return {
     id: `cash:${orderId}`,
     provider: CASH,
-    redirectUrl: `${baseUrl}/${locale}/checkout/pending?${query}`,
+    redirectUrl: `${baseUrl}${localizePath(locale, `/checkout/pending?${query}`)}`,
     status: "pending",
     expiresAt: null,
   };

@@ -1,4 +1,5 @@
 import { BANK_TRANSFER, type CheckoutSession } from "@/types/checkout";
+import { localizePath } from "@/config/navigation";
 
 type CreateBankTransferSessionInput = {
   baseUrl: string;
@@ -33,7 +34,7 @@ export function createBankTransferSession({
   return {
     id: `transfer:${orderId}`,
     provider: BANK_TRANSFER,
-    redirectUrl: `${baseUrl}/${locale}/checkout/pending?${query}`,
+    redirectUrl: `${baseUrl}${localizePath(locale, `/checkout/pending?${query}`)}`,
     status: "pending",
     expiresAt,
   };

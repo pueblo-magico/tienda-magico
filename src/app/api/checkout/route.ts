@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { localizePath } from "@/config/navigation";
 import { rememberGuestCart } from "@/lib/checkout/guest-orders";
 import { commerce } from "@/lib/commerce";
 import { checkout } from "@/lib/checkout";
@@ -219,9 +220,9 @@ export async function POST(request: Request) {
 
     const base = siteUrl(request);
     const returnUrls = {
-      success: `${base}/${locale}/checkout/success`,
-      failure: `${base}/${locale}/checkout/failure`,
-      pending: `${base}/${locale}/checkout/pending`,
+      success: `${base}${localizePath(locale, "/checkout/success")}`,
+      failure: `${base}${localizePath(locale, "/checkout/failure")}`,
+      pending: `${base}${localizePath(locale, "/checkout/pending")}`,
     };
 
     const notificationUrl =

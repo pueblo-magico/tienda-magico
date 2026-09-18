@@ -12,7 +12,7 @@ import { LanguageSwitcher } from "../src/components/layout/LanguageSwitcher.tsx"
 for (const [locale, pathname, query, expected] of [
   [
     "es",
-    "/es/checkout/pending",
+    "/es/pago/pendiente",
     "payment_method=cash&order=order-demo&from=orders",
     "/en/checkout/pending?payment_method=cash&order=order-demo&from=orders",
   ],
@@ -20,7 +20,7 @@ for (const [locale, pathname, query, expected] of [
     "en",
     "/en/checkout/pending",
     "payment_method=bank-transfer&order=order-demo&from=cart",
-    "/es/checkout/pending?payment_method=bank-transfer&order=order-demo&from=cart",
+    "/es/pago/pendiente?payment_method=bank-transfer&order=order-demo&from=cart",
   ],
   [
     "es",

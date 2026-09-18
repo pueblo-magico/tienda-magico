@@ -14,6 +14,7 @@ import {
   type OrderFilter,
 } from "./presentation";
 import { OrderReceiptFeedback } from "./OrderReceiptFeedback";
+import { localizePath } from "@/config/navigation";
 
 export function OrderList({
   orders,
@@ -122,7 +123,10 @@ export function OrderList({
                           order.paymentMethod,
                         ) ? (
                           <Button
-                            href={`/${locale}/checkout/pending?${query}`}
+                            href={localizePath(
+                              locale,
+                              `/checkout/pending?${query}`,
+                            )}
                             size="sm"
                             className="shrink-0"
                           >
