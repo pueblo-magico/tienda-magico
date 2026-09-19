@@ -70,7 +70,7 @@ test("crea una sesión pendiente de efectivo sin vencimiento", () => {
       id: "cash:pedido-42",
       provider: CASH,
       redirectUrl:
-        "https://tienda.example/es/checkout/pending?payment_method=cash&order=pedido-42&from=cart",
+        "https://tienda.example/es/pago/pendiente?payment_method=cash&order=pedido-42&from=cart",
       status: "pending",
       expiresAt: null,
     },

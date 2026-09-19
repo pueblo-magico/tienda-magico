@@ -46,7 +46,7 @@ for (const locale of ["es", "en"]) {
     assert.ok(html.includes("order-2"));
     assert.ok(
       html.includes(
-        `/${locale}/checkout/pending?payment_method=bank-transfer&amp;order=order-1&amp;from=orders`,
+        `/${locale}/${locale === "es" ? "pago/pendiente" : "checkout/pending"}?payment_method=bank-transfer&amp;order=order-1&amp;from=orders`,
       ),
     );
     assert.ok(html.includes(messages.orders.copy));
@@ -114,7 +114,7 @@ test("un pedido aprobado pendiente de recepción muestra la acción de entrega",
       }),
     ),
   );
-  assert.ok(html.includes(messages.orders.receipt.open));
+  assert.ok(html.includes(messages.orders.receipt.inlineQuestion));
   assert.ok(html.includes(messages.orders.receipt.ratingLabel));
   assert.ok(html.includes(messages.orders.receipt.commentLabel));
 });

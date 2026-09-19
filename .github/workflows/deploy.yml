@@ -1,8 +1,8 @@
-name: Deploy staging
+name: Desplegar staging y producción
 
 on:
   push:
-    branches: [staging]
+    branches: [staging, production]
   workflow_dispatch:
     inputs:
       existing_tag:
@@ -14,15 +14,19 @@ permissions:
   contents: read
 
 concurrency:
-  group: tienda-magico-staging
+  group: tienda-magico-${{ github.ref_name }}
   cancel-in-progress: false
 
 jobs:
   deploy:
+    if: github.ref == 'refs/heads/staging' || github.ref == 'refs/heads/production'
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
-    environment: staging
+    environment: ${{ github.ref_name }}
     timeout-minutes: 90
     env:
+      DEPLOY_ENVIRONMENT: ${{ github.ref_name }}
       SHOP_URL: ${{ vars.SHOP_URL }}
       CMS_URL: ${{ vars.CMS_URL }}
       DEPLOY_PLATFORM: ${{ vars.DEPLOY_PLATFORM }}
@@ -52,7 +56,7 @@ jobs:
           )
           for key in "${required[@]}"; do
             [[ -n "${!key:-}" ]] || {
-              echo "Missing staging GitHub Environment variable: ${key}"
+              echo "Falta la variable de ${DEPLOY_ENVIRONMENT}: ${key}"
               exit 1
             }
           done
@@ -70,19 +74,30 @@ jobs:
             exit 1
           }
           [[ "$CHECKOUT_PROVIDER" == "mercado-pago" ]] || {
-            echo "CHECKOUT_PROVIDER must be mercado-pago for staging."
+            echo "CHECKOUT_PROVIDER debe ser mercado-pago."
             exit 1
           }
-          [[ "$MERCADOPAGO_SANDBOX" == "true" ]] || {
-            echo "MERCADOPAGO_SANDBOX must be true for staging."
+          case "$DEPLOY_ENVIRONMENT" in
+            staging) expected_sandbox=true ;;
+            production) expected_sandbox=false ;;
+            *) echo "Entorno de despliegue no permitido."; exit 1 ;;
+          esac
+          [[ "$MERCADOPAGO_SANDBOX" == "$expected_sandbox" ]] || {
+            echo "MERCADOPAGO_SANDBOX debe ser $expected_sandbox para $DEPLOY_ENVIRONMENT."
             exit 1
           }
+          if [[ "$DEPLOY_ENVIRONMENT" == "production" ]]; then
+            [[ "$SHOP_URL" == https://* && "$CMS_URL" == https://* ]] || {
+              echo "Producción requiere HTTPS para la tienda y el CMS."
+              exit 1
+            }
+          fi
           [[ -n "$MERCADOPAGO_ACCESS_TOKEN" ]] || {
-            echo "Missing staging GitHub Environment secret: MERCADOPAGO_ACCESS_TOKEN"
+            echo "Falta el secreto MERCADOPAGO_ACCESS_TOKEN de $DEPLOY_ENVIRONMENT."
             exit 1
           }
           [[ -n "$MERCADOPAGO_WEBHOOK_SECRET" ]] || {
-            echo "Falta el secreto de staging MERCADOPAGO_WEBHOOK_SECRET."
+            echo "Falta el secreto MERCADOPAGO_WEBHOOK_SECRET de $DEPLOY_ENVIRONMENT."
             exit 1
           }
           [[ "$MERCADOPAGO_WEBHOOK_URL" == "$SHOP_URL/api/checkout/webhooks/mercado-pago" ]] || {
@@ -106,7 +121,10 @@ jobs:
             IMAGE_TAG="$REQUESTED_TAG"
             BUILD_RELEASE=false
           else
-            IMAGE_TAG="staging-${GITHUB_SHA:0:12}"
+            IMAGE_TAG="${DEPLOY_ENVIRONMENT}-${GITHUB_SHA:0:12}"
+            if [[ "$DEPLOY_ENVIRONMENT" == "production" ]]; then
+              IMAGE_TAG="${IMAGE_TAG}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+            fi
             BUILD_RELEASE=true
           fi
           [[ "$IMAGE_TAG" =~ ^[A-Za-z0-9._-]+$ ]] || {
@@ -151,8 +169,8 @@ jobs:
           SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
         run: |
           set -euo pipefail
-          [[ -n "$SSH_PRIVATE_KEY" ]] || { echo "Missing staging secret: SSH_PRIVATE_KEY"; exit 1; }
-          [[ -n "$SSH_KNOWN_HOSTS" ]] || { echo "Missing staging secret: SSH_KNOWN_HOSTS"; exit 1; }
+          [[ -n "$SSH_PRIVATE_KEY" ]] || { echo "Falta el secreto SSH_PRIVATE_KEY."; exit 1; }
+          [[ -n "$SSH_KNOWN_HOSTS" ]] || { echo "Falta el secreto SSH_KNOWN_HOSTS."; exit 1; }
 
           install -d -m 700 "$HOME/.ssh"
           printf '%s\n' "$SSH_PRIVATE_KEY" | tr -d '\r' > "$HOME/.ssh/id_ed25519"
@@ -263,7 +281,7 @@ jobs:
           rm -rf -- "$bundle" "$runtime_env"
           REMOTE
 
-      - name: Verify public staging endpoints
+      - name: Verificar endpoints públicos
         shell: bash
         run: |
           set -euo pipefail
@@ -291,12 +309,24 @@ jobs:
           check_endpoint "Storefront" "$SHOP_URL/"
           check_endpoint "CMS" "$CMS_URL/admin"
 
+      - name: Crear etiqueta anotada de producción
+        if: success() && github.ref_name == 'production' && env.BUILD_RELEASE == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "$IMAGE_TAG" "$GITHUB_SHA" \
+            -m "Despliegue de producción verificado: $IMAGE_TAG" \
+            -m "Commit: $GITHUB_SHA. Ejecución: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          git push origin "refs/tags/$IMAGE_TAG"
+
       - name: Publish deployment summary
         if: always()
         shell: bash
         run: |
           {
-            echo "## Staging deployment"
+            echo "## Despliegue de $DEPLOY_ENVIRONMENT"
             echo ""
             echo "- Commit: \`$GITHUB_SHA\`"
             echo "- Image tag: \`${IMAGE_TAG:-not-created}\`"

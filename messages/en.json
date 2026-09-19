@@ -373,6 +373,8 @@
     "deadline": "Deadline: {date}",
     "view": "View order",
     "receipt": {
+      "inlineQuestion": "Did you receive your package?",
+      "inlineConfirm": "Confirm receipt",
       "feedbackTitle": "How was your shopping experience?",
       "feedbackDescription": "Your feedback helps us improve. It is optional and does not confirm delivery.",
       "submitFeedback": "Send feedback",

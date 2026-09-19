@@ -373,6 +373,8 @@
     "deadline": "Vencimiento: {date}",
     "view": "Ver pedido",
     "receipt": {
+      "inlineQuestion": "¿Ya recibiste tu paquete?",
+      "inlineConfirm": "Confirmar recepción",
       "feedbackTitle": "¿Cómo fue tu experiencia de compra?",
       "feedbackDescription": "Tu opinión nos ayuda a mejorar. Responder es opcional y no confirma la entrega.",
       "submitFeedback": "Enviar opinión",

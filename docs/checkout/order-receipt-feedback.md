@@ -1,5 +1,7 @@
 # Confirmación de recepción y experiencia de compra
 
+«Mis pedidos» también separa ambas acciones: los pedidos aprobados muestran una pregunta de recepción en línea que abre el mismo diálogo de confirmación y, por separado, la tarjeta de opinión de la pantalla de pago. Confirmar recepción no oculta la opinión. Una puntuación guardada (incluido cero) evita volver a mostrar la tarjeta; descartar la opinión no confirma recepción.
+
 En la pantalla de efectivo confirmado, el botón de recepción abre un diálogo con el resumen real del pedido (referencia, productos y total). Cancelar, cerrar o presionar Escape no modifica el pedido. Solo «Sí, recibí mi pedido» envía la confirmación. Durante el envío se bloquean los clics repetidos y el cierre; los errores permanecen visibles en el diálogo y permiten reintentar. La opinión sigue siendo independiente.
 
 En la pantalla de efectivo confirmado, recepción y opinión son acciones independientes. Confirmar recepción envía únicamente `receivedAt`; enviar opinión guarda únicamente la puntuación y el comentario. El formulario de opinión permanece visible después de confirmar recepción hasta enviarlo o descartarlo. Descartar lo oculta durante la vista actual, sin modificar el pedido. Una opinión enviada no vuelve a solicitarse al recargar. Los clientes anteriores que envían ambos datos juntos siguen siendo compatibles.
