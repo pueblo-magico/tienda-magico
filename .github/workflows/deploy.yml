@@ -138,29 +138,24 @@ jobs:
           echo "ARTIFACT=artifacts/manual/tienda-magico-${IMAGE_TAG}.tar" >> "$GITHUB_ENV"
           echo "Release tag: $IMAGE_TAG"
 
-      - name: Prepare managed storefront runtime configuration
+      - name: Generar configuración completa de la VM
         shell: bash
         env:
+          POSTGRES_USER: ${{ vars.POSTGRES_USER }}
+          POSTGRES_DB: ${{ vars.POSTGRES_DB }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          PAYLOAD_SECRET: ${{ secrets.PAYLOAD_SECRET }}
+          STOREFRONT_REVALIDATION_SECRET: ${{ secrets.STOREFRONT_REVALIDATION_SECRET }}
+          PAYLOAD_ECOMMERCE_API_KEY: ${{ secrets.PAYLOAD_ECOMMERCE_API_KEY }}
+          PAYLOAD_CMS_API_KEY: ${{ secrets.PAYLOAD_CMS_API_KEY }}
           MERCADOPAGO_ACCESS_TOKEN: ${{ secrets.MERCADOPAGO_ACCESS_TOKEN }}
           MERCADOPAGO_WEBHOOK_SECRET: ${{ secrets.MERCADOPAGO_WEBHOOK_SECRET }}
         run: |
           set -euo pipefail
-          runtime_file="$RUNNER_TEMP/storefront-runtime.env"
-          umask 077
-          {
-            printf 'COMMERCE_PROVIDER=payload\n'
-            printf 'PAYLOAD_ECOMMERCE_URL=%s\n' "$CMS_URL"
-            printf 'PAYLOAD_ECOMMERCE_CURRENCY=ARS\n'
-            printf 'PAYLOAD_ECOMMERCE_AMOUNT_IS_CENTS=true\n'
-            printf 'PAYLOAD_CMS_URL=%s\n' "$CMS_URL"
-            printf 'NEXT_PUBLIC_SITE_URL=%s\n' "$SHOP_URL"
-            printf 'CHECKOUT_PROVIDER=%s\n' "$CHECKOUT_PROVIDER"
-            printf 'MERCADOPAGO_ACCESS_TOKEN=%s\n' "$MERCADOPAGO_ACCESS_TOKEN"
-            printf 'MERCADOPAGO_WEBHOOK_SECRET=%s\n' "$MERCADOPAGO_WEBHOOK_SECRET"
-            printf 'MERCADOPAGO_SANDBOX=%s\n' "$MERCADOPAGO_SANDBOX"
-            printf 'MERCADOPAGO_WEBHOOK_URL=%s\n' "$MERCADOPAGO_WEBHOOK_URL"
-          } > "$runtime_file"
-          echo "RUNTIME_ENV_FILE=$runtime_file" >> "$GITHUB_ENV"
+          node deploy/manual/deployment-config.mjs "$RUNNER_TEMP/deployment-config"
+          tar -C "$RUNNER_TEMP/deployment-config" -cf "$RUNNER_TEMP/deployment-config.tar" .
+          chmod 600 "$RUNNER_TEMP/deployment-config.tar"
+          echo "RUNTIME_ENV_FILE=$RUNNER_TEMP/deployment-config.tar" >> "$GITHUB_ENV"
 
       - name: Configure SSH host verification
         shell: bash
@@ -237,47 +232,7 @@ jobs:
           artifact="$4"
           runtime_env="$5"
           app_dir="/opt/tienda-magico"
-          storefront_env="$app_dir/env/storefront.env"
-          deployment_env="$app_dir/deployment.env"
-          storefront_backup="/tmp/tienda-storefront-${image_tag}.backup"
-          deployment_backup="/tmp/tienda-deployment-${image_tag}.backup"
-
-          sudo bash "$bundle/vm-deploy.sh" install
-          sudo cp -p "$storefront_env" "$storefront_backup"
-          sudo cp -p "$deployment_env" "$deployment_backup"
-
-          restore_previous_release() {
-            status=$?
-            trap - ERR
-            set +e
-            echo "Activation failed; restoring the previous runtime configuration and release tag."
-            sudo cp -p "$storefront_backup" "$storefront_env"
-            sudo cp -p "$deployment_backup" "$deployment_env"
-            sudo docker compose \
-              --env-file "$deployment_env" \
-              -f "$app_dir/compose.yml" \
-              up -d --remove-orphans --wait --wait-timeout 180
-            sudo rm -f -- "$storefront_backup" "$deployment_backup"
-            rm -rf -- "$bundle" "$runtime_env"
-            exit "$status"
-          }
-          trap restore_previous_release ERR
-
-          sudo bash "$bundle/update-runtime-env.sh" "$runtime_env" "$storefront_env"
-
-          if [[ "$build_release" == "true" ]]; then
-            cd /tmp
-            sha256sum --check "$(basename "$artifact").sha256"
-            sudo bash "$bundle/vm-deploy.sh" activate \
-              --artifact "$artifact" \
-              --tag "$image_tag"
-          else
-            sudo bash "$bundle/vm-deploy.sh" activate --tag "$image_tag"
-          fi
-
-          sudo bash "$bundle/vm-deploy.sh" status
-          trap - ERR
-          sudo rm -f -- "$storefront_backup" "$deployment_backup"
+          sudo bash "$bundle/activate-managed.sh" "$runtime_env" "$image_tag" "$build_release" "$artifact"
           rm -rf -- "$bundle" "$runtime_env"
           REMOTE
 
@@ -342,3 +297,13 @@ jobs:
           SSH_TARGET="${SSH_USER}@${SSH_HOST}"
           ssh -p "$SSH_PORT" "$SSH_TARGET" \
             "rm -f '/tmp/tienda-magico-${IMAGE_TAG}.tar' '/tmp/tienda-magico-${IMAGE_TAG}.tar.sha256'"
+
+      - name: Limpiar configuración temporal
+        if: always()
+        shell: bash
+        run: |
+          rm -rf -- "$RUNNER_TEMP/deployment-config" "$RUNNER_TEMP/deployment-config.tar"
+          if [[ -f "$HOME/.ssh/id_ed25519" && -n "${IMAGE_TAG:-}" ]]; then
+            ssh -p "${SSH_PORT:-22}" "${SSH_USER}@${SSH_HOST}" \
+              "rm -f -- '/tmp/tienda-storefront-runtime-${IMAGE_TAG}.env'" || true
+          fi

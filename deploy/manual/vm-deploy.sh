@@ -76,9 +76,9 @@ validate_config() {
   validate_file "$APP_DIR/env/postgres.env"
   grep -qE '^DATABASE_URL=.*@postgres:5432/' "$APP_DIR/env/cms.env" || \
     die 'CMS DATABASE_URL must use the Compose address postgres:5432.'
-  grep -qE '^HOSTNAME=0\.0\.0\.0$' "$APP_DIR/env/storefront.env" || \
+  grep -qE "^HOSTNAME='?0\\.0\\.0\\.0'?$" "$APP_DIR/env/storefront.env" || \
     die 'storefront.env must contain HOSTNAME=0.0.0.0.'
-  grep -qE '^HOSTNAME=0\.0\.0\.0$' "$APP_DIR/env/cms.env" || \
+  grep -qE "^HOSTNAME='?0\\.0\\.0\\.0'?$" "$APP_DIR/env/cms.env" || \
     die 'cms.env must contain HOSTNAME=0.0.0.0.'
 }
 
