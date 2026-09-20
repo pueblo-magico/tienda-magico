@@ -1,4 +1,7 @@
 {
+  "account": {
+    "title": "Mi cuenta", "orders": "Mis pedidos", "data": "Mis datos", "register": "Crear cuenta", "login": "Ingresar", "logout": "Cerrar sesión", "name": "Nombre completo", "email": "Email", "password": "Contraseña", "passwordHint": "Usá al menos 12 caracteres.", "optional": "Crear una cuenta es opcional. Podés seguir comprando como invitado. Al ingresar, los pedidos de este navegador se vinculan a tu cuenta.", "useData": "Usar mis datos guardados", "loading": "Verificando…", "error": "No pudimos completar la solicitud. Revisá los datos o intentá nuevamente más tarde."
+  },
   "commercial": {
     "unitPrice": "Precio unitario: {price}",
     "netContent": "Contenido neto: {quantity} {unit}",

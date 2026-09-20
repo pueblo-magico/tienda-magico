@@ -28,6 +28,7 @@ const groups = [
     title: "Actions",
     items: [
       { href: "/ui-system/button", label: "Button" },
+      { href: "/ui-system/dropdown-menu", label: "Menú desplegable" },
       { href: "/ui-system/icons", label: "Iconos" },
     ],
   },

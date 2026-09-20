@@ -46,12 +46,14 @@ export function useOrderCounts(refreshCart: () => Promise<void>) {
     const timer = window.setInterval(onRefresh, 15000);
     document.addEventListener("visibilitychange", onRefresh);
     window.addEventListener("orders-updated", onRefresh);
+    window.addEventListener("magico-account-change", onRefresh);
     return () => {
       stopped = true;
       controller.abort();
       window.clearInterval(timer);
       document.removeEventListener("visibilitychange", onRefresh);
       window.removeEventListener("orders-updated", onRefresh);
+      window.removeEventListener("magico-account-change", onRefresh);
     };
   }, [pathname, refreshCart]);
   return count;

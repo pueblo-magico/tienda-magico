@@ -1,6 +1,7 @@
 "use client";
 
 import { useId } from "react";
+import { CheckoutAccount } from "./CheckoutAccount";
 import { useLocale, useTranslations } from "next-intl";
 import {
   ArrowRight,
@@ -164,6 +165,7 @@ export function CartSummary({
                     required
                   />
                 </fieldset>
+                <CheckoutAccount name={buyerName} email={buyerEmail} onUseData={(name, email) => { onBuyerNameChange(name); onBuyerEmailChange(email); }} />
                 {!hasBuyerDetails ? (
                   <p className="text-clay text-xs" role="status">
                     {labels.buyerRequired}

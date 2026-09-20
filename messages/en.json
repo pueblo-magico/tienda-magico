@@ -1,4 +1,7 @@
 {
+  "account": {
+    "title": "My account", "orders": "My orders", "data": "My details", "register": "Create account", "login": "Log in", "logout": "Log out", "name": "Full name", "email": "Email", "password": "Password", "passwordHint": "Use at least 12 characters.", "optional": "Creating an account is optional. You can continue as a guest. Signing in links this browser's orders to your account.", "useData": "Use my saved details", "loading": "Checking…", "error": "We couldn't complete your request. Check your details or try again later."
+  },
   "commercial": {
     "unitPrice": "Unit price: {price}",
     "netContent": "Net content: {quantity} {unit}",

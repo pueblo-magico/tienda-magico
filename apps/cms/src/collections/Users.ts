@@ -24,7 +24,7 @@ export const Users: CollectionConfig = {
   },
   hooks: { beforeChange: [protectCashStaffAccount], beforeLogin: [cashStaffBeforeLogin] },
   access: {
-    admin: ({ req: { user } }) => Boolean(user) && !isCashStaff(user),
+    admin: ({ req: { user } }) => Boolean(user) && !isCashStaff(user) && checkRole(['admin'], user),
     // Allow first user bootstrap; afterwards admins only
     create: async ({ req }) => {
       const { user } = req

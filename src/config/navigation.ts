@@ -104,6 +104,7 @@ export const paymentPathnames = {
 
 const localizedSegments: Record<Locale, Record<string, string>> = {
   es: {
+    account: "mi-cuenta",
     orders: "mis-pedidos",
     shop: "tienda",
     categories: "categorias",
@@ -114,6 +115,7 @@ const localizedSegments: Record<Locale, Record<string, string>> = {
     impact: "impacto",
   },
   en: {
+    account: "account",
     orders: "orders",
     shop: "shop",
     categories: "categories",

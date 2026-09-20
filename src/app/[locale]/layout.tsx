@@ -7,6 +7,7 @@ import { Header } from "@/components/layout/Header";
 import { CartDrawer, CartProvider } from "@/features/cart";
 import { routing } from "@/i18n/routing";
 import { ImpactFooter } from "@/features/shop/ImpactFooter";
+import { AccountProvider } from "@/lib/account/client";
 
 
 type Props = {
@@ -30,7 +31,7 @@ export default async function LocaleLayout({ children, params }: Props) {
 
   return (
     <NextIntlClientProvider messages={messages}>
-      <CartProvider>
+      <AccountProvider><CartProvider>
         <div className="flex min-h-screen flex-col">
           <Header />
           <div className="flex-1">{children}</div>
@@ -40,7 +41,7 @@ export default async function LocaleLayout({ children, params }: Props) {
           <Footer />
         </div>
         <CartDrawer />
-      </CartProvider>
+      </CartProvider></AccountProvider>
     </NextIntlClientProvider>
   );
 }
