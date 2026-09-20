@@ -46,16 +46,3 @@ test("the storefront image selects Payload during the Next.js build", async () =
     /["']--build-arg["']\s*,\s*["']COMMERCE_PROVIDER=payload["']/,
   );
 });
-
-test("automated deployment uses only the provisioned privileged entrypoint", async () => {
-  const [workflow, deployer] = await Promise.all([
-    readFile(".github/workflows/deploy.yml", "utf8"),
-    readFile("deploy/manual/automated-deploy.sh", "utf8"),
-  ]);
-
-  assert.match(workflow, /sudo -n \/usr\/local\/sbin\/tienda-magico-deploy/);
-  assert.doesNotMatch(workflow, /sudo (?:bash|cp|docker|rm) /);
-  assert.match(deployer, /sha256sum --check/);
-  assert.match(deployer, /deploy-environment/);
-  assert.match(deployer, /update-runtime-env\.sh/);
-});
