@@ -32,7 +32,11 @@ services:
     expose:
       - "3000"
     healthcheck:
-      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:3000/ || exit 1"]
+      test:
+        [
+          "CMD-SHELL",
+          "wget -q -O /dev/null http://127.0.0.1:3000/api/health || exit 1",
+        ]
       interval: 15s
       timeout: 5s
       retries: 8
@@ -56,7 +60,11 @@ services:
       postgres:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:4000/admin || exit 1"]
+      test:
+        [
+          "CMD-SHELL",
+          "wget -q -O /dev/null http://127.0.0.1:4000/admin || exit 1",
+        ]
       interval: 15s
       timeout: 5s
       retries: 12
@@ -75,7 +83,11 @@ services:
     volumes:
       - /var/lib/tienda-magico/postgres:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-postgres} -d $${POSTGRES_DB:-tienda_magico_cms}"]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U $${POSTGRES_USER:-postgres} -d $${POSTGRES_DB:-tienda_magico_cms}",
+        ]
       interval: 5s
       timeout: 5s
       retries: 20

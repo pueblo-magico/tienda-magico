@@ -59,4 +59,8 @@ Este workflow no incorpora un ejecutor de migraciones ni crea usuarios del CMS. 
 
 ## Verificación
 
+El health check interno del storefront consulta `/api/health`: responde `200` con `{"status":"ok"}` y `Cache-Control: no-store`, sin renderizar páginas ni consultar CMS, base de datos o servicios públicos. Esto permite iniciar Caddy sin depender de la disponibilidad del catálogo a través de Caddy. El workflow conserva los chequeos públicos de la tienda completa y del CMS después de activar los contenedores.
+
+Para desplegar este cambio, compilá una imagen nueva (dejá `existing_tag` vacío). Las imágenes anteriores no contienen el endpoint y no son compatibles con este health check; un rollback a una versión anterior requiere restaurar también su archivo Compose.
+
 Ejecutá las pruebas de despliegue con node --test tests/deployment-config.test.mjs tests/deployment-branches.test.mjs tests/deployment-runtime-env.test.mjs. Validá además un primer despliegue en una VM de prueba, un redeploy y un fallo de activación antes de publicar en producción.
