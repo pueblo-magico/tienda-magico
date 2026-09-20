@@ -37,6 +37,10 @@ Los valores no pueden incluir saltos de línea, comillas simples ni barras inver
 
 ## Despliegue
 
+El workflow se divide en cuatro jobs secuenciales: `prepare` valida configuración y publica únicamente metadatos del release; `build` compila y sube el tar de imágenes con su checksum como artefacto de Actions (retención de un día); `deploy` descarga, verifica, transfiere, activa y comprueba los endpoints; `tag` crea la etiqueta anotada exclusivamente tras un despliegue exitoso de producción. Solo `tag` tiene permiso de escritura en el repositorio.
+
+Los archivos con secretos nunca se publican como artefactos ni outputs: se validan y eliminan en `prepare`, y se generan nuevamente en `deploy` desde el Environment. Al usar `existing_tag`, `build` no compila ni transfiere imágenes, pero permite continuar la activación. Todos los jobs conservan el Environment de la rama y pueden requerir su aprobación configurada.
+
 Los pushes a staging y production generan imágenes, archivo con checksum, transferencia y activación en la VM. Producción requiere HTTPS. Las ejecuciones manuales desde otras ramas se omiten.
 
 Las etiquetas de producción tienen formato production-SHA-RUN_ID-RUN_ATTEMPT; staging usa staging-SHA. Compose espera los health checks internos de tienda, CMS y PostgreSQL. Luego se comprueban las URLs públicas. Solo después se crea una etiqueta Git anotada para una nueva compilación de producción. Actions necesita contents: write y permiso para crear etiquetas.
