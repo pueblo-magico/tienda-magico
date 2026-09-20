@@ -224,62 +224,10 @@ jobs:
           set -euo pipefail
           SSH_TARGET="${SSH_USER}@${SSH_HOST}"
           REMOTE_BUNDLE="/tmp/tienda-manual-${IMAGE_TAG}"
-          REMOTE_ARTIFACT="/tmp/tienda-magico-${IMAGE_TAG}.tar"
-          REMOTE_RUNTIME_ENV="/tmp/tienda-storefront-runtime-${IMAGE_TAG}.env"
-
-          ssh -p "$SSH_PORT" "$SSH_TARGET" bash -s -- \
-            "$IMAGE_TAG" "$BUILD_RELEASE" "$REMOTE_BUNDLE" "$REMOTE_ARTIFACT" \
-            "$REMOTE_RUNTIME_ENV" <<'REMOTE'
-          set -euo pipefail
-          image_tag="$1"
-          build_release="$2"
-          bundle="$3"
-          artifact="$4"
-          runtime_env="$5"
-          app_dir="/opt/tienda-magico"
-          storefront_env="$app_dir/env/storefront.env"
-          deployment_env="$app_dir/deployment.env"
-          storefront_backup="/tmp/tienda-storefront-${image_tag}.backup"
-          deployment_backup="/tmp/tienda-deployment-${image_tag}.backup"
-
-          sudo bash "$bundle/vm-deploy.sh" install
-          sudo cp -p "$storefront_env" "$storefront_backup"
-          sudo cp -p "$deployment_env" "$deployment_backup"
-
-          restore_previous_release() {
-            status=$?
-            trap - ERR
-            set +e
-            echo "Activation failed; restoring the previous runtime configuration and release tag."
-            sudo cp -p "$storefront_backup" "$storefront_env"
-            sudo cp -p "$deployment_backup" "$deployment_env"
-            sudo docker compose \
-              --env-file "$deployment_env" \
-              -f "$app_dir/compose.yml" \
-              up -d --remove-orphans --wait --wait-timeout 180
-            sudo rm -f -- "$storefront_backup" "$deployment_backup"
-            rm -rf -- "$bundle" "$runtime_env"
-            exit "$status"
-          }
-          trap restore_previous_release ERR
-
-          sudo bash "$bundle/update-runtime-env.sh" "$runtime_env" "$storefront_env"
-
-          if [[ "$build_release" == "true" ]]; then
-            cd /tmp
-            sha256sum --check "$(basename "$artifact").sha256"
-            sudo bash "$bundle/vm-deploy.sh" activate \
-              --artifact "$artifact" \
-              --tag "$image_tag"
-          else
-            sudo bash "$bundle/vm-deploy.sh" activate --tag "$image_tag"
-          fi
-
-          sudo bash "$bundle/vm-deploy.sh" status
-          trap - ERR
-          sudo rm -f -- "$storefront_backup" "$deployment_backup"
-          rm -rf -- "$bundle" "$runtime_env"
-          REMOTE
+          ssh -p "$SSH_PORT" "$SSH_TARGET" \
+            "sudo -n /usr/local/sbin/tienda-magico-deploy '$IMAGE_TAG' '$BUILD_RELEASE'"
+          ssh -p "$SSH_PORT" "$SSH_TARGET" \
+            "rm -rf -- '$REMOTE_BUNDLE' '$REMOTE_RUNTIME_ENV'"
 
       - name: Verificar endpoints públicos
         shell: bash
