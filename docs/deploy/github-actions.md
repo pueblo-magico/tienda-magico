@@ -60,41 +60,15 @@ domains or `CHANGE_ME` placeholders:
 /opt/tienda-magico/env/postgres.env
 ```
 
-El usuario SSH de GitHub Actions necesita `sudo` sin contraseña únicamente para
-un comando de despliegue instalado por root. Después de preparar Docker y los
-archivos de entorno de la VM, copiá los tres scripts del commit revisado:
+The SSH user used by GitHub Actions must be able to run the deployment script
+with non-interactive `sudo`. Test this from a trusted terminal:
 
 ```bash
-scp deploy/manual/automated-deploy.sh deploy/manual/vm-deploy.sh \
-  deploy/manual/update-runtime-env.sh ADMIN@VM_HOST:/tmp/
+ssh VM_USER@VM_HOST 'sudo -n true'
 ```
 
-Desde una sesión administrativa confiable en la VM, instalalos como root:
-
-```bash
-sudo install -d -m 755 /usr/local/lib/tienda-magico /etc/tienda-magico
-sudo install -o root -g root -m 755 /tmp/automated-deploy.sh /usr/local/sbin/tienda-magico-deploy
-sudo install -o root -g root -m 755 /tmp/vm-deploy.sh /tmp/update-runtime-env.sh /usr/local/lib/tienda-magico/
-printf '%s\n' production | sudo tee /etc/tienda-magico/deploy-environment >/dev/null
-sudo chown root:root /etc/tienda-magico/deploy-environment
-sudo chmod 644 /etc/tienda-magico/deploy-environment
-sudo visudo -f /etc/sudoers.d/tienda-magico-deploy
-```
-
-En staging, escribí `staging` en lugar de `production`. Dentro de `visudo`,
-agregá solo esta línea, reemplazando `deploy` por el valor de `SSH_USER`:
-
-```text
-deploy ALL=(root) NOPASSWD: /usr/local/sbin/tienda-magico-deploy
-```
-
-Verificá con `sudo visudo -cf /etc/sudoers.d/tienda-magico-deploy`. Como
-usuario de despliegue, ejecutá
-`sudo -n /usr/local/sbin/tienda-magico-deploy invalid false`: debe rechazar la
-etiqueta, sin pedir contraseña. No uses `NOPASSWD: ALL` ni guardes la
-contraseña de sudo en GitHub. Revisá los scripts antes de actualizarlos en la
-VM: el workflow solo transfiere configuración e imágenes, no reemplaza los
-scripts privilegiados instalados.
+If this fails, grant only the sudo access required by your VM policy. Do not put
+a sudo password in the workflow.
 
 ## 2. Create a dedicated deployment SSH key
 
