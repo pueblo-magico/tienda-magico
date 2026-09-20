@@ -37,6 +37,10 @@ Los valores no pueden incluir saltos de línea, comillas simples ni barras inver
 
 ## Despliegue
 
+El workflow se divide en cuatro jobs secuenciales: `prepare` valida configuración y publica únicamente metadatos del release; `build` compila y sube el tar de imágenes con su checksum como artefacto de Actions (retención de un día); `deploy` descarga, verifica, transfiere, activa y comprueba los endpoints; `tag` crea la etiqueta anotada exclusivamente tras un despliegue exitoso de producción. Solo `tag` tiene permiso de escritura en el repositorio.
+
+Los archivos con secretos nunca se publican como artefactos ni outputs: se validan y eliminan en `prepare`, y se generan nuevamente en `deploy` desde el Environment. Al usar `existing_tag`, `build` no compila ni transfiere imágenes, pero permite continuar la activación. Todos los jobs conservan el Environment de la rama y pueden requerir su aprobación configurada.
+
 Los pushes a staging y production generan imágenes, archivo con checksum, transferencia y activación en la VM. Producción requiere HTTPS. Las ejecuciones manuales desde otras ramas se omiten.
 
 Las etiquetas de producción tienen formato production-SHA-RUN_ID-RUN_ATTEMPT; staging usa staging-SHA. Compose espera los health checks internos de tienda, CMS y PostgreSQL. Luego se comprueban las URLs públicas. Solo después se crea una etiqueta Git anotada para una nueva compilación de producción. Actions necesita contents: write y permiso para crear etiquetas.
@@ -54,5 +58,9 @@ La activación guarda los cuatro archivos anteriores y los restaura si falla. So
 Este workflow no incorpora un ejecutor de migraciones ni crea usuarios del CMS. Aplicá el procedimiento de migraciones del release y completá el alta inicial del administrador y de los usuarios de integración del CMS. No confundas la generación automática de configuración con la preparación funcional de una tienda nueva.
 
 ## Verificación
+
+El health check interno del storefront consulta `/api/health`: responde `200` con `{"status":"ok"}` y `Cache-Control: no-store`, sin renderizar páginas ni consultar CMS, base de datos o servicios públicos. Esto permite iniciar Caddy sin depender de la disponibilidad del catálogo a través de Caddy. El workflow conserva los chequeos públicos de la tienda completa y del CMS después de activar los contenedores.
+
+Para desplegar este cambio, compilá una imagen nueva (dejá `existing_tag` vacío). Las imágenes anteriores no contienen el endpoint y no son compatibles con este health check; un rollback a una versión anterior requiere restaurar también su archivo Compose.
 
 Ejecutá las pruebas de despliegue con node --test tests/deployment-config.test.mjs tests/deployment-branches.test.mjs tests/deployment-runtime-env.test.mjs. Validá además un primer despliegue en una VM de prueba, un redeploy y un fallo de activación antes de publicar en producción.
