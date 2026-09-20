@@ -73,6 +73,7 @@ test("valida modo de pago y HTTPS antes de desplegar producción", async (contex
         GITHUB_RUN_ID: "12345",
         GITHUB_RUN_ATTEMPT: "2",
         GITHUB_ENV: "/dev/null",
+        GITHUB_OUTPUT: "/dev/null",
       },
     });
     assert.equal(result.status, expected, result.stderr || result.stdout);
