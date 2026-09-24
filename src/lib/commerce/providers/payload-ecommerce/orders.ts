@@ -16,7 +16,10 @@ import {
 } from "@/types/checkout";
 import { collectionPath, payloadFetch } from "./client";
 import { getPayloadEcommerceConfig } from "./config";
-import { parseGuestCartReferences } from "@/lib/commerce/guest-order-access";
+import {
+  MAX_GUEST_CARTS,
+  parseGuestCartReferences,
+} from "@/lib/commerce/guest-order-access";
 import { mapProductSummary } from "./mappers";
 
 type CheckoutOrderInput = {
@@ -348,6 +351,23 @@ export async function getGuestOrders(
 ): Promise<CheckoutOrder[]> {
   const references = validatedReferences(cartReferences);
   if (!references.length) return [];
+  if (references.length > MAX_GUEST_CARTS) {
+    const batches: CheckoutOrder[] = [];
+    for (
+      let offset = 0;
+      offset < references.length;
+      offset += MAX_GUEST_CARTS
+    ) {
+      batches.push(
+        ...(await getGuestOrders(
+          references.slice(offset, offset + MAX_GUEST_CARTS),
+        )),
+      );
+    }
+    return batches.sort((first, second) =>
+      (second.createdAt ?? "").localeCompare(first.createdAt ?? ""),
+    );
+  }
   const orders: CheckoutOrder[] = [];
   const latestByCart = new Map<string, string>();
   let page = 1;
@@ -559,8 +579,11 @@ export async function createCheckoutOrder(
 
 function validatedReferences(values: string[]): string[] {
   const references = new Set<string>();
-  for (let index = 0; index < values.length; index += 20) {
-    for (const value of parseGuestCartReferences(JSON.stringify(values.slice(index, index + 20)))) references.add(value);
+  for (let index = 0; index < values.length; index += MAX_GUEST_CARTS) {
+    for (const value of parseGuestCartReferences(
+      JSON.stringify(values.slice(index, index + MAX_GUEST_CARTS)),
+    ))
+      references.add(value);
   }
   return [...references];
 }

@@ -14,7 +14,9 @@ export async function guestCartReferences() {
 }
 
 export async function rememberGuestCart(reference: string) {
-  const existing = parseGuestCartReferences((await cookies()).get(GUEST_ORDERS_COOKIE)?.value);
+  const existing = parseGuestCartReferences(
+    (await cookies()).get(GUEST_ORDERS_COOKIE)?.value,
+  );
   const references = parseGuestCartReferences(
     JSON.stringify([
       ...existing.filter((entry) => entry !== reference),

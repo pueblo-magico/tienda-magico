@@ -4,6 +4,7 @@ import { Sprout } from "lucide-react";
 import { commerce } from "@/lib/commerce";
 import { getSiteSettings } from "@/lib/cms";
 import { guestCartReferences } from "@/lib/checkout/guest-orders";
+import { customerSession } from "@/lib/account/server";
 import { Container } from "@/components/layout/Container";
 import {
   Card,
@@ -25,11 +26,20 @@ export default async function OrdersPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("orders");
-  const [references, settings] = await Promise.all([
-    guestCartReferences(),
-    getSiteSettings(locale),
-  ]);
   let failed = false;
+  const [references, settings, customer, accountTranslations] =
+    await Promise.all([
+      guestCartReferences().catch(() => {
+        failed = true;
+        return [];
+      }),
+      getSiteSettings(locale),
+      customerSession().catch(() => {
+        failed = true;
+        return null;
+      }),
+      getTranslations("account"),
+    ]);
   const orders = await commerce.getGuestOrders(references).catch(() => {
     failed = true;
     return [];
@@ -48,7 +58,7 @@ export default async function OrdersPage({
         <Container className="py-12 sm:py-16">
           <PageTitle tone="inverse">{t("title")}</PageTitle>
           <Body tone="inverse" className="mt-4 max-w-xl">
-            {t("browserHint")}
+            {customer ? accountTranslations("historyHint") : t("browserHint")}
           </Body>
         </Container>
       </section>

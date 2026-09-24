@@ -5,6 +5,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { NextIntlClientProvider } from "next-intl";
 import { CartSummary } from "../src/features/cart/components/CartSummary.tsx";
+import { AccountProvider } from "../src/lib/account/client.tsx";
 import { DEFAULT_COMMERCE_SETTINGS } from "../src/lib/commerce/commerce-settings.ts";
 import { LOCAL_COLLECTION } from "../src/lib/commerce/local-purchase.ts";
 import { BANK_TRANSFER, MERCADO_PAGO } from "../src/types/checkout.ts";
@@ -41,7 +42,11 @@ async function renderSummary(locale, overrides = {}) {
     createElement(
       NextIntlClientProvider,
       { locale, messages, timeZone: "UTC" },
-      createElement(CartSummary, props),
+      createElement(
+        AccountProvider,
+        { initialCustomer: null },
+        createElement(CartSummary, props),
+      ),
     ),
   );
 }

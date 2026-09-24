@@ -165,7 +165,14 @@ export function CartSummary({
                     required
                   />
                 </fieldset>
-                <CheckoutAccount name={buyerName} email={buyerEmail} onUseData={(name, email) => { onBuyerNameChange(name); onBuyerEmailChange(email); }} />
+                <CheckoutAccount
+                  name={buyerName}
+                  email={buyerEmail}
+                  onUseData={(name, email) => {
+                    onBuyerNameChange(name);
+                    onBuyerEmailChange(email);
+                  }}
+                />
                 {!hasBuyerDetails ? (
                   <p className="text-clay text-xs" role="status">
                     {labels.buyerRequired}

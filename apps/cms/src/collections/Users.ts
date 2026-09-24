@@ -48,13 +48,7 @@ export const Users: CollectionConfig = {
     },
     update: ({ req: { user } }) => {
       if (isCashStaff(user)) return false
-      if (!user) return false
-      if (checkRole(['admin'], user)) return true
-      return {
-        id: {
-          equals: user.id,
-        },
-      }
+      return Boolean(user) && checkRole(['admin'], user)
     },
   },
   fields: [

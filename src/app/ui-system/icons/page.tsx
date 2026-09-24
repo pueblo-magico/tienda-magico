@@ -12,6 +12,7 @@ import {
   Sprout,
   Sun,
   Truck,
+  UserRound,
   Waves,
 } from "lucide-react";
 import { DocsPageHeader } from "@/components/ui-system/DocsPageHeader";
@@ -26,6 +27,7 @@ const catalogIcons = [
 ];
 
 const interfaceIcons = [
+  { name: "UserRound", Icon: UserRound },
   { name: "ShoppingBag", Icon: ShoppingBag },
   { name: "Search", Icon: Search },
   { name: "SlidersHorizontal", Icon: SlidersHorizontal },

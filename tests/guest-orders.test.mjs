@@ -352,3 +352,29 @@ test("el historial filtra por credencial completa y no devuelve secretos", async
     else process.env.PAYLOAD_ECOMMERCE_URL = oldUrl;
   }
 });
+test("el historial de cuenta consulta más de veinte carritos en lotes acotados", async () => {
+  const previousFetch = globalThis.fetch;
+  const previousUrl = process.env.PAYLOAD_ECOMMERCE_URL;
+  process.env.PAYLOAD_ECOMMERCE_URL = "https://cms.example";
+  const references = Array.from(
+    { length: 43 },
+    (_, index) => `${index + 1}::${"a".repeat(40)}`,
+  );
+  const queried = [];
+  globalThis.fetch = async (url) => {
+    const batch = new URL(url).searchParams
+      .get("where[cartReference][in]")
+      .split(",");
+    assert.ok(batch.length <= 20);
+    queried.push(...batch);
+    return Response.json({ docs: [], hasNextPage: false });
+  };
+  try {
+    assert.deepEqual(await orders.getGuestOrders(references), []);
+    assert.deepEqual(queried, references);
+  } finally {
+    globalThis.fetch = previousFetch;
+    if (previousUrl === undefined) delete process.env.PAYLOAD_ECOMMERCE_URL;
+    else process.env.PAYLOAD_ECOMMERCE_URL = previousUrl;
+  }
+});
