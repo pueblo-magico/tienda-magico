@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
+import { BrandLogo } from "./BrandLogo";
+import type { CommerceImage } from "@/types/commerce";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
@@ -22,7 +23,15 @@ import { MobileMenu } from "./MobileMenu";
 import { SearchButton } from "./SearchButton";
 import { useOrderCounts } from "@/features/orders/useOrderCounts";
 
-export function Header({ className }: { className?: string }) {
+export function Header({
+  className,
+  logo,
+  siteName,
+}: {
+  className?: string;
+  logo?: CommerceImage | null;
+  siteName?: string;
+}) {
   const t = useTranslations();
   const locale = useLocale() as Locale;
   const pathname = usePathname();
@@ -87,11 +96,9 @@ export function Header({ className }: { className?: string }) {
               prefetch={false}
               className="inline-flex shrink-0 items-center"
             >
-              <Image
-                src="/pueblo_magico_logo_marron.svg"
-                alt="Pueblo Mágico"
-                width={134}
-                height={65}
+              <BrandLogo
+                logo={logo}
+                name={siteName}
                 priority
                 className={cn(
                   "w-auto transition-[height] duration-200",
@@ -147,6 +154,8 @@ export function Header({ className }: { className?: string }) {
           onClose={() => setMenuOpen(false)}
           items={items}
           homeHref={homeHref}
+          logo={logo}
+          siteName={siteName}
         />
       </div>
       <SearchDialog open={searchOpen} onClose={() => setSearchOpen(false)} />

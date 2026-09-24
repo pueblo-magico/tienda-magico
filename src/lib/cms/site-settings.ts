@@ -1,48 +1,55 @@
 import type { CommerceImage } from "@/types/commerce";
-import { cmsFetch } from "./client";
-import { mediaAlt, resolveMediaUrl } from "./media";
-import type { CmsMedia } from "./types";
+import { defaultBrand } from "@/config/brand";
+import {
+  publicUrl,
+  record,
+  settingsGlobal,
+  settingsImage,
+  text,
+} from "./settings-values";
 
 export type SiteSettings = {
+  siteName: string;
+  tagline: string | null;
+  logo: CommerceImage | null;
   shopHeroImage: CommerceImage | null;
   contactPhone: string | null;
-};
-
-const DEFAULT_SITE_SETTINGS: SiteSettings = {
-  shopHeroImage: null,
-  contactPhone: null,
+  contactEmail: string | null;
+  social: Array<{ url: string; label: string }>;
 };
 
 export async function getSiteSettings(locale: string): Promise<SiteSettings> {
-  try {
-    const settings = await cmsFetch<{
-      shopHeroImage?: CmsMedia | string | number | null;
-      contactPhone?: string | null;
-    }>({
-      path: "/globals/site-settings",
-      query: { depth: 1 },
-      locale,
-      next: { revalidate: 120, tags: ["site-settings"] },
-    });
-    const media = settings.shopHeroImage;
-    const url = resolveMediaUrl(media);
+  const settings = await settingsGlobal("site-settings", locale);
+  const email = text(settings.contactEmail);
+  return {
+    siteName: text(settings.siteName) ?? defaultBrand.name,
+    tagline: text(settings.tagline),
+    logo: settingsImage(settings.logo),
+    shopHeroImage: settingsImage(settings.shopHeroImage),
+    contactPhone: text(settings.contactPhone),
+    contactEmail:
+      email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email : null,
+    social: (Array.isArray(settings.social) ? settings.social : []).flatMap(
+      (entry) => {
+        const link = record(entry);
+        const url = publicUrl(link.url);
+        return url
+          ? [
+              {
+                url,
+                label:
+                  text(link.label) ??
+                  text(link.platform) ??
+                  new URL(url).hostname,
+              },
+            ]
+          : [];
+      },
+    ),
+  };
+}
 
-    return {
-      shopHeroImage: url
-        ? {
-            url,
-            altText: mediaAlt(media),
-            width:
-              media && typeof media === "object" ? (media.width ?? null) : null,
-            height:
-              media && typeof media === "object"
-                ? (media.height ?? null)
-                : null,
-          }
-        : null,
-      contactPhone: settings.contactPhone?.trim() || null,
-    };
-  } catch {
-    return DEFAULT_SITE_SETTINGS;
-  }
+export async function getHeaderLogo(locale: string, settings: SiteSettings) {
+  const header = await settingsGlobal("header", locale);
+  return settingsImage(header.logo) ?? settings.logo;
 }

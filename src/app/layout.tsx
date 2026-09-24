@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Jost, Marcellus } from "next/font/google";
 import "./globals.css";
+import { getLocale } from "next-intl/server";
+import { defaultBrand } from "@/config/brand";
 
 const jost = Jost({
   variable: "--font-jost",
@@ -17,12 +19,7 @@ const marcellus = Marcellus({
 });
 
 export const metadata: Metadata = {
-  title: {
-    default: "Pueblo Mágico",
-    template: "%s · Pueblo Mágico",
-  },
-  description:
-    "Conscious products inspired by the mountains, community, and regenerative living.",
+  title: defaultBrand.name,
   icons: "/favicon.svg",
   formatDetection: {
     telephone: false,
@@ -31,13 +28,14 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale();
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={locale}>
       <body className={`${jost.variable} ${marcellus.variable} antialiased`}>
         {children}
       </body>

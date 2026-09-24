@@ -1,4 +1,6 @@
 import { setRequestLocale } from "next-intl/server";
+
+export const metadata = { robots: { index: false, follow: false } };
 import { Container } from "@/components/layout/Container";
 import { Section } from "@/components/layout/Section";
 import { CartPageContent } from "@/features/cart";

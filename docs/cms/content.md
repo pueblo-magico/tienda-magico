@@ -195,7 +195,7 @@ Optional **SEO** group on the page:
 | Image | Social share image |
 | noIndex | Rarely for home — keep off for production |
 
-Site-wide defaults live under **Globals → SEO defaults** (used more fully as the storefront adopts globals).
+Los valores de **Globals → SEO defaults** se aplican al storefront; los metadatos específicos de cada página o producto tienen prioridad. Consultá [configuración pública](site-settings.md).
 
 ---
 

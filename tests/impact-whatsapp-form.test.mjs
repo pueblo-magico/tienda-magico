@@ -50,9 +50,16 @@ test("el teléfono de contacto se proyecta desde la configuración del CMS", asy
   const mapper = await readFile("src/lib/cms/site-settings.ts", "utf8");
 
   assert.match(mapper, /contactPhone: string \| null/);
-  assert.match(mapper, /contactPhone\?: string \| null/);
-  assert.match(
-    mapper,
-    /contactPhone: settings\.contactPhone\?\.trim\(\) \|\| null/,
-  );
+  const { getSiteSettings } = await import("../src/lib/cms/site-settings.ts");
+  const original = globalThis.fetch;
+  const environment = { ...process.env };
+  process.env.PAYLOAD_CMS_URL = "http://cms.test";
+  globalThis.fetch = async () =>
+    Response.json({ contactPhone: "  +549123456  " });
+  try {
+    assert.equal((await getSiteSettings("es")).contactPhone, "+549123456");
+  } finally {
+    globalThis.fetch = original;
+    process.env = environment;
+  }
 });

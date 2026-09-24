@@ -4,6 +4,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ShopPage, buildShopHref, parseShopQuery } from "@/features/shop";
 import { resolveLegacyCategoryRoute } from "@/features/shop/category-hierarchy";
 import { commerce } from "@/lib/commerce";
+import { getSeoMetadata } from "@/lib/cms";
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -13,10 +14,10 @@ type Props = {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "shop" });
-  return {
+  return getSeoMetadata(locale, {
     title: t("title"),
     description: t("subtitle"),
-  };
+  });
 }
 
 export default async function ShopRoutePage({ params, searchParams }: Props) {

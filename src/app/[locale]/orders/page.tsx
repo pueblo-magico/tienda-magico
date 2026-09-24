@@ -17,6 +17,7 @@ import { Body, PageTitle } from "@/components/typography";
 import { buildWhatsAppUrl } from "@/features/impact";
 import { OrderList } from "@/features/orders/OrderList";
 import { RecoverOrders } from "./RecoverOrders";
+export const metadata = { robots: { index: false, follow: false } };
 
 export default async function OrdersPage({
   params,

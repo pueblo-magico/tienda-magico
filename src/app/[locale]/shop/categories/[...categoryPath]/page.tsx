@@ -5,6 +5,7 @@ import { localizePath } from "@/config/navigation";
 import { ShopPage, parseShopQuery } from "@/features/shop";
 import { resolveCategoryPath } from "@/features/shop/category-hierarchy";
 import { commerce } from "@/lib/commerce";
+import { getSeoMetadata } from "@/lib/cms";
 
 type Props = {
   params: Promise<{ locale: string; categoryPath: string[] }>;
@@ -25,19 +26,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const canonicalPath = `/shop/categories/${trail.map((entry) => encodeURIComponent(entry.handle)).join("/")}`;
 
   return {
-    title: category.title,
-    description: category.description || undefined,
+    ...(await getSeoMetadata(locale, {
+      title: category.title,
+      description: category.description,
+      image: category.image?.url,
+    })),
     alternates: {
       canonical: localizePath(locale, canonicalPath),
       languages: {
         es: localizePath("es", canonicalPath),
         en: localizePath("en", canonicalPath),
       },
-    },
-    openGraph: {
-      title: category.title,
-      description: category.description || undefined,
-      images: category.image?.url ? [{ url: category.image.url }] : undefined,
     },
   };
 }

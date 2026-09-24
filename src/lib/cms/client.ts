@@ -13,7 +13,10 @@ export class CmsError extends Error {
   status?: number;
   details?: unknown;
 
-  constructor(message: string, options?: { status?: number; details?: unknown }) {
+  constructor(
+    message: string,
+    options?: { status?: number; details?: unknown },
+  ) {
     super(message);
     this.name = "CmsError";
     this.status = options?.status;
@@ -27,7 +30,10 @@ function buildUrl(
   query?: CmsRequestOptions["query"],
 ) {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-  const apiPath = `${config.apiPrefix}${normalizedPath}`.replace(/\/{2,}/g, "/");
+  const apiPath = `${config.apiPrefix}${normalizedPath}`.replace(
+    /\/{2,}/g,
+    "/",
+  );
   const url = new URL(apiPath, `${config.baseUrl}/`);
 
   if (query) {
@@ -50,7 +56,9 @@ export async function cmsFetch<T>({
 }: CmsRequestOptions): Promise<T> {
   const config = getCmsConfig();
   if (!config) {
-    throw new CmsError("CMS is not configured (set PAYLOAD_CMS_URL or PAYLOAD_ECOMMERCE_URL).");
+    throw new CmsError(
+      "CMS is not configured (set PAYLOAD_CMS_URL or PAYLOAD_ECOMMERCE_URL).",
+    );
   }
 
   const mergedQuery = {
@@ -64,6 +72,7 @@ export async function cmsFetch<T>({
   let response: Response;
   try {
     response = await fetch(url, {
+      signal: AbortSignal.timeout(10000),
       method,
       headers: {
         Accept: "application/json",

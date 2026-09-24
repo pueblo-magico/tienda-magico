@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
+import { BrandLogo } from "./BrandLogo";
+import type { CommerceImage } from "@/types/commerce";
 import { useEffect } from "react";
 import { cn } from "@/lib/utils/cn";
 import { LanguageSwitcher } from "./LanguageSwitcher";
@@ -17,6 +18,8 @@ export type MobileMenuProps = {
   onClose: () => void;
   items: MobileMenuItem[];
   homeHref: string;
+  logo?: CommerceImage | null;
+  siteName?: string;
 };
 
 export function MobileMenu({
@@ -24,6 +27,8 @@ export function MobileMenu({
   onClose,
   items,
   homeHref,
+  logo,
+  siteName,
 }: MobileMenuProps) {
   useEffect(() => {
     if (!open) return;
@@ -69,13 +74,7 @@ export function MobileMenu({
             onClick={onClose}
             className="inline-flex items-center"
           >
-            <Image
-              src="/pueblo_magico_logo_marron.svg"
-              alt="Pueblo Mágico"
-              width={134}
-              height={65}
-              className="h-12 w-auto"
-            />
+            <BrandLogo logo={logo} name={siteName} className="h-12 w-auto" />
           </Link>
           <button
             type="button"

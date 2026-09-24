@@ -2,6 +2,7 @@ import { Container } from "@/components/layout/Container";
 import { AccountPage } from "@/features/account/AccountPage";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { PageTitle } from "@/components/typography";
+export const metadata = { robots: { index: false, follow: false } };
 export default async function Page({
   searchParams,
   params,

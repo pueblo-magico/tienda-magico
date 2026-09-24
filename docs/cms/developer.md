@@ -296,4 +296,4 @@ const page = await getPageBySlug("about", locale);
 return <RenderBlocks blocks={page?.layout} locale={locale} />;
 ```
 
-Globals (`header`, `footer`, `site-settings`, `seo`) are defined in CMS but not yet consumed by the storefront header/footer — wire via `cmsFetch('/globals/header')` when ready.
+El storefront consume `site-settings`, `header.logo` y `seo`. Los menús y el global `footer` siguen pendientes (TIENDA-18). Consultá [configuración pública](site-settings.md) para prioridades, caché y verificación.

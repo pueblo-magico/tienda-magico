@@ -17,6 +17,7 @@ const groups = [
     title: "Layout",
     items: [
       { href: "/ui-system/container", label: "Container" },
+      { href: "/ui-system/brand-logo", label: "Logo de marca" },
       { href: "/ui-system/section", label: "Section" },
     ],
   },

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { loadProductPage, ProductPageView } from "@/features/product";
 import { commerce } from "@/lib/commerce";
+import { getSeoMetadata } from "@/lib/cms";
 
 type Props = {
   params: Promise<{ locale: string; handle: string }>;
@@ -26,16 +27,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       undefined;
     const image = product.seo.image?.url ?? product.featuredImage?.url;
 
-    return {
+    return getSeoMetadata(locale, {
       title,
       description,
-      robots: product.seo.noIndex ? { index: false, follow: false } : undefined,
-      openGraph: {
-        title,
-        description,
-        images: image ? [{ url: image }] : undefined,
-      },
-    };
+      image,
+      noIndex: product.seo.noIndex,
+    });
   } catch {
     return { title: handle };
   }
