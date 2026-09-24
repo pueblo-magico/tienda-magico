@@ -3,9 +3,12 @@ import { randomBytes } from 'node:crypto'
 
 export async function customerAccountCases({ payload, createLocalReq, user, product, order }) {
   const password = randomBytes(24).toString('hex')
+  const adminReq = await createLocalReq({ user: { ...user, collection: 'users' } }, payload)
   const createCustomer = async (email) =>
     payload.create({
       collection: 'users',
+      overrideAccess: false,
+      req: adminReq,
       data: { email, password, roles: ['customer'], name: 'Cliente de prueba' },
     })
   const first = await createCustomer('first-account@example.test')
@@ -27,6 +30,11 @@ export async function customerAccountCases({ payload, createLocalReq, user, prod
     return { status: response.status, body: await response.json() }
   }
   assert.equal((await request('session')).status, 401)
+  assert.deepEqual(first.roles, ['customer'])
+  assert.equal((await request('link', undefined, { references: [] })).status, 401)
+  for (const references of [['invalid'], Array(21).fill(`100::${'a'.repeat(40)}`)]) {
+    assert.equal((await request('link', firstToken, { references })).status, 400)
+  }
   assert.equal((await request('session', firstToken)).body.customer.id, first.id)
   const customerReq = await createLocalReq({ user: { ...first, collection: 'users' } }, payload)
   assert.equal(await payload.collections.users.config.access.admin({ req: customerReq }), false)
@@ -50,6 +58,20 @@ export async function customerAccountCases({ payload, createLocalReq, user, prod
   )
   assert.deepEqual((await request('references', secondToken)).body.references, [])
   assert.deepEqual((await request('references', firstToken)).body.references, [reference])
+  const otherDeviceToken = await login(first.email)
+  assert.deepEqual((await request('references', otherDeviceToken)).body.references, [reference])
+  const otherCustomerReq = await createLocalReq(
+    { user: { ...second, collection: 'users' } },
+    payload,
+  )
+  await assert.rejects(
+    payload.findByID({
+      collection: 'users',
+      id: first.id,
+      overrideAccess: false,
+      req: otherCustomerReq,
+    }),
+  )
   await request('link', firstToken, { references: [reference] })
   assert.equal(
     (await payload.findByID({ collection: 'orders', id: sibling.id, depth: 0 })).customer,
@@ -88,7 +110,8 @@ export async function customerAccountCases({ payload, createLocalReq, user, prod
   )
   assert.equal((await request('session', firstToken)).status, 401)
   assert.equal((await request('references', firstToken)).status, 401)
-  const adminReq = await createLocalReq({ user: { ...user, collection: 'users' } }, payload)
+  assert.equal((await request('session', otherDeviceToken)).status, 200)
+  assert.equal((await request('logout', otherDeviceToken, {})).status, 200)
   await payload.update({
     collection: 'users',
     id: second.id,

@@ -383,6 +383,7 @@
     "title": "Mis pedidos",
     "browserHint": "Mostramos los pedidos guardados en este navegador durante 30 días, hasta 20 carritos. Si borrás las cookies o cambiás de dispositivo, necesitarás asistencia para recuperarlos. La recuperación por email todavía no está disponible.",
     "empty": "Todavía no hay pedidos guardados en este navegador.",
+    "emptyAccount": "Todavía no hay pedidos vinculados a tu cuenta ni guardados en este navegador.",
     "unavailable": "No pudimos consultar tus pedidos. Volvé a intentar en unos minutos.",
     "recover": "Buscar pedidos del carrito actual",
     "recoverFailed": "No encontramos pedidos vinculados a este carrito. Si usaste otro navegador, contactanos con tu referencia.",

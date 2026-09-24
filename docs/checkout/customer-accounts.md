@@ -4,7 +4,7 @@
 
 - `/es/mi-cuenta` y `/en/account`: registro, ingreso y consulta de nombre/email.
 - El menú de cuenta reemplaza el acceso directo del encabezado a Mis pedidos y conserva su contador de pagos pendientes.
-- El checkout permite crear una cuenta sin salir del carrito o continuar como invitado. Una cuenta autenticada puede copiar sus datos al formulario; no se modifica el comprador sin su intervención.
+- El checkout permite crear una cuenta, ingresar o cerrar sesión sin salir del carrito, además de continuar como invitado. Para ingresar se utiliza el email del formulario del comprador y la contraseña de la cuenta; no se exige la longitud mínima de registro a contraseñas existentes. Una cuenta autenticada puede copiar sus datos al formulario; no se modifica el comprador sin su intervención.
 - Mis pedidos combina las referencias de invitado del navegador con los pedidos vinculados a la cuenta, disponibles en otros dispositivos. El límite de 20 carritos/30 días sigue aplicando únicamente a la cookie de invitado.
 - La ficha «Mis datos» es de consulta en esta versión. Los clientes no pueden modificar usuarios, roles, sesiones ni claves API mediante el endpoint genérico del CMS. La administración conserva sus permisos.
 
@@ -28,7 +28,7 @@ Se reutilizan `orders.customer` y las sesiones ya existentes de `users`: no hay 
 2. En otro navegador sin cookies previas, ingresá con esa cuenta. El pedido debe aparecer y permitir las mismas acciones autorizadas que antes.
 3. Cerrá sesión en el segundo navegador: el historial de la cuenta debe desaparecer. Una cuenta diferente no debe ver esos pedidos. Los pedidos de invitado que el primer navegador ya poseía siguen disponibles allí.
 4. Creá otra cuenta con otro email e intentá recuperar el mismo carrito. No debe cambiar `orders.customer` ni vincular los intentos hermanos a la segunda cuenta.
-5. Desde checkout, completá nombre/email, creá una cuenta opcional y continuá la compra. Probá también continuar sin registrarte. El historial de otro dispositivo debe mostrar el pedido nuevo de la cuenta.
+5. Desde checkout, completá nombre/email, creá una cuenta opcional y continuá la compra. Probá también Ingresar con el email de una cuenta existente, Usar mis datos guardados y Cerrar sesión. Cambiar entre registro e ingreso debe borrar la contraseña ingresada y los errores anteriores. Continuar sin registrarte debe seguir disponible. El historial de otro dispositivo debe mostrar el pedido nuevo de la cuenta.
 6. Probá contraseña incorrecta, email ya registrado, sesión vencida/revocada, CMS apagado y solicitudes desde otro origen. No deben aparecer contraseñas, tokens o detalles internos en respuestas o logs. La compra como invitado no requiere iniciar sesión.
 7. Repetí en EN, a 375 px y 1280 px. Abrí el menú con teclado, recorré con flechas, cerrá con Escape y verificá el contador accesible.
 
@@ -36,9 +36,26 @@ Se reutilizan `orders.customer` y las sesiones ya existentes de `users`: no hay 
 
 ```powershell
 node --conditions=react-server --import ./tests/register.mjs --test tests/account-*.test.mjs tests/customer-session.test.mjs tests/cms-users.test.mjs tests/guest-orders.test.mjs
+node --conditions=react-server --import ./tests/register.mjs --test tests/checkout-account-csrf.test.mjs tests/checkout-review-route.test.mjs
 node --import ./tests/register.mjs --test tests/cart-summary.test.mjs tests/customer-account-ui.test.mjs
 cd apps/cms
 node --import tsx scripts/test-transfer-confirmation.mjs
 ```
 
-La última suite crea y elimina una base PostgreSQL descartable; requiere el servidor local indicado en `apps/cms/.env.local`. Comprueba propiedad, intentos hermanos, sesiones revocadas y cierre de sesión sobre persistencia real. Los tests con mocks no sustituyen esa comprobación antes de desplegar.
+La última suite crea y elimina una base PostgreSQL descartable; requiere el servidor local indicado en `apps/cms/.env.local`. Comprueba creación con permisos reales de administrador, referencias inválidas, propiedad, intentos hermanos, vinculación concurrente, historial desde una segunda sesión, sesiones revocadas y cierre de sesión sin revocar otros dispositivos. También conserva la cobertura de pagos y caja. Los tests con mocks no sustituyen esa comprobación antes de desplegar.
+
+El POST de checkout exige un encabezado `Origin` idéntico al origen de la solicitud antes de consultar el carrito o vincular pedidos a una cuenta. Las pruebas o integraciones HTTP manuales deben enviarlo; las peticiones normales del navegador ya lo incluyen.
+
+## Correspondencia con TIENDA-43
+
+| Requisito                           | Implementación y cobertura                                                                                                                                                                          |
+| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Registro opcional y compra invitada | `CheckoutAccount`, validación de entrada y pruebas EN/ES del resumen. Ingreso y cierre de sesión disponibles dentro del carrito.                                                                    |
+| Mi cuenta y datos guardados         | Menú de cuenta, ficha de datos de consulta y botón explícito para copiar nombre/email al checkout.                                                                                                  |
+| Historial entre dispositivos        | Relación `orders.customer`; integración PostgreSQL con una segunda sesión independiente y sin referencias de invitado. El estado vacío distingue cuenta e historial del navegador.                  |
+| Vinculación segura                  | Cookie de invitado validada, transacción y bloqueo por carrito. Cobertura de referencias inválidas, pedidos ajenos, intentos hermanos y concurrencia; el email no acredita propiedad.               |
+| Sesiones y autorización             | Pruebas de ausencia de sesión, roles, revocación persistida, logout por dispositivo y rechazo de modificaciones de usuarios desde cuentas cliente.                                                  |
+| CSRF, abuso y privacidad            | Rechazo de origen incorrecto en cuenta y checkout, respuestas genéricas, límites de intentos y cookie privada. Las pruebas comprueban que el cuerpo HTTP no publica tokens ni referencias secretas. |
+| Compatibilidad                      | La suite PostgreSQL ejecuta también pagos, caja, recepción, opinión, inventario y migraciones en una base descartable.                                                                              |
+
+La revisión automatizada no reemplaza el recorrido manual completo de compra con una cuenta en dos navegadores indicado arriba. Recuperación de contraseña, verificación de email y edición del perfil siguen fuera del alcance de esta subtarea.

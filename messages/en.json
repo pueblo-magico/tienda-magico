@@ -383,6 +383,7 @@
     "title": "My orders",
     "browserHint": "Orders are remembered in this browser for 30 days, for up to 20 carts. If you clear cookies or change devices, you will need assistance recovering them. Email recovery is not available yet.",
     "empty": "No orders are saved in this browser yet.",
+    "emptyAccount": "No orders are linked to your account or saved in this browser yet.",
     "unavailable": "We could not load your orders. Please try again in a few minutes.",
     "recover": "Find orders for the current cart",
     "recoverFailed": "We could not find orders for this cart. If you used another browser, contact us with your reference.",

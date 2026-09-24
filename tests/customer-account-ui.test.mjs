@@ -8,6 +8,7 @@ import { AppRouterContext } from "next/dist/shared/lib/app-router-context.shared
 import { AccountProvider } from "../src/lib/account/client.tsx";
 import { AccountPage } from "../src/features/account/AccountPage.tsx";
 import { CheckoutAccount } from "../src/features/cart/components/CheckoutAccount.tsx";
+import { OrderList } from "../src/features/orders/OrderList.tsx";
 
 for (const locale of ["es", "en"]) {
   test(`cuentas ${locale}: formulario opcional y ficha privada sin contraseña`, async () => {
@@ -52,10 +53,22 @@ for (const locale of ["es", "en"]) {
       ),
     );
     assert.doesNotMatch(guestCheckout, /type="password"/);
+    assert.ok(guestCheckout.includes(messages.account.login));
     const saved = render(
       createElement(CheckoutAccount, { name: "", email: "", onUseData() {} }),
       customer,
     );
     assert.ok(saved.includes(messages.account.useData));
+    assert.ok(saved.includes(messages.account.logout));
+    const emptyHistory = render(
+      createElement(OrderList, {
+        orders: [],
+        serverTime: 0,
+        historyScope: "account",
+      }),
+      customer,
+    );
+    assert.ok(!emptyHistory.includes(messages.orders.empty));
+    assert.ok(emptyHistory.includes(messages.orders.emptyAccount));
   });
 }

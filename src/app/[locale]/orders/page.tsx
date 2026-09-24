@@ -69,7 +69,11 @@ export default async function OrdersPage({
             {t("unavailable")}
           </p>
         ) : (
-          <OrderList orders={orders} serverTime={Date.now()} />
+          <OrderList
+            orders={orders}
+            serverTime={Date.now()}
+            historyScope={customer ? "account" : "browser"}
+          />
         )}
         <Card>
           <CardContent className="flex flex-col gap-5 sm:flex-row sm:items-center">

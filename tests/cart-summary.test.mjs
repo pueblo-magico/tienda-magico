@@ -4,6 +4,7 @@ import test from "node:test";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { NextIntlClientProvider } from "next-intl";
+import { AppRouterContext } from "next/dist/shared/lib/app-router-context.shared-runtime.js";
 import { CartSummary } from "../src/features/cart/components/CartSummary.tsx";
 import { AccountProvider } from "../src/lib/account/client.tsx";
 import { DEFAULT_COMMERCE_SETTINGS } from "../src/lib/commerce/commerce-settings.ts";
@@ -43,9 +44,13 @@ async function renderSummary(locale, overrides = {}) {
       NextIntlClientProvider,
       { locale, messages, timeZone: "UTC" },
       createElement(
-        AccountProvider,
-        { initialCustomer: null },
-        createElement(CartSummary, props),
+        AppRouterContext.Provider,
+        { value: { refresh() {} } },
+        createElement(
+          AccountProvider,
+          { initialCustomer: null },
+          createElement(CartSummary, props),
+        ),
       ),
     ),
   );
