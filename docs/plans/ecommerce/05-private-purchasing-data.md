@@ -1,4 +1,22 @@
-# 05 — Private supplier and cost information
+# 05 — Private supplier, cost, and commercial agreement information
+
+## Scope implemented by TIENDA-25
+
+The CMS adds private suppliers and explicitly separates the public **Brand**
+from the operational **Supplier**. Each supplier defines default purchase or
+consignment terms. A product can inherit them or store a specific override,
+using either basis points or a fixed minor-unit amount, currency, and effective
+date range.
+
+Only `purchasing`, `finance`, and `admin` roles can read or edit this data.
+Customers, visitors, and other roles do not receive it through REST, GraphQL,
+Local API, or public product population. Sales obligations, settlements, and
+supplier payouts remain separate work in TIENDA-34 and TIENDA-35; this task
+provides their private, versioned contractual source.
+
+The down migration reassigns `purchasing` and `finance` users to `admin` before
+removing those enum values. This avoids invalid accounts but deliberately loses
+role granularity and must be reviewed before a production rollback.
 
 Status: planned. Depends on: 01, 04.
 

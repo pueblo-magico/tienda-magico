@@ -4,12 +4,16 @@ type LocalizedLabel = { es: string; en: string }
 
 export const CMS_VISIBILITY_ROLES = [
   { key: 'admin', enabled: true },
+  { key: 'purchasing', enabled: true },
+  { key: 'finance', enabled: true },
   { key: 'editor', enabled: false },
   { key: 'customer', enabled: false },
 ] as const
 
 export const CMS_VISIBILITY_ROLE_LABELS = {
   admin: { es: 'Administrador', en: 'Admin' },
+  purchasing: { es: 'Compras', en: 'Purchasing' },
+  finance: { es: 'Finanzas', en: 'Finance' },
   editor: { es: 'Editor', en: 'Editor' },
   customer: { es: 'Cliente', en: 'Customer' },
 } as const
@@ -23,6 +27,13 @@ export type CmsNavigationItem = {
 }
 
 export const CMS_NAVIGATION_ITEMS: CmsNavigationItem[] = [
+  {
+    key: 'suppliers',
+    slug: 'suppliers',
+    entityType: 'collection',
+    group: 'shop',
+    label: { es: 'Proveedores', en: 'Suppliers' },
+  },
   {
     key: 'paymentNotifications',
     slug: 'payment-notifications',

@@ -87,6 +87,7 @@ Never commit `.env`.
 | Slug                                 | Source                      | Purpose                                            |
 | ------------------------------------ | --------------------------- | -------------------------------------------------- |
 | `users`                              | App                         | Admins/customers; API keys enabled                 |
+| `suppliers`                          | App (Task 05)               | Private suppliers and default commercial terms     |
 | `media`                              | App                         | Public-read uploads                                |
 | `pages`                              | App (Phase 6)               | Marketing pages with layout blocks (draft/publish) |
 | `posts`                              | App (Phase 6)               | Journal / editorial posts                          |
@@ -128,6 +129,12 @@ Plugin defaults do **not** include `title`. This app’s override adds:
 - `tags[]`
 
 Plus plugin fields: pricing (`priceInARS` in minor units), inventory, variants, drafts.
+
+Authorized purchasing and finance users also see the private **Purchasing and
+supplier** tab. It stores the supplier relationship, supplier SKU, explicit
+purchase cost/base, and an optional product-level override of the supplier's
+purchase or consignment terms. Server-side field access excludes those fields
+from public APIs and storefront commerce contracts.
 
 ## Localization (EN / ES)
 

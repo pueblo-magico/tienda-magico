@@ -11,6 +11,7 @@ import {
   revalidateStorefrontProductDelete,
 } from '../hooks/revalidateStorefrontCatalog'
 import { seoField } from '../fields/seo'
+import { purchasingFields } from './commercialAgreements'
 import {
   FixedToolbarFeature,
   HeadingFeature,
@@ -369,6 +370,10 @@ export const productsCollectionOverride: CollectionOverride = ({ defaultCollecti
           {
             label: { es: 'Venta e inventario', en: 'Sales and inventory' },
             fields: merchandisingFields,
+          },
+          {
+            label: { es: 'Compras y proveedor', en: 'Purchasing and supplier' },
+            fields: purchasingFields,
           },
         ],
       },

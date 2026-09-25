@@ -1,4 +1,22 @@
-# 05 — Información privada de proveedores y costos
+# 05 — Información privada de proveedores, costos y acuerdos comerciales
+
+## Alcance implementado por TIENDA-25
+
+El CMS incorpora proveedores privados y separa explícitamente la **Marca** pública
+del **Proveedor** operativo. Cada proveedor define términos comerciales
+predeterminados de compra o consignación. Un producto puede heredarlos o guardar
+una excepción específica, con método porcentual en puntos básicos o importe fijo
+en unidades monetarias menores, moneda y período de vigencia.
+
+Los roles `purchasing`, `finance` y `admin` pueden consultar y editar esta
+información. Clientes, visitantes y otros roles no la reciben por REST, GraphQL,
+Local API ni población pública del producto. La venta, liquidación y pago al
+proveedor se implementan por separado en TIENDA-34 y TIENDA-35; esta tarea solo
+establece la fuente contractual privada y versionada.
+
+La migración descendente reasigna los roles `purchasing` y `finance` a `admin`
+antes de retirar esos valores. Esto evita cuentas inválidas, pero es una pérdida
+deliberada de granularidad y debe revisarse antes de un rollback productivo.
 
 Estado: planificado. Depende de: 01, 04.
 

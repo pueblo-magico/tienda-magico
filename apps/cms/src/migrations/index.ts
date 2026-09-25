@@ -33,8 +33,8 @@ import * as migration_20260914_010000_site_shop_hero from './20260914_010000_sit
 import * as migration_20260915_120000_payment_method_transfer from './20260915_120000_payment_method_transfer'
 import * as migration_20260915_150000_pending_transfer_orders from './20260915_150000_pending_transfer_orders'
 import * as migration_20260915_160000_order_public_reference from './20260915_160000_order_public_reference'
-
 import * as migration_20260917_100000_transfer_verification from './20260917_100000_transfer_verification'
+import * as migration_20260925_144130_task_05_supplier_agreements from './20260925_144130_task_05_supplier_agreements'
 
 export const migrations = [
   {
@@ -216,5 +216,10 @@ export const migrations = [
     name: '20260918_180000_cash_pickup_window',
     up: cashPickupWindow.up,
     down: cashPickupWindow.down,
+  },
+  {
+    up: migration_20260925_144130_task_05_supplier_agreements.up,
+    down: migration_20260925_144130_task_05_supplier_agreements.down,
+    name: '20260925_144130_task_05_supplier_agreements',
   },
 ]

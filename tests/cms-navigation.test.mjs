@@ -12,6 +12,7 @@ import {
 } from "../apps/cms/src/utilities/cmsNavigation.ts";
 
 const expectedCollections = [
+  "suppliers",
   "payment-notifications",
   "users",
   "media",
@@ -99,6 +100,8 @@ test("CMS visibility controls use the switch presentation", () => {
   );
   assert.deepEqual(CMS_VISIBILITY_ROLES, [
     { key: "admin", enabled: true },
+    { key: "purchasing", enabled: true },
+    { key: "finance", enabled: true },
     { key: "editor", enabled: false },
     { key: "customer", enabled: false },
   ]);

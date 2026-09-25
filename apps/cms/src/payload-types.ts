@@ -73,6 +73,7 @@ export interface Config {
   blocks: {};
   collections: {
     users: User;
+    suppliers: Supplier;
     media: Media;
     localSales: LocalSale;
     'payment-notifications': PaymentNotification;
@@ -106,6 +107,7 @@ export interface Config {
   };
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
+    suppliers: SuppliersSelect<false> | SuppliersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     localSales: LocalSalesSelect<false> | LocalSalesSelect<true>;
     'payment-notifications': PaymentNotificationsSelect<false> | PaymentNotificationsSelect<true>;
@@ -203,7 +205,7 @@ export interface User {
    * Preferred language for CMS administration.
    */
   editorLanguage: 'es' | 'en';
-  roles: ('admin' | 'customer')[];
+  roles: ('admin' | 'purchasing' | 'finance' | 'customer')[];
   name?: string | null;
   updatedAt: string;
   createdAt: string;
@@ -226,6 +228,39 @@ export interface User {
     | null;
   password?: string | null;
   collection: 'users';
+}
+/**
+ * Private purchasing data. A supplier is not a brand and its country does not define product origin.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "suppliers".
+ */
+export interface Supplier {
+  id: number;
+  name: string;
+  reference?: string | null;
+  country?: string | null;
+  contactName?: string | null;
+  contactEmail?: string | null;
+  contactPhone?: string | null;
+  defaultTerms: {
+    mode: 'purchase' | 'consignment';
+    method?: ('percentage' | 'fixed') | null;
+    /**
+     * 3500 equals 35.00%.
+     */
+    shareBps?: number | null;
+    /**
+     * Example: 125050 represents ARS 1,250.50.
+     */
+    fixedMinor?: number | null;
+    currency?: string | null;
+    effectiveFrom?: string | null;
+    effectiveTo?: string | null;
+  };
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -577,6 +612,31 @@ export interface Product {
   packageLengthMm?: number | null;
   packageWidthMm?: number | null;
   packageHeightMm?: number | null;
+  supplier?: (number | null) | Supplier;
+  supplierSKU?: string | null;
+  purchaseCost?: {
+    amountMinor?: number | null;
+    currency?: string | null;
+    baseQuantity?: number | null;
+    baseUnit?: string | null;
+    updatedAt?: string | null;
+  };
+  termsOverride: {
+    mode: 'inherit' | 'purchase' | 'consignment';
+    method?: ('percentage' | 'fixed') | null;
+    /**
+     * 3500 equals 35.00%.
+     */
+    shareBps?: number | null;
+    /**
+     * Example: 125050 represents ARS 1,250.50.
+     */
+    fixedMinor?: number | null;
+    currency?: string | null;
+    effectiveFrom?: string | null;
+    effectiveTo?: string | null;
+  };
+  purchasingNotes?: string | null;
   updatedAt: string;
   createdAt: string;
   deletedAt?: string | null;
@@ -3392,6 +3452,10 @@ export interface PayloadLockedDocument {
         value: number | User;
       } | null)
     | ({
+        relationTo: 'suppliers';
+        value: number | Supplier;
+      } | null)
+    | ({
         relationTo: 'media';
         value: number | Media;
       } | null)
@@ -3532,6 +3596,32 @@ export interface UsersSelect<T extends boolean = true> {
         createdAt?: T;
         expiresAt?: T;
       };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "suppliers_select".
+ */
+export interface SuppliersSelect<T extends boolean = true> {
+  name?: T;
+  reference?: T;
+  country?: T;
+  contactName?: T;
+  contactEmail?: T;
+  contactPhone?: T;
+  defaultTerms?:
+    | T
+    | {
+        mode?: T;
+        method?: T;
+        shareBps?: T;
+        fixedMinor?: T;
+        currency?: T;
+        effectiveFrom?: T;
+        effectiveTo?: T;
+      };
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -4053,6 +4143,29 @@ export interface ProductsSelect<T extends boolean = true> {
   packageLengthMm?: T;
   packageWidthMm?: T;
   packageHeightMm?: T;
+  supplier?: T;
+  supplierSKU?: T;
+  purchaseCost?:
+    | T
+    | {
+        amountMinor?: T;
+        currency?: T;
+        baseQuantity?: T;
+        baseUnit?: T;
+        updatedAt?: T;
+      };
+  termsOverride?:
+    | T
+    | {
+        mode?: T;
+        method?: T;
+        shareBps?: T;
+        fixedMinor?: T;
+        currency?: T;
+        effectiveFrom?: T;
+        effectiveTo?: T;
+      };
+  purchasingNotes?: T;
   updatedAt?: T;
   createdAt?: T;
   deletedAt?: T;
@@ -4435,6 +4548,7 @@ export interface CmsSetting {
   faqs: boolean;
   header: boolean;
   footer: boolean;
+  suppliers: boolean;
   paymentNotifications: boolean;
   localSales: boolean;
   categories: boolean;
@@ -4620,6 +4734,7 @@ export interface CmsSettingsSelect<T extends boolean = true> {
   faqs?: T;
   header?: T;
   footer?: T;
+  suppliers?: T;
   paymentNotifications?: T;
   localSales?: T;
   categories?: T;

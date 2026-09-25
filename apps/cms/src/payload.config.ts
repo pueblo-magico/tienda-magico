@@ -33,6 +33,7 @@ import {
 import { Testimonials } from './collections/Testimonials'
 import { Tags } from './collections/Tags'
 import { Users } from './collections/Users'
+import { Suppliers } from './collections/Suppliers'
 import { Footer } from './globals/Footer'
 import { Header } from './globals/Header'
 import { SEO } from './globals/SEO'
@@ -79,6 +80,7 @@ export default buildConfig({
   },
   collections: [
     Users,
+    Suppliers,
     Media,
     LocalSales,
     PaymentNotifications,
