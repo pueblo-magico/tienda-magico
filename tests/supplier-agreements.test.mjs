@@ -5,8 +5,15 @@ import { Suppliers } from "../apps/cms/src/collections/Suppliers.ts";
 import { Users } from "../apps/cms/src/collections/Users.ts";
 import {
   purchasingFields,
+  resolveEffectiveCommercialTerms,
   validateCommercialTerms,
+  validatePurchasingData,
 } from "../apps/cms/src/collections/commercialAgreements.ts";
+import { mapProduct } from "@/lib/commerce/providers/payload-ecommerce/mappers";
+
+process.env.PAYLOAD_ECOMMERCE_URL = "http://cms.test";
+process.env.PAYLOAD_ECOMMERCE_CURRENCY = "ARS";
+process.env.PAYLOAD_ECOMMERCE_AMOUNT_IS_CENTS = "true";
 
 const namedField = (fields, name) =>
   fields.find((field) => "name" in field && field.name === name);
@@ -37,12 +44,19 @@ test("el producto permite proveedor, costo y una excepción contractual privada"
   assert.ok(namedField(purchasingFields, "purchaseCost"));
   assert.ok(namedField(purchasingFields, "termsOverride"));
   for (const field of purchasingFields) {
-    if (!("access" in field) || !field.access?.read) continue;
-    assert.equal(field.access.read({ req: {} }), false);
-    assert.equal(
-      field.access.read({ req: { user: { roles: ["customer"] } } }),
-      false,
-    );
+    if (!("access" in field)) continue;
+    for (const operation of ["create", "read", "update"]) {
+      if (!field.access?.[operation]) continue;
+      assert.equal(field.access[operation]({ req: {} }), false);
+      assert.equal(
+        field.access[operation]({ req: { user: { roles: ["customer"] } } }),
+        false,
+      );
+      assert.equal(
+        field.access[operation]({ req: { user: { roles: ["purchasing"] } } }),
+        true,
+      );
+    }
   }
 });
 
@@ -106,4 +120,126 @@ test("rechaza vigencias invertidas", () => {
       { allowInherit: false },
     ),
   );
+});
+
+test("el costo privado exige importe menor entero, moneda, base y fecha válidos", () => {
+  const valid = {
+    supplier: 9,
+    purchaseCost: {
+      amountMinor: 125050,
+      currency: "BRL",
+      baseQuantity: 1,
+      baseUnit: "unidad",
+      updatedAt: "2026-09-25T00:00:00.000Z",
+    },
+    termsOverride: { mode: "inherit" },
+  };
+  assert.deepEqual(validatePurchasingData({ data: valid }), valid);
+  for (const purchaseCost of [
+    { ...valid.purchaseCost, amountMinor: 1.5 },
+    { ...valid.purchaseCost, currency: "brl" },
+    { ...valid.purchaseCost, baseQuantity: 0 },
+    { ...valid.purchaseCost, baseUnit: "" },
+    { ...valid.purchaseCost, updatedAt: "ayer" },
+  ]) {
+    assert.throws(() =>
+      validatePurchasingData({ data: { ...valid, purchaseCost } }),
+    );
+  }
+  assert.throws(() =>
+    validatePurchasingData({ data: { ...valid, supplier: null } }),
+  );
+});
+
+test("una actualización parcial conserva y valida los datos privados existentes", () => {
+  const originalDoc = {
+    supplier: 9,
+    purchaseCost: {
+      amountMinor: 10000,
+      currency: "ARS",
+      baseQuantity: 1,
+      baseUnit: "unidad",
+      updatedAt: "2026-09-25T00:00:00.000Z",
+    },
+    termsOverride: { mode: "inherit" },
+  };
+  const result = validatePurchasingData({
+    data: { title: "Cambio editorial" },
+    originalDoc,
+  });
+  assert.deepEqual(result, { title: "Cambio editorial" });
+  assert.throws(() =>
+    validatePurchasingData({ data: { supplier: null }, originalDoc }),
+  );
+});
+
+test("la excepción vigente prevalece y la herencia usa el acuerdo del proveedor", () => {
+  const supplier = {
+    mode: "consignment",
+    method: "percentage",
+    shareBps: 3000,
+    effectiveFrom: "2026-01-01T00:00:00.000Z",
+  };
+  assert.deepEqual(
+    resolveEffectiveCommercialTerms(
+      { mode: "inherit" },
+      supplier,
+      "2026-09-25T00:00:00.000Z",
+    ),
+    { source: "supplier", terms: supplier },
+  );
+  const override = {
+    mode: "consignment",
+    method: "fixed",
+    fixedMinor: 25000,
+    currency: "ARS",
+    effectiveTo: "2026-12-31T00:00:00.000Z",
+  };
+  assert.deepEqual(
+    resolveEffectiveCommercialTerms(
+      override,
+      supplier,
+      "2026-09-25T00:00:00.000Z",
+    ),
+    { source: "product", terms: override },
+  );
+  assert.throws(() =>
+    resolveEffectiveCommercialTerms(
+      { ...override, effectiveTo: "2026-01-02T00:00:00.000Z" },
+      supplier,
+      "2026-09-25T00:00:00.000Z",
+    ),
+  );
+});
+
+test("la proyección pública no serializa proveedor, costo ni acuerdo", () => {
+  const product = mapProduct({
+    id: 1,
+    slug: "cacao",
+    title: "Cacao",
+    _status: "published",
+    enableVariants: false,
+    inventory: 1,
+    priceInARSEnabled: true,
+    priceInARS: 10000,
+    supplier: { id: 9, name: "Proveedor secreto" },
+    supplierSKU: "PRIVADO-1",
+    purchaseCost: { amountMinor: 5000, currency: "ARS" },
+    termsOverride: {
+      mode: "consignment",
+      method: "percentage",
+      shareBps: 4000,
+    },
+    purchasingNotes: "No publicar",
+  });
+  const serialized = JSON.stringify(product);
+  for (const privateValue of [
+    "Proveedor secreto",
+    "PRIVADO-1",
+    "purchaseCost",
+    "shareBps",
+    "No publicar",
+  ]) {
+    assert.equal(serialized.includes(privateValue), false);
+  }
 });

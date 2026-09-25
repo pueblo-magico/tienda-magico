@@ -1,4 +1,4 @@
-import type { Field, FieldHook } from 'payload'
+import type { CollectionBeforeValidateHook, Field, FieldHook } from 'payload'
 
 import { purchasingFinanceFieldAccess } from '../access/purchasingFinanceAccess'
 
@@ -10,6 +10,23 @@ export type CommercialTerms = {
   currency?: string | null
   effectiveFrom?: string | null
   effectiveTo?: string | null
+}
+
+type PurchaseCost = {
+  amountMinor?: number | null
+  currency?: string | null
+  baseQuantity?: number | null
+  baseUnit?: string | null
+  updatedAt?: string | null
+}
+
+type PurchasingData = {
+  supplier?: unknown
+  supplierSKU?: string | null
+  purchaseCost?: PurchaseCost | null
+  termsOverride?: CommercialTerms | null
+  purchasingNotes?: string | null
+  [key: string]: unknown
 }
 
 const privateAccess = {
@@ -64,6 +81,64 @@ export const validateSupplierCommercialTerms: FieldHook = ({ value }) =>
 
 export const validateProductCommercialTerms: FieldHook = ({ value }) =>
   validateCommercialTerms(value as CommercialTerms, { allowInherit: true })
+
+function isActiveAt(terms: CommercialTerms, timestamp: number): boolean {
+  const from = terms.effectiveFrom ? Date.parse(terms.effectiveFrom) : null
+  const to = terms.effectiveTo ? Date.parse(terms.effectiveTo) : null
+  return (from == null || from <= timestamp) && (to == null || timestamp < to)
+}
+
+export function resolveEffectiveCommercialTerms(
+  productTerms: CommercialTerms | null | undefined,
+  supplierTerms: CommercialTerms | null | undefined,
+  effectiveAt: string | Date,
+): { source: 'product' | 'supplier'; terms: CommercialTerms } {
+  const timestamp = effectiveAt instanceof Date ? effectiveAt.getTime() : Date.parse(effectiveAt)
+  if (!Number.isFinite(timestamp))
+    validationError('La fecha de resolución del acuerdo no es válida.')
+
+  const product = validateCommercialTerms(productTerms, { allowInherit: true })
+  const source = product.mode === 'inherit' ? 'supplier' : 'product'
+  const terms =
+    source === 'supplier'
+      ? validateCommercialTerms(supplierTerms, { allowInherit: false })
+      : product
+  if (!isActiveAt(terms, timestamp))
+    validationError('No existe un acuerdo comercial vigente para la fecha indicada.')
+  return { source, terms }
+}
+
+export const validatePurchasingData: CollectionBeforeValidateHook = ({ data, originalDoc }) => {
+  if (!data) return data
+  const current: PurchasingData = { ...(originalDoc ?? {}), ...data }
+  if ('termsOverride' in current)
+    validateCommercialTerms(current.termsOverride, { allowInherit: true })
+
+  const cost = current.purchaseCost
+  if (cost) {
+    const hasCostValue = Object.values(cost).some((value) => value != null && value !== '')
+    if (hasCostValue && !current.supplier)
+      validationError('Seleccioná un proveedor antes de guardar un costo de compra.')
+    if (hasCostValue && (!Number.isSafeInteger(cost.amountMinor) || (cost.amountMinor ?? 0) <= 0))
+      validationError('El costo debe expresarse en unidades monetarias menores enteras.')
+    if (hasCostValue && (!cost.currency || !/^[A-Z]{3}$/.test(cost.currency)))
+      validationError('Indicá una moneda ISO de tres letras para el costo.')
+    if (
+      hasCostValue &&
+      (typeof cost.baseQuantity !== 'number' ||
+        !Number.isFinite(cost.baseQuantity) ||
+        cost.baseQuantity <= 0)
+    )
+      validationError('Indicá una cantidad base positiva para el costo.')
+    if (hasCostValue && !cost.baseUnit?.trim()) validationError('Indicá la unidad base del costo.')
+    if (hasCostValue && (!cost.updatedAt || !Number.isFinite(Date.parse(cost.updatedAt))))
+      validationError('Indicá una fecha válida de actualización del costo.')
+  }
+
+  if (current.termsOverride?.mode && current.termsOverride.mode !== 'inherit' && !current.supplier)
+    validationError('Seleccioná un proveedor antes de definir una excepción contractual.')
+  return data
+}
 
 export function commercialTermsFields({ allowInherit }: { allowInherit: boolean }): Field[] {
   return [

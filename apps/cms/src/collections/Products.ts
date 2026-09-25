@@ -11,7 +11,7 @@ import {
   revalidateStorefrontProductDelete,
 } from '../hooks/revalidateStorefrontCatalog'
 import { seoField } from '../fields/seo'
-import { purchasingFields } from './commercialAgreements'
+import { purchasingFields, validatePurchasingData } from './commercialAgreements'
 import {
   FixedToolbarFeature,
   HeadingFeature,
@@ -345,6 +345,7 @@ export const productsCollectionOverride: CollectionOverride = ({ defaultCollecti
       beforeChange: [...(defaultCollection.hooks?.beforeChange ?? []), validateProductPublication],
       beforeValidate: [
         ...(defaultCollection.hooks?.beforeValidate ?? []),
+        validatePurchasingData,
         normalizeProductCategories,
         validateInformationSections,
         validateProductMedia,
