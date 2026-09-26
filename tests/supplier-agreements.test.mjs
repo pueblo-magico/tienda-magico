@@ -261,6 +261,36 @@ test("el costo privado exige importe menor entero, moneda, base y fecha válidos
   );
 });
 
+test("un costo sin fecha devuelve un error de campo útil al publicar", () => {
+  assert.throws(
+    () =>
+      validatePurchasingData({
+        data: {
+          _status: "published",
+          supplier: 1,
+          purchaseCost: {
+            amountMinor: 500,
+            currency: "BRL",
+            baseQuantity: 1,
+            baseUnit: "g",
+            updatedAt: null,
+          },
+          termsOverride: { mode: "inherit" },
+        },
+      }),
+    (error) => {
+      assert.equal(error.name, "ValidationError");
+      assert.deepEqual(error.data.errors, [
+        {
+          path: "purchaseCost.updatedAt",
+          message: "Indicá una fecha válida de actualización del costo.",
+        },
+      ]);
+      return true;
+    },
+  );
+});
+
 test("una actualización parcial conserva y valida los datos privados existentes", () => {
   const originalDoc = {
     supplier: 9,

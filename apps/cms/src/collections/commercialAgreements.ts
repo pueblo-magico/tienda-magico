@@ -1,3 +1,4 @@
+import { ValidationError } from 'payload'
 import type { CollectionBeforeValidateHook, Field, FieldHook } from 'payload'
 
 import { purchasingFinanceFieldAccess } from '../access/purchasingFinanceAccess'
@@ -35,52 +36,71 @@ const privateAccess = {
   update: purchasingFinanceFieldAccess,
 }
 
-function validationError(message: string): never {
-  throw new Error(message)
+function validationError(message: string, path = 'termsOverride'): never {
+  throw new ValidationError({ errors: [{ message, path }] })
 }
 
 export function validateCommercialTerms(
   value: CommercialTerms | null | undefined,
-  { allowInherit }: { allowInherit: boolean },
+  { allowInherit, pathPrefix = '' }: { allowInherit: boolean; pathPrefix?: string },
 ): CommercialTerms {
+  const path = (field: string) => (pathPrefix ? `${pathPrefix}.${field}` : field)
   const terms = value ?? {}
   const mode = terms.mode ?? (allowInherit ? 'inherit' : null)
   if (!mode || (!allowInherit && mode === 'inherit'))
-    validationError('Seleccioná compra o consignación.')
+    validationError('Seleccioná compra o consignación.', path('mode'))
 
   if (terms.effectiveFrom && terms.effectiveTo) {
     const from = Date.parse(terms.effectiveFrom)
     const to = Date.parse(terms.effectiveTo)
     if (!Number.isFinite(from) || !Number.isFinite(to) || from >= to)
-      validationError('La fecha de finalización debe ser posterior al inicio de vigencia.')
+      validationError(
+        'La fecha de finalización debe ser posterior al inicio de vigencia.',
+        path('effectiveTo'),
+      )
   }
 
   if (mode === 'inherit' || mode === 'purchase') return { ...terms, mode }
 
   if (!terms.method)
-    validationError('Definí cómo se calcula la parte del proveedor en consignación.')
+    validationError(
+      'Definí cómo se calcula la parte del proveedor en consignación.',
+      path('method'),
+    )
   if (terms.method === 'percentage') {
     if (
       !Number.isInteger(terms.shareBps) ||
       (terms.shareBps ?? 0) <= 0 ||
       (terms.shareBps ?? 0) > 10_000
     )
-      validationError('El porcentaje debe estar entre 0,01 % y 100 %.')
+      validationError('El porcentaje debe estar entre 0,01 % y 100 %.', path('shareBps'))
   }
   if (terms.method === 'fixed') {
     if (!Number.isSafeInteger(terms.fixedMinor) || (terms.fixedMinor ?? 0) <= 0)
-      validationError('El importe fijo debe expresarse en unidades monetarias menores enteras.')
+      validationError(
+        'El importe fijo debe expresarse en unidades monetarias menores enteras.',
+        path('fixedMinor'),
+      )
     if (!terms.currency || !/^[A-Z]{3}$/.test(terms.currency))
-      validationError('Indicá una moneda ISO de tres letras para el importe fijo.')
+      validationError(
+        'Indicá una moneda ISO de tres letras para el importe fijo.',
+        path('currency'),
+      )
   }
   return { ...terms, mode }
 }
 
-export const validateSupplierCommercialTerms: FieldHook = ({ value }) =>
-  validateCommercialTerms(value as CommercialTerms, { allowInherit: false })
+export const validateSupplierCommercialTerms: FieldHook = ({ path, value }) =>
+  validateCommercialTerms(value as CommercialTerms, {
+    allowInherit: false,
+    pathPrefix: path.map(String).join('.'),
+  })
 
-export const validateProductCommercialTerms: FieldHook = ({ value }) =>
-  validateCommercialTerms(value as CommercialTerms, { allowInherit: true })
+export const validateProductCommercialTerms: FieldHook = ({ path, value }) =>
+  validateCommercialTerms(value as CommercialTerms, {
+    allowInherit: true,
+    pathPrefix: path.map(String).join('.'),
+  })
 
 function isActiveAt(terms: CommercialTerms, timestamp: number): boolean {
   const from = terms.effectiveFrom ? Date.parse(terms.effectiveFrom) : null
@@ -112,31 +132,50 @@ export const validatePurchasingData: CollectionBeforeValidateHook = ({ data, ori
   if (!data) return data
   const current: PurchasingData = { ...(originalDoc ?? {}), ...data }
   if ('termsOverride' in current)
-    validateCommercialTerms(current.termsOverride, { allowInherit: true })
+    validateCommercialTerms(current.termsOverride, {
+      allowInherit: true,
+      pathPrefix: 'termsOverride',
+    })
 
   const cost = current.purchaseCost
   if (cost) {
     const hasCostValue = Object.values(cost).some((value) => value != null && value !== '')
     if (hasCostValue && !current.supplier)
-      validationError('Seleccioná un proveedor antes de guardar un costo de compra.')
+      validationError('Seleccioná un proveedor antes de guardar un costo de compra.', 'supplier')
     if (hasCostValue && (!Number.isSafeInteger(cost.amountMinor) || (cost.amountMinor ?? 0) <= 0))
-      validationError('El costo debe expresarse en unidades monetarias menores enteras.')
+      validationError(
+        'El costo debe expresarse en unidades monetarias menores enteras.',
+        'purchaseCost.amountMinor',
+      )
     if (hasCostValue && (!cost.currency || !/^[A-Z]{3}$/.test(cost.currency)))
-      validationError('Indicá una moneda ISO de tres letras para el costo.')
+      validationError(
+        'Indicá una moneda ISO de tres letras para el costo.',
+        'purchaseCost.currency',
+      )
     if (
       hasCostValue &&
       (typeof cost.baseQuantity !== 'number' ||
         !Number.isFinite(cost.baseQuantity) ||
         cost.baseQuantity <= 0)
     )
-      validationError('Indicá una cantidad base positiva para el costo.')
-    if (hasCostValue && !cost.baseUnit?.trim()) validationError('Indicá la unidad base del costo.')
+      validationError(
+        'Indicá una cantidad base positiva para el costo.',
+        'purchaseCost.baseQuantity',
+      )
+    if (hasCostValue && !cost.baseUnit?.trim())
+      validationError('Indicá la unidad base del costo.', 'purchaseCost.baseUnit')
     if (hasCostValue && (!cost.updatedAt || !Number.isFinite(Date.parse(cost.updatedAt))))
-      validationError('Indicá una fecha válida de actualización del costo.')
+      validationError(
+        'Indicá una fecha válida de actualización del costo.',
+        'purchaseCost.updatedAt',
+      )
   }
 
   if (current.termsOverride?.mode && current.termsOverride.mode !== 'inherit' && !current.supplier)
-    validationError('Seleccioná un proveedor antes de definir una excepción contractual.')
+    validationError(
+      'Seleccioná un proveedor antes de definir una excepción contractual.',
+      'supplier',
+    )
   return data
 }
 
