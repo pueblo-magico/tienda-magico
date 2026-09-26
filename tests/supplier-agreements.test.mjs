@@ -3,6 +3,7 @@ import { test } from "node:test";
 
 import { Suppliers } from "../apps/cms/src/collections/Suppliers.ts";
 import { Users } from "../apps/cms/src/collections/Users.ts";
+import { productsCollectionOverride } from "../apps/cms/src/collections/Products.ts";
 import {
   purchasingFields,
   resolveEffectiveCommercialTerms,
@@ -57,6 +58,28 @@ test("el producto permite proveedor, costo y una excepción contractual privada"
         true,
       );
     }
+  }
+});
+
+test("compras y finanzas pueden guardar productos para administrar acuerdos", () => {
+  const products = productsCollectionOverride({
+    defaultCollection: {
+      slug: "products",
+      access: {
+        create: ({ req }) => req.user?.roles?.includes("admin") ?? false,
+        read: () => true,
+        update: ({ req }) => req.user?.roles?.includes("admin") ?? false,
+      },
+      fields: [],
+    },
+  });
+
+  for (const operation of ["create", "update"]) {
+    const access = products.access[operation];
+    assert.equal(access({ req: { user: { roles: ["customer"] } } }), false);
+    assert.equal(access({ req: { user: { roles: ["purchasing"] } } }), true);
+    assert.equal(access({ req: { user: { roles: ["finance"] } } }), true);
+    assert.equal(access({ req: { user: { roles: ["admin"] } } }), true);
   }
 });
 

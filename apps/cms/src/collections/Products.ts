@@ -1,6 +1,6 @@
 import type { CollectionOverride } from '@payloadcms/plugin-ecommerce/types'
 import { sellableFields, validateSellableItem } from './sellableItems'
-import type { Field, PayloadRequest } from 'payload'
+import type { Access, Field, PayloadRequest } from 'payload'
 import { clarifyVariantFields } from './variantEditorGuidance'
 import { normalizeProductCategories } from './productClassificationHooks'
 import { validateProductPublication } from './productPublication'
@@ -12,6 +12,7 @@ import {
 } from '../hooks/revalidateStorefrontCatalog'
 import { seoField } from '../fields/seo'
 import { purchasingFields, validatePurchasingData } from './commercialAgreements'
+import { canManagePurchasing } from '../access/purchasingFinanceAccess'
 import {
   FixedToolbarFeature,
   HeadingFeature,
@@ -29,6 +30,11 @@ import {
  * Shared across locales: slug, gallery, classifications, and pricing.
  */
 export const productsCollectionOverride: CollectionOverride = ({ defaultCollection }) => {
+  const extendAccessForPurchasing =
+    (defaultAccess: Access | undefined): Access =>
+    (args) =>
+      canManagePurchasing(args.req.user) || defaultAccess?.(args) || false
+
   const documentLocaleSwitcher = {
     path: '@/components/DocumentLocaleSwitcher',
     exportName: 'default',
@@ -287,6 +293,12 @@ export const productsCollectionOverride: CollectionOverride = ({ defaultCollecti
 
   return {
     ...defaultCollection,
+    access: {
+      ...defaultCollection.access,
+      create: extendAccessForPurchasing(defaultCollection.access?.create),
+      read: extendAccessForPurchasing(defaultCollection.access?.read),
+      update: extendAccessForPurchasing(defaultCollection.access?.update),
+    },
     versions: {
       ...(typeof defaultCollection.versions === 'object' ? defaultCollection.versions : {}),
       drafts: {
