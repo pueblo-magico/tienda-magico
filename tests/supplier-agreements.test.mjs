@@ -5,6 +5,14 @@ import { Suppliers } from "../apps/cms/src/collections/Suppliers.ts";
 import { Users } from "../apps/cms/src/collections/Users.ts";
 import { productsCollectionOverride } from "../apps/cms/src/collections/Products.ts";
 import {
+  formatScaledNumberInput,
+  parseScaledNumberInput,
+} from "../apps/cms/src/utilities/scaledNumberInput.ts";
+import {
+  getIsoCurrencyCodes,
+  ISO_COUNTRY_CODES,
+} from "../apps/cms/src/utilities/isoOptions.ts";
+import {
   purchasingFields,
   resolveEffectiveCommercialTerms,
   validateCommercialTerms,
@@ -18,6 +26,22 @@ process.env.PAYLOAD_ECOMMERCE_AMOUNT_IS_CENTS = "true";
 
 const namedField = (fields, name) =>
   fields.find((field) => "name" in field && field.name === name);
+
+const findNestedField = (fields, name) => {
+  for (const field of fields) {
+    if ("name" in field && field.name === name) return field;
+    if ("fields" in field) {
+      const nested = findNestedField(field.fields, name);
+      if (nested) return nested;
+    }
+    if ("tabs" in field) {
+      for (const tab of field.tabs) {
+        const nested = findNestedField(tab.fields, name);
+        if (nested) return nested;
+      }
+    }
+  }
+};
 
 test("proveedores queda restringido a compras, finanzas y administración", () => {
   for (const operation of ["read", "create", "update", "delete"]) {
@@ -59,6 +83,69 @@ test("el producto permite proveedor, costo y una excepción contractual privada"
       );
     }
   }
+});
+
+test("porcentajes e importes usan entradas decimales sin exponer unidades internas", () => {
+  const terms = namedField(purchasingFields, "termsOverride");
+  assert.equal(
+    namedField(terms.fields, "shareBps").admin.components.Field,
+    "@/components/PercentageInputField",
+  );
+  assert.equal(
+    namedField(terms.fields, "fixedMinor").admin.components.Field,
+    "@/components/MoneyInputField",
+  );
+  assert.equal(
+    namedField(
+      namedField(purchasingFields, "purchaseCost").fields,
+      "amountMinor",
+    ).admin.components.Field,
+    "@/components/MoneyInputField",
+  );
+  assert.equal(parseScaledNumberInput("35", 100), 3500);
+  assert.equal(
+    formatScaledNumberInput(3500, { scale: 100, suffix: "%" }),
+    "35.00%",
+  );
+  assert.equal(parseScaledNumberInput("1.250,50", 100), 125050);
+  assert.equal(parseScaledNumberInput("1,250.50", 100), 125050);
+  assert.equal(formatScaledNumberInput(125050, { scale: 100 }), "1,250.50");
+  assert.equal(parseScaledNumberInput("12.345", 100), 1234500);
+  assert.equal(parseScaledNumberInput("12,345", 100), 1234500);
+  assert.equal(parseScaledNumberInput("12.345,67", 100), 1234567);
+  assert.equal(parseScaledNumberInput("12,345.67", 100), 1234567);
+  assert.equal(parseScaledNumberInput("12.3456", 100), undefined);
+});
+
+test("todos los países editables y las monedas de compras usan selectores ISO", () => {
+  const supplierCountry = namedField(Suppliers.fields, "country");
+  assert.equal(
+    supplierCountry.admin.components.Field,
+    "@/components/IsoCountrySelectField",
+  );
+
+  const products = productsCollectionOverride({
+    defaultCollection: { slug: "products", fields: [] },
+  });
+  assert.equal(
+    findNestedField(products.fields, "countryOfOrigin").admin.components.Field,
+    "@/components/IsoCountrySelectField",
+  );
+
+  const terms = namedField(purchasingFields, "termsOverride");
+  assert.equal(
+    namedField(terms.fields, "currency").admin.components.Field,
+    "@/components/IsoCurrencySelectField",
+  );
+  assert.equal(
+    namedField(namedField(purchasingFields, "purchaseCost").fields, "currency")
+      .admin.components.Field,
+    "@/components/IsoCurrencySelectField",
+  );
+  assert.ok(ISO_COUNTRY_CODES.includes("AR"));
+  assert.ok(ISO_COUNTRY_CODES.includes("BR"));
+  assert.ok(getIsoCurrencyCodes().includes("ARS"));
+  assert.ok(getIsoCurrencyCodes().includes("BRL"));
 });
 
 test("compras y finanzas pueden guardar productos para administrar acuerdos", () => {

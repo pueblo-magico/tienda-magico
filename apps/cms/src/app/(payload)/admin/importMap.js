@@ -1,3 +1,7 @@
+import { default as default_690cbfcb3730fca7c16cc8d9d6eb3ffe } from '@/components/IsoCountrySelectField'
+import { default as default_e3cbc7fd3ba07e0312a509e5f7aa882e } from '@/components/PercentageInputField'
+import { default as default_fc4b1300cc4c5c4243bbecbc261cd673 } from '@/components/MoneyInputField'
+import { default as default_0e31785bd68d5ea350ab8e21affd7b7a } from '@/components/IsoCurrencySelectField'
 import { RscEntryLexicalCell as RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
 import { RscEntryLexicalField as RscEntryLexicalField_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
 import { LexicalDiffComponent as LexicalDiffComponent_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
@@ -39,6 +43,10 @@ import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } f
 
 /** @type import('payload').ImportMap */
 export const importMap = {
+  "@/components/IsoCountrySelectField#default": default_690cbfcb3730fca7c16cc8d9d6eb3ffe,
+  "@/components/PercentageInputField#default": default_e3cbc7fd3ba07e0312a509e5f7aa882e,
+  "@/components/MoneyInputField#default": default_fc4b1300cc4c5c4243bbecbc261cd673,
+  "@/components/IsoCurrencySelectField#default": default_0e31785bd68d5ea350ab8e21affd7b7a,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalCell": RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalField": RscEntryLexicalField_44fe37237e0ebf4470c9990d8cb7b07e,
   "@payloadcms/richtext-lexical/rsc#LexicalDiffComponent": LexicalDiffComponent_44fe37237e0ebf4470c9990d8cb7b07e,

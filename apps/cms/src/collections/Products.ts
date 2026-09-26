@@ -223,6 +223,7 @@ export const productsCollectionOverride: CollectionOverride = ({ defaultCollecti
       label: { es: 'País de origen (ISO)', en: 'Country of origin (ISO)' },
       localized: false,
       admin: {
+        components: { Field: '@/components/IsoCountrySelectField' },
         description: {
           es: 'Código ISO 3166-1 alpha-2 compartido entre idiomas, por ejemplo AR o BR.',
           en: 'ISO 3166-1 alpha-2 code shared between locales, for example AR or BR.',

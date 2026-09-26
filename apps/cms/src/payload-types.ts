@@ -247,11 +247,11 @@ export interface Supplier {
     mode: 'purchase' | 'consignment';
     method?: ('percentage' | 'fixed') | null;
     /**
-     * 3500 equals 35.00%.
+     * Enter 35 for 35.00%.
      */
     shareBps?: number | null;
     /**
-     * Example: 125050 represents ARS 1,250.50.
+     * Enter the amount in the selected currency, with up to two decimals.
      */
     fixedMinor?: number | null;
     currency?: string | null;
@@ -615,6 +615,9 @@ export interface Product {
   supplier?: (number | null) | Supplier;
   supplierSKU?: string | null;
   purchaseCost?: {
+    /**
+     * Enter the cost in the selected currency, with up to two decimals.
+     */
     amountMinor?: number | null;
     currency?: string | null;
     baseQuantity?: number | null;
@@ -625,11 +628,11 @@ export interface Product {
     mode: 'inherit' | 'purchase' | 'consignment';
     method?: ('percentage' | 'fixed') | null;
     /**
-     * 3500 equals 35.00%.
+     * Enter 35 for 35.00%.
      */
     shareBps?: number | null;
     /**
-     * Example: 125050 represents ARS 1,250.50.
+     * Enter the amount in the selected currency, with up to two decimals.
      */
     fixedMinor?: number | null;
     currency?: string | null;

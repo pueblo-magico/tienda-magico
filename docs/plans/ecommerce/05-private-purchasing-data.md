@@ -14,6 +14,13 @@ Local API, or public product population. Sales obligations, settlements, and
 supplier payouts remain separate work in TIENDA-34 and TIENDA-35; this task
 provides their private, versioned contractual source.
 
+In the CMS UI, percentages and money amounts use human-scale, two-decimal
+inputs: `35` is presented as `35.00%`, and `1250` as `1,250.00`. Persistence
+still uses basis points and minor currency units to avoid floating-point errors.
+Supplier country and product origin share the same searchable ISO 3166-1
+selector, while cost and agreement currencies use a searchable ISO 4217
+selector.
+
 The down migration reassigns `purchasing` and `finance` users to `admin` before
 removing those enum values. This avoids invalid accounts but deliberately loses
 role granularity and must be reviewed before a production rollback.

@@ -174,24 +174,26 @@ export function commercialTermsFields({ allowInherit }: { allowInherit: boolean 
       type: 'number',
       min: 1,
       max: 10_000,
-      label: { es: 'Porcentaje (puntos básicos)', en: 'Percentage (basis points)' },
+      label: { es: 'Porcentaje del proveedor', en: 'Supplier percentage' },
       admin: {
         condition: (_, siblingData) =>
           siblingData?.mode === 'consignment' && siblingData?.method === 'percentage',
-        description: { es: '3500 equivale a 35,00 %.', en: '3500 equals 35.00%.' },
+        components: { Field: '@/components/PercentageInputField' },
+        description: { es: 'Ingresá 35 para 35,00 %.', en: 'Enter 35 for 35.00%.' },
       },
     },
     {
       name: 'fixedMinor',
       type: 'number',
       min: 1,
-      label: { es: 'Importe fijo en unidades menores', en: 'Fixed amount in minor units' },
+      label: { es: 'Importe fijo por unidad', en: 'Fixed amount per unit' },
       admin: {
         condition: (_, siblingData) =>
           siblingData?.mode === 'consignment' && siblingData?.method === 'fixed',
+        components: { Field: '@/components/MoneyInputField' },
         description: {
-          es: 'Ejemplo: 125050 representa ARS 1.250,50.',
-          en: 'Example: 125050 represents ARS 1,250.50.',
+          es: 'Ingresá el importe en la moneda seleccionada, con hasta dos decimales.',
+          en: 'Enter the amount in the selected currency, with up to two decimals.',
         },
       },
     },
@@ -202,6 +204,7 @@ export function commercialTermsFields({ allowInherit }: { allowInherit: boolean 
       admin: {
         condition: (_, siblingData) =>
           siblingData?.mode === 'consignment' && siblingData?.method === 'fixed',
+        components: { Field: '@/components/IsoCurrencySelectField' },
       },
     },
     { name: 'effectiveFrom', type: 'date', label: { es: 'Vigente desde', en: 'Effective from' } },
@@ -233,9 +236,21 @@ export const purchasingFields: Field[] = [
         name: 'amountMinor',
         type: 'number',
         min: 1,
-        label: { es: 'Importe en unidades menores', en: 'Amount in minor units' },
+        label: { es: 'Importe', en: 'Amount' },
+        admin: {
+          components: { Field: '@/components/MoneyInputField' },
+          description: {
+            es: 'Ingresá el costo en la moneda seleccionada, con hasta dos decimales.',
+            en: 'Enter the cost in the selected currency, with up to two decimals.',
+          },
+        },
       },
-      { name: 'currency', type: 'text', label: { es: 'Moneda ISO', en: 'ISO currency' } },
+      {
+        name: 'currency',
+        type: 'text',
+        label: { es: 'Moneda ISO', en: 'ISO currency' },
+        admin: { components: { Field: '@/components/IsoCurrencySelectField' } },
+      },
       {
         name: 'baseQuantity',
         type: 'number',

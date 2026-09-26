@@ -14,6 +14,13 @@ Local API ni población pública del producto. La venta, liquidación y pago al
 proveedor se implementan por separado en TIENDA-34 y TIENDA-35; esta tarea solo
 establece la fuente contractual privada y versionada.
 
+En la UI del CMS, los porcentajes y montos se ingresan en escala humana con dos
+decimales: `35` se presenta como `35.00%` y `1250` como `1,250.00`. La
+persistencia conserva puntos básicos y unidades monetarias menores para evitar
+errores de punto flotante. Los países de proveedor y origen de producto usan el
+mismo selector ISO 3166-1, y las monedas de costos y acuerdos usan un selector
+ISO 4217 buscable.
+
 La migración descendente reasigna los roles `purchasing` y `finance` a `admin`
 antes de retirar esos valores. Esto evita cuentas inválidas, pero es una pérdida
 deliberada de granularidad y debe revisarse antes de un rollback productivo.

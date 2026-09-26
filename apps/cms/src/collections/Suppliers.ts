@@ -37,6 +37,7 @@ export const Suppliers: CollectionConfig = {
       name: 'country',
       type: 'text',
       label: { es: 'País del proveedor (ISO)', en: 'Supplier country (ISO)' },
+      admin: { components: { Field: '@/components/IsoCountrySelectField' } },
       validate: (value: unknown) =>
         value == null || value === '' || (typeof value === 'string' && /^[A-Z]{2}$/.test(value))
           ? true
