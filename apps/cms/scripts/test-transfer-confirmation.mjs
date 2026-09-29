@@ -4,6 +4,7 @@ import { createRequire } from 'node:module'
 import { randomBytes, randomUUID } from 'node:crypto'
 import { cashConfirmationCases } from './cash-confirmation-cases.mjs'
 import { staffCashCases } from './staff-cash-cases.mjs'
+import { customerAccountCases } from './customer-account-cases.mjs'
 
 const require = createRequire(new URL('../package.json', import.meta.url))
 const { parse } = require('dotenv')
@@ -141,6 +142,7 @@ try {
     migrations,
   })
   await staffCashCases({ payload, createLocalReq, user, customer, product, order, stock })
+  await customerAccountCases({ payload, createLocalReq, user, product, order })
   const firstProduct = await product()
   const firstOrder = await order([firstProduct])
   assert.equal((await confirm(firstOrder, {}, customer)).status, 403)

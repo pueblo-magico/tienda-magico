@@ -5,8 +5,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { Package, PackageOpen } from "lucide-react";
-import { Button } from "@/components/ui/Button";
+import { AccountMenu } from "@/features/account/AccountMenu";
 import {
   localizePath,
   mainNavigation,
@@ -132,37 +131,7 @@ export function Header({ className }: { className?: string }) {
               onClick={() => setSearchOpen(true)}
               className="text-text-black hover:bg-card-hover"
             />
-            <Button
-              href={localizePath(locale, "/orders")}
-              variant="ghost"
-              size="icon-sm"
-              aria-label={
-                pendingOrders
-                  ? t("orders.pendingCount", { count: pendingOrders })
-                  : t("nav.orders")
-              }
-              title={t("nav.orders")}
-              aria-current={
-                pathname === localizePath(locale, "/orders")
-                  ? "page"
-                  : undefined
-              }
-              className="text-text-black hover:bg-card-hover aria-[current=page]:bg-card-hover aria-[current=page]:text-text-highlight relative size-10 shrink-0"
-            >
-              {pathname === localizePath(locale, "/orders") ? (
-                <PackageOpen aria-hidden className="size-5" strokeWidth={2} />
-              ) : (
-                <Package aria-hidden className="size-5" strokeWidth={2} />
-              )}
-              {pendingOrders > 0 ? (
-                <span
-                  aria-hidden
-                  className="bg-clay text-brand-foreground absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-xs font-bold"
-                >
-                  {pendingOrders}
-                </span>
-              ) : null}
-            </Button>
+            <AccountMenu pendingOrders={pendingOrders} />
             <CartButton
               count={itemCount}
               onClick={openCart}

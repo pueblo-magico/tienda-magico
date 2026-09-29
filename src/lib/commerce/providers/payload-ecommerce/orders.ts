@@ -16,7 +16,10 @@ import {
 } from "@/types/checkout";
 import { collectionPath, payloadFetch } from "./client";
 import { getPayloadEcommerceConfig } from "./config";
-import { parseGuestCartReferences } from "@/lib/commerce/guest-order-access";
+import {
+  MAX_GUEST_CARTS,
+  parseGuestCartReferences,
+} from "@/lib/commerce/guest-order-access";
 import { mapProductSummary } from "./mappers";
 
 type CheckoutOrderInput = {
@@ -276,7 +279,7 @@ export async function confirmGuestOrderReceipt(
   reference: string,
   feedback?: OrderReceiptFeedback,
 ): Promise<boolean> {
-  const references = parseGuestCartReferences(JSON.stringify(cartReferences));
+  const references = validatedReferences(cartReferences);
   if (!references.length) return false;
   const owned = (await getGuestOrders(references)).find(
     (order) => order.publicReference === reference,
@@ -318,7 +321,7 @@ export async function submitGuestOrderFeedback(
   reference: string,
   feedback: OrderReceiptFeedback,
 ): Promise<boolean> {
-  const references = parseGuestCartReferences(JSON.stringify(cartReferences));
+  const references = validatedReferences(cartReferences);
   if (!references.length) return false;
   const findOwned = async () =>
     (await getGuestOrders(references)).find(
@@ -346,8 +349,25 @@ export async function submitGuestOrderFeedback(
 export async function getGuestOrders(
   cartReferences: string[],
 ): Promise<CheckoutOrder[]> {
-  const references = parseGuestCartReferences(JSON.stringify(cartReferences));
+  const references = validatedReferences(cartReferences);
   if (!references.length) return [];
+  if (references.length > MAX_GUEST_CARTS) {
+    const batches: CheckoutOrder[] = [];
+    for (
+      let offset = 0;
+      offset < references.length;
+      offset += MAX_GUEST_CARTS
+    ) {
+      batches.push(
+        ...(await getGuestOrders(
+          references.slice(offset, offset + MAX_GUEST_CARTS),
+        )),
+      );
+    }
+    return batches.sort((first, second) =>
+      (second.createdAt ?? "").localeCompare(first.createdAt ?? ""),
+    );
+  }
   const orders: CheckoutOrder[] = [];
   const latestByCart = new Map<string, string>();
   let page = 1;
@@ -406,7 +426,7 @@ export async function reportGuestTransfer(
   cartReferences: string[],
   reference: string,
 ): Promise<boolean> {
-  const references = parseGuestCartReferences(JSON.stringify(cartReferences));
+  const references = validatedReferences(cartReferences);
   if (!references.length) return false;
   const owned = (await getGuestOrders(references)).find(
     (order) => order.publicReference === reference,
@@ -555,4 +575,15 @@ export async function createCheckoutOrder(
 
   const order = "doc" in orderResponse ? orderResponse.doc : orderResponse;
   return normalizePayloadOrderResponse(order);
+}
+
+function validatedReferences(values: string[]): string[] {
+  const references = new Set<string>();
+  for (let index = 0; index < values.length; index += MAX_GUEST_CARTS) {
+    for (const value of parseGuestCartReferences(
+      JSON.stringify(values.slice(index, index + MAX_GUEST_CARTS)),
+    ))
+      references.add(value);
+  }
+  return [...references];
 }

@@ -42,6 +42,7 @@ import { CmsSettings } from './globals/CmsSettings'
 import { migrations } from './migrations'
 import { sellableSchema } from './utilities/sellableSchema'
 import { staffCashEndpoints } from './endpoints/staffCash'
+import { customerAccountEndpoints } from './endpoints/customerAccount'
 
 loadEnv()
 
@@ -59,7 +60,7 @@ const serverURL =
   'http://localhost:4000'
 
 export default buildConfig({
-  endpoints: staffCashEndpoints,
+  endpoints: [...staffCashEndpoints, ...customerAccountEndpoints],
   serverURL,
   i18n: {
     fallbackLanguage: 'es',

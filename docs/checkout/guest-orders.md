@@ -1,5 +1,7 @@
 # Mis pedidos: acceso de invitados
 
+Las [cuentas opcionales](customer-accounts.md) agregan historial entre dispositivos. Las garantías y los límites descriptos acá se mantienen para invitados; una coincidencia de email nunca permite recuperar pedidos.
+
 ## Funcionamiento
 
 El checkout Payload guarda referencias de carrito ya autorizadas en una cookie HttpOnly, SameSite=Lax y Secure en producción. Se reutiliza el secreto de acceso existente de Payload; no se crean contraseñas ni tokens propios. Las consultas de historial filtran por la referencia completa, incluido el secreto. Un ID numérico o UUID público no autoriza el historial. No se devuelven secretos ni datos del comprador al listado.
@@ -14,7 +16,7 @@ Aplicá `20260916_100000_transfer_reported` con el comando de migraciones del CM
 
 ## Prueba manual
 
-1. Creá un checkout por transferencia. Navegá a la tienda y abrí «Mis pedidos» con el ícono de paquete a la izquierda del carrito en el encabezado. Debe aparecer el pedido con importe, referencia y estado.
+1. Creá un checkout por transferencia. Navegá a la tienda y abrí «Mi cuenta → Mis pedidos» a la izquierda del carrito en el encabezado. Debe aparecer el pedido con importe, referencia y estado.
 2. Abrí «Ver pedido». Debe volver a la página de espera con los mismos datos. Cerrá y volvé a abrir el navegador: el pedido debe seguir disponible.
 3. Para un pedido creado antes del cambio, abrí Mis pedidos con su carrito actual. Debe recuperarse automáticamente solo si el carrito corresponde al pedido, sin mostrar una barra de búsqueda. Verificá en la red una única solicitud por carrito, sin bucles después de actualizar el listado.
 4. Declaralo pagado con «Ya hice la transferencia». Recargá y volvé a Mis pedidos: debe seguir como transferencia declarada por verificar. En CMS verificá la fecha; `paymentStatus` debe seguir pendiente.

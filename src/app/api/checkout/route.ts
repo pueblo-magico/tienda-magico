@@ -127,6 +127,9 @@ type CheckoutBody = {
  * Creates a provider checkout session from the current commerce cart.
  */
 export async function POST(request: Request) {
+  if (request.headers.get("origin") !== new URL(request.url).origin) {
+    return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  }
   try {
     if (!commerce.isConfigured()) {
       return NextResponse.json(

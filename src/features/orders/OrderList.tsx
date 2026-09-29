@@ -20,9 +20,11 @@ import { localizePath } from "@/config/navigation";
 export function OrderList({
   orders,
   serverTime,
+  historyScope = "browser",
 }: {
   orders: CheckoutOrder[];
   serverTime: number;
+  historyScope?: "browser" | "account";
 }) {
   const t = useTranslations("orders");
   const locale = useLocale();
@@ -51,7 +53,13 @@ export function OrderList({
           <>
             {!visible.length ? (
               <p className="text-text-primary py-6" role="status">
-                {t(orders.length ? "noMatches" : "empty")}
+                {t(
+                  orders.length
+                    ? "noMatches"
+                    : historyScope === "account"
+                      ? "emptyAccount"
+                      : "empty",
+                )}
               </p>
             ) : null}
             <ul className="space-y-4">

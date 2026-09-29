@@ -1,4 +1,22 @@
 {
+  "account": {
+    "pendingLabel": "My account: {count, plural, one {# order awaiting payment} other {# orders awaiting payment}}",
+    "historyHint": "Your linked orders are available on any device when you sign in. Guest orders can only be linked from a browser that holds their secure access credentials.",
+    "title": "My account",
+    "orders": "My orders",
+    "data": "My details",
+    "register": "Create account",
+    "login": "Log in",
+    "logout": "Log out",
+    "name": "Full name",
+    "email": "Email",
+    "password": "Password",
+    "passwordHint": "Use at least 12 characters.",
+    "optional": "Creating an account is optional. You can continue as a guest. Signing in links this browser's orders to your account.",
+    "useData": "Use my saved details",
+    "loading": "Checking…",
+    "error": "We couldn't complete your request. Check your details or try again later."
+  },
   "commercial": {
     "unitPrice": "Unit price: {price}",
     "netContent": "Net content: {quantity} {unit}",
@@ -365,6 +383,7 @@
     "title": "My orders",
     "browserHint": "Orders are remembered in this browser for 30 days, for up to 20 carts. If you clear cookies or change devices, you will need assistance recovering them. Email recovery is not available yet.",
     "empty": "No orders are saved in this browser yet.",
+    "emptyAccount": "No orders are linked to your account or saved in this browser yet.",
     "unavailable": "We could not load your orders. Please try again in a few minutes.",
     "recover": "Find orders for the current cart",
     "recoverFailed": "We could not find orders for this cart. If you used another browser, contact us with your reference.",

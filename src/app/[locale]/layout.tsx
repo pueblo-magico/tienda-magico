@@ -7,7 +7,7 @@ import { Header } from "@/components/layout/Header";
 import { CartDrawer, CartProvider } from "@/features/cart";
 import { routing } from "@/i18n/routing";
 import { ImpactFooter } from "@/features/shop/ImpactFooter";
-
+import { AccountProvider } from "@/lib/account/client";
 
 type Props = {
   children: React.ReactNode;
@@ -30,17 +30,19 @@ export default async function LocaleLayout({ children, params }: Props) {
 
   return (
     <NextIntlClientProvider messages={messages}>
-      <CartProvider>
-        <div className="flex min-h-screen flex-col">
-          <Header />
-          <div className="flex-1">{children}</div>
-          <Container className="relative z-10 -mt-10">
-            <ImpactFooter /> 
-          </Container>
-          <Footer />
-        </div>
-        <CartDrawer />
-      </CartProvider>
+      <AccountProvider>
+        <CartProvider>
+          <div className="flex min-h-screen flex-col">
+            <Header />
+            <div className="flex-1">{children}</div>
+            <Container className="relative z-10 -mt-10">
+              <ImpactFooter />
+            </Container>
+            <Footer />
+          </div>
+          <CartDrawer />
+        </CartProvider>
+      </AccountProvider>
     </NextIntlClientProvider>
   );
 }

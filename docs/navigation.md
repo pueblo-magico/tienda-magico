@@ -83,3 +83,7 @@ parent chain. Search, sorting, price, origin, availability, tags, and pagination
 remain query parameters; the primary category scope does not.
 
 Los segmentos de categoría se decodifican una sola vez al resolver la ruta. Los slugs con Unicode, como `montaña-y-regeneracion`, se conservan en los filtros y se codifican al generar enlaces (`monta%C3%B1a-y-regeneracion`). Una codificación inválida o una cadena padre-hijo inexistente devuelve 404; no se modifican los slugs del CMS.
+
+# Cuenta de cliente
+
+El menú del encabezado enlaza a `/es/mi-cuenta` o `/en/account`. Sin sesión ofrece Mis pedidos, Crear cuenta (`?mode=register`) e Ingresar. Con sesión ofrece Mis pedidos, Mis datos y Cerrar sesión. Las rutas y las traducciones se mantienen en la configuración compartida; el historial entre dispositivos y sus garantías se describen en [Cuentas opcionales](checkout/customer-accounts.md).

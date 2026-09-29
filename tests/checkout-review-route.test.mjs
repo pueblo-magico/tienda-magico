@@ -46,7 +46,10 @@ test("el servidor rechaza términos ausentes y revisiones desactualizadas antes 
     POST(
       new Request("http://localhost:3000/api/checkout", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          origin: "http://localhost:3000",
+        },
         body: JSON.stringify({ cartId: "test", locale: "es", ...body }),
       }),
     );

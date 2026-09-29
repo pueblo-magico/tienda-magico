@@ -93,14 +93,21 @@ export async function staffCashCases({
     'El alta anónima no puede crear administradores después del bootstrap',
   )
   const customerReq = await createLocalReq({ user: { ...customer, collection: 'users' } }, payload)
-  const unchangedRole = await payload.update({
-    collection: 'users',
-    id: customer.id,
-    data: { roles: ['admin'] },
-    overrideAccess: false,
-    req: customerReq,
-  })
-  assert.deepEqual(unchangedRole.roles, ['customer'], 'Un cliente no puede elevar su propio rol')
+  await assert.rejects(
+    payload.update({
+      collection: 'users',
+      id: customer.id,
+      data: { roles: ['admin'] },
+      overrideAccess: false,
+      req: customerReq,
+    }),
+    { status: 403 },
+  )
+  assert.deepEqual(
+    (await payload.findByID({ collection: 'users', id: customer.id })).roles,
+    ['customer'],
+    'Un cliente no puede elevar su propio rol',
+  )
   const publicSettings = await payload.findGlobal({
     slug: 'commerce-settings',
     overrideAccess: false,
