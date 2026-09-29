@@ -5,6 +5,7 @@ Project docs for engineers and content/commerce operators.
 | Audience | Guide | Description |
 | --- | --- | --- |
 | Developers | [Commerce developer guide](./commerce/developer.md) | Architecture, env setup, API usage, provider swapping |
+| Developers | [Estrategia de pruebas](./testing.md) | Suite heredada, Vitest, cobertura y recorridos Playwright |
 | Developers | [Payload Ecommerce provider](./commerce/payload-ecommerce.md) | Self-hosted Payload adapter, env, carts, monorepo CMS |
 | Developers | [CMS content developer guide](./cms/developer.md) | Homepage/pages via `@/lib/cms`, blocks, fallback, caching |
 | Developers / content | [Storefront navigation](./navigation.md) | Shop routes and links to the main Experiencia Mágico website |

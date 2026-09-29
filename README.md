@@ -103,6 +103,7 @@ troubleshooting checklists in [English](./docs/deploy/staging.md) and
 ## Documentation
 
 - [Docs home](./docs/README.md)
+- [Testing strategy](./docs/testing.md)
 - [Commerce developer guide](./docs/commerce/developer.md)
 - [Shopify content & merchandising guide](./docs/commerce/content.md)
 - [Payload Ecommerce provider](./docs/commerce/payload-ecommerce.md)

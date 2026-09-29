@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, type InputHTMLAttributes } from "react";
+import { useId, useRef, type InputHTMLAttributes } from "react";
 import { formatArsInputElement, formatArsPesos } from "@/lib/money/ars-input";
 import { cn } from "@/lib/utils/cn";
 
@@ -24,12 +24,17 @@ export function Input({
   onBeforeInput,
   ...props
 }: InputProps) {
-  const inputId = id ?? props.name;
+  const generatedId = useId();
+  const inputId = id ?? props.name ?? generatedId;
   const previousValue = useRef(String(value ?? defaultValue ?? ""));
 
   return (
-    <label className="text-forest flex w-full flex-col gap-1.5 text-sm">
-      {label ? <span className="font-medium">{label}</span> : null}
+    <div className="text-forest flex w-full flex-col gap-1.5 text-sm">
+      {label ? (
+        <label htmlFor={inputId} className="font-medium">
+          {label}
+        </label>
+      ) : null}
       <input
         id={inputId}
         className={cn(
@@ -80,6 +85,6 @@ export function Input({
           {hint}
         </span>
       ) : null}
-    </label>
+    </div>
   );
 }
