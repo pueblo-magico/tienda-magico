@@ -30,6 +30,24 @@ describe("parsePaymentMethod", () => {
     );
   });
 
+  test("rechaza efectivo deshabilitado con un mensaje localizado", () => {
+    expect(() =>
+      parsePaymentMethod(CASH, DEFAULT_COMMERCE_SETTINGS, "es-AR"),
+    ).toThrow("El pago en efectivo no está habilitado.");
+  });
+
+  test("rechaza medios desconocidos", () => {
+    expect(() =>
+      parsePaymentMethod("crypto", DEFAULT_COMMERCE_SETTINGS, "en"),
+    ).toThrowError(new PaymentMethodError("Choose a valid payment method."));
+  });
+
+  test("rechaza una transferencia deshabilitada", () => {
+    expect(() =>
+      parsePaymentMethod(BANK_TRANSFER, DEFAULT_COMMERCE_SETTINGS, "es"),
+    ).toThrow("La transferencia no está habilitada.");
+  });
+
   test("rechaza una transferencia habilitada pero incompleta", () => {
     const settings = {
       ...DEFAULT_COMMERCE_SETTINGS,
@@ -38,6 +56,22 @@ describe("parsePaymentMethod", () => {
 
     expect(() => parsePaymentMethod(BANK_TRANSFER, settings, "en")).toThrow(
       "Bank transfer is not configured yet.",
+    );
+  });
+
+  test("acepta una transferencia habilitada y configurada", () => {
+    const settings = {
+      ...DEFAULT_COMMERCE_SETTINGS,
+      transferEnabled: true,
+      transfer: {
+        ...DEFAULT_COMMERCE_SETTINGS.transfer,
+        accountHolder: "Pueblo Mágico",
+        alias: "pueblo.magico",
+      },
+    };
+
+    expect(parsePaymentMethod(BANK_TRANSFER, settings, "es")).toBe(
+      BANK_TRANSFER,
     );
   });
 });

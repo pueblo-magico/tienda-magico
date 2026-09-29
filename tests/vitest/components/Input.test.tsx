@@ -45,4 +45,48 @@ describe("Input", () => {
     expect(input.getAttribute("aria-describedby")).toBe("email-error");
     expect(error?.textContent).toBe("Ingresá un correo válido");
   });
+
+  test("prioriza el error sobre la ayuda", () => {
+    render(
+      <Input
+        id="importe"
+        label="Importe"
+        hint="Ingresá pesos enteros"
+        error="El importe no es válido"
+      />,
+    );
+
+    const input = screen.getByRole("textbox", { name: "Importe" });
+
+    expect(input.getAttribute("aria-describedby")).toBe("importe-error");
+    expect(screen.queryByText("Ingresá pesos enteros")).toBeNull();
+  });
+
+  test("formatea un valor controlado en pesos y conserva atributos", () => {
+    render(
+      <Input
+        label="Importe"
+        format="ars-pesos"
+        value="1234"
+        onChange={() => undefined}
+      />,
+    );
+
+    const input = screen.getByRole("textbox", { name: "Importe" });
+
+    expect(input).toHaveProperty("value", "1.234");
+    expect(input.getAttribute("inputmode")).toBe("numeric");
+    expect(input.getAttribute("type")).toBe("text");
+  });
+
+  test("formatea un valor inicial en pesos", () => {
+    render(
+      <Input aria-label="Importe" format="ars-pesos" defaultValue="2500" />,
+    );
+
+    expect(screen.getByRole("textbox", { name: "Importe" })).toHaveProperty(
+      "value",
+      "2.500",
+    );
+  });
 });
