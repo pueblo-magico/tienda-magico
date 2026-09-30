@@ -15,6 +15,9 @@ outputs
 
 # testing
 /coverage
+/.vitest
+/playwright-report
+/test-results
 
 # next.js
 /.next/
