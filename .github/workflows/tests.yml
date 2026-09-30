@@ -14,8 +14,40 @@ permissions:
   contents: read
 
 jobs:
-  storefront:
-    name: Storefront
+  unit_tests:
+    name: Unitarias y componentes
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Obtener el repositorio
+        uses: actions/checkout@v7
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Ejecutar Vitest
+        run: npm run test:ci:unit
+
+      - name: Publicar reportes de Vitest
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: reportes-vitest
+          if-no-files-found: warn
+          include-hidden-files: true
+          path: |
+            coverage/vitest
+            .vitest
+
+  e2e_tests:
+    name: E2E en navegador
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -35,44 +67,76 @@ jobs:
       - name: Instalar Chromium
         run: npx playwright install --with-deps chromium
 
-      - name: Ejecutar Vitest
-        id: vitest
-        continue-on-error: true
-        run: npm run test:ci:unit
-
       - name: Ejecutar Playwright
-        id: playwright
-        if: always()
-        continue-on-error: true
         run: npm run test:ci:e2e
 
-      - name: Publicar resumen de resultados
-        if: always()
-        env:
-          VITEST_OUTCOME: ${{ steps.vitest.outcome }}
-          PLAYWRIGHT_OUTCOME: ${{ steps.playwright.outcome }}
-        run: node scripts/ci-test-summary.mjs
-
-      - name: Publicar reportes
+      - name: Publicar reportes de Playwright
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: reportes-de-pruebas-storefront
+          name: reportes-playwright
           if-no-files-found: warn
-          include-hidden-files: true
           path: |
-            coverage/vitest
-            .vitest
             playwright-report
             test-results
 
-      - name: Validar resultado de pruebas
-        if: always()
+  test_summary:
+    name: Resumen de resultados
+    if: always()
+    needs:
+      - unit_tests
+      - e2e_tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Obtener el repositorio
+        uses: actions/checkout@v7
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          package-manager-cache: false
+
+      - name: Descargar resultados de Vitest
+        continue-on-error: true
+        uses: actions/download-artifact@v8
+        with:
+          name: reportes-vitest
+          path: .
+
+      - name: Descargar resultados de Playwright
+        continue-on-error: true
+        uses: actions/download-artifact@v8
+        with:
+          name: reportes-playwright
+          path: .
+
+      - name: Publicar resumen de resultados
         env:
-          VITEST_OUTCOME: ${{ steps.vitest.outcome }}
-          PLAYWRIGHT_OUTCOME: ${{ steps.playwright.outcome }}
+          VITEST_OUTCOME: ${{ needs.unit_tests.result }}
+          PLAYWRIGHT_OUTCOME: ${{ needs.e2e_tests.result }}
+        run: node scripts/ci-test-summary.mjs
+
+  storefront_gate:
+    name: Storefront
+    if: always()
+    needs:
+      - unit_tests
+      - e2e_tests
+      - test_summary
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+
+    steps:
+      - name: Validar resultado de pruebas
+        env:
+          VITEST_OUTCOME: ${{ needs.unit_tests.result }}
+          PLAYWRIGHT_OUTCOME: ${{ needs.e2e_tests.result }}
+          SUMMARY_OUTCOME: ${{ needs.test_summary.result }}
         run: |
-          if [ "$VITEST_OUTCOME" != "success" ] || [ "$PLAYWRIGHT_OUTCOME" != "success" ]; then
-            echo "Una o más suites de pruebas fallaron." >&2
+          if [ "$VITEST_OUTCOME" != "success" ] || [ "$PLAYWRIGHT_OUTCOME" != "success" ] || [ "$SUMMARY_OUTCOME" != "success" ]; then
+            echo "Una o más verificaciones del storefront fallaron." >&2
             exit 1
           fi
