@@ -21,10 +21,10 @@ jobs:
 
     steps:
       - name: Obtener el repositorio
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Configurar Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: npm
@@ -40,10 +40,11 @@ jobs:
 
       - name: Publicar reportes
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: reportes-de-pruebas-storefront
           if-no-files-found: warn
+          include-hidden-files: true
           path: |
             coverage/vitest
             .vitest
