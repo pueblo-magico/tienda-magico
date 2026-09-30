@@ -35,8 +35,23 @@ jobs:
       - name: Instalar Chromium
         run: npx playwright install --with-deps chromium
 
-      - name: Ejecutar la suite migrada
-        run: npm run test:ci
+      - name: Ejecutar Vitest
+        id: vitest
+        continue-on-error: true
+        run: npm run test:ci:unit
+
+      - name: Ejecutar Playwright
+        id: playwright
+        if: always()
+        continue-on-error: true
+        run: npm run test:ci:e2e
+
+      - name: Publicar resumen de resultados
+        if: always()
+        env:
+          VITEST_OUTCOME: ${{ steps.vitest.outcome }}
+          PLAYWRIGHT_OUTCOME: ${{ steps.playwright.outcome }}
+        run: node scripts/ci-test-summary.mjs
 
       - name: Publicar reportes
         if: always()
@@ -50,3 +65,14 @@ jobs:
             .vitest
             playwright-report
             test-results
+
+      - name: Validar resultado de pruebas
+        if: always()
+        env:
+          VITEST_OUTCOME: ${{ steps.vitest.outcome }}
+          PLAYWRIGHT_OUTCOME: ${{ steps.playwright.outcome }}
+        run: |
+          if [ "$VITEST_OUTCOME" != "success" ] || [ "$PLAYWRIGHT_OUTCOME" != "success" ]; then
+            echo "Una o más suites de pruebas fallaron." >&2
+            exit 1
+          fi

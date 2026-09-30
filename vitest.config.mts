@@ -8,15 +8,17 @@ export default defineConfig({
   },
   test: {
     environment: "jsdom",
-    include: ["tests/vitest/**/*.test.{ts,tsx}"],
+    include: ["tests/vitest/**/*.test.{mjs,ts,tsx}"],
     setupFiles: ["./tests/vitest/setup.ts"],
     coverage: {
       provider: "v8",
-      reporter: ["text", "html", "lcov"],
+      exclude: ["scripts/**", "tests/**"],
+      reporter: ["text", "html", "lcov", "json-summary"],
       reportsDirectory: "coverage/vitest",
     },
     outputFile: {
       html: ".vitest/index.html",
+      json: ".vitest/results.json",
     },
   },
 });

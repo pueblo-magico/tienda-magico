@@ -26,6 +26,11 @@ La cobertura HTML queda en `coverage/vitest`. El reporte de Vitest queda en
 `.vitest` y el de Playwright en `playwright-report`. Estos directorios son
 artefactos locales o de CI y no se versionan.
 
+En CI, Vitest y Playwright se ejecutan como pasos independientes para conservar
+ambos resultados aunque una suite falle. La página de la ejecución muestra un
+resumen nativo con totales, fallas, cobertura y entornos E2E; los reportes HTML
+detallados permanecen disponibles como artefactos descargables.
+
 En esta primera etapa, la cobertura V8 incluye los módulos importados por las
 pruebas migradas. No se publica todavía un porcentaje global: el defecto
 [vitest-dev/vitest#10475](https://github.com/vitest-dev/vitest/issues/10475)
