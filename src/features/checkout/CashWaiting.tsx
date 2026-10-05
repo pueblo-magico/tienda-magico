@@ -15,12 +15,12 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import {
+  Body as CardDescription,
   Card,
-  CardContent,
+  CardBody as CardContent,
   CardHeader,
   CardTitle,
-  CardDescription,
-} from "@/components/ui/Card";
+} from "@pueblo-magico/react-ui";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { StepsCard } from "@/components/cards/StepsCard";
@@ -221,12 +221,12 @@ export function CashWaiting({
           </div>
         ) : null}
         {summary ?? (
-          <Card className="min-w-0 lg:col-span-2">
+          <Card variant="outlined" className="min-w-0 lg:col-span-2">
             <CardHeader>
               <CardTitle className="text-text-secondary font-serif text-2xl font-normal sm:text-3xl">
                 {t("summaryTitle")}
               </CardTitle>
-              <CardDescription className="text-base">
+              <CardDescription size="sm" className="text-base">
                 {t("summaryDescription")}
               </CardDescription>
             </CardHeader>

@@ -3,7 +3,11 @@
 import { Tabs } from "@/components/ui/Tabs";
 import { useLocale, useTranslations } from "next-intl";
 import { ChevronRight, Circle, Package2 } from "lucide-react";
-import { Card, CardContent, CardTitle } from "@/components/ui/Card";
+import {
+  Card,
+  CardBody as CardContent,
+  CardTitle,
+} from "@pueblo-magico/react-ui";
 import { Button } from "@/components/ui/Button";
 import { CopyButton } from "@/components/ui/CopyButton";
 import { formatMoney } from "@/lib/commerce/utils/format";
@@ -64,7 +68,7 @@ export function OrderList({
                 });
                 return (
                   <li key={order.publicReference}>
-                    <Card>
+                    <Card variant="outlined">
                       <CardContent className="flex flex-col gap-5 sm:flex-row sm:items-center">
                         <div
                           aria-hidden

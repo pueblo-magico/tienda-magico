@@ -7,7 +7,7 @@ import { localizePath } from "@/config/navigation";
 import { Body, PageTitle } from "@/components/typography";
 import { Button } from "@/components/ui/Button";
 import { IconAction } from "@/components/ui/IconAction";
-import { Card, CardContent } from "@/components/ui/Card";
+import { Card, CardBody as CardContent } from "@pueblo-magico/react-ui";
 import { ArrowRight, ClipboardList, Package2, Sprout } from "lucide-react";
 import { getTransferWaitingState } from "@/lib/checkout/transfer-waiting";
 import type { CheckoutOrder } from "@/types/commerce";
@@ -98,7 +98,7 @@ export function TransferWaiting({
           </p>
         </>
       ) : null}
-      <Card>
+      <Card variant="outlined">
         <CardContent>
           <dl className="text-text-primary space-y-3 text-left text-sm">
             {state.canPay && !hasReported && !newerReference

@@ -6,11 +6,11 @@ import { getSiteSettings } from "@/lib/cms";
 import { guestCartReferences } from "@/lib/checkout/guest-orders";
 import { Container } from "@/components/layout/Container";
 import {
+  Body as CardDescription,
   Card,
-  CardContent,
+  CardBody as CardContent,
   CardTitle,
-  CardDescription,
-} from "@/components/ui/Card";
+} from "@pueblo-magico/react-ui";
 import { Button } from "@/components/ui/Button";
 import { Body, PageTitle } from "@/components/typography";
 import { buildWhatsAppUrl } from "@/features/impact";
@@ -61,7 +61,7 @@ export default async function OrdersPage({
         ) : (
           <OrderList orders={orders} serverTime={Date.now()} />
         )}
-        <Card>
+        <Card variant="outlined">
           <CardContent className="flex flex-col gap-5 sm:flex-row sm:items-center">
             <Sprout
               aria-hidden
@@ -70,7 +70,7 @@ export default async function OrdersPage({
             />
             <div className="flex-1 space-y-1">
               <CardTitle>{t("supportTitle")}</CardTitle>
-              <CardDescription>{t("supportBody")}</CardDescription>
+              <CardDescription size="sm">{t("supportBody")}</CardDescription>
             </div>
             <Button
               href={buildWhatsAppUrl(

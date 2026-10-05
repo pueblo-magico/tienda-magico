@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Jost, Marcellus } from "next/font/google";
+import "@pueblo-magico/react-ui/styles.css";
 import "./globals.css";
 
 const jost = Jost({
@@ -38,7 +39,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${jost.variable} ${marcellus.variable} antialiased`}>
+      <body
+        className={`${jost.variable} ${marcellus.variable} pm-ui antialiased`}
+      >
         {children}
       </body>
     </html>

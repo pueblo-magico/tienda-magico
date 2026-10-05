@@ -4,7 +4,7 @@ import { Banknote, FileText, ShieldCheck } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
-import { Card, CardContent } from "@/components/ui/Card";
+import { Card, CardBody as CardContent } from "@pueblo-magico/react-ui";
 import { formatMoney } from "@/lib/commerce/utils/format";
 import type { StaffCashOrder } from "@/types/staff-cash";
 
@@ -51,7 +51,7 @@ export function CashPaymentConfirmation({
           {t("review.title")}
         </p>
         <p className="text-text-primary">{t("review.body")}</p>
-        <Card>
+        <Card variant="outlined">
           <CardContent className="flex items-center gap-4 text-left">
             <FileText
               aria-hidden

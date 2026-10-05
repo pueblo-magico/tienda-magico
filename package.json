@@ -24,6 +24,7 @@
     "deploy:gce": "bash deploy/gce/deploy.sh"
   },
   "dependencies": {
+    "@pueblo-magico/react-ui": "^0.1.0",
     "lucide-react": "^1.44.0",
     "next": "16.3.0",
     "next-intl": "^4.13.6",

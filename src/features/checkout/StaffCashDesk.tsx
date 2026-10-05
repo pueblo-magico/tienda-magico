@@ -4,11 +4,11 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Banknote, LockKeyhole } from "lucide-react";
 import {
+  Body as CardDescription,
   Card,
+  CardBody as CardContent,
   CardHeader,
-  CardDescription,
-  CardContent,
-} from "@/components/ui/Card";
+} from "@pueblo-magico/react-ui";
 import { Input } from "@/components/ui/Input";
 import { cashReview } from "./cash-review";
 import { CashPaymentConfirmation } from "./CashPaymentConfirmation";
@@ -140,7 +140,7 @@ export function StaffCashDesk({
   }
 
   return (
-    <Card>
+    <Card variant="outlined">
       <CardHeader>
         <PageTitle
           as="h1"
@@ -149,7 +149,7 @@ export function StaffCashDesk({
           <LockKeyhole aria-hidden strokeWidth={1.5} />
           {t("title")}
         </PageTitle>
-        <CardDescription>{t("intro")}</CardDescription>
+        <CardDescription size="sm">{t("intro")}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-5">
         {access === "checking" ? (

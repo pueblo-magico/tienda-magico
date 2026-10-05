@@ -1,13 +1,5 @@
 export { Button } from "./Button";
 export { IconAction } from "./IconAction";
-export {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
-} from "./Card";
 export { CopyButton } from "./CopyButton";
 export type { ButtonProps } from "./Button";
 export { Badge } from "./Badge";

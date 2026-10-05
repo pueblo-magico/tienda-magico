@@ -5,11 +5,11 @@ import { useTranslations } from "next-intl";
 import { CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import {
+  Body as CardDescription,
   Card,
-  CardContent,
-  CardDescription,
+  CardBody as CardContent,
   CardTitle,
-} from "@/components/ui/Card";
+} from "@pueblo-magico/react-ui";
 import { RatingInput } from "@/components/ui/Rating";
 import { Textarea } from "@/components/ui/Textarea";
 import { FeedbackThanksModal } from "./FeedbackThanksModal";
@@ -77,7 +77,7 @@ export function OrderReceiptFeedback({
   }
 
   return (
-    <Card className="mt-4">
+    <Card variant="outlined" className="mt-4">
       <CardContent
         className={
           layout === "wide" ? "grid gap-6 lg:grid-cols-3" : "space-y-5"
@@ -91,7 +91,7 @@ export function OrderReceiptFeedback({
           />
           <div className="space-y-1">
             <CardTitle>{t(feedbackOnly ? "feedbackTitle" : "open")}</CardTitle>
-            <CardDescription>
+            <CardDescription size="sm">
               {t(feedbackOnly ? "feedbackDescription" : "description")}
             </CardDescription>
           </div>

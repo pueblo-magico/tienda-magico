@@ -10,12 +10,12 @@ import {
   ShoppingBag,
 } from "lucide-react";
 import {
+  Body as CardDescription,
   Card,
+  CardBody as CardContent,
   CardHeader,
   CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/components/ui/Card";
+} from "@pueblo-magico/react-ui";
 import { Button } from "@/components/ui/Button";
 import { PageTitle } from "@/components/typography/PageTitle";
 import { Eyebrow } from "@/components/typography/Eyebrow";
@@ -108,10 +108,10 @@ export function CashConfirmed({
       </header>
       <div className="grid items-stretch gap-4 lg:grid-cols-2">
         <div className="min-w-0 [&>div]:h-full">{summary}</div>
-        <Card>
+        <Card variant="outlined">
           <CardHeader>
-            <CardTitle variant="editorial">{t("timeline")}</CardTitle>
-            <CardDescription>{t("timelineBody")}</CardDescription>
+            <CardTitle>{t("timeline")}</CardTitle>
+            <CardDescription size="sm">{t("timelineBody")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-5">
             <ol>

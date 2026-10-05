@@ -1,11 +1,11 @@
 import {
+  Body as CardDescription,
   Card,
+  CardBody as CardContent,
+  CardFooter,
   CardHeader,
   CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
-} from "@/components/ui/Card";
+} from "@pueblo-magico/react-ui";
 import { CopyButton } from "@/components/ui/CopyButton";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -21,7 +21,7 @@ export default function CardPage() {
     <>
       <DocsPageHeader
         title="Card"
-        description="Primitiva composable de shadcn/ui adaptada a los tokens de Pueblo Mágico. Base para resúmenes y tarjetas de dominio; no reemplaza las variantes editoriales de InfoCard."
+        description="Primitiva compartida de @pueblo-magico/react-ui. Base para resúmenes y tarjetas de dominio; no reemplaza las variantes editoriales de InfoCard."
       />
       <DocsSection title="Resumen y acciones">
         <ReviewCard
@@ -64,10 +64,10 @@ export default function CardPage() {
             },
           ]}
         />
-        <Card className="max-w-xl">
+        <Card variant="outlined" className="max-w-xl">
           <CardHeader layout="split">
-            <CardTitle variant="editorial">Transferencia pendiente</CardTitle>
-            <CardDescription>
+            <CardTitle>Transferencia pendiente</CardTitle>
+            <CardDescription size="sm">
               El aviso de transferencia no confirma el pago.
             </CardDescription>
           </CardHeader>
@@ -98,10 +98,10 @@ export default function CardPage() {
         </Card>
       </DocsSection>
       <DocsSection title="Acceso privado de caja">
-        <Card className="w-full max-w-xl">
+        <Card variant="outlined" className="w-full max-w-xl">
           <CardHeader>
             <CardTitle>Caja · confirmar efectivo</CardTitle>
-            <CardDescription>
+            <CardDescription size="sm">
               Acceso del personal con contraseña. La autorización se verifica en
               el servidor, no en esta tarjeta.
             </CardDescription>
@@ -121,22 +121,14 @@ export default function CardPage() {
       </DocsSection>
       <DocsSection title="Uso y migración">
         <p>
-          Componé CardHeader, CardTitle, CardDescription, CardContent y
-          CardFooter. Usá un encabezado semántico y conservá las reglas de
-          negocio fuera de estas primitivas. CopyButton anuncia éxito o error y
-          requiere etiquetas localizadas. El portado manual de Card no requiere
-          dependencias adicionales. CardHeader admite la distribución split para
-          separar título y referencia; CardTitle admite la variante editorial
-          para títulos serif sin clases tipográficas incompatibles. Para
-          referencias con texto forest, usá bg-warm en lugar del fondo forest de
-          bg-background-secondary.
+          Importá Card, CardHeader, CardTitle, Body, CardBody y CardFooter
+          directamente desde @pueblo-magico/react-ui. Usá un encabezado
+          semántico y conservá las reglas de negocio fuera de estas primitivas.
+          CopyButton anuncia éxito o error y requiere etiquetas localizadas.
+          CardHeader admite la distribución split para separar título y
+          referencia. Para referencias con texto forest, usá bg-warm en lugar
+          del fondo forest de bg-background-secondary.
         </p>
-        <a
-          href="https://ui.shadcn.com/docs/components/card"
-          className="text-text-secondary underline"
-        >
-          Documentación de shadcn/ui
-        </a>
       </DocsSection>
     </>
   );

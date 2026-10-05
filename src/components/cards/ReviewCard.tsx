@@ -1,12 +1,12 @@
 import type { ReactNode } from "react";
 import { Pencil } from "lucide-react";
 import {
+  Body as CardDescription,
   Card,
+  CardBody as CardContent,
   CardHeader,
   CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/components/ui/Card";
+} from "@pueblo-magico/react-ui";
 import { Button } from "@/components/ui/Button";
 
 export function ReviewCard({
@@ -25,16 +25,16 @@ export function ReviewCard({
   children: ReactNode;
 }) {
   return (
-    <Card>
+    <Card variant="outlined">
       <CardHeader layout="split">
         <div className="flex items-start gap-4">
           <span aria-hidden className="text-text-secondary shrink-0">
             {icon}
           </span>
           <div>
-            <CardTitle variant="editorial">{title}</CardTitle>
+            <CardTitle>{title}</CardTitle>
             {description ? (
-              <CardDescription>{description}</CardDescription>
+              <CardDescription size="sm">{description}</CardDescription>
             ) : null}
           </div>
         </div>

@@ -18,12 +18,12 @@ import {
 import { useCart } from "../CartProvider";
 import { ReviewCard } from "@/components/cards/ReviewCard";
 import {
+  Body as CardDescription,
   Card,
-  CardContent,
+  CardBody as CardContent,
   CardHeader,
   CardTitle,
-  CardDescription,
-} from "@/components/ui/Card";
+} from "@pueblo-magico/react-ui";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Button } from "@/components/ui/Button";
 import { Body, Eyebrow, PageTitle } from "@/components/typography";
@@ -283,10 +283,10 @@ export function CheckoutReview() {
           </ReviewCard>
         </div>
         <aside className="space-y-4 lg:col-span-2">
-          <Card>
+          <Card variant="outlined">
             <CardHeader>
-              <CardTitle variant="editorial">{t("summary")}</CardTitle>
-              <CardDescription>{t("summaryHint")}</CardDescription>
+              <CardTitle>{t("summary")}</CardTitle>
+              <CardDescription size="sm">{t("summaryHint")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-5">
               <dl className="space-y-4">
