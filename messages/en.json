@@ -152,6 +152,7 @@
   "cart": {
     "reviewPurchase": "Review purchase",
     "title": "Your cart",
+    "close": "Close cart",
     "empty": "Your cart is empty.",
     "continue": "Continue shopping",
     "loading": "Loading your cart…",

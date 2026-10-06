@@ -152,6 +152,7 @@
   "cart": {
     "reviewPurchase": "Revisar compra",
     "title": "Tu carrito",
+    "close": "Cerrar carrito",
     "empty": "Tu carrito está vacío.",
     "continue": "Seguir comprando",
     "loading": "Cargando tu carrito…",

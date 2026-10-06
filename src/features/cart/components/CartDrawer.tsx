@@ -1,7 +1,7 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
-import { Drawer } from "@/components/ui/Drawer";
+import { Drawer } from "@pueblo-magico/react-ui";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { localizePath } from "@/config/navigation";
 import { useCart } from "../CartProvider";
@@ -39,65 +39,13 @@ export function CartDrawer() {
 
   return (
     <Drawer
-      open={isOpen}
-      onClose={closeCart}
+      closeLabel={t("close")}
+      isOpen={isOpen}
+      onOpenChange={(open) => {
+        if (!open) closeCart();
+      }}
+      placement="end"
       title={t("title")}
-      titleId="cart-drawer-title"
-      side="right"
-      footer={
-        hasLines ? (
-          <div className="space-y-3">
-            <CartSummary
-              cart={cart}
-              commerceSettings={commerceSettings}
-              disabled={busy}
-              fulfillmentDisabled={isLoading}
-              onCheckout={checkout}
-              paymentMethod={paymentMethod}
-              onPaymentMethodChange={setPaymentMethod}
-              buyerName={buyerName}
-              buyerEmail={buyerEmail}
-              identification={identification}
-              onIdentificationChange={setIdentification}
-              onBuyerNameChange={setBuyerName}
-              onBuyerEmailChange={setBuyerEmail}
-              onFulfillmentModeChange={setFulfillmentMode}
-              labels={{
-                subtotal: t("subtotal"),
-                checkout: t("checkout"),
-                taxesNote: t("taxesNote"),
-                fulfillmentLegend: t("fulfillmentLegend"),
-                localCollection: t("localCollection"),
-                localCollectionHint: t("localCollectionHint"),
-                delivery: t("delivery"),
-                deliveryHint: t("deliveryHint"),
-                fulfillmentRequired: t("fulfillmentRequired"),
-                paymentLegend: t("paymentLegend"),
-                mercadoPago: t("mercadoPago"),
-                mercadoPagoHint: t("mercadoPagoHint"),
-                bankTransfer: t("bankTransfer"),
-                bankTransferHint: t("bankTransferHint", {
-                  minutes: commerceSettings.transfer.paymentWindowMinutes,
-                }),
-                cash: t("cash"),
-                cashHint: t("cashHint"),
-                buyerLegend: t("buyerLegend"),
-                buyerName: t("buyerName"),
-                buyerEmail: t("buyerEmail"),
-                buyerRequired: t("buyerRequired"),
-              }}
-            />
-            <ButtonLink
-              href={localizePath(locale, "/cart")}
-              variant="ghost"
-              className="w-full"
-              onClick={closeCart}
-            >
-              {t("viewCart")}
-            </ButtonLink>
-          </div>
-        ) : undefined
-      }
     >
       {!configured ? (
         <p className="text-muted mb-3 text-sm">{t("notConfigured")}</p>
@@ -146,6 +94,58 @@ export function CartDrawer() {
           ))}
         </ul>
       )}
+      {hasLines ? (
+        <div className="border-border mt-4 space-y-3 border-t pt-4">
+          <CartSummary
+            cart={cart}
+            commerceSettings={commerceSettings}
+            disabled={busy}
+            fulfillmentDisabled={isLoading}
+            onCheckout={checkout}
+            paymentMethod={paymentMethod}
+            onPaymentMethodChange={setPaymentMethod}
+            buyerName={buyerName}
+            buyerEmail={buyerEmail}
+            identification={identification}
+            onIdentificationChange={setIdentification}
+            onBuyerNameChange={setBuyerName}
+            onBuyerEmailChange={setBuyerEmail}
+            onFulfillmentModeChange={setFulfillmentMode}
+            labels={{
+              subtotal: t("subtotal"),
+              checkout: t("checkout"),
+              taxesNote: t("taxesNote"),
+              fulfillmentLegend: t("fulfillmentLegend"),
+              localCollection: t("localCollection"),
+              localCollectionHint: t("localCollectionHint"),
+              delivery: t("delivery"),
+              deliveryHint: t("deliveryHint"),
+              fulfillmentRequired: t("fulfillmentRequired"),
+              paymentLegend: t("paymentLegend"),
+              mercadoPago: t("mercadoPago"),
+              mercadoPagoHint: t("mercadoPagoHint"),
+              bankTransfer: t("bankTransfer"),
+              bankTransferHint: t("bankTransferHint", {
+                minutes: commerceSettings.transfer.paymentWindowMinutes,
+              }),
+              cash: t("cash"),
+              cashHint: t("cashHint"),
+              buyerLegend: t("buyerLegend"),
+              buyerName: t("buyerName"),
+              buyerEmail: t("buyerEmail"),
+              buyerRequired: t("buyerRequired"),
+            }}
+          />
+          <ButtonLink
+            href={localizePath(locale, "/cart")}
+            variant="ghost"
+            className="w-full"
+            onClick={closeCart}
+          >
+            {t("viewCart")}
+          </ButtonLink>
+        </div>
+      ) : null}
     </Drawer>
   );
 }
