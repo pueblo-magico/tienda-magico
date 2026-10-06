@@ -2,9 +2,7 @@
 
 import { Check, Heart, Sprout } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { Modal } from "@pueblo-magico/react-ui";
-import { Button } from "@pueblo-magico/react-ui";
-import { Rating } from "@/components/ui/Rating";
+import { Button, Modal, Rating } from "@pueblo-magico/react-ui";
 
 export function FeedbackThanksModal({
   open,

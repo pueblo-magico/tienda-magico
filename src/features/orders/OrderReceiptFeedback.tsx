@@ -3,15 +3,15 @@
 import { useState, type FormEvent } from "react";
 import { useTranslations } from "next-intl";
 import { CheckCircle2 } from "lucide-react";
-import { Button } from "@pueblo-magico/react-ui";
 import {
+  Button,
   Card,
   CardContent,
   CardDescription,
   CardTitle,
+  RatingInput,
+  Textarea,
 } from "@pueblo-magico/react-ui";
-import { RatingInput } from "@/components/ui/Rating";
-import { Textarea } from "@pueblo-magico/react-ui";
 import { FeedbackThanksModal } from "./FeedbackThanksModal";
 
 export function OrderReceiptFeedback({
@@ -107,11 +107,11 @@ export function OrderReceiptFeedback({
         >
           <RatingInput
             value={rating}
-            onChange={setRating}
+            onChange={(value) => setRating(value ?? 0)}
             label={t("ratingLabel")}
             clearLabel={t("ratingValues.0")}
             valueLabel={(value) => t(`ratingValues.${value}`)}
-            disabled={saving}
+            isDisabled={saving}
           />
           <Textarea
             name="experienceComment"

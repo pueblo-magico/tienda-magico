@@ -1,10 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@pueblo-magico/react-ui";
-import { Modal } from "@pueblo-magico/react-ui";
-import { Body } from "@pueblo-magico/react-ui";
-import { Rating } from "@/components/ui/Rating";
+import { Body, Button, Modal, Rating } from "@pueblo-magico/react-ui";
 
 export function ModalDemo() {
   const [open, setOpen] = useState(false);

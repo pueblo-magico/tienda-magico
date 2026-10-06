@@ -6,9 +6,9 @@ import {
   MediaCard,
   MediaCardContent,
   MediaCardMedia,
+  Rating,
 } from "@pueblo-magico/react-ui";
 import { MediaPlaceholder } from "@/components/media/MediaPlaceholder";
-import { Rating } from "@/components/ui/Rating";
 import { cn } from "@/lib/utils/cn";
 
 export type ProductCardProps = {
@@ -81,7 +81,7 @@ export function ProductCard({
               <Rating
                 value={rating}
                 label={ratingLabel}
-                reviewCount={reviewCount}
+                reviewCount={reviewCount ? `(${reviewCount})` : undefined}
               />
             ) : null}
           </div>
