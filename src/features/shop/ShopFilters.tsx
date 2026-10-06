@@ -2,6 +2,7 @@
 
 import { ChevronDown, SlidersHorizontal } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { Slider } from "@pueblo-magico/react-ui";
 import {
   useRef,
   useState,
@@ -9,7 +10,6 @@ import {
   type FormEvent,
   type ReactNode,
 } from "react";
-import { Slider } from "@/components/ui";
 import type { CollectionSummary, TagReference } from "@/types/commerce";
 import { cn } from "@/lib/utils/cn";
 import { buildShopHref, type ShopQuery } from "./search-params";
@@ -184,7 +184,7 @@ export function ShopFilters({
   const optionClassName =
     "text-text-primary flex cursor-pointer items-center gap-2 text-sm";
   const checkboxClassName = "border-border size-4 rounded accent-brand";
-  const updatePriceRange = ([min, max]: number[]) => {
+  const updatePriceRange = ([min, max]: readonly [number, number]) => {
     setPriceRange({ min, max });
     if (priceTimerRef.current) clearTimeout(priceTimerRef.current);
     priceTimerRef.current = setTimeout(() => {
@@ -238,18 +238,18 @@ export function ShopFilters({
           <input name="minPrice" type="hidden" value={priceRange.min} />
           <input name="maxPrice" type="hidden" value={priceRange.max} />
           <Slider
-            aria-label={labels.price}
+            formatValue={([min, max]) =>
+              `${formatPrice(min)} – ${formatPrice(max)}`
+            }
+            label={labels.price}
             minValue={priceBounds.min}
             maxValue={maximumPrice}
+            mode="range"
             step={Math.max(Math.round(maximumPrice / 100), 1)}
             value={[priceRange.min, priceRange.max]}
             thumbLabels={[labels.minPrice, labels.maxPrice]}
             onChange={updatePriceRange}
           />
-          <div className="text-text-secondary flex justify-between text-xs">
-            <span>{formatPrice(priceRange.min)}</span>
-            <span>{formatPrice(priceRange.max)}</span>
-          </div>
         </FilterSection>
         {origins.length ? (
           <FilterSection title={labels.origin}>
