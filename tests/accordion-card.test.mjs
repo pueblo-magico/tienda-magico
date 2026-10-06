@@ -1,36 +1,16 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { createElement } from "react";
-import { renderToStaticMarkup } from "react-dom/server";
-import { Accordion } from "../src/components/ui/Accordion.tsx";
 
-test("las secciones de tarjeta admiten iconos y contenido abierto inicialmente", () => {
-  const html = renderToStaticMarkup(
-    createElement(Accordion, {
-      variant: "card",
-      defaultOpenItems: ["datos"],
-      items: [
-        {
-          id: "datos",
-          title: "Tus datos",
-          icon: createElement("span", null, "icono"),
-          content: "Contenido",
-        },
-      ],
-    }),
-  );
-  assert.match(html, /aria-expanded="true"/);
-  assert.match(html, /icono/);
-  assert.match(html, /bg-card/);
-  assert.doesNotMatch(html, /hidden=""/);
-});
+test("las secciones migradas usan el contrato de Accordion 0.2.0", async () => {
+  const [product, cart] = await Promise.all([
+    readFile("src/features/product/ProductPage.tsx", "utf8"),
+    readFile("src/features/cart/components/CartSummary.tsx", "utf8"),
+  ]);
 
-test("el acordeón existente permanece cerrado inicialmente", () => {
-  const html = renderToStaticMarkup(
-    createElement(Accordion, {
-      items: [{ id: "datos", title: "Tus datos", content: "Contenido" }],
-    }),
-  );
-  assert.match(html, /aria-expanded="false"/);
-  assert.match(html, /hidden=""/);
+  assert.match(product, /from "@\/components\/ui\/ClientAccordion"/);
+  assert.match(product, /header: labels\.description/);
+  assert.match(cart, /defaultExpandedItems=/);
+  assert.match(`${product}\n${cart}`, /header:/);
+  assert.doesNotMatch(`${product}\n${cart}`, /defaultOpenItems=/);
 });

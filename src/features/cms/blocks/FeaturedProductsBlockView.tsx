@@ -1,8 +1,8 @@
 import { ProductCard } from "@/components/cards/ProductCard";
 import { localizePath } from "@/config/navigation";
-import { Container } from "@/components/layout/Container";
-import { Section } from "@/components/layout/Section";
-import { Body, Eyebrow, SectionTitle } from "@/components/typography";
+import { Container } from "@pueblo-magico/react-ui";
+import { Section } from "@pueblo-magico/react-ui";
+import { Body, Eyebrow, SectionTitle } from "@pueblo-magico/react-ui";
 import { commerce, formatMoney } from "@/lib/commerce";
 import type { FeaturedProductsBlockData } from "@/lib/cms";
 import type { ProductSummary } from "@/types/commerce";

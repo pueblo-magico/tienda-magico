@@ -1,6 +1,6 @@
 import { setRequestLocale } from "next-intl/server";
-import { Container } from "@/components/layout/Container";
-import { Section } from "@/components/layout/Section";
+import { Container } from "@pueblo-magico/react-ui";
+import { Section } from "@pueblo-magico/react-ui";
 import { StaffCashDesk } from "@/features/checkout/StaffCashDesk";
 
 export const metadata = { robots: { index: false, follow: false } };

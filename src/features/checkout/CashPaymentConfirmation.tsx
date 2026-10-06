@@ -2,9 +2,9 @@
 
 import { Banknote, FileText, ShieldCheck } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
-import { Modal } from "@/components/ui/Modal";
-import { Button } from "@/components/ui/Button";
-import { Card, CardBody as CardContent } from "@pueblo-magico/react-ui";
+import { Modal } from "@pueblo-magico/react-ui";
+import { Button } from "@pueblo-magico/react-ui";
+import { Card, CardContent } from "@pueblo-magico/react-ui";
 import { formatMoney } from "@/lib/commerce/utils/format";
 import type { StaffCashOrder } from "@/types/staff-cash";
 
@@ -32,12 +32,14 @@ export function CashPaymentConfirmation({
     );
   return (
     <Modal
-      open
+      isOpen
       title={t("review.title")}
       variant="celebration"
       size="wide"
       closeLabel={t("review.back")}
-      onClose={onClose}
+      onOpenChange={(isOpen) => {
+        if (!isOpen) onClose();
+      }}
       isDismissable={!busy}
     >
       <div className="space-y-4">
@@ -107,10 +109,10 @@ export function CashPaymentConfirmation({
           </p>
         ) : null}
         <div className="flex flex-col gap-3 sm:flex-row">
-          <Button variant="secondary" disabled={busy} onPress={onClose}>
+          <Button variant="secondary" isDisabled={busy} onPress={onClose}>
             {t("review.back")}
           </Button>
-          <Button disabled={busy} aria-busy={busy} onPress={onConfirm}>
+          <Button isDisabled={busy} isLoading={busy} onPress={onConfirm}>
             <Banknote aria-hidden strokeWidth={2} />
             {busy
               ? t("loading")

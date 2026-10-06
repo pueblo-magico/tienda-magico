@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { getTranslations } from "next-intl/server";
-import { Button } from "@/components/ui/Button";
+import { ButtonLink } from "@/components/ui/ButtonLink";
 import { localizePath } from "@/config/navigation";
 
 type ImpactStoryCardProps = {
@@ -31,14 +31,14 @@ export async function ImpactStoryCard({
         <p className="text-card/85 mt-3 text-sm leading-relaxed">
           {t("description")}
         </p>
-        <Button
+        <ButtonLink
           href={localizePath(locale, "/impact")}
           variant="secondary"
           size="sm"
           className="border-card/70 text-card hover:bg-card/10 mt-5"
         >
           {t("cta")}
-        </Button>
+        </ButtonLink>
       </div>
     </article>
   );

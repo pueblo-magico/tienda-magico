@@ -3,9 +3,9 @@ import { Package2 } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import type { CheckoutOrder } from "@/types/commerce";
 import {
-  Body as CardDescription,
   Card,
-  CardBody as CardContent,
+  CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
 } from "@pueblo-magico/react-ui";
@@ -22,9 +22,9 @@ export function OrderSummary({ order }: { order: CheckoutOrder }) {
     <Card variant="outlined" className="min-w-0 lg:col-span-2">
       <CardHeader layout="split">
         <div className="min-w-0 space-y-1">
-          <CardTitle>{t("title")}</CardTitle>
+          <CardTitle variant="editorial">{t("title")}</CardTitle>
           {date && !Number.isNaN(date.getTime()) ? (
-            <CardDescription size="sm">
+            <CardDescription>
               {t("placed", {
                 date: format.dateTime(date, {
                   dateStyle: "long",

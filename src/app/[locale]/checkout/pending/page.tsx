@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { BackdropImage } from "@/components/layout/BackdropImage";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { Container } from "@/components/layout/Container";
-import { Section } from "@/components/layout/Section";
-import { Body, Eyebrow, PageTitle } from "@/components/typography";
+import { Container } from "@pueblo-magico/react-ui";
+import { Section } from "@pueblo-magico/react-ui";
+import { Body, Eyebrow, PageTitle } from "@pueblo-magico/react-ui";
 import { pendingReturnLink } from "@/features/checkout/pending-navigation";
 import { checkout } from "@/lib/checkout";
 import { getCommerceSettings, getSiteSettings } from "@/lib/cms";
@@ -15,7 +15,7 @@ import { guestCartReferences } from "@/lib/checkout/guest-orders";
 import { ArrowLeft } from "lucide-react";
 import { CashWaiting } from "@/features/checkout/CashWaiting";
 import { ProductCard } from "@/components/cards/ProductCard";
-import { Button } from "@/components/ui/Button";
+import { ButtonLink } from "@/components/ui/ButtonLink";
 import { localizePath } from "@/config/navigation";
 import { OrderSummary } from "@/features/orders/OrderSummary";
 import { RefreshPaidCart } from "@/features/cart/RefreshPaidCart";
@@ -335,12 +335,12 @@ export default async function CheckoutPendingPage({
                     imageAlt={product.featuredImage?.altText ?? product.title}
                     noMediaLabel={t("cashConfirmed.noImage")}
                     action={
-                      <Button
+                      <ButtonLink
                         variant="secondary"
                         href={localizePath(locale, `/shop/${product.handle}`)}
                       >
                         {t("cashConfirmed.viewProduct")}
-                      </Button>
+                      </ButtonLink>
                     }
                   />
                 ))}

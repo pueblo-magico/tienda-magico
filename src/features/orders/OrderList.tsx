@@ -1,14 +1,10 @@
 "use client";
 
-import { Tabs } from "@/components/ui/Tabs";
+import { Tabs } from "@pueblo-magico/react-ui";
 import { useLocale, useTranslations } from "next-intl";
 import { ChevronRight, Circle, Package2 } from "lucide-react";
-import {
-  Card,
-  CardBody as CardContent,
-  CardTitle,
-} from "@pueblo-magico/react-ui";
-import { Button } from "@/components/ui/Button";
+import { Card, CardContent, CardTitle } from "@pueblo-magico/react-ui";
+import { ButtonLink } from "@/components/ui/ButtonLink";
 import { CopyButton } from "@/components/ui/CopyButton";
 import { formatMoney } from "@/lib/commerce/utils/format";
 import type { CheckoutOrder } from "@/types/commerce";
@@ -127,7 +123,7 @@ export function OrderList({
                         {["bank-transfer", "cash"].includes(
                           order.paymentMethod,
                         ) ? (
-                          <Button
+                          <ButtonLink
                             href={localizePath(
                               locale,
                               `/checkout/pending?${query}`,
@@ -141,7 +137,7 @@ export function OrderList({
                               className="size-4"
                               strokeWidth={2}
                             />
-                          </Button>
+                          </ButtonLink>
                         ) : null}
                       </CardContent>
                     </Card>

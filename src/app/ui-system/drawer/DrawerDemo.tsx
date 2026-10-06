@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@pueblo-magico/react-ui";
 import { Drawer } from "@/components/ui/Drawer";
-import { Body } from "@/components/typography";
+import { Body } from "@pueblo-magico/react-ui";
 
 export function DrawerDemo() {
   const [open, setOpen] = useState(false);

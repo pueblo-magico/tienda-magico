@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
 import {
-  Body as CardDescription,
   Card,
-  CardBody as CardContent,
+  CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
 } from "@pueblo-magico/react-ui";
@@ -21,12 +21,8 @@ export function StepsCard({
   return (
     <Card variant="outlined" className="h-full">
       <CardHeader>
-        <CardTitle className="text-text-secondary font-serif text-2xl font-normal sm:text-3xl">
-          {title}
-        </CardTitle>
-        <CardDescription size="sm" className="text-base">
-          {description}
-        </CardDescription>
+        <CardTitle variant="editorial">{title}</CardTitle>
+        <CardDescription className="text-base">{description}</CardDescription>
       </CardHeader>
       <CardContent>
         <ol className="space-y-0">

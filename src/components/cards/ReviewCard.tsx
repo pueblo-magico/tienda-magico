@@ -1,13 +1,13 @@
 import type { ReactNode } from "react";
 import { Pencil } from "lucide-react";
 import {
-  Body as CardDescription,
   Card,
-  CardBody as CardContent,
+  CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
 } from "@pueblo-magico/react-ui";
-import { Button } from "@/components/ui/Button";
+import { ButtonLink } from "@/components/ui/ButtonLink";
 
 export function ReviewCard({
   title,
@@ -32,13 +32,13 @@ export function ReviewCard({
             {icon}
           </span>
           <div>
-            <CardTitle>{title}</CardTitle>
+            <CardTitle variant="editorial">{title}</CardTitle>
             {description ? (
-              <CardDescription size="sm">{description}</CardDescription>
+              <CardDescription>{description}</CardDescription>
             ) : null}
           </div>
         </div>
-        <Button
+        <ButtonLink
           variant="link"
           size="sm"
           href={editHref}
@@ -46,7 +46,7 @@ export function ReviewCard({
         >
           <Pencil aria-hidden className="size-4" />
           {editLabel}
-        </Button>
+        </ButtonLink>
       </CardHeader>
       <CardContent>{children}</CardContent>
     </Card>

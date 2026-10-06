@@ -15,22 +15,22 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import {
-  Body as CardDescription,
   Card,
-  CardBody as CardContent,
+  CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
 } from "@pueblo-magico/react-ui";
-import { Badge } from "@/components/ui/Badge";
-import { Button } from "@/components/ui/Button";
+import { Badge } from "@pueblo-magico/react-ui";
+import { Button } from "@pueblo-magico/react-ui";
+import { ButtonLink } from "@/components/ui/ButtonLink";
 import { StepsCard } from "@/components/cards/StepsCard";
-import { Eyebrow } from "@/components/typography/Eyebrow";
+import { Eyebrow } from "@pueblo-magico/react-ui";
 import { IconAction } from "@/components/ui/IconAction";
 import { localizePath, staffCashPath } from "@/config/navigation";
 import type { CheckoutOrder } from "@/types/commerce";
 import { startTransferPolling } from "./transfer-polling";
-import { Body } from "@/components/typography/Body";
-import { PageTitle } from "@/components/typography/PageTitle";
+import { Body, PageTitle } from "@pueblo-magico/react-ui";
 import { OrderReceiptFeedback } from "@/features/orders/OrderReceiptFeedback";
 import { CashConfirmed } from "./CashConfirmed";
 
@@ -158,7 +158,7 @@ export function CashWaiting({
           </PageTitle>
           {paymentStatus === "pending" ? (
             <Badge
-              variant="earth"
+              variant="warning"
               className="gap-2 px-4 py-2 text-base font-normal tracking-normal normal-case"
             >
               <Clock aria-hidden className="size-5" />
@@ -223,10 +223,8 @@ export function CashWaiting({
         {summary ?? (
           <Card variant="outlined" className="min-w-0 lg:col-span-2">
             <CardHeader>
-              <CardTitle className="text-text-secondary font-serif text-2xl font-normal sm:text-3xl">
-                {t("summaryTitle")}
-              </CardTitle>
-              <CardDescription size="sm" className="text-base">
+              <CardTitle variant="editorial">{t("summaryTitle")}</CardTitle>
+              <CardDescription className="text-base">
                 {t("summaryDescription")}
               </CardDescription>
             </CardHeader>
@@ -271,13 +269,15 @@ export function CashWaiting({
         </p>
       ) : null}
       {expired || paymentStatus === "cancelled" ? (
-        <Button href={localizePath(locale, "/cart")}>{actions("retry")}</Button>
+        <ButtonLink href={localizePath(locale, "/cart")}>
+          {actions("retry")}
+        </ButtonLink>
       ) : null}
       {paymentStatus === "pending" && reference ? (
         <div className="space-y-2">
           <Button
             variant="secondary"
-            disabled={cancelling || refreshing}
+            isDisabled={cancelling || refreshing}
             onClick={async () => {
               setCancelling(true);
               setCancelFailed(false);
@@ -309,7 +309,7 @@ export function CashWaiting({
             <IconAction
               icon={<ClipboardList className="size-6" strokeWidth={1.5} />}
               loading={refreshing}
-              disabled={refreshing}
+              isDisabled={refreshing}
               onClick={() => startTransition(() => router.refresh())}
             >
               {actions("check")}

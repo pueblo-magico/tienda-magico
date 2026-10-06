@@ -1,14 +1,15 @@
 import { getLocale, getTranslations } from "next-intl/server";
-import { ImpactCard, InfoCard } from "@/components/cards";
-import { Container } from "@/components/layout/Container";
-import { Section } from "@/components/layout/Section";
+import { InfoCard, StatCard } from "@pueblo-magico/react-ui";
+import { Container } from "@pueblo-magico/react-ui";
+import { Section } from "@pueblo-magico/react-ui";
 import {
   Body,
   Eyebrow,
   PageTitle,
   SectionTitle,
-} from "@/components/typography";
-import { Badge, Button } from "@/components/ui";
+} from "@pueblo-magico/react-ui";
+import { Badge } from "@pueblo-magico/react-ui";
+import { ButtonLink } from "@/components/ui/ButtonLink";
 import { legalLinks } from "@/config/navigation";
 import { getSiteSettings } from "@/lib/cms";
 import { ImpactContactForm } from "./ImpactContactForm";
@@ -54,12 +55,12 @@ export async function ImpactPage() {
             {t("hero.description")}
           </Body>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <Button href={`#${anchors.principles}`}>
+            <ButtonLink href={`#${anchors.principles}`}>
               {t("hero.primaryAction")}
-            </Button>
-            <Button href={`#${anchors.contact}`} variant="secondary">
+            </ButtonLink>
+            <ButtonLink href={`#${anchors.contact}`} variant="secondary">
               {t("hero.secondaryAction")}
-            </Button>
+            </ButtonLink>
           </div>
         </Container>
       </Section>
@@ -102,7 +103,7 @@ export async function ImpactPage() {
           </div>
           <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {statisticKeys.map((key) => (
-              <ImpactCard
+              <StatCard
                 key={key}
                 value={t(`results.items.${key}.value`)}
                 label={t(`results.items.${key}.label`)}

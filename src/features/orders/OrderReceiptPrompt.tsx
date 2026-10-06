@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { PackageCheck } from "lucide-react";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@pueblo-magico/react-ui";
 import type { CheckoutOrder } from "@/types/commerce";
 import { OrderSummary } from "./OrderSummary";
 import { ReceiptConfirmationModal } from "./ReceiptConfirmationModal";
@@ -52,7 +52,8 @@ export function OrderReceiptPrompt({ order }: { order: CheckoutOrder }) {
         <PackageCheck aria-hidden className="size-5" strokeWidth={1.5} />
         <span>{t("inlineQuestion")}</span>
         <Button
-          variant="link"
+          variant="ghost"
+          className="h-auto rounded-none px-0 text-sm underline-offset-4 hover:underline"
           size="sm"
           onPress={() => {
             setFailed(false);

@@ -2,11 +2,11 @@ import Link from "next/link";
 import Image from "next/image";
 import { localizePath } from "@/config/navigation";
 import { buildCategoryPath } from "@/features/shop/category-hierarchy";
-import { Badge } from "@/components/ui/Badge";
-import { Accordion } from "@/components/ui/Accordion";
-import { Container } from "@/components/layout/Container";
-import { Section } from "@/components/layout/Section";
-import { Body, Eyebrow, PageTitle } from "@/components/typography";
+import { Badge } from "@pueblo-magico/react-ui";
+import { Accordion } from "@/components/ui/ClientAccordion";
+import { Container } from "@pueblo-magico/react-ui";
+import { Section } from "@pueblo-magico/react-ui";
+import { Body, Eyebrow, PageTitle } from "@pueblo-magico/react-ui";
 import { RichText } from "@/components/typography/RichText";
 import { LockKeyhole, Sprout, Truck } from "lucide-react";
 import type {
@@ -281,7 +281,7 @@ export function ProductPageView({ locale, product, related, labels }: Props) {
                   ? [
                       {
                         id: "description",
-                        title: labels.description,
+                        header: labels.description,
                         content: product.descriptionContent ? (
                           <RichText html={product.descriptionContent} />
                         ) : (
@@ -292,14 +292,14 @@ export function ProductPageView({ locale, product, related, labels }: Props) {
                   : []),
                 ...(otherInformationSections ?? []).map((section) => ({
                   id: `section-${section.key}`,
-                  title: section.title,
+                  header: section.title,
                   content: <RichText html={section.content} />,
                 })),
                 ...(hasOrigin || legacyOriginSection
                   ? [
                       {
                         id: "section-origin-impact",
-                        title:
+                        header:
                           legacyOriginSection?.title ?? labels.originImpact,
                         content: (
                           <div className="space-y-4">

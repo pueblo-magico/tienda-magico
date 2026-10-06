@@ -1,7 +1,7 @@
 import { setRequestLocale } from "next-intl/server";
 import Image from "next/image";
-import { Container } from "@/components/layout/Container";
-import { Section } from "@/components/layout/Section";
+import { Container } from "@pueblo-magico/react-ui";
+import { Section } from "@pueblo-magico/react-ui";
 import { CheckoutReview } from "@/features/cart";
 
 export default async function CheckoutReviewPage({

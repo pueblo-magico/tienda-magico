@@ -4,16 +4,17 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Banknote, LockKeyhole } from "lucide-react";
 import {
-  Body as CardDescription,
   Card,
-  CardBody as CardContent,
+  CardContent,
+  CardDescription,
   CardHeader,
 } from "@pueblo-magico/react-ui";
-import { Input } from "@/components/ui/Input";
+import { Input } from "@pueblo-magico/react-ui";
+import { ArsInput } from "@/components/ui/ArsInput";
 import { cashReview } from "./cash-review";
 import { CashPaymentConfirmation } from "./CashPaymentConfirmation";
-import { PageTitle } from "@/components/typography/PageTitle";
-import { Button } from "@/components/ui/Button";
+import { PageTitle } from "@pueblo-magico/react-ui";
+import { Button } from "@pueblo-magico/react-ui";
 import { formatMoney } from "@/lib/commerce/utils/format";
 import {
   isStaffCashOrder,
@@ -149,7 +150,7 @@ export function StaffCashDesk({
           <LockKeyhole aria-hidden strokeWidth={1.5} />
           {t("title")}
         </PageTitle>
-        <CardDescription size="sm">{t("intro")}</CardDescription>
+        <CardDescription>{t("intro")}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-5">
         {access === "checking" ? (
@@ -162,10 +163,10 @@ export function StaffCashDesk({
               label={t("password")}
               autoComplete="current-password"
               maxLength={128}
-              required
-              disabled={busy}
+              isRequired
+              isDisabled={busy}
             />
-            <Button type="submit" disabled={busy}>
+            <Button type="submit" isDisabled={busy}>
               {busy ? t("loading") : t("login")}
             </Button>
           </form>
@@ -174,9 +175,10 @@ export function StaffCashDesk({
             <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="text-text-secondary text-sm">{t("session")}</p>
               <Button
-                variant="link"
+                variant="ghost"
+                className="h-auto rounded-none px-0 text-sm underline-offset-4 hover:underline"
                 size="sm"
-                disabled={busy}
+                isDisabled={busy}
                 onClick={() =>
                   void run(async () => {
                     await request("logout");
@@ -200,16 +202,16 @@ export function StaffCashDesk({
                 name="reference"
                 label={t("reference")}
                 value={reference}
-                onChange={(event) => {
-                  setReference(event.target.value);
+                onChange={(value) => {
+                  setReference(value);
                   setOrder(null);
                   setConfirmed(false);
                 }}
                 maxLength={36}
-                required
-                disabled={busy}
+                isRequired
+                isDisabled={busy}
               />
-              <Button type="submit" variant="secondary" disabled={busy}>
+              <Button type="submit" variant="secondary" isDisabled={busy}>
                 {t("lookup")}
               </Button>
             </form>
@@ -272,23 +274,17 @@ export function StaffCashDesk({
                       });
                     }}
                   >
-                    <Input
+                    <ArsInput
                       name="amount"
-                      format="ars-pesos"
                       label={t("amount")}
-                      hint={t("amountHint")}
-                      required
-                      disabled={busy}
+                      description={t("amountHint")}
+                      isRequired
+                      isDisabled={busy}
                     />
                     <p className="text-text-secondary text-sm">
                       {t("warning")}
                     </p>
-                    <Button
-                      type="submit"
-                      disabled={busy}
-                      className="w-full"
-                      textCase="sentence"
-                    >
+                    <Button type="submit" isDisabled={busy} className="w-full">
                       <Banknote aria-hidden strokeWidth={2} />
                       {busy ? t("loading") : t("review.open")}
                     </Button>

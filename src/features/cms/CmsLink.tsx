@@ -1,7 +1,7 @@
-import { Button } from "@/components/ui/Button";
+import type { ButtonVariant } from "@pueblo-magico/react-ui";
+import { ButtonLink } from "@/components/ui/ButtonLink";
 import { localizePath } from "@/config/navigation";
 import type { CmsLink as CmsLinkType } from "@/lib/cms";
-import type { ButtonProps } from "@/components/ui/Button";
 
 function resolveHref(link: CmsLinkType, locale: string): string | null {
   if (link.type === "internal" && link.path) {
@@ -18,7 +18,7 @@ function resolveHref(link: CmsLinkType, locale: string): string | null {
 
 function toVariant(
   appearance?: CmsLinkType["appearance"],
-): NonNullable<ButtonProps["variant"]> {
+): ButtonVariant | "link" {
   switch (appearance) {
     case "secondary":
       return "secondary";
@@ -47,7 +47,7 @@ export function CmsLinkButton({
   if (!href) return null;
 
   return (
-    <Button
+    <ButtonLink
       href={href}
       variant={toVariant(link.appearance)}
       className={className}
@@ -55,6 +55,6 @@ export function CmsLinkButton({
       rel={link.newTab ? "noopener noreferrer" : undefined}
     >
       {link.label}
-    </Button>
+    </ButtonLink>
   );
 }

@@ -4,15 +4,15 @@ import { Sprout } from "lucide-react";
 import { commerce } from "@/lib/commerce";
 import { getSiteSettings } from "@/lib/cms";
 import { guestCartReferences } from "@/lib/checkout/guest-orders";
-import { Container } from "@/components/layout/Container";
+import { Container } from "@pueblo-magico/react-ui";
 import {
-  Body as CardDescription,
   Card,
-  CardBody as CardContent,
+  CardContent,
+  CardDescription,
   CardTitle,
 } from "@pueblo-magico/react-ui";
-import { Button } from "@/components/ui/Button";
-import { Body, PageTitle } from "@/components/typography";
+import { ButtonLink } from "@/components/ui/ButtonLink";
+import { Body, PageTitle } from "@pueblo-magico/react-ui";
 import { buildWhatsAppUrl } from "@/features/impact";
 import { OrderList } from "@/features/orders/OrderList";
 import { RecoverOrders } from "./RecoverOrders";
@@ -70,9 +70,9 @@ export default async function OrdersPage({
             />
             <div className="flex-1 space-y-1">
               <CardTitle>{t("supportTitle")}</CardTitle>
-              <CardDescription size="sm">{t("supportBody")}</CardDescription>
+              <CardDescription>{t("supportBody")}</CardDescription>
             </div>
-            <Button
+            <ButtonLink
               href={buildWhatsAppUrl(
                 settings.contactPhone ?? undefined,
                 t("supportMessage"),
@@ -83,7 +83,7 @@ export default async function OrdersPage({
               rel="noreferrer"
             >
               {t("support")}
-            </Button>
+            </ButtonLink>
           </CardContent>
         </Card>
       </Container>

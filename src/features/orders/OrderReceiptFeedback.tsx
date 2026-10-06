@@ -3,15 +3,15 @@
 import { useState, type FormEvent } from "react";
 import { useTranslations } from "next-intl";
 import { CheckCircle2 } from "lucide-react";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@pueblo-magico/react-ui";
 import {
-  Body as CardDescription,
   Card,
-  CardBody as CardContent,
+  CardContent,
+  CardDescription,
   CardTitle,
 } from "@pueblo-magico/react-ui";
 import { RatingInput } from "@/components/ui/Rating";
-import { Textarea } from "@/components/ui/Textarea";
+import { Textarea } from "@pueblo-magico/react-ui";
 import { FeedbackThanksModal } from "./FeedbackThanksModal";
 
 export function OrderReceiptFeedback({
@@ -91,7 +91,7 @@ export function OrderReceiptFeedback({
           />
           <div className="space-y-1">
             <CardTitle>{t(feedbackOnly ? "feedbackTitle" : "open")}</CardTitle>
-            <CardDescription size="sm">
+            <CardDescription>
               {t(feedbackOnly ? "feedbackDescription" : "description")}
             </CardDescription>
           </div>
@@ -119,9 +119,9 @@ export function OrderReceiptFeedback({
             placeholder={t("commentPlaceholder")}
             value={comment}
             maxLength={1000}
-            disabled={saving}
-            onChange={(event) => setComment(event.currentTarget.value)}
-            hint={t("commentHint")}
+            isDisabled={saving}
+            onChange={setComment}
+            description={t("commentHint")}
           />
           {failed ? (
             <p role="alert" className="text-terracotta text-sm">
@@ -129,13 +129,13 @@ export function OrderReceiptFeedback({
             </p>
           ) : null}
           <div className="flex flex-col gap-3 sm:col-span-2 sm:flex-row sm:justify-end">
-            <Button type="submit" disabled={saving} aria-busy={saving}>
+            <Button type="submit" isDisabled={saving} isLoading={saving}>
               {t(feedbackOnly ? "submitFeedback" : "confirm")}
             </Button>
             {!formId || feedbackOnly ? (
               <Button
                 variant="secondary"
-                disabled={saving}
+                isDisabled={saving}
                 onPress={() => setDismissed(true)}
               >
                 {t("skip")}

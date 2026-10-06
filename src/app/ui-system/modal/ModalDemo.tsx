@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/Button";
-import { Modal } from "@/components/ui/Modal";
-import { Body } from "@/components/typography";
+import { Button } from "@pueblo-magico/react-ui";
+import { Modal } from "@pueblo-magico/react-ui";
+import { Body } from "@pueblo-magico/react-ui";
 import { Rating } from "@/components/ui/Rating";
 
 export function ModalDemo() {
@@ -18,9 +18,10 @@ export function ModalDemo() {
         Ver operación no descartable
       </Button>
       <Modal
-        open={locked}
-        onClose={() => setLocked(false)}
+        isOpen={locked}
+        onOpenChange={setLocked}
         title="Operación en curso"
+        closeLabel="Cerrar operación"
         size="wide"
         isDismissable={false}
       >
@@ -29,8 +30,8 @@ export function ModalDemo() {
       </Modal>
       <Button onPress={() => setCelebrating(true)}>Ver agradecimiento</Button>
       <Modal
-        open={celebrating}
-        onClose={() => setCelebrating(false)}
+        isOpen={celebrating}
+        onOpenChange={setCelebrating}
         title="Gracias por tu opinión"
         closeLabel="Cerrar agradecimiento"
         variant="celebration"
@@ -50,7 +51,12 @@ export function ModalDemo() {
           </Button>
         </div>
       </Modal>
-      <Modal open={open} onClose={() => setOpen(false)} title="Newsletter">
+      <Modal
+        isOpen={open}
+        onOpenChange={setOpen}
+        title="Newsletter"
+        closeLabel="Cerrar newsletter"
+      >
         <Body>
           Join our community for mountain rituals, regenerative stories, and new
           drops.

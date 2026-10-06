@@ -1,19 +1,22 @@
+"use client";
+
 import {
-  Body as CardDescription,
   Card,
-  CardBody as CardContent,
+  CardContent,
+  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
 } from "@pueblo-magico/react-ui";
 import { CopyButton } from "@/components/ui/CopyButton";
-import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
+import { Button } from "@pueblo-magico/react-ui";
+import { ButtonLink } from "@/components/ui/ButtonLink";
+import { Input } from "@pueblo-magico/react-ui";
 import { DocsPageHeader } from "@/components/ui-system/DocsPageHeader";
 import { DocsSection } from "@/components/ui-system/DocsSection";
 import { StepsCard } from "@/components/cards/StepsCard";
 import { ReviewCard } from "@/components/cards/ReviewCard";
-import { Checkbox } from "@/components/ui/Checkbox";
+import { Checkbox } from "@pueblo-magico/react-ui";
 import { FileText, Store, Banknote } from "lucide-react";
 
 export default function CardPage() {
@@ -66,8 +69,8 @@ export default function CardPage() {
         />
         <Card variant="outlined" className="max-w-xl">
           <CardHeader layout="split">
-            <CardTitle>Transferencia pendiente</CardTitle>
-            <CardDescription size="sm">
+            <CardTitle variant="editorial">Transferencia pendiente</CardTitle>
+            <CardDescription>
               El aviso de transferencia no confirma el pago.
             </CardDescription>
           </CardHeader>
@@ -88,10 +91,10 @@ export default function CardPage() {
             </dl>
           </CardContent>
           <CardFooter>
-            <Button href="/es/mis-pedidos" size="sm">
+            <ButtonLink href="/es/mis-pedidos" size="sm">
               Mis pedidos
-            </Button>
-            <Button disabled size="sm" variant="secondary">
+            </ButtonLink>
+            <Button isDisabled size="sm" variant="secondary">
               Verificando
             </Button>
           </CardFooter>
@@ -101,7 +104,7 @@ export default function CardPage() {
         <Card variant="outlined" className="w-full max-w-xl">
           <CardHeader>
             <CardTitle>Caja · confirmar efectivo</CardTitle>
-            <CardDescription size="sm">
+            <CardDescription>
               Acceso del personal con contraseña. La autorización se verifica en
               el servidor, no en esta tarjeta.
             </CardDescription>
@@ -115,7 +118,7 @@ export default function CardPage() {
             />
           </CardContent>
           <CardFooter>
-            <Button disabled>Ingresar (ejemplo)</Button>
+            <Button isDisabled>Ingresar (ejemplo)</Button>
           </CardFooter>
         </Card>
       </DocsSection>

@@ -2,7 +2,7 @@
 
 import { useLocale, useTranslations } from "next-intl";
 import { Drawer } from "@/components/ui/Drawer";
-import { Button } from "@/components/ui/Button";
+import { ButtonLink } from "@/components/ui/ButtonLink";
 import { localizePath } from "@/config/navigation";
 import { useCart } from "../CartProvider";
 import { CartLineItem } from "./CartLineItem";
@@ -87,14 +87,14 @@ export function CartDrawer() {
                 buyerRequired: t("buyerRequired"),
               }}
             />
-            <Button
+            <ButtonLink
               href={localizePath(locale, "/cart")}
               variant="ghost"
               className="w-full"
               onClick={closeCart}
             >
               {t("viewCart")}
-            </Button>
+            </ButtonLink>
           </div>
         ) : undefined
       }
@@ -114,13 +114,13 @@ export function CartDrawer() {
       ) : !hasLines ? (
         <div className="space-y-4 py-6">
           <p className="text-muted text-sm">{t("empty")}</p>
-          <Button
+          <ButtonLink
             href={localizePath(locale, "/shop")}
             variant="secondary"
             onClick={closeCart}
           >
             {t("continue")}
-          </Button>
+          </ButtonLink>
         </div>
       ) : (
         <ul>

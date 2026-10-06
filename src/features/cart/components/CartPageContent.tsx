@@ -1,10 +1,10 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
-import { Button } from "@/components/ui/Button";
+import { ButtonLink } from "@/components/ui/ButtonLink";
 import { LockKeyhole, Sprout, Truck } from "lucide-react";
 import { localizePath } from "@/config/navigation";
-import { Body, PageTitle } from "@/components/typography";
+import { Body, PageTitle } from "@pueblo-magico/react-ui";
 import { useCart } from "../CartProvider";
 import { CartLineItem } from "./CartLineItem";
 import { CartSummary } from "./CartSummary";
@@ -71,9 +71,12 @@ export function CartPageContent() {
           ) : cart.lines.length === 0 ? (
             <div className="space-y-4">
               <Body>{t("empty")}</Body>
-              <Button href={localizePath(locale, "/shop")} variant="secondary">
+              <ButtonLink
+                href={localizePath(locale, "/shop")}
+                variant="secondary"
+              >
                 {t("continue")}
-              </Button>
+              </ButtonLink>
             </div>
           ) : (
             <ul className="divide-border border-border bg-card divide-y rounded-2xl border px-4 sm:px-6">
@@ -144,14 +147,13 @@ export function CartPageContent() {
               }}
             />
             <div className="mt-3">
-              <Button
+              <ButtonLink
                 href={localizePath(locale, "/shop")}
                 variant="secondary"
                 className="w-full"
-                textCase="sentence"
               >
                 {t("continue")}
-              </Button>
+              </ButtonLink>
             </div>
             <p className="text-text-secondary mt-5 flex items-center justify-center gap-2 text-center text-sm">
               <LockKeyhole
