@@ -7,10 +7,20 @@ export type CommercialTerms = {
   mode?: 'inherit' | 'purchase' | 'consignment' | null
   method?: 'percentage' | 'fixed' | null
   shareBps?: number | null
+  percentageBasis?: PercentageBasis | null
   fixedMinor?: number | null
   currency?: string | null
   effectiveFrom?: string | null
   effectiveTo?: string | null
+}
+
+export type PercentageBasis = {
+  productDiscounts?: 'deduct' | 'ignore' | null
+  orderDiscounts?: 'deduct_allocated' | 'ignore' | null
+  taxes?: 'include' | 'exclude' | null
+  shipping?: 'include_allocated' | 'exclude' | null
+  tipsDonations?: 'include_allocated' | 'exclude' | null
+  paymentFees?: 'deduct_actual' | 'store_absorbs' | null
 }
 
 type PurchaseCost = {
@@ -30,6 +40,34 @@ type PurchasingData = {
   [key: string]: unknown
 }
 
+export type AgreementLifecycle = {
+  reference?: string | null
+  supplier?: unknown
+  product?: unknown
+  variant?: unknown
+  revision?: number | null
+  previousAgreement?: unknown
+  status?: 'draft' | 'active' | 'expired' | 'terminated' | null
+  terms?: CommercialTerms | null
+  approvedBy?: unknown
+  approvedAt?: string | null
+  terminatedAt?: string | null
+  terminationReason?: string | null
+  [key: string]: unknown
+}
+
+type AgreementActor = {
+  id?: number | string
+  roles?: string[] | null
+} | null
+
+type AgreementTransitionArgs = {
+  original?: AgreementLifecycle | null
+  data: AgreementLifecycle
+  user?: AgreementActor
+  now?: string
+}
+
 const privateAccess = {
   create: purchasingFinanceFieldAccess,
   read: purchasingFinanceFieldAccess,
@@ -38,6 +76,154 @@ const privateAccess = {
 
 function validationError(message: string, path = 'termsOverride'): never {
   throw new ValidationError({ errors: [{ message, path }] })
+}
+
+export function validateAgreementLifecycle(value: AgreementLifecycle): AgreementLifecycle {
+  if (!value.supplier) validationError('Seleccioná el proveedor del acuerdo.', 'supplier')
+  if (!Number.isSafeInteger(value.revision) || (value.revision ?? 0) <= 0)
+    validationError('La revisión debe ser un entero positivo.', 'revision')
+  if ((value.revision ?? 1) > 1 && !value.previousAgreement)
+    validationError('Vinculá la revisión contractual anterior.', 'previousAgreement')
+  if (value.variant && !value.product)
+    validationError('Seleccioná el producto al definir una variante.', 'product')
+
+  const allowedStatuses = ['draft', 'active', 'expired', 'terminated']
+  if (!value.status || !allowedStatuses.includes(value.status))
+    validationError('Seleccioná un estado contractual válido.', 'status')
+  validateCommercialTerms(value.terms, { allowInherit: false, pathPrefix: 'terms' })
+
+  if (value.status !== 'draft') {
+    if (!value.terms?.effectiveFrom || !Number.isFinite(Date.parse(value.terms.effectiveFrom)))
+      validationError(
+        'Un acuerdo aprobado necesita una fecha válida de inicio de vigencia.',
+        'terms.effectiveFrom',
+      )
+    if (!value.approvedBy) validationError('Falta la persona que aprobó el acuerdo.', 'approvedBy')
+    if (!value.approvedAt || !Number.isFinite(Date.parse(value.approvedAt)))
+      validationError('Falta una fecha válida de aprobación.', 'approvedAt')
+  }
+  if (value.status === 'terminated') {
+    if (!value.terminationReason?.trim())
+      validationError('Indicá el motivo de terminación.', 'terminationReason')
+    if (!value.terminatedAt || !Number.isFinite(Date.parse(value.terminatedAt)))
+      validationError('Falta una fecha válida de terminación.', 'terminatedAt')
+  }
+  return value
+}
+
+const immutableAgreementFields = [
+  'reference',
+  'supplier',
+  'product',
+  'variant',
+  'revision',
+  'previousAgreement',
+  'terms',
+] as const
+
+const immutableRelationFields = new Set<keyof AgreementLifecycle>([
+  'supplier',
+  'product',
+  'variant',
+  'previousAgreement',
+])
+
+function relationIdentity(value: unknown): string {
+  if (typeof value === 'number' || typeof value === 'string') return String(value)
+  if (value && typeof value === 'object' && 'id' in value) {
+    const id = (value as { id?: unknown }).id
+    if (typeof id === 'number' || typeof id === 'string') return String(id)
+  }
+  return ''
+}
+
+function immutableAgreementValueChanged(
+  field: (typeof immutableAgreementFields)[number],
+  nextValue: unknown,
+  previousValue: unknown,
+): boolean {
+  if (immutableRelationFields.has(field))
+    return relationIdentity(nextValue) !== relationIdentity(previousValue)
+  return JSON.stringify(nextValue) !== JSON.stringify(previousValue)
+}
+
+const allowedAgreementTransitions: Record<string, string[]> = {
+  draft: ['draft', 'active'],
+  active: ['active', 'expired', 'terminated'],
+  expired: ['expired'],
+  terminated: ['terminated'],
+}
+
+export function applyAgreementTransition({
+  original,
+  data,
+  user,
+  now = new Date().toISOString(),
+}: AgreementTransitionArgs): AgreementLifecycle {
+  const next: AgreementLifecycle = { ...(original ?? {}), ...data }
+  const previousStatus = original?.status
+  const nextStatus = next.status ?? 'draft'
+
+  if (previousStatus && !(allowedAgreementTransitions[previousStatus] ?? []).includes(nextStatus))
+    validationError(`No se puede pasar un acuerdo de ${previousStatus} a ${nextStatus}.`, 'status')
+
+  if (original?.status && original.status !== 'draft') {
+    for (const field of immutableAgreementFields) {
+      if (!(field in data)) continue
+      if (immutableAgreementValueChanged(field, data[field], original[field]))
+        validationError('Creá una nueva revisión para modificar un acuerdo activo.', String(field))
+    }
+  }
+
+  const isStatusChange = previousStatus !== nextStatus
+  if (isStatusChange && nextStatus !== 'draft') {
+    const canApprove = user?.roles?.some((role) => role === 'admin' || role === 'finance')
+    if (!canApprove)
+      validationError('Solo finanzas o administración puede aprobar o cerrar acuerdos.', 'status')
+  }
+
+  if (nextStatus === 'active' && previousStatus !== 'active') {
+    if (!user?.id) validationError('No se pudo identificar a la persona aprobadora.', 'approvedBy')
+    next.approvedBy = user.id
+    next.approvedAt = now
+  }
+  if (isStatusChange && (nextStatus === 'expired' || nextStatus === 'terminated')) {
+    const configuredEnd = next.terms?.effectiveTo
+    const closesAt =
+      configuredEnd && Date.parse(configuredEnd) <= Date.parse(now) ? configuredEnd : now
+    next.terms = { ...next.terms, effectiveTo: closesAt }
+  }
+  if (nextStatus === 'terminated' && previousStatus !== 'terminated') next.terminatedAt = now
+
+  validateAgreementLifecycle(next)
+  return next
+}
+
+const percentageBasisOptions = {
+  productDiscounts: ['deduct', 'ignore'],
+  orderDiscounts: ['deduct_allocated', 'ignore'],
+  taxes: ['include', 'exclude'],
+  shipping: ['include_allocated', 'exclude'],
+  tipsDonations: ['include_allocated', 'exclude'],
+  paymentFees: ['deduct_actual', 'store_absorbs'],
+} as const
+
+function validatePercentageBasis(
+  value: PercentageBasis | null | undefined,
+  pathPrefix: string,
+): PercentageBasis {
+  if (!value)
+    validationError('Definí qué conceptos forman la base del porcentaje del proveedor.', pathPrefix)
+
+  for (const [field, options] of Object.entries(percentageBasisOptions)) {
+    const selected = value[field as keyof PercentageBasis]
+    if (!selected || !(options as readonly string[]).includes(selected))
+      validationError(
+        'Seleccioná un tratamiento explícito para este concepto.',
+        `${pathPrefix}.${field}`,
+      )
+  }
+  return value
 }
 
 export function validateCommercialTerms(
@@ -50,10 +236,14 @@ export function validateCommercialTerms(
   if (!mode || (!allowInherit && mode === 'inherit'))
     validationError('Seleccioná compra o consignación.', path('mode'))
 
-  if (terms.effectiveFrom && terms.effectiveTo) {
-    const from = Date.parse(terms.effectiveFrom)
-    const to = Date.parse(terms.effectiveTo)
-    if (!Number.isFinite(from) || !Number.isFinite(to) || from >= to)
+  const from = terms.effectiveFrom ? Date.parse(terms.effectiveFrom) : null
+  const to = terms.effectiveTo ? Date.parse(terms.effectiveTo) : null
+  if (terms.effectiveFrom && !Number.isFinite(from))
+    validationError('Indicá una fecha válida de inicio de vigencia.', path('effectiveFrom'))
+  if (terms.effectiveTo && !Number.isFinite(to))
+    validationError('Indicá una fecha válida de finalización.', path('effectiveTo'))
+  if (from != null && to != null) {
+    if (from >= to)
       validationError(
         'La fecha de finalización debe ser posterior al inicio de vigencia.',
         path('effectiveTo'),
@@ -74,6 +264,7 @@ export function validateCommercialTerms(
       (terms.shareBps ?? 0) > 10_000
     )
       validationError('El porcentaje debe estar entre 0,01 % y 100 %.', path('shareBps'))
+    validatePercentageBasis(terms.percentageBasis, path('percentageBasis'))
   }
   if (terms.method === 'fixed') {
     if (!Number.isSafeInteger(terms.fixedMinor) || (terms.fixedMinor ?? 0) <= 0)
@@ -106,6 +297,17 @@ function isActiveAt(terms: CommercialTerms, timestamp: number): boolean {
   const from = terms.effectiveFrom ? Date.parse(terms.effectiveFrom) : null
   const to = terms.effectiveTo ? Date.parse(terms.effectiveTo) : null
   return (from == null || from <= timestamp) && (to == null || timestamp < to)
+}
+
+export function agreementPeriodsOverlap(
+  left: Pick<CommercialTerms, 'effectiveFrom' | 'effectiveTo'>,
+  right: Pick<CommercialTerms, 'effectiveFrom' | 'effectiveTo'>,
+): boolean {
+  const leftFrom = left.effectiveFrom ? Date.parse(left.effectiveFrom) : Number.NEGATIVE_INFINITY
+  const leftTo = left.effectiveTo ? Date.parse(left.effectiveTo) : Number.POSITIVE_INFINITY
+  const rightFrom = right.effectiveFrom ? Date.parse(right.effectiveFrom) : Number.NEGATIVE_INFINITY
+  const rightTo = right.effectiveTo ? Date.parse(right.effectiveTo) : Number.POSITIVE_INFINITY
+  return leftFrom < rightTo && rightFrom < leftTo
 }
 
 export function resolveEffectiveCommercialTerms(
@@ -222,6 +424,108 @@ export function commercialTermsFields({ allowInherit }: { allowInherit: boolean 
       },
     },
     {
+      name: 'percentageBasis',
+      type: 'group',
+      label: { es: 'Base del porcentaje', en: 'Percentage basis' },
+      admin: {
+        condition: (_, siblingData) =>
+          siblingData?.mode === 'consignment' && siblingData?.method === 'percentage',
+        description: {
+          es: 'Definí explícitamente qué importes aumentan o reducen la base antes de calcular la parte del proveedor.',
+          en: 'Explicitly define which amounts increase or reduce the base before calculating the supplier share.',
+        },
+      },
+      fields: [
+        {
+          name: 'productDiscounts',
+          dbName: 'pct_product_discounts',
+          type: 'select',
+          required: true,
+          defaultValue: 'deduct',
+          label: { es: 'Descuentos del producto', en: 'Product discounts' },
+          options: [
+            { label: { es: 'Restar de la base', en: 'Deduct from basis' }, value: 'deduct' },
+            { label: { es: 'No afectan la base', en: 'Do not affect basis' }, value: 'ignore' },
+          ],
+        },
+        {
+          name: 'orderDiscounts',
+          dbName: 'pct_order_discounts',
+          type: 'select',
+          required: true,
+          defaultValue: 'deduct_allocated',
+          label: { es: 'Descuentos generales', en: 'Order discounts' },
+          options: [
+            {
+              label: { es: 'Restar la parte asignada', en: 'Deduct allocated share' },
+              value: 'deduct_allocated',
+            },
+            { label: { es: 'No afectan la base', en: 'Do not affect basis' }, value: 'ignore' },
+          ],
+        },
+        {
+          name: 'taxes',
+          dbName: 'pct_taxes',
+          type: 'select',
+          required: true,
+          defaultValue: 'exclude',
+          label: { es: 'Impuestos', en: 'Taxes' },
+          options: [
+            { label: { es: 'Incluir', en: 'Include' }, value: 'include' },
+            { label: { es: 'Excluir', en: 'Exclude' }, value: 'exclude' },
+          ],
+        },
+        {
+          name: 'shipping',
+          dbName: 'pct_shipping',
+          type: 'select',
+          required: true,
+          defaultValue: 'exclude',
+          label: { es: 'Envío', en: 'Shipping' },
+          options: [
+            {
+              label: { es: 'Incluir la parte asignada', en: 'Include allocated share' },
+              value: 'include_allocated',
+            },
+            { label: { es: 'Excluir', en: 'Exclude' }, value: 'exclude' },
+          ],
+        },
+        {
+          name: 'tipsDonations',
+          dbName: 'pct_tips_donations',
+          type: 'select',
+          required: true,
+          defaultValue: 'exclude',
+          label: { es: 'Propinas y donaciones', en: 'Tips and donations' },
+          options: [
+            {
+              label: { es: 'Incluir la parte asignada', en: 'Include allocated share' },
+              value: 'include_allocated',
+            },
+            { label: { es: 'Excluir', en: 'Exclude' }, value: 'exclude' },
+          ],
+        },
+        {
+          name: 'paymentFees',
+          dbName: 'pct_payment_fees',
+          type: 'select',
+          required: true,
+          defaultValue: 'store_absorbs',
+          label: { es: 'Comisiones de cobro', en: 'Payment fees' },
+          options: [
+            {
+              label: { es: 'Restar la comisión real', en: 'Deduct actual fee' },
+              value: 'deduct_actual',
+            },
+            {
+              label: { es: 'Las absorbe la tienda', en: 'Store absorbs fees' },
+              value: 'store_absorbs',
+            },
+          ],
+        },
+      ],
+    },
+    {
       name: 'fixedMinor',
       type: 'number',
       min: 1,
@@ -258,6 +562,11 @@ export const purchasingFields: Field[] = [
     relationTo: 'suppliers',
     access: privateAccess,
     label: { es: 'Proveedor', en: 'Supplier' },
+  },
+  {
+    name: 'agreementCoverage',
+    type: 'ui',
+    admin: { components: { Field: '@/components/AgreementCoverageField' } },
   },
   {
     name: 'supplierSKU',

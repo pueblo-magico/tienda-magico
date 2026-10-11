@@ -35,6 +35,13 @@ export const CMS_NAVIGATION_ITEMS: CmsNavigationItem[] = [
     label: { es: 'Proveedores', en: 'Suppliers' },
   },
   {
+    key: 'supplierAgreements',
+    slug: 'supplier-agreements',
+    entityType: 'collection',
+    group: 'shop',
+    label: { es: 'Acuerdos con proveedores', en: 'Supplier agreements' },
+  },
+  {
     key: 'paymentNotifications',
     slug: 'payment-notifications',
     entityType: 'collection',

@@ -53,6 +53,17 @@ export const Suppliers: CollectionConfig = {
       hooks: { beforeValidate: [validateSupplierCommercialTerms] },
       fields: commercialTermsFields({ allowInherit: false }),
     },
+    {
+      name: 'agreements',
+      type: 'join',
+      collection: 'supplier-agreements',
+      on: 'supplier',
+      label: { es: 'Revisiones contractuales', en: 'Agreement revisions' },
+      admin: {
+        allowCreate: true,
+        defaultColumns: ['reference', 'product', 'variant', 'revision', 'status'],
+      },
+    },
     { name: 'notes', type: 'textarea', label: { es: 'Notas internas', en: 'Internal notes' } },
   ],
 }

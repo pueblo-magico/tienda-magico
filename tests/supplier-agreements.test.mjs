@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { Suppliers } from "../apps/cms/src/collections/Suppliers.ts";
+import { SupplierAgreements } from "../apps/cms/src/collections/SupplierAgreements.ts";
+import * as supplierAgreementModule from "../apps/cms/src/collections/SupplierAgreements.ts";
 import { Users } from "../apps/cms/src/collections/Users.ts";
 import { productsCollectionOverride } from "../apps/cms/src/collections/Products.ts";
 import {
@@ -18,6 +20,7 @@ import {
   validateCommercialTerms,
   validatePurchasingData,
 } from "../apps/cms/src/collections/commercialAgreements.ts";
+import * as commercialAgreementModule from "../apps/cms/src/collections/commercialAgreements.ts";
 import { mapProduct } from "@/lib/commerce/providers/payload-ecommerce/mappers";
 
 process.env.PAYLOAD_ECOMMERCE_URL = "http://cms.test";
@@ -54,8 +57,368 @@ test("proveedores queda restringido a compras, finanzas y administración", () =
   }
 });
 
+test("las revisiones contractuales son privadas, versionadas y admiten alcance por variante", () => {
+  for (const operation of ["read", "create", "update", "delete"]) {
+    const access = SupplierAgreements.access[operation];
+    assert.equal(access({ req: {} }), false);
+    assert.equal(access({ req: { user: { roles: ["customer"] } } }), false);
+    assert.equal(access({ req: { user: { roles: ["purchasing"] } } }), true);
+    assert.equal(access({ req: { user: { roles: ["finance"] } } }), true);
+    assert.equal(access({ req: { user: { roles: ["admin"] } } }), true);
+  }
+  assert.ok(SupplierAgreements.versions);
+  assert.equal(SupplierAgreements.lockDocuments, false);
+  assert.equal(
+    namedField(SupplierAgreements.fields, "supplier").relationTo,
+    "suppliers",
+  );
+  assert.equal(
+    namedField(SupplierAgreements.fields, "product").relationTo,
+    "products",
+  );
+  assert.equal(
+    namedField(SupplierAgreements.fields, "variant").relationTo,
+    "variants",
+  );
+  assert.equal(
+    namedField(Suppliers.fields, "agreements").collection,
+    "supplier-agreements",
+  );
+  assert.equal(namedField(Suppliers.fields, "agreements").on, "supplier");
+  const percentageBasis = namedField(
+    namedField(SupplierAgreements.fields, "terms").fields,
+    "percentageBasis",
+  );
+  assert.deepEqual(
+    percentageBasis.fields.map(({ dbName, name }) => [name, dbName]),
+    [
+      ["productDiscounts", "pct_product_discounts"],
+      ["orderDiscounts", "pct_order_discounts"],
+      ["taxes", "pct_taxes"],
+      ["shipping", "pct_shipping"],
+      ["tipsDonations", "pct_tips_donations"],
+      ["paymentFees", "pct_payment_fees"],
+    ],
+  );
+});
+
+test("la resolución versionada prioriza variante, producto y proveedor y detecta ambigüedad", () => {
+  assert.equal(
+    typeof supplierAgreementModule.selectEffectiveSupplierAgreement,
+    "function",
+  );
+  const select = supplierAgreementModule.selectEffectiveSupplierAgreement;
+  const base = {
+    supplier: 9,
+    revision: 1,
+    status: "active",
+    terms: {
+      mode: "purchase",
+      effectiveFrom: "2026-01-01T00:00:00.000Z",
+    },
+  };
+  const supplier = { ...base, id: 1, product: null, variant: null };
+  const product = { ...base, id: 2, product: 7, variant: null };
+  const variant = { ...base, id: 3, product: 7, variant: 11 };
+
+  assert.deepEqual(
+    select([supplier, product, variant], {
+      supplier: 9,
+      product: 7,
+      variant: 11,
+      effectiveAt: "2026-10-11T12:00:00.000Z",
+    }),
+    { kind: "resolved", scope: "variant", agreement: variant },
+  );
+  assert.deepEqual(
+    select([supplier, product], {
+      supplier: 9,
+      product: 7,
+      effectiveAt: "2026-10-11T12:00:00.000Z",
+    }),
+    { kind: "resolved", scope: "product", agreement: product },
+  );
+  assert.deepEqual(
+    select([supplier], {
+      supplier: 9,
+      product: 7,
+      effectiveAt: "2026-10-11T12:00:00.000Z",
+    }),
+    { kind: "resolved", scope: "supplier", agreement: supplier },
+  );
+  assert.equal(
+    select([{ ...product, id: 4 }, product], {
+      supplier: 9,
+      product: 7,
+      effectiveAt: "2026-10-11T12:00:00.000Z",
+    }).kind,
+    "ambiguous",
+  );
+});
+
+test("la publicación consulta acuerdos versionados y conserva un fallback legado explícito", async () => {
+  assert.equal(
+    typeof supplierAgreementModule.validateProductAgreementCoverage,
+    "function",
+  );
+  let findOptions;
+  const req = {
+    payload: {
+      find: async (options) => {
+        findOptions = options;
+        return { docs: [] };
+      },
+      findByID: async () => ({
+        id: 9,
+        defaultTerms: {
+          mode: "purchase",
+          effectiveFrom: "2026-01-01T00:00:00.000Z",
+        },
+      }),
+    },
+  };
+
+  const result = await supplierAgreementModule.validateProductAgreementCoverage(
+    {
+      data: {
+        _status: "published",
+        supplier: 9,
+        termsOverride: { mode: "inherit" },
+      },
+      originalDoc: { id: 7, _status: "draft" },
+      req,
+    },
+  );
+
+  assert.equal(findOptions.collection, "supplier-agreements");
+  assert.deepEqual(result, {
+    _status: "published",
+    supplier: 9,
+    termsOverride: { mode: "inherit" },
+  });
+  await assert.rejects(() =>
+    supplierAgreementModule.validateProductAgreementCoverage({
+      data: {
+        _status: "published",
+        supplier: 9,
+        termsOverride: { mode: "inherit" },
+      },
+      originalDoc: { id: 7, _status: "draft" },
+      req: {
+        payload: {
+          find: async () => ({ docs: [] }),
+          findByID: async () => ({ id: 9, defaultTerms: null }),
+        },
+      },
+    }),
+  );
+});
+
+test("la activación revisa todos los acuerdos activos del proveedor", async () => {
+  let findOptions;
+  const transaction = { execute: async () => ({ rows: [] }) };
+  const req = {
+    transactionID: Promise.resolve("agreement-test"),
+    user: { id: 3, roles: ["finance"] },
+    payload: {
+      db: {
+        name: "postgres",
+        sessions: { "agreement-test": { db: transaction } },
+      },
+      find: async (options) => {
+        findOptions = options;
+        return { docs: [] };
+      },
+    },
+  };
+
+  await SupplierAgreements.hooks.beforeChange[0]({
+    data: {
+      reference: "ACUERDO-001",
+      supplier: 9,
+      revision: 1,
+      status: "active",
+      terms: {
+        mode: "purchase",
+        effectiveFrom: "2026-10-11T00:00:00.000Z",
+      },
+    },
+    req,
+  });
+
+  assert.equal(findOptions.limit, 0);
+  assert.equal(findOptions.pagination, false);
+  assert.deepEqual(findOptions.where.and[1], {
+    status: { in: ["active", "expired", "terminated"] },
+  });
+});
+
+test("la activación rechaza vigencias superpuestas para el mismo alcance", async () => {
+  const transaction = { execute: async () => ({ rows: [] }) };
+  const req = {
+    transactionID: Promise.resolve("agreement-overlap"),
+    user: { id: 3, roles: ["finance"] },
+    payload: {
+      db: {
+        name: "postgres",
+        sessions: { "agreement-overlap": { db: transaction } },
+      },
+      find: async () => ({
+        docs: [
+          {
+            id: 41,
+            supplier: 9,
+            product: 7,
+            variant: null,
+            revision: 1,
+            status: "expired",
+            terms: {
+              mode: "purchase",
+              effectiveFrom: "2026-10-01T00:00:00.000Z",
+            },
+          },
+        ],
+      }),
+    },
+  };
+
+  await assert.rejects(() =>
+    SupplierAgreements.hooks.beforeChange[0]({
+      data: {
+        reference: "ACUERDO-002",
+        supplier: 9,
+        product: 7,
+        revision: 1,
+        status: "active",
+        terms: {
+          mode: "purchase",
+          effectiveFrom: "2026-10-11T00:00:00.000Z",
+        },
+      },
+      req,
+    }),
+  );
+});
+
+test("una revisión nueva exige un predecesor consecutivo del mismo alcance", async () => {
+  const req = {
+    user: { id: 3, roles: ["finance"] },
+    payload: {
+      findByID: async () => ({
+        id: 41,
+        supplier: 8,
+        product: 7,
+        revision: 1,
+        status: "active",
+        terms: {
+          mode: "purchase",
+          effectiveFrom: "2026-10-01T00:00:00.000Z",
+        },
+      }),
+    },
+  };
+
+  await assert.rejects(() =>
+    SupplierAgreements.hooks.beforeChange[0]({
+      data: {
+        reference: "ACUERDO-002-R2",
+        supplier: 9,
+        product: 7,
+        revision: 2,
+        previousAgreement: 41,
+        status: "draft",
+        terms: { mode: "purchase" },
+      },
+      req,
+    }),
+  );
+});
+
+test("una variante contractual debe pertenecer al producto seleccionado", async () => {
+  await assert.rejects(() =>
+    SupplierAgreements.hooks.beforeChange[0]({
+      data: {
+        reference: "ACUERDO-VARIANTE-INVALIDA",
+        supplier: 9,
+        product: 7,
+        variant: 11,
+        revision: 1,
+        status: "draft",
+        terms: { mode: "purchase" },
+      },
+      req: {
+        payload: {
+          findByID: async ({ collection }) => {
+            assert.equal(collection, "variants");
+            return { id: 11, product: 8 };
+          },
+        },
+      },
+    }),
+  );
+});
+
+test("el mismo alcance no admite dos revisiones con igual número", async () => {
+  const transaction = { execute: async () => ({ rows: [] }) };
+  await assert.rejects(() =>
+    SupplierAgreements.hooks.beforeChange[0]({
+      data: {
+        reference: "ACUERDO-DUPLICADO",
+        supplier: 9,
+        product: 7,
+        revision: 1,
+        status: "draft",
+        terms: { mode: "purchase" },
+      },
+      req: {
+        transactionID: Promise.resolve("agreement-duplicate"),
+        payload: {
+          db: {
+            name: "postgres",
+            sessions: { "agreement-duplicate": { db: transaction } },
+          },
+          find: async () => ({
+            docs: [
+              {
+                id: 41,
+                supplier: 9,
+                product: 7,
+                variant: null,
+                revision: 1,
+                status: "draft",
+                terms: { mode: "purchase" },
+              },
+            ],
+          }),
+        },
+      },
+    }),
+  );
+});
+
+test("los acuerdos aprobados no se eliminan y los borradores sí", async () => {
+  const beforeDelete = SupplierAgreements.hooks.beforeDelete[0];
+  await assert.rejects(() =>
+    beforeDelete({
+      id: 41,
+      req: {
+        payload: { findByID: async () => ({ id: 41, status: "active" }) },
+      },
+    }),
+  );
+  await assert.doesNotReject(() =>
+    beforeDelete({
+      id: 42,
+      req: {
+        payload: { findByID: async () => ({ id: 42, status: "draft" }) },
+      },
+    }),
+  );
+});
+
 test("usuarios admite roles privados de compras y finanzas", () => {
   const roles = namedField(Users.fields, "roles");
+  assert.ok(roles.options.some((option) => option.value === "editor"));
   assert.ok(roles.options.some((option) => option.value === "purchasing"));
   assert.ok(roles.options.some((option) => option.value === "finance"));
 });
@@ -68,6 +431,10 @@ test("el producto permite proveedor, costo y una excepción contractual privada"
   assert.ok(namedField(purchasingFields, "supplierSKU"));
   assert.ok(namedField(purchasingFields, "purchaseCost"));
   assert.ok(namedField(purchasingFields, "termsOverride"));
+  assert.equal(
+    namedField(purchasingFields, "agreementCoverage").admin.components.Field,
+    "@/components/AgreementCoverageField",
+  );
   for (const field of purchasingFields) {
     if (!("access" in field)) continue;
     for (const operation of ["create", "read", "update"]) {
@@ -78,11 +445,22 @@ test("el producto permite proveedor, costo y una excepción contractual privada"
         false,
       );
       assert.equal(
+        field.access[operation]({ req: { user: { roles: ["editor"] } } }),
+        false,
+      );
+      assert.equal(
         field.access[operation]({ req: { user: { roles: ["purchasing"] } } }),
         true,
       );
     }
   }
+});
+
+test("acuerdos expone una consulta privada de cobertura efectiva", () => {
+  const endpoint = SupplierAgreements.endpoints?.find(
+    ({ method, path }) => method === "get" && path === "/effective",
+  );
+  assert.ok(endpoint);
 });
 
 test("porcentajes e importes usan entradas decimales sin exponer unidades internas", () => {
@@ -164,6 +542,7 @@ test("compras y finanzas pueden guardar productos para administrar acuerdos", ()
   for (const operation of ["create", "update"]) {
     const access = products.access[operation];
     assert.equal(access({ req: { user: { roles: ["customer"] } } }), false);
+    assert.equal(access({ req: { user: { roles: ["editor"] } } }), true);
     assert.equal(access({ req: { user: { roles: ["purchasing"] } } }), true);
     assert.equal(access({ req: { user: { roles: ["finance"] } } }), true);
     assert.equal(access({ req: { user: { roles: ["admin"] } } }), true);
@@ -181,6 +560,14 @@ test("valida compra y consignación sin porcentajes implícitos", () => {
         mode: "consignment",
         method: "percentage",
         shareBps: 3500,
+        percentageBasis: {
+          productDiscounts: "deduct",
+          orderDiscounts: "deduct_allocated",
+          taxes: "exclude",
+          shipping: "exclude",
+          tipsDonations: "exclude",
+          paymentFees: "store_absorbs",
+        },
       },
       { allowInherit: false },
     ),
@@ -188,7 +575,43 @@ test("valida compra y consignación sin porcentajes implícitos", () => {
       mode: "consignment",
       method: "percentage",
       shareBps: 3500,
+      percentageBasis: {
+        productDiscounts: "deduct",
+        orderDiscounts: "deduct_allocated",
+        taxes: "exclude",
+        shipping: "exclude",
+        tipsDonations: "exclude",
+        paymentFees: "store_absorbs",
+      },
     },
+  );
+  assert.throws(() =>
+    validateCommercialTerms(
+      {
+        mode: "consignment",
+        method: "percentage",
+        shareBps: 3500,
+      },
+      { allowInherit: false },
+    ),
+  );
+  assert.throws(() =>
+    validateCommercialTerms(
+      {
+        mode: "consignment",
+        method: "percentage",
+        shareBps: 3500,
+        percentageBasis: {
+          productDiscounts: "deduct",
+          orderDiscounts: "deduct_allocated",
+          taxes: "exclude",
+          shipping: "exclude",
+          tipsDonations: "exclude",
+          paymentFees: "invalid",
+        },
+      },
+      { allowInherit: false },
+    ),
   );
   assert.throws(() =>
     validateCommercialTerms({ mode: "consignment" }, { allowInherit: false }),
@@ -222,6 +645,12 @@ test("valida compra y consignación sin porcentajes implícitos", () => {
 test("rechaza vigencias invertidas", () => {
   assert.throws(() =>
     validateCommercialTerms(
+      { mode: "purchase", effectiveFrom: "fecha inválida" },
+      { allowInherit: false },
+    ),
+  );
+  assert.throws(() =>
+    validateCommercialTerms(
       {
         mode: "purchase",
         effectiveFrom: "2026-10-02T00:00:00.000Z",
@@ -229,6 +658,170 @@ test("rechaza vigencias invertidas", () => {
       },
       { allowInherit: false },
     ),
+  );
+});
+
+test("las revisiones contractuales exigen alcance, aprobación y cierre auditables", () => {
+  assert.equal(
+    typeof commercialAgreementModule.validateAgreementLifecycle,
+    "function",
+  );
+  const validate = commercialAgreementModule.validateAgreementLifecycle;
+  const draft = {
+    supplier: 9,
+    revision: 1,
+    status: "draft",
+    terms: { mode: "purchase" },
+  };
+  assert.deepEqual(validate(draft), draft);
+  assert.throws(() => validate({ ...draft, revision: 0 }));
+  assert.throws(() =>
+    validate({ ...draft, revision: 2, previousAgreement: null }),
+  );
+  assert.throws(() => validate({ ...draft, variant: 4, product: null }));
+  assert.throws(() =>
+    validate({
+      ...draft,
+      status: "active",
+      approvedBy: null,
+      approvedAt: null,
+    }),
+  );
+  assert.throws(() =>
+    validate({
+      ...draft,
+      status: "active",
+      approvedBy: 3,
+      approvedAt: "2026-10-11T12:00:00.000Z",
+    }),
+  );
+  assert.throws(() =>
+    validate({
+      ...draft,
+      status: "terminated",
+      approvedBy: 3,
+      approvedAt: "2026-10-11T12:00:00.000Z",
+      terminationReason: "",
+      terminatedAt: null,
+    }),
+  );
+});
+
+test("solo finanzas aprueba y una revisión activa no reescribe sus términos", () => {
+  assert.equal(
+    typeof commercialAgreementModule.applyAgreementTransition,
+    "function",
+  );
+  const transition = commercialAgreementModule.applyAgreementTransition;
+  const draft = {
+    supplier: 9,
+    revision: 1,
+    status: "draft",
+    terms: { mode: "purchase", effectiveFrom: "2026-10-11T00:00:00.000Z" },
+  };
+  assert.throws(() =>
+    transition({
+      original: draft,
+      data: { status: "active" },
+      user: { id: 2, roles: ["purchasing"] },
+      now: "2026-10-11T12:00:00.000Z",
+    }),
+  );
+  const active = transition({
+    original: draft,
+    data: { status: "active" },
+    user: { id: 3, roles: ["finance"] },
+    now: "2026-10-11T12:00:00.000Z",
+  });
+  assert.equal(active.status, "active");
+  assert.equal(active.approvedBy, 3);
+  assert.equal(active.approvedAt, "2026-10-11T12:00:00.000Z");
+  assert.doesNotThrow(() =>
+    transition({
+      original: { ...active, supplier: { id: 9 } },
+      data: { supplier: 9 },
+      user: { id: 3, roles: ["finance"] },
+      now: "2026-10-12T12:00:00.000Z",
+    }),
+  );
+  assert.throws(() =>
+    transition({
+      original: { ...active, reference: "ACUERDO-001" },
+      data: { reference: "ACUERDO-RENOMBRADO" },
+      user: { id: 3, roles: ["finance"] },
+      now: "2026-10-12T12:00:00.000Z",
+    }),
+  );
+  assert.throws(() =>
+    transition({
+      original: active,
+      data: {
+        terms: {
+          mode: "consignment",
+          method: "fixed",
+          fixedMinor: 1000,
+          currency: "ARS",
+        },
+      },
+      user: { id: 3, roles: ["finance"] },
+      now: "2026-10-12T12:00:00.000Z",
+    }),
+  );
+  assert.throws(() =>
+    transition({
+      original: active,
+      data: { status: "draft" },
+      user: { id: 1, roles: ["admin"] },
+      now: "2026-10-12T12:00:00.000Z",
+    }),
+  );
+  const terminated = transition({
+    original: active,
+    data: { status: "terminated", terminationReason: "Fin del contrato" },
+    user: { id: 1, roles: ["admin"] },
+    now: "2026-10-12T12:00:00.000Z",
+  });
+  assert.equal(terminated.terminatedAt, "2026-10-12T12:00:00.000Z");
+  assert.equal(terminated.terms.effectiveTo, "2026-10-12T12:00:00.000Z");
+  assert.throws(() =>
+    transition({
+      original: terminated,
+      data: { supplier: 10 },
+      user: { id: 1, roles: ["admin"] },
+      now: "2026-10-13T12:00:00.000Z",
+    }),
+  );
+});
+
+test("las vigencias abiertas se solapan pero los períodos adyacentes no", () => {
+  assert.equal(
+    typeof commercialAgreementModule.agreementPeriodsOverlap,
+    "function",
+  );
+  const overlaps = commercialAgreementModule.agreementPeriodsOverlap;
+  assert.equal(overlaps({}, {}), true);
+  assert.equal(
+    overlaps(
+      {
+        effectiveFrom: "2026-01-01T00:00:00.000Z",
+        effectiveTo: "2026-06-01T00:00:00.000Z",
+      },
+      {
+        effectiveFrom: "2026-05-01T00:00:00.000Z",
+        effectiveTo: "2026-08-01T00:00:00.000Z",
+      },
+    ),
+    true,
+  );
+  assert.equal(
+    overlaps(
+      {
+        effectiveFrom: "2026-01-01T00:00:00.000Z",
+        effectiveTo: "2026-06-01T00:00:00.000Z",
+      },
+      { effectiveFrom: "2026-06-01T00:00:00.000Z" },
+    ),
+    false,
   );
 });
 
@@ -318,6 +911,14 @@ test("la excepción vigente prevalece y la herencia usa el acuerdo del proveedor
     mode: "consignment",
     method: "percentage",
     shareBps: 3000,
+    percentageBasis: {
+      productDiscounts: "deduct",
+      orderDiscounts: "deduct_allocated",
+      taxes: "exclude",
+      shipping: "exclude",
+      tipsDonations: "exclude",
+      paymentFees: "store_absorbs",
+    },
     effectiveFrom: "2026-01-01T00:00:00.000Z",
   };
   assert.deepEqual(
@@ -369,6 +970,14 @@ test("la proyección pública no serializa proveedor, costo ni acuerdo", () => {
       mode: "consignment",
       method: "percentage",
       shareBps: 4000,
+      percentageBasis: {
+        productDiscounts: "deduct",
+        orderDiscounts: "deduct_allocated",
+        taxes: "exclude",
+        shipping: "exclude",
+        tipsDonations: "exclude",
+        paymentFees: "store_absorbs",
+      },
     },
     purchasingNotes: "No publicar",
   });

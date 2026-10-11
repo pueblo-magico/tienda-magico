@@ -24,8 +24,53 @@ selector.
 The down migration reassigns `purchasing` and `finance` users to `admin` before
 removing those enum values. This avoids invalid accounts but deliberately loses
 role granularity and must be reviewed before a production rollback.
+The later migration that introduces `editor` applies the same compatibility in
+its own rollback.
 
-Status: planned. Depends on: 01, 04.
+## Auditable agreement revisions
+
+The private **Supplier agreements** collection complements the supplier's legacy
+defaults and product overrides. Each record has a unique reference, supplier,
+optional product or variant scope, revision number, previous revision, lifecycle
+status, and commercial terms.
+
+The lifecycle is `draft` → `active` → `expired` or `terminated`. Purchasing can
+prepare drafts, while only finance or administration can activate or close a
+revision. Activation records the approver and timestamp. Approved financial
+terms are immutable; contractual changes require a consecutive new revision.
+Approved agreements cannot be deleted.
+
+Active revisions require a valid effective start date. Effective periods of
+approved revisions may not overlap for the same supplier and scope; activation
+uses a PostgreSQL transactional advisory lock to serialize concurrent attempts.
+Expiring or terminating a revision closes its effective period without extending
+an earlier end date. A variant revision must also identify its product. The
+previous revision must be consecutive and retain the same supplier and scope.
+
+Percentage agreements explicitly state how product discounts, allocated order
+discounts, taxes, allocated shipping, tips/donations, and actual payment fees
+affect the supplier basis. TIENDA-34 will snapshot this definition into immutable
+obligations; this increment does not yet create debt or balances when a sale is
+confirmed.
+
+Payload versions provide additional audit history. The supplier screen exposes
+the reverse relationship and allows authorized staff to create revisions from
+that workflow. Records remain restricted to `purchasing`, `finance`, and `admin`.
+
+When a product is published, the server resolves the approved agreement in
+effect with variant → product → supplier precedence. Ambiguous or missing
+coverage blocks publication. During the transition, existing embedded product
+or supplier terms count as an explicit legacy fallback; the CMS coverage
+indicator distinguishes them from a versioned revision so they can be migrated
+without interrupting the catalog. The `editor` role may maintain the public
+product record, while purchasing fields and the agreements collection remain
+server-side denied.
+
+**Increment status:** code, generated types and migration, unit tests, and the
+PostgreSQL integration test are complete. The full migration chain passed from a
+clean disposable database. Manual CMS screen acceptance remains pending.
+
+Status: in progress. Depends on: 01, 04.
 
 ## Codex implementation prompt
 
@@ -60,7 +105,7 @@ Using dummy data, have an authorized user create a supplier and save a BRL cost 
 - [ ] Anonymous API calls, populated product relationships, and storefront responses contain no costs, supplier contacts, or notes.
 - [ ] Public product types cannot accidentally serialize private operational records.
 - [ ] Permission tests cover anonymous, customer, editor, finance, and admin; denied writes leave data unchanged.
-- [ ] Cost/currency validation, role migration, generated artifacts, and operator documentation are complete.
+- [x] Cost/currency validation, role migration, generated artifacts, and operator documentation are complete.
 - [ ] Authorized staff complete the supplier/cost workflow through usable CMS screens, including validation and denied-access behavior; API-only CRUD is insufficient.
 - [ ] Real storefront listing/detail/cart/checkout flows remain functional with missing or restricted purchasing data, and private edits do not alter public prices, currency, Brand, or origin.
 - [ ] EN/ES desktop/mobile and keyboard checks plus rendered/network leakage checks are recorded for the human acceptance flow. Completion covers the full private workflow and its public boundary.

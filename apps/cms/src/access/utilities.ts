@@ -1,4 +1,4 @@
-export type Role = 'admin' | 'customer' | 'purchasing' | 'finance'
+export type Role = 'admin' | 'customer' | 'purchasing' | 'finance' | 'editor'
 
 export type RoleBearingUser =
   | {

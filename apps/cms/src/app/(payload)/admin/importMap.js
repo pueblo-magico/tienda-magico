@@ -32,6 +32,7 @@ import { VariantOptionsSelector as VariantOptionsSelector_b91672ccd6e8b071c11142
 import { PriceCell as PriceCell_e27bf7b8cc50640dcdd584767b8eac3c } from '@payloadcms/plugin-ecommerce/client'
 import { PriceInput as PriceInput_b91672ccd6e8b071c11142ab941fedfb } from '@payloadcms/plugin-ecommerce/rsc'
 import { default as default_877d7a52e86e775156f872750e2a9e89 } from '@/components/StableSKUField'
+import { default as default_833431663fcc782db052c23a3bb86b0c } from '@/components/AgreementCoverageField'
 import { default as default_49f71f6595bb3686e63393626f558d8f } from '@/components/DocumentLocaleSwitcher'
 import { default as default_2cf362c95aeaa452f807ed65ad049cab } from '@/components/ConfirmCash'
 import { default as default_4b66790fcd70e03821cf0f9aeaa7cb1f } from '@/components/ConfirmTransfer'
@@ -77,6 +78,7 @@ export const importMap = {
   "@payloadcms/plugin-ecommerce/client#PriceCell": PriceCell_e27bf7b8cc50640dcdd584767b8eac3c,
   "@payloadcms/plugin-ecommerce/rsc#PriceInput": PriceInput_b91672ccd6e8b071c11142ab941fedfb,
   "@/components/StableSKUField#default": default_877d7a52e86e775156f872750e2a9e89,
+  "@/components/AgreementCoverageField#default": default_833431663fcc782db052c23a3bb86b0c,
   "@/components/DocumentLocaleSwitcher#default": default_49f71f6595bb3686e63393626f558d8f,
   "@/components/ConfirmCash#default": default_2cf362c95aeaa452f807ed65ad049cab,
   "@/components/ConfirmTransfer#default": default_4b66790fcd70e03821cf0f9aeaa7cb1f,

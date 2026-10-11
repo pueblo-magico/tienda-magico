@@ -7,6 +7,9 @@ const allowedRoles = ['admin', 'purchasing', 'finance'] as const
 export const canManagePurchasing = (user: unknown): boolean =>
   checkRole([...allowedRoles], user as Parameters<typeof checkRole>[1])
 
+export const canEditCatalog = (user: unknown): boolean =>
+  checkRole(['admin', 'editor'], user as Parameters<typeof checkRole>[1])
+
 export const purchasingFinanceAccess: Access = ({ req: { user } }) => canManagePurchasing(user)
 
 export const purchasingFinanceFieldAccess: FieldAccess = ({ req: { user } }) =>

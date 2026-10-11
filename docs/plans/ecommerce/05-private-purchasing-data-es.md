@@ -24,8 +24,55 @@ ISO 4217 buscable.
 La migración descendente reasigna los roles `purchasing` y `finance` a `admin`
 antes de retirar esos valores. Esto evita cuentas inválidas, pero es una pérdida
 deliberada de granularidad y debe revisarse antes de un rollback productivo.
+La migración posterior que incorpora `editor` aplica la misma compatibilidad en
+su propio rollback.
 
-Estado: planificado. Depende de: 01, 04.
+## Revisiones contractuales auditables
+
+La colección privada **Acuerdos con proveedores** complementa los términos
+predeterminados legados del proveedor y las excepciones del producto. Cada
+registro tiene una referencia única, proveedor, alcance opcional por producto o
+variante, número de revisión, revisión anterior, estado y términos comerciales.
+
+El ciclo de vida es `draft` → `active` → `expired` o `terminated`. Compras puede
+preparar borradores, pero solo finanzas o administración puede activar o cerrar
+una revisión. Al activar se registran responsable y fecha. Los términos de una
+revisión activa no se reescriben: cualquier cambio contractual requiere una
+nueva revisión consecutiva. Los acuerdos aprobados tampoco se eliminan.
+
+Una revisión activa exige una fecha válida de inicio. Las vigencias de revisiones
+aprobadas no pueden solaparse para el mismo proveedor y alcance; la activación
+usa un bloqueo transaccional PostgreSQL para serializar intentos concurrentes.
+Al vencer o terminar una revisión se cierra su vigencia, sin extender una fecha
+de fin anterior. Una revisión por variante también debe identificar su producto.
+La revisión anterior debe ser consecutiva y conservar proveedor y alcance.
+
+Los acuerdos porcentuales declaran explícitamente el tratamiento de descuentos
+del producto, descuentos generales asignados, impuestos, envío asignado,
+propinas/donaciones y comisión real del medio de cobro. Esta definición es la
+fuente que TIENDA-34 deberá copiar a cada obligación inmutable; todavía no
+calcula saldos ni genera deuda al vender.
+
+La colección conserva versiones de Payload para auditoría adicional. La relación
+inversa aparece en la ficha del proveedor y permite crear revisiones sin salir de
+ese flujo. Todos los registros siguen restringidos a `purchasing`, `finance` y
+`admin`.
+
+Al publicar un producto, el servidor resuelve el acuerdo aprobado vigente con
+precedencia variante → producto → proveedor. Una cobertura ambigua o ausente
+impide la publicación. Durante la transición, los términos embebidos existentes
+del producto o proveedor cuentan como cobertura legada explícita; el indicador
+del CMS los distingue de una revisión versionada para que puedan migrarse sin
+interrumpir el catálogo. El rol `editor` puede mantener la ficha pública del
+producto, pero los campos de compras y la colección de acuerdos continúan
+denegados en el servidor.
+
+**Estado de este incremento:** código, tipos y migración generados, pruebas
+unitarias y prueba de integración PostgreSQL completos. La cadena completa de
+migraciones se verificó desde una base descartable. La aceptación manual de las
+pantallas del CMS continúa pendiente.
+
+Estado: en curso. Depende de: 01, 04.
 
 ## Prompt de implementación para Codex
 
@@ -60,7 +107,7 @@ Con datos dummy, hacé que un usuario autorizado cree un proveedor y guarde un c
 - [ ] Las llamadas API anónimas, relaciones pobladas de producto y respuestas del storefront no contienen costos, contactos de proveedor ni notas.
 - [ ] Los tipos públicos de producto no pueden serializar accidentalmente registros operativos privados.
 - [ ] Las pruebas de permisos cubren anónimo, cliente, editor, finanzas y admin; las escrituras denegadas dejan los datos sin cambios.
-- [ ] La validación de costo/moneda, migración de roles, artefactos generados y documentación operativa están completos.
+- [x] La validación de costo/moneda, migración de roles, artefactos generados y documentación operativa están completos.
 - [ ] El personal autorizado completa el flujo proveedor/costo desde pantallas CMS usables, incluida validación y acceso denegado; CRUD solo por API no alcanza.
 - [ ] Los flujos reales de listado/detalle/carrito/checkout del storefront siguen funcionando con datos de compras faltantes o restringidos, y las ediciones privadas no alteran precios públicos, moneda, Marca ni origen.
 - [ ] Los controles EN/ES desktop/mobile y teclado, más los controles de filtración renderizada/de red, quedan registrados para el flujo de aceptación humana. La finalización cubre el flujo privado completo y su límite público.

@@ -13,6 +13,7 @@ import {
 
 const expectedCollections = [
   "suppliers",
+  "supplier-agreements",
   "payment-notifications",
   "users",
   "media",

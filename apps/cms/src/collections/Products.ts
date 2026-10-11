@@ -12,7 +12,8 @@ import {
 } from '../hooks/revalidateStorefrontCatalog'
 import { seoField } from '../fields/seo'
 import { purchasingFields, validatePurchasingData } from './commercialAgreements'
-import { canManagePurchasing } from '../access/purchasingFinanceAccess'
+import { canEditCatalog, canManagePurchasing } from '../access/purchasingFinanceAccess'
+import { validateProductAgreementCoverage } from './SupplierAgreements'
 import {
   FixedToolbarFeature,
   HeadingFeature,
@@ -33,7 +34,10 @@ export const productsCollectionOverride: CollectionOverride = ({ defaultCollecti
   const extendAccessForPurchasing =
     (defaultAccess: Access | undefined): Access =>
     (args) =>
-      canManagePurchasing(args.req.user) || defaultAccess?.(args) || false
+      canManagePurchasing(args.req.user) ||
+      canEditCatalog(args.req.user) ||
+      defaultAccess?.(args) ||
+      false
 
   const documentLocaleSwitcher = {
     path: '@/components/DocumentLocaleSwitcher',
@@ -355,7 +359,11 @@ export const productsCollectionOverride: CollectionOverride = ({ defaultCollecti
         ...(defaultCollection.hooks?.afterDelete ?? []),
         revalidateStorefrontProductDelete,
       ],
-      beforeChange: [...(defaultCollection.hooks?.beforeChange ?? []), validateProductPublication],
+      beforeChange: [
+        ...(defaultCollection.hooks?.beforeChange ?? []),
+        validateProductPublication,
+        validateProductAgreementCoverage,
+      ],
       beforeValidate: [
         ...(defaultCollection.hooks?.beforeValidate ?? []),
         validatePurchasingData,
