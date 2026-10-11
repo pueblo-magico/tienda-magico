@@ -82,9 +82,17 @@ server-rendered HTML contained none of the dummy private markers. A temporary
 local inventory unit then exercised Rape Sunu itself through the cart and the
 checkout review; only its public ARS price was present, and restoring inventory
 to zero produced the expected availability warning without breaking review.
-Authenticated-customer and keyboard acceptance remains pending.
+The signed-in `customer` role could not open the supplier-agreement collection,
+the product remained read-only, and its purchasing tab exposed no supplier,
+agreement, supplier SKU, BRL cost, or notes. With that session active, the EN
+and ES product detail DOM retained the public price and contained none of the
+dummy private markers. Keyboard navigation followed the interactive controls
+in order with a visible 2 px focus outline; Enter opened search and focused its
+field, Escape closed it, and Enter opened the cart. The PostgreSQL integration
+test verifies the customer REST and GraphQL responses in addition to the manual
+rendered-output check.
 
-Status: in progress. Depends on: 01, 04.
+Status: complete. Depends on: 01, 04.
 
 ## Codex implementation prompt
 
@@ -122,7 +130,7 @@ Using dummy data, have an authorized user create a supplier and save a BRL cost 
 - [x] Cost/currency validation, role migration, generated artifacts, and operator documentation are complete.
 - [x] Authorized staff complete the supplier/cost workflow through usable CMS screens, including validation and denied-access behavior; API-only CRUD is insufficient.
 - [x] Real storefront listing/detail/cart/checkout flows remain functional with missing or restricted purchasing data, and private edits do not alter public prices, currency, Brand, or origin.
-- [ ] EN/ES desktop/mobile and keyboard checks plus rendered/network leakage checks are recorded for the human acceptance flow. Completion covers the full private workflow and its public boundary.
+- [x] EN/ES desktop/mobile and keyboard checks plus rendered/network leakage checks are recorded for the human acceptance flow. Completion covers the full private workflow and its public boundary.
 
 ### Out of scope
 

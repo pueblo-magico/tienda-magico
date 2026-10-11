@@ -84,10 +84,18 @@ dummy. El carrito mobile y el panel de datos de checkout funcionaron con otro
 ítem vendible. Después se habilitó temporalmente una unidad local de Rape Sunu
 para recorrer con ese mismo producto el carrito y la revisión de checkout: solo
 apareció su precio público ARS. Al restaurar el inventario a cero, la revisión
-mostró el aviso de disponibilidad esperado sin romperse. Continúan pendientes
-el flujo con cliente autenticado y la aceptación de teclado.
+mostró el aviso de disponibilidad esperado sin romperse. Luego se inició sesión
+con el rol `customer`: la colección de acuerdos devolvió `Not Found`, la ficha
+de Rape Sunu quedó de solo lectura y la pestaña de compras no expuso proveedor,
+acuerdo, SKU, costo BRL ni notas. Con esa sesión activa, el detalle del producto
+en EN y ES conservó el precio público y su DOM no incluyó ninguno de los
+marcadores privados dummy. La navegación por teclado recorrió los controles en
+orden, con foco visible de 2 px; `Enter` abrió la búsqueda y llevó el foco a su
+campo, `Escape` la cerró y `Enter` abrió el carrito. Las respuestas REST y
+GraphQL del rol cliente quedan verificadas por la prueba de integración
+PostgreSQL, además del control manual del output renderizado.
 
-Estado: en curso. Depende de: 01, 04.
+Estado: completo. Depende de: 01, 04.
 
 ## Prompt de implementación para Codex
 
@@ -125,7 +133,7 @@ Con datos dummy, hacé que un usuario autorizado cree un proveedor y guarde un c
 - [x] La validación de costo/moneda, migración de roles, artefactos generados y documentación operativa están completos.
 - [x] El personal autorizado completa el flujo proveedor/costo desde pantallas CMS usables, incluida validación y acceso denegado; CRUD solo por API no alcanza.
 - [x] Los flujos reales de listado/detalle/carrito/checkout del storefront siguen funcionando con datos de compras faltantes o restringidos, y las ediciones privadas no alteran precios públicos, moneda, Marca ni origen.
-- [ ] Los controles EN/ES desktop/mobile y teclado, más los controles de filtración renderizada/de red, quedan registrados para el flujo de aceptación humana. La finalización cubre el flujo privado completo y su límite público.
+- [x] Los controles EN/ES desktop/mobile y teclado, más los controles de filtración renderizada/de red, quedan registrados para el flujo de aceptación humana. La finalización cubre el flujo privado completo y su límite público.
 
 ### Fuera de alcance
 
