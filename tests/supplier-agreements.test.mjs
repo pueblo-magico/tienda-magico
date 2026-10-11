@@ -4,6 +4,7 @@ import { test } from "node:test";
 import { Suppliers } from "../apps/cms/src/collections/Suppliers.ts";
 import { SupplierAgreements } from "../apps/cms/src/collections/SupplierAgreements.ts";
 import * as supplierAgreementModule from "../apps/cms/src/collections/SupplierAgreements.ts";
+import { normalizeAgreementCoverage } from "../apps/cms/src/lib/suppliers/agreementCoverage.ts";
 import { Users } from "../apps/cms/src/collections/Users.ts";
 import { productsCollectionOverride } from "../apps/cms/src/collections/Products.ts";
 import {
@@ -461,6 +462,36 @@ test("acuerdos expone una consulta privada de cobertura efectiva", () => {
     ({ method, path }) => method === "get" && path === "/effective",
   );
   assert.ok(endpoint);
+});
+
+test("la cobertura del editor tolera respuestas de error sin romper el formulario", () => {
+  assert.deepEqual(
+    normalizeAgreementCoverage({ errors: [{ message: "Bad request" }] }),
+    { kind: "missing" },
+  );
+  assert.deepEqual(normalizeAgreementCoverage(null), { kind: "missing" });
+  assert.deepEqual(
+    normalizeAgreementCoverage({
+      kind: "resolved",
+      scope: "supplier",
+      agreement: {
+        id: 12,
+        reference: "QA-12",
+        revision: 2,
+        mode: "consignment",
+      },
+    }),
+    {
+      kind: "resolved",
+      scope: "supplier",
+      agreement: {
+        id: 12,
+        reference: "QA-12",
+        revision: 2,
+        mode: "consignment",
+      },
+    },
+  );
 });
 
 test("porcentajes e importes usan entradas decimales sin exponer unidades internas", () => {

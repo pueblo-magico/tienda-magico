@@ -3,24 +3,10 @@
 import { Banner, useDocumentInfo, useFormFields, useTranslation } from '@payloadcms/ui'
 import { useEffect, useState } from 'react'
 
-type Coverage =
-  | {
-      kind: 'resolved'
-      scope: 'supplier' | 'product' | 'variant'
-      agreement: {
-        id: number | string | null
-        reference: string | null
-        revision: number | null
-        mode: 'purchase' | 'consignment' | null
-      }
-    }
-  | {
-      kind: 'legacy'
-      scope: 'supplier' | 'product'
-      terms: { mode: 'purchase' | 'consignment' | null }
-    }
-  | { kind: 'ambiguous'; scope: 'supplier' | 'product' | 'variant' }
-  | { kind: 'missing' }
+import {
+  normalizeAgreementCoverage,
+  type AgreementCoverage,
+} from '@/lib/suppliers/agreementCoverage'
 
 function relationID(value: unknown): number | string | null {
   if (typeof value === 'number' || typeof value === 'string') return value
@@ -48,7 +34,7 @@ export default function AgreementCoverageField() {
   const { i18n } = useTranslation()
   const language = i18n.language === 'en' ? 'en' : 'es'
   const requestKey = supplier == null ? null : `${String(supplier)}:${String(id ?? '')}`
-  const [result, setResult] = useState<{ key: string; coverage: Coverage } | null>(null)
+  const [result, setResult] = useState<{ key: string; coverage: AgreementCoverage } | null>(null)
 
   useEffect(() => {
     if (supplier == null || requestKey == null) return
@@ -60,8 +46,8 @@ export default function AgreementCoverageField() {
       signal: controller.signal,
     })
       .then(async (response) => {
-        const body = (await response.json()) as Coverage
-        setResult({ key: requestKey, coverage: body })
+        const body: unknown = await response.json()
+        setResult({ key: requestKey, coverage: normalizeAgreementCoverage(body) })
       })
       .catch((error: unknown) => {
         if (!(error instanceof DOMException && error.name === 'AbortError'))

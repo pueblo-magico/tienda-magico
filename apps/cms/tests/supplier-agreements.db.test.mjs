@@ -10,11 +10,16 @@ test(
     process.env.DATABASE_URL = databaseURL
     process.env.PAYLOAD_SECRET ??= 'local-supplier-agreement-integration-secret-not-for-production'
 
-    const [{ getPayload }, { default: config }] = await Promise.all([
-      import('payload'),
-      import('../src/payload.config.ts'),
-    ])
+    const [{ getPayload }, { default: config }, { GRAPHQL_POST, REST_GET, REST_PATCH }] =
+      await Promise.all([
+        import('payload'),
+        import('../src/payload.config.ts'),
+        import('@payloadcms/next/routes'),
+      ])
     const payload = await getPayload({ config })
+    const restGet = REST_GET(config)
+    const restPatch = REST_PATCH(config)
+    const graphQLPost = GRAPHQL_POST(config)
 
     try {
       const suffix = Date.now()
@@ -69,6 +74,8 @@ test(
         data: {
           name: `Proveedor de integración ${suffix}`,
           reference: `PROV-${suffix}`,
+          contactEmail: `contacto-${suffix}@example.test`,
+          notes: `Nota privada proveedor ${suffix}`,
           defaultTerms: { mode: 'purchase' },
         },
       })
@@ -182,6 +189,113 @@ test(
       })
       assert.equal(productAfterEditorUpdate.supplierSKU, `SKU-PROVEEDOR-${suffix}`)
       assert.equal(productAfterEditorUpdate.purchasingNotes, 'Dato privado original')
+
+      const privateMarkers = [
+        `PROV-${suffix}`,
+        `contacto-${suffix}@example.test`,
+        `Nota privada proveedor ${suffix}`,
+        `SKU-PROVEEDOR-${suffix}`,
+        'Dato privado original',
+        '"amountMinor":5000',
+      ]
+      const assertPrivateMarkersAbsent = (body) => {
+        const serialized = JSON.stringify(body)
+        for (const marker of privateMarkers) assert.equal(serialized.includes(marker), false)
+      }
+      const restArgs = {
+        params: Promise.resolve({ slug: ['products', String(product.id)] }),
+      }
+      const anonymousRESTResponse = await restGet(
+        new Request(`http://localhost/api/products/${product.id}?depth=2&locale=es`),
+        restArgs,
+      )
+      assert.equal(anonymousRESTResponse.status, 200)
+      assertPrivateMarkersAbsent(await anonymousRESTResponse.json())
+
+      const editorLogin = await payload.login({
+        collection: 'users',
+        data: {
+          email: editor.email,
+          password: 'integration-test-password',
+        },
+      })
+      assert.ok(editorLogin.token)
+      const editorRESTResponse = await restGet(
+        new Request(`http://localhost/api/products/${product.id}?depth=2&locale=es`, {
+          headers: { Authorization: `JWT ${editorLogin.token}` },
+        }),
+        restArgs,
+      )
+      assert.equal(editorRESTResponse.status, 200)
+      assertPrivateMarkersAbsent(await editorRESTResponse.json())
+
+      const editorRESTUpdateResponse = await restPatch(
+        new Request(`http://localhost/api/products/${product.id}?depth=2&locale=es`, {
+          method: 'PATCH',
+          headers: {
+            Authorization: `JWT ${editorLogin.token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            summary: 'Resumen editado por REST',
+            supplierSKU: 'REST-NO-DEBE-PERSISTIR',
+            purchasingNotes: 'REST privado no debe persistir',
+            purchaseCost: {
+              amountMinor: 1,
+              currency: 'USD',
+              baseQuantity: 99,
+              baseUnit: 'unit',
+              updatedAt: '2026-10-11T00:00:00.000Z',
+            },
+          }),
+        }),
+        restArgs,
+      )
+      assert.equal(editorRESTUpdateResponse.status, 200)
+      const editorRESTUpdateBody = await editorRESTUpdateResponse.json()
+      assertPrivateMarkersAbsent(editorRESTUpdateBody)
+      const productAfterRESTUpdate = await payload.findByID({
+        collection: 'products',
+        id: product.id,
+        depth: 0,
+        overrideAccess: true,
+      })
+      assert.equal(productAfterRESTUpdate.summary, 'Resumen editado por REST')
+      assert.equal(productAfterRESTUpdate.supplierSKU, `SKU-PROVEEDOR-${suffix}`)
+      assert.equal(productAfterRESTUpdate.purchasingNotes, 'Dato privado original')
+      assert.equal(productAfterRESTUpdate.purchaseCost.amountMinor, 5000)
+      assert.equal(productAfterRESTUpdate.purchaseCost.currency, 'BRL')
+
+      const graphQLQuery = `
+        query ProductPrivacy($id: Int!) {
+          Product(id: $id) {
+            id
+            title
+            supplierSKU
+            purchasingNotes
+            purchaseCost { amountMinor currency baseQuantity baseUnit updatedAt }
+            termsOverride { mode method shareBps fixedMinor currency }
+            supplier { id name reference contactEmail notes }
+          }
+        }
+      `
+      for (const authorization of [null, `JWT ${editorLogin.token}`]) {
+        const graphQLResponse = await graphQLPost(
+          new Request('http://localhost/api/graphql', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              ...(authorization ? { Authorization: authorization } : {}),
+            },
+            body: JSON.stringify({ query: graphQLQuery, variables: { id: product.id } }),
+          }),
+        )
+        assert.equal(graphQLResponse.status, 200)
+        const graphQLBody = await graphQLResponse.json()
+        assert.equal(graphQLBody.errors, undefined)
+        assertPrivateMarkersAbsent(graphQLBody)
+      }
+
       await assert.rejects(() =>
         payload.update({
           collection: 'products',

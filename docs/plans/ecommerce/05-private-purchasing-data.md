@@ -68,8 +68,16 @@ product record, while purchasing fields and the agreements collection remain
 server-side denied.
 
 **Increment status:** code, generated types and migration, unit tests, and the
-PostgreSQL integration test are complete. The full migration chain passed from a
-clean disposable database. Manual CMS screen acceptance remains pending.
+PostgreSQL integration test are complete. Integration coverage includes Local
+API, REST reads and writes, GraphQL, and populated relationships for anonymous,
+customer, and editor access; a type assertion also protects the public contract.
+The full migration chain passed from a clean disposable database. Manual CMS
+acceptance verified the purchasing → finance → publishing workflow with dummy
+data: supplier creation, a formatted BRL 1,250.00 cost with explicit `1 g`
+basis and date, a useful invalid-basis message, finance activation, linked
+coverage, successful publication, and editor access to public fields without
+the private values. Storefront, responsive, and keyboard acceptance remains
+pending.
 
 Status: in progress. Depends on: 01, 04.
 
@@ -101,13 +109,13 @@ Using dummy data, have an authorized user create a supplier and save a BRL cost 
 
 ### Definition of done
 
-- [ ] Authorized staff can edit BRL costs for products sold in ARS, with explicit cost basis and date.
-- [ ] Catalog editors and ordinary customers cannot read/write private purchasing fields unless explicitly granted permission.
-- [ ] Anonymous API calls, populated product relationships, and storefront responses contain no costs, supplier contacts, or notes.
-- [ ] Public product types cannot accidentally serialize private operational records.
+- [x] Authorized staff can edit BRL costs for products sold in ARS, with explicit cost basis and date.
+- [x] Catalog editors and ordinary customers cannot read/write private purchasing fields unless explicitly granted permission.
+- [x] Anonymous API calls, populated product relationships, and storefront responses contain no costs, supplier contacts, or notes.
+- [x] Public product types cannot accidentally serialize private operational records.
 - [x] Permission tests cover anonymous, customer, editor, finance, and admin; denied writes leave data unchanged.
 - [x] Cost/currency validation, role migration, generated artifacts, and operator documentation are complete.
-- [ ] Authorized staff complete the supplier/cost workflow through usable CMS screens, including validation and denied-access behavior; API-only CRUD is insufficient.
+- [x] Authorized staff complete the supplier/cost workflow through usable CMS screens, including validation and denied-access behavior; API-only CRUD is insufficient.
 - [ ] Real storefront listing/detail/cart/checkout flows remain functional with missing or restricted purchasing data, and private edits do not alter public prices, currency, Brand, or origin.
 - [ ] EN/ES desktop/mobile and keyboard checks plus rendered/network leakage checks are recorded for the human acceptance flow. Completion covers the full private workflow and its public boundary.
 

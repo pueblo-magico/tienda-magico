@@ -69,9 +69,16 @@ producto, pero los campos de compras y la colección de acuerdos continúan
 denegados en el servidor.
 
 **Estado de este incremento:** código, tipos y migración generados, pruebas
-unitarias y prueba de integración PostgreSQL completos. La cadena completa de
-migraciones se verificó desde una base descartable. La aceptación manual de las
-pantallas del CMS continúa pendiente.
+unitarias y prueba de integración PostgreSQL completos. La integración cubre
+Local API, lecturas y escrituras REST, GraphQL y relaciones pobladas para
+anónimo, cliente y editor; además, una aserción de tipos protege el contrato
+público. La cadena completa de migraciones se verificó desde una base
+descartable. La aceptación manual del CMS verificó con datos dummy el flujo
+compras → finanzas → publicación: alta del proveedor, costo BRL 1.250,00 con
+base explícita `1 g` y fecha, mensaje útil ante base inválida, activación por
+finanzas, cobertura enlazada, publicación exitosa y edición pública sin valores
+privados para el rol editor. Continúan pendientes las pruebas de storefront,
+responsive y teclado.
 
 Estado: en curso. Depende de: 01, 04.
 
@@ -103,13 +110,13 @@ Con datos dummy, hacé que un usuario autorizado cree un proveedor y guarde un c
 
 ### Definición de terminado
 
-- [ ] El personal autorizado puede editar costos en BRL para productos vendidos en ARS, con base de costo y fecha explícitas.
-- [ ] Editores de catálogo y clientes comunes no pueden leer/escribir campos privados de compras salvo que se les otorgue permiso explícito.
-- [ ] Las llamadas API anónimas, relaciones pobladas de producto y respuestas del storefront no contienen costos, contactos de proveedor ni notas.
-- [ ] Los tipos públicos de producto no pueden serializar accidentalmente registros operativos privados.
+- [x] El personal autorizado puede editar costos en BRL para productos vendidos en ARS, con base de costo y fecha explícitas.
+- [x] Editores de catálogo y clientes comunes no pueden leer/escribir campos privados de compras salvo que se les otorgue permiso explícito.
+- [x] Las llamadas API anónimas, relaciones pobladas de producto y respuestas del storefront no contienen costos, contactos de proveedor ni notas.
+- [x] Los tipos públicos de producto no pueden serializar accidentalmente registros operativos privados.
 - [x] Las pruebas de permisos cubren anónimo, cliente, editor, finanzas y admin; las escrituras denegadas dejan los datos sin cambios.
 - [x] La validación de costo/moneda, migración de roles, artefactos generados y documentación operativa están completos.
-- [ ] El personal autorizado completa el flujo proveedor/costo desde pantallas CMS usables, incluida validación y acceso denegado; CRUD solo por API no alcanza.
+- [x] El personal autorizado completa el flujo proveedor/costo desde pantallas CMS usables, incluida validación y acceso denegado; CRUD solo por API no alcanza.
 - [ ] Los flujos reales de listado/detalle/carrito/checkout del storefront siguen funcionando con datos de compras faltantes o restringidos, y las ediciones privadas no alteran precios públicos, moneda, Marca ni origen.
 - [ ] Los controles EN/ES desktop/mobile y teclado, más los controles de filtración renderizada/de red, quedan registrados para el flujo de aceptación humana. La finalización cubre el flujo privado completo y su límite público.
 
