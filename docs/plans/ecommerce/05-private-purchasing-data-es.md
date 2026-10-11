@@ -38,7 +38,8 @@ El ciclo de vida es `draft` → `active` → `expired` o `terminated`. Compras p
 preparar borradores, pero solo finanzas o administración puede activar o cerrar
 una revisión. Al activar se registran responsable y fecha. Los términos de una
 revisión activa no se reescriben: cualquier cambio contractual requiere una
-nueva revisión consecutiva. Los acuerdos aprobados tampoco se eliminan.
+nueva revisión consecutiva. Los acuerdos aprobados tampoco se eliminan y el
+motivo de terminación queda inmutable una vez registrado.
 
 Una revisión activa exige una fecha válida de inicio. Las vigencias de revisiones
 aprobadas no pueden solaparse para el mismo proveedor y alcance; la activación
@@ -106,7 +107,7 @@ Con datos dummy, hacé que un usuario autorizado cree un proveedor y guarde un c
 - [ ] Editores de catálogo y clientes comunes no pueden leer/escribir campos privados de compras salvo que se les otorgue permiso explícito.
 - [ ] Las llamadas API anónimas, relaciones pobladas de producto y respuestas del storefront no contienen costos, contactos de proveedor ni notas.
 - [ ] Los tipos públicos de producto no pueden serializar accidentalmente registros operativos privados.
-- [ ] Las pruebas de permisos cubren anónimo, cliente, editor, finanzas y admin; las escrituras denegadas dejan los datos sin cambios.
+- [x] Las pruebas de permisos cubren anónimo, cliente, editor, finanzas y admin; las escrituras denegadas dejan los datos sin cambios.
 - [x] La validación de costo/moneda, migración de roles, artefactos generados y documentación operativa están completos.
 - [ ] El personal autorizado completa el flujo proveedor/costo desde pantallas CMS usables, incluida validación y acceso denegado; CRUD solo por API no alcanza.
 - [ ] Los flujos reales de listado/detalle/carrito/checkout del storefront siguen funcionando con datos de compras faltantes o restringidos, y las ediciones privadas no alteran precios públicos, moneda, Marca ni origen.

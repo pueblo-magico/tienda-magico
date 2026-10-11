@@ -112,6 +112,86 @@ test(
       )
       assert.ok(active.approvedAt)
 
+      const product = await payload.create({
+        collection: 'products',
+        overrideAccess: false,
+        user: purchasing,
+        locale: 'es',
+        data: {
+          title: `Producto privado ${suffix}`,
+          summary: 'Resumen visible inicial',
+          slug: `producto-privado-${suffix}`,
+          sku: `PRIVADO-${suffix}`,
+          inventory: 2,
+          priceInARSEnabled: true,
+          priceInARS: 10000,
+          _status: 'published',
+          supplier: supplier.id,
+          supplierSKU: `SKU-PROVEEDOR-${suffix}`,
+          purchaseCost: {
+            amountMinor: 5000,
+            currency: 'BRL',
+            baseQuantity: 1,
+            baseUnit: 'unit',
+            updatedAt: '2026-10-11T00:00:00.000Z',
+          },
+          termsOverride: { mode: 'inherit' },
+          purchasingNotes: 'Dato privado original',
+        },
+      })
+
+      for (const user of [undefined, customer, editor]) {
+        const visibleProduct = await payload.findByID({
+          collection: 'products',
+          id: product.id,
+          depth: 0,
+          overrideAccess: false,
+          user,
+        })
+        for (const privateField of [
+          'supplier',
+          'supplierSKU',
+          'purchaseCost',
+          'termsOverride',
+          'purchasingNotes',
+        ]) {
+          assert.equal(privateField in visibleProduct, false)
+        }
+      }
+
+      const editorUpdate = await payload.update({
+        collection: 'products',
+        id: product.id,
+        overrideAccess: false,
+        user: editor,
+        locale: 'es',
+        data: {
+          summary: 'Resumen visible editado',
+          supplierSKU: 'NO-DEBE-PERSISTIR',
+          purchasingNotes: 'No debe persistir',
+        },
+      })
+      assert.equal(editorUpdate.summary, 'Resumen visible editado')
+      assert.equal('supplierSKU' in editorUpdate, false)
+      assert.equal('purchasingNotes' in editorUpdate, false)
+      const productAfterEditorUpdate = await payload.findByID({
+        collection: 'products',
+        id: product.id,
+        depth: 0,
+        overrideAccess: true,
+      })
+      assert.equal(productAfterEditorUpdate.supplierSKU, `SKU-PROVEEDOR-${suffix}`)
+      assert.equal(productAfterEditorUpdate.purchasingNotes, 'Dato privado original')
+      await assert.rejects(() =>
+        payload.update({
+          collection: 'products',
+          id: product.id,
+          overrideAccess: false,
+          user: customer,
+          data: { summary: 'Un cliente no puede editar el catálogo' },
+        }),
+      )
+
       for (const user of [undefined, customer, editor]) {
         await assert.rejects(() =>
           payload.find({
@@ -195,6 +275,30 @@ test(
           user: purchasing,
         }),
       )
+      const terminated = await payload.update({
+        collection: 'supplier-agreements',
+        id: active.id,
+        overrideAccess: false,
+        user: finance,
+        data: { status: 'terminated', terminationReason: 'Fin de la relación comercial' },
+      })
+      assert.equal(terminated.status, 'terminated')
+      assert.ok(terminated.terminatedAt)
+      await assert.rejects(() =>
+        payload.update({
+          collection: 'supplier-agreements',
+          id: active.id,
+          overrideAccess: false,
+          user: finance,
+          data: { terminationReason: 'Motivo reescrito' },
+        }),
+      )
+      const terminationHistory = await payload.findByID({
+        collection: 'supplier-agreements',
+        id: active.id,
+        overrideAccess: true,
+      })
+      assert.equal(terminationHistory.terminationReason, 'Fin de la relación comercial')
     } finally {
       await payload.destroy()
     }

@@ -791,6 +791,14 @@ test("solo finanzas aprueba y una revisión activa no reescribe sus términos", 
       now: "2026-10-13T12:00:00.000Z",
     }),
   );
+  assert.throws(() =>
+    transition({
+      original: terminated,
+      data: { terminationReason: "Motivo reescrito" },
+      user: { id: 1, roles: ["admin"] },
+      now: "2026-10-13T12:00:00.000Z",
+    }),
+  );
 });
 
 test("las vigencias abiertas se solapan pero los períodos adyacentes no", () => {

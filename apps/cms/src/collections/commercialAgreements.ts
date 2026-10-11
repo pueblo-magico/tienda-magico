@@ -174,6 +174,15 @@ export function applyAgreementTransition({
         validationError('Creá una nueva revisión para modificar un acuerdo activo.', String(field))
     }
   }
+  if (
+    original?.status === 'terminated' &&
+    'terminationReason' in data &&
+    data.terminationReason !== original.terminationReason
+  )
+    validationError(
+      'El motivo de terminación forma parte del historial y no se puede reescribir.',
+      'terminationReason',
+    )
 
   const isStatusChange = previousStatus !== nextStatus
   if (isStatusChange && nextStatus !== 'draft') {

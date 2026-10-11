@@ -38,7 +38,8 @@ The lifecycle is `draft` → `active` → `expired` or `terminated`. Purchasing 
 prepare drafts, while only finance or administration can activate or close a
 revision. Activation records the approver and timestamp. Approved financial
 terms are immutable; contractual changes require a consecutive new revision.
-Approved agreements cannot be deleted.
+Approved agreements cannot be deleted, and the termination reason becomes
+immutable once recorded.
 
 Active revisions require a valid effective start date. Effective periods of
 approved revisions may not overlap for the same supplier and scope; activation
@@ -104,7 +105,7 @@ Using dummy data, have an authorized user create a supplier and save a BRL cost 
 - [ ] Catalog editors and ordinary customers cannot read/write private purchasing fields unless explicitly granted permission.
 - [ ] Anonymous API calls, populated product relationships, and storefront responses contain no costs, supplier contacts, or notes.
 - [ ] Public product types cannot accidentally serialize private operational records.
-- [ ] Permission tests cover anonymous, customer, editor, finance, and admin; denied writes leave data unchanged.
+- [x] Permission tests cover anonymous, customer, editor, finance, and admin; denied writes leave data unchanged.
 - [x] Cost/currency validation, role migration, generated artifacts, and operator documentation are complete.
 - [ ] Authorized staff complete the supplier/cost workflow through usable CMS screens, including validation and denied-access behavior; API-only CRUD is insufficient.
 - [ ] Real storefront listing/detail/cart/checkout flows remain functional with missing or restricted purchasing data, and private edits do not alter public prices, currency, Brand, or origin.
