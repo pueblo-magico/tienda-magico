@@ -77,8 +77,15 @@ descartable. La aceptación manual del CMS verificó con datos dummy el flujo
 compras → finanzas → publicación: alta del proveedor, costo BRL 1.250,00 con
 base explícita `1 g` y fecha, mensaje útil ante base inválida, activación por
 finanzas, cobertura enlazada, publicación exitosa y edición pública sin valores
-privados para el rol editor. Continúan pendientes las pruebas de storefront,
-responsive y teclado.
+privados para el rol editor. El listado y detalle anónimos en EN/ES conservaron
+el precio público ARS después de editar compras; el DOM desktop y mobile de
+390 px y el HTML renderizado en servidor no incluyeron ningún marcador privado
+dummy. El carrito mobile y el panel de datos de checkout funcionaron con otro
+ítem vendible. Después se habilitó temporalmente una unidad local de Rape Sunu
+para recorrer con ese mismo producto el carrito y la revisión de checkout: solo
+apareció su precio público ARS. Al restaurar el inventario a cero, la revisión
+mostró el aviso de disponibilidad esperado sin romperse. Continúan pendientes
+el flujo con cliente autenticado y la aceptación de teclado.
 
 Estado: en curso. Depende de: 01, 04.
 
@@ -117,7 +124,7 @@ Con datos dummy, hacé que un usuario autorizado cree un proveedor y guarde un c
 - [x] Las pruebas de permisos cubren anónimo, cliente, editor, finanzas y admin; las escrituras denegadas dejan los datos sin cambios.
 - [x] La validación de costo/moneda, migración de roles, artefactos generados y documentación operativa están completos.
 - [x] El personal autorizado completa el flujo proveedor/costo desde pantallas CMS usables, incluida validación y acceso denegado; CRUD solo por API no alcanza.
-- [ ] Los flujos reales de listado/detalle/carrito/checkout del storefront siguen funcionando con datos de compras faltantes o restringidos, y las ediciones privadas no alteran precios públicos, moneda, Marca ni origen.
+- [x] Los flujos reales de listado/detalle/carrito/checkout del storefront siguen funcionando con datos de compras faltantes o restringidos, y las ediciones privadas no alteran precios públicos, moneda, Marca ni origen.
 - [ ] Los controles EN/ES desktop/mobile y teclado, más los controles de filtración renderizada/de red, quedan registrados para el flujo de aceptación humana. La finalización cubre el flujo privado completo y su límite público.
 
 ### Fuera de alcance

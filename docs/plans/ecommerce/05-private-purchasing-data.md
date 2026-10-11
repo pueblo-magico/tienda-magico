@@ -76,8 +76,13 @@ acceptance verified the purchasing → finance → publishing workflow with dumm
 data: supplier creation, a formatted BRL 1,250.00 cost with explicit `1 g`
 basis and date, a useful invalid-basis message, finance activation, linked
 coverage, successful publication, and editor access to public fields without
-the private values. Storefront, responsive, and keyboard acceptance remains
-pending.
+the private values. Anonymous EN/ES listing and detail pages also rendered the
+same public ARS price after the private edit; desktop and 390 px mobile DOM plus
+server-rendered HTML contained none of the dummy private markers. A temporary
+local inventory unit then exercised Rape Sunu itself through the cart and the
+checkout review; only its public ARS price was present, and restoring inventory
+to zero produced the expected availability warning without breaking review.
+Authenticated-customer and keyboard acceptance remains pending.
 
 Status: in progress. Depends on: 01, 04.
 
@@ -116,7 +121,7 @@ Using dummy data, have an authorized user create a supplier and save a BRL cost 
 - [x] Permission tests cover anonymous, customer, editor, finance, and admin; denied writes leave data unchanged.
 - [x] Cost/currency validation, role migration, generated artifacts, and operator documentation are complete.
 - [x] Authorized staff complete the supplier/cost workflow through usable CMS screens, including validation and denied-access behavior; API-only CRUD is insufficient.
-- [ ] Real storefront listing/detail/cart/checkout flows remain functional with missing or restricted purchasing data, and private edits do not alter public prices, currency, Brand, or origin.
+- [x] Real storefront listing/detail/cart/checkout flows remain functional with missing or restricted purchasing data, and private edits do not alter public prices, currency, Brand, or origin.
 - [ ] EN/ES desktop/mobile and keyboard checks plus rendered/network leakage checks are recorded for the human acceptance flow. Completion covers the full private workflow and its public boundary.
 
 ### Out of scope
