@@ -19,17 +19,20 @@ for (const locale of ["es", "en"]) {
         createElement(
           AppRouterContext.Provider,
           { value: { refresh() {} } },
-          createElement(CashWaiting, {
-            paymentStatus: "pending",
-            cashStaffEnabled: true,
-            reference: "00000000-0000-4000-8000-000000000001",
-            expiresAt: "2026-09-18T12:00:00Z",
-            serverTime: Date.parse("2026-09-18T12:00:00Z"),
-            title: "",
-            body: "",
-            notice: "",
-            children: "Referencia",
-          }),
+          createElement(
+            CashWaiting,
+            {
+              paymentStatus: "pending",
+              cashStaffEnabled: true,
+              reference: "00000000-0000-4000-8000-000000000001",
+              expiresAt: "2026-09-18T12:00:00Z",
+              serverTime: Date.parse("2026-09-18T12:00:00Z"),
+              title: "",
+              body: "",
+              notice: "",
+            },
+            "Referencia",
+          ),
         ),
       ),
     );
@@ -83,7 +86,7 @@ for (const cashStaffEnabled of [true, false, undefined]) {
         const canRefresh = ["pending", "unverified"].includes(paymentStatus);
         assert.equal(
           html.includes(
-            `/staff/cash?order=00000000-0000-4000-8000-000000000001`,
+            `/${locale}/${locale === "es" ? "personal/caja" : "staff/cash"}?order=00000000-0000-4000-8000-000000000001`,
           ),
           canRefresh && cashStaffEnabled === true,
         );
@@ -136,16 +139,19 @@ test("un pedido en efectivo recibido no vuelve a mostrar el formulario de recepc
       createElement(
         AppRouterContext.Provider,
         { value: { refresh() {} } },
-        createElement(CashWaiting, {
-          paymentStatus: "approved",
-          cashStaffEnabled: true,
-          reference: "00000000-0000-4000-8000-000000000001",
-          receivedAt: "2026-09-17T12:00:00.000Z",
-          title: messages.checkout.pending.cashTitle,
-          body: messages.checkout.pending.cashBody,
-          notice: messages.checkout.pending.cashNotice,
-          children: "Referencia",
-        }),
+        createElement(
+          CashWaiting,
+          {
+            paymentStatus: "approved",
+            cashStaffEnabled: true,
+            reference: "00000000-0000-4000-8000-000000000001",
+            receivedAt: "2026-09-17T12:00:00.000Z",
+            title: messages.checkout.pending.cashTitle,
+            body: messages.checkout.pending.cashBody,
+            notice: messages.checkout.pending.cashNotice,
+          },
+          "Referencia",
+        ),
       ),
     ),
   );
