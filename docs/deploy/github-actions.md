@@ -13,6 +13,8 @@ Publica cuatro checks independientes para que un fallo sea fácil de ubicar:
 
 Configurá esos cuatro checks como requeridos en la regla de protección de `develop`. La concurrencia cancela ejecuciones anteriores del mismo pull request, pero nunca comparte la base de datos entre jobs.
 
+La compilación del storefront reintenta una sola vez exclusivamente si Turbopack devuelve el fallo intermitente conocido de descarga de `next/font/google`. Cualquier otro error falla de inmediato, y el segundo intento nunca se ignora.
+
 ## Configuración inicial
 
 No se necesita una instalación local ni editar archivos de entorno en la VM. El workflow instala Docker si hace falta, instala el kit y genera deployment.env, storefront.env, cms.env y postgres.env desde GitHub. La VM debe tener Linux compatible con el instalador, SSH, sudo no interactivo, conectividad y los puertos 80/443 disponibles. Configurá DNS antes del primer despliegue.

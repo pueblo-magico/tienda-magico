@@ -143,6 +143,17 @@ jobs:
       - name: Instalar dependencias del CMS
         run: npm --prefix apps/cms ci
       - name: Compilar storefront
-        run: npm run build
+        shell: bash
+        run: |
+          set -o pipefail
+          build_log="$(mktemp)"
+          if npm run build 2>&1 | tee "$build_log"; then
+            exit 0
+          fi
+          if ! grep -Fq "@vercel/turbopack-next/internal/font/google/font" "$build_log"; then
+            exit 1
+          fi
+          echo "Reintentando una vez por el fallo intermitente de next/font/google en Turbopack."
+          npm run build
       - name: Compilar CMS
         run: npm run build:cms

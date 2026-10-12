@@ -37,4 +37,8 @@ test("la integración continua protege los PR sin depender de secretos", async (
 
   assert.match(workflow, /image: postgres:16-alpine/);
   assert.match(workflow, /TIENDA_TEST_DATABASE_URL:/);
+  assert.match(
+    workflow,
+    /grep -Fq "@vercel\/turbopack-next\/internal\/font\/google\/font"/,
+  );
 });
