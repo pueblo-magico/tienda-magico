@@ -87,6 +87,8 @@ Never commit `.env`.
 | Slug                                 | Source                      | Purpose                                            |
 | ------------------------------------ | --------------------------- | -------------------------------------------------- |
 | `users`                              | App                         | Admins/customers; API keys enabled                 |
+| `suppliers`                          | App (Task 05)               | Private suppliers and default commercial terms     |
+| `supplier-agreements`                | App (Task 05)               | Private versioned supplier agreement revisions     |
 | `media`                              | App                         | Public-read uploads                                |
 | `pages`                              | App (Phase 6)               | Marketing pages with layout blocks (draft/publish) |
 | `posts`                              | App (Phase 6)               | Journal / editorial posts                          |
@@ -128,6 +130,26 @@ Plugin defaults do **not** include `title`. This app’s override adds:
 - `tags[]`
 
 Plus plugin fields: pricing (`priceInARS` in minor units), inventory, variants, drafts.
+
+Authorized purchasing and finance users also see the private **Purchasing and
+supplier** tab. It stores the supplier relationship, supplier SKU, explicit
+purchase cost/base, and an optional product-level override of the supplier's
+purchase or consignment terms. Server-side field access excludes those fields
+from public APIs and storefront commerce contracts.
+
+The private **Supplier agreements** collection stores auditable contract
+revisions scoped to a supplier, product, or sellable variant. Purchasing can
+prepare drafts; finance or admin must activate or close them. Activation records
+the approver and rejects overlapping approved periods for the same scope. Closing
+an agreement also closes its effective period. Approved terms are immutable and
+must be superseded by a consecutive revision.
+
+Product publication resolves approved coverage in variant, product, then
+supplier order. The product purchasing tab displays that effective coverage and
+identifies the temporary legacy fallback supplied by embedded product or
+supplier terms. Missing or ambiguous coverage blocks publication. Catalog
+editors can maintain public product content, but cannot read or change private
+purchasing data or supplier agreements.
 
 ## Localization (EN / ES)
 

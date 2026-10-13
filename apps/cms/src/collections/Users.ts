@@ -84,6 +84,9 @@ export const Users: CollectionConfig = {
       defaultValue: ['admin'],
       options: [
         { label: { es: 'Administrador', en: 'Admin' }, value: 'admin' },
+        { label: { es: 'Compras', en: 'Purchasing' }, value: 'purchasing' },
+        { label: { es: 'Finanzas', en: 'Finance' }, value: 'finance' },
+        { label: { es: 'Editor de catálogo', en: 'Catalog editor' }, value: 'editor' },
         { label: { es: 'Cliente', en: 'Customer' }, value: 'customer' },
       ],
       required: true,

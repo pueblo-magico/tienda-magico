@@ -1,5 +1,20 @@
 # Despliegue automático desde GitHub Environments
 
+## Integración continua
+
+El workflow `Verificación continua` se ejecuta en cada pull request hacia `develop`, `staging` o `production`, en cada push a `develop` y también de forma manual. Usa Node 24.18.0, igual que las imágenes de producción. No usa secrets ni credenciales de producción: sus valores de Payload y sus bases PostgreSQL son efímeros y exclusivos de la ejecución.
+
+Publica cuatro checks independientes para que un fallo sea fácil de ubicar:
+
+- `Calidad y tipos`: ejecuta ESLint y TypeScript en el storefront y el CMS.
+- `Pruebas automatizadas`: cubre acuerdos con proveedores, catálogo, artículos vendibles, espera de pagos en efectivo, configuración de despliegue y el propio contrato del workflow.
+- `Integración con PostgreSQL`: valida autorización, auditoría e historial de los acuerdos contra PostgreSQL 16.
+- `Compilación de producción`: compila el storefront y el CMS con una configuración local descartable.
+
+Configurá esos cuatro checks como requeridos en la regla de protección de `develop`. La concurrencia cancela ejecuciones anteriores del mismo pull request, pero nunca comparte la base de datos entre jobs.
+
+La compilación del storefront reintenta una sola vez exclusivamente si Turbopack devuelve el fallo intermitente conocido de descarga de `next/font/google`. Cualquier otro error falla de inmediato, y el segundo intento nunca se ignora.
+
 ## Configuración inicial
 
 No se necesita una instalación local ni editar archivos de entorno en la VM. El workflow instala Docker si hace falta, instala el kit y genera deployment.env, storefront.env, cms.env y postgres.env desde GitHub. La VM debe tener Linux compatible con el instalador, SSH, sudo no interactivo, conectividad y los puertos 80/443 disponibles. Configurá DNS antes del primer despliegue.
@@ -8,19 +23,19 @@ Creá los Environments staging y production, restringidos a sus ramas respectiva
 
 ### Variables del Environment
 
-| Variable | Valor |
-| --- | --- |
-| SHOP_URL | Origen público de la tienda, sin barra final |
-| CMS_URL | Origen público del CMS, sin barra final |
-| DEPLOY_PLATFORM | linux/amd64 o linux/arm64 |
-| SSH_HOST | Host de la VM |
-| SSH_USER | Usuario con sudo no interactivo |
-| SSH_PORT | Opcional; 22 por defecto |
-| CHECKOUT_PROVIDER | mercado-pago |
-| MERCADOPAGO_SANDBOX | true en staging; false en production |
-| MERCADOPAGO_WEBHOOK_URL | SHOP_URL/api/checkout/webhooks/mercado-pago |
-| POSTGRES_USER | Opcional; postgres por defecto |
-| POSTGRES_DB | Opcional; tienda_magico_cms por defecto |
+| Variable                | Valor                                        |
+| ----------------------- | -------------------------------------------- |
+| SHOP_URL                | Origen público de la tienda, sin barra final |
+| CMS_URL                 | Origen público del CMS, sin barra final      |
+| DEPLOY_PLATFORM         | linux/amd64 o linux/arm64                    |
+| SSH_HOST                | Host de la VM                                |
+| SSH_USER                | Usuario con sudo no interactivo              |
+| SSH_PORT                | Opcional; 22 por defecto                     |
+| CHECKOUT_PROVIDER       | mercado-pago                                 |
+| MERCADOPAGO_SANDBOX     | true en staging; false en production         |
+| MERCADOPAGO_WEBHOOK_URL | SHOP_URL/api/checkout/webhooks/mercado-pago  |
+| POSTGRES_USER           | Opcional; postgres por defecto               |
+| POSTGRES_DB             | Opcional; tienda_magico_cms por defecto      |
 
 ### Secrets del Environment
 
@@ -63,4 +78,4 @@ El health check interno del storefront consulta `/api/health`: responde `200` co
 
 Para desplegar este cambio, compilá una imagen nueva (dejá `existing_tag` vacío). Las imágenes anteriores no contienen el endpoint y no son compatibles con este health check; un rollback a una versión anterior requiere restaurar también su archivo Compose.
 
-Ejecutá las pruebas de despliegue con node --test tests/deployment-config.test.mjs tests/deployment-branches.test.mjs tests/deployment-runtime-env.test.mjs. Validá además un primer despliegue en una VM de prueba, un redeploy y un fallo de activación antes de publicar en producción.
+Ejecutá localmente la misma selección sin base de datos con `npm run test:ci` y la integración con `TIENDA_TEST_DATABASE_URL=<url> npm run test:task-05:db`. Validá además un primer despliegue en una VM de prueba, un redeploy y un fallo de activación antes de publicar en producción.

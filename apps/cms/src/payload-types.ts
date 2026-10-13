@@ -73,6 +73,8 @@ export interface Config {
   blocks: {};
   collections: {
     users: User;
+    suppliers: Supplier;
+    'supplier-agreements': SupplierAgreement;
     media: Media;
     localSales: LocalSale;
     'payment-notifications': PaymentNotification;
@@ -97,6 +99,9 @@ export interface Config {
     'payload-migrations': PayloadMigration;
   };
   collectionsJoins: {
+    suppliers: {
+      agreements: 'supplier-agreements';
+    };
     variantTypes: {
       options: 'variantOptions';
     };
@@ -106,6 +111,8 @@ export interface Config {
   };
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
+    suppliers: SuppliersSelect<false> | SuppliersSelect<true>;
+    'supplier-agreements': SupplierAgreementsSelect<false> | SupplierAgreementsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     localSales: LocalSalesSelect<false> | LocalSalesSelect<true>;
     'payment-notifications': PaymentNotificationsSelect<false> | PaymentNotificationsSelect<true>;
@@ -203,7 +210,7 @@ export interface User {
    * Preferred language for CMS administration.
    */
   editorLanguage: 'es' | 'en';
-  roles: ('admin' | 'customer')[];
+  roles: ('admin' | 'purchasing' | 'finance' | 'editor' | 'customer')[];
   name?: string | null;
   updatedAt: string;
   createdAt: string;
@@ -228,174 +235,103 @@ export interface User {
   collection: 'users';
 }
 /**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "media".
- */
-export interface Media {
-  id: number;
-  alt: string;
-  updatedAt: string;
-  createdAt: string;
-  url?: string | null;
-  thumbnailURL?: string | null;
-  filename?: string | null;
-  mimeType?: string | null;
-  filesize?: number | null;
-  width?: number | null;
-  height?: number | null;
-  focalX?: number | null;
-  focalY?: number | null;
-}
-/**
- * Private record of local sales operated from the CMS.
+ * Private purchasing data. A supplier is not a brand and its country does not define product origin.
  *
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "localSales".
+ * via the `definition` "suppliers".
  */
-export interface LocalSale {
+export interface Supplier {
   id: number;
-  order: number | Order;
-  /**
-   * Prevents duplicate records for the same order and retry.
-   */
-  idempotencyKey: string;
-  status: 'pending_payment' | 'paid' | 'cancelled' | 'conflict';
-  fulfillmentMode: 'local_collection' | 'delivery';
-  paymentStatus: 'pending' | 'approved' | 'rejected' | 'cancelled' | 'unverified';
-  paymentMethod: 'mercado-pago' | 'bank-transfer' | 'cash';
-  paymentExpiresAt?: string | null;
-  /**
-   * Optional private data allowed by checkout.
-   */
-  buyerContact?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  /**
-   * Immutable order identity, options, quantities, and amounts.
-   */
-  snapshot:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  /**
-   * Never store gateway credentials or secrets.
-   */
-  paymentEvidence?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
+  name: string;
+  reference?: string | null;
+  country?: string | null;
+  contactName?: string | null;
+  contactEmail?: string | null;
+  contactPhone?: string | null;
+  defaultTerms: {
+    mode: 'purchase' | 'consignment';
+    method?: ('percentage' | 'fixed') | null;
+    /**
+     * Enter 35 for 35.00%.
+     */
+    shareBps?: number | null;
+    /**
+     * Explicitly define which amounts increase or reduce the base before calculating the supplier share.
+     */
+    percentageBasis?: {
+      productDiscounts: 'deduct' | 'ignore';
+      orderDiscounts: 'deduct_allocated' | 'ignore';
+      taxes: 'include' | 'exclude';
+      shipping: 'include_allocated' | 'exclude';
+      tipsDonations: 'include_allocated' | 'exclude';
+      paymentFees: 'deduct_actual' | 'store_absorbs';
+    };
+    /**
+     * Enter the amount in the selected currency, with up to two decimals.
+     */
+    fixedMinor?: number | null;
+    currency?: string | null;
+    effectiveFrom?: string | null;
+    effectiveTo?: string | null;
+  };
+  agreements?: {
+    docs?: (number | SupplierAgreement)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  notes?: string | null;
   updatedAt: string;
   createdAt: string;
 }
 /**
+ * Private auditable revisions. Activate a new revision instead of changing approved terms.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "orders".
+ * via the `definition` "supplier-agreements".
  */
-export interface Order {
+export interface SupplierAgreement {
   id: number;
-  items?:
-    | {
-        product?: (number | null) | Product;
-        variant?: (number | null) | Variant;
-        quantity: number;
-        id?: string | null;
-      }[]
-    | null;
-  shippingAddress?: {
-    title?: string | null;
-    firstName?: string | null;
-    lastName?: string | null;
-    company?: string | null;
-    addressLine1?: string | null;
-    addressLine2?: string | null;
-    city?: string | null;
-    state?: string | null;
-    postalCode?: string | null;
-    country?: string | null;
-    phone?: string | null;
-  };
-  customer?: (number | null) | User;
-  customerEmail?: string | null;
-  transactions?: (number | Transaction)[] | null;
-  status?: OrderStatus;
-  amount?: number | null;
-  currency?: 'ARS' | null;
-  cashVerification?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  transferBankReference?: string | null;
-  transferVerification?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
+  reference: string;
+  supplier: number | Supplier;
   /**
-   * Does not confirm receipt of funds.
+   * Leave empty for a supplier default agreement.
    */
-  transferReportedAt?: string | null;
-  checkoutKey?: string | null;
-  cartReference?: string | null;
-  publicReference: string;
-  fulfillmentMode?: ('local_collection' | 'delivery') | null;
-  buyerContact?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  transferIdentification?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  paymentMethod: 'mercado-pago' | 'bank-transfer' | 'cash';
-  paymentExpiresAt?: string | null;
-  paymentStatus: 'pending' | 'approved' | 'rejected' | 'cancelled' | 'unverified';
-  receivedAt?: string | null;
-  experienceRating?: number | null;
-  experienceComment?: string | null;
-  commercialSnapshot?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
+  product?: (number | null) | Product;
+  variant?: (number | null) | Variant;
+  revision: number;
+  previousAgreement?: (number | null) | SupplierAgreement;
+  status: 'draft' | 'active' | 'expired' | 'terminated';
+  terms: {
+    mode: 'purchase' | 'consignment';
+    method?: ('percentage' | 'fixed') | null;
+    /**
+     * Enter 35 for 35.00%.
+     */
+    shareBps?: number | null;
+    /**
+     * Explicitly define which amounts increase or reduce the base before calculating the supplier share.
+     */
+    percentageBasis?: {
+      productDiscounts: 'deduct' | 'ignore';
+      orderDiscounts: 'deduct_allocated' | 'ignore';
+      taxes: 'include' | 'exclude';
+      shipping: 'include_allocated' | 'exclude';
+      tipsDonations: 'include_allocated' | 'exclude';
+      paymentFees: 'deduct_actual' | 'store_absorbs';
+    };
+    /**
+     * Enter the amount in the selected currency, with up to two decimals.
+     */
+    fixedMinor?: number | null;
+    currency?: string | null;
+    effectiveFrom?: string | null;
+    effectiveTo?: string | null;
+  };
+  approvedBy?: (number | null) | User;
+  approvedAt?: string | null;
+  terminatedAt?: string | null;
+  terminationReason?: string | null;
+  notes?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -577,10 +513,68 @@ export interface Product {
   packageLengthMm?: number | null;
   packageWidthMm?: number | null;
   packageHeightMm?: number | null;
+  supplier?: (number | null) | Supplier;
+  supplierSKU?: string | null;
+  purchaseCost?: {
+    /**
+     * Enter the cost in the selected currency, with up to two decimals.
+     */
+    amountMinor?: number | null;
+    currency?: string | null;
+    baseQuantity?: number | null;
+    baseUnit?: string | null;
+    updatedAt?: string | null;
+  };
+  termsOverride: {
+    mode: 'inherit' | 'purchase' | 'consignment';
+    method?: ('percentage' | 'fixed') | null;
+    /**
+     * Enter 35 for 35.00%.
+     */
+    shareBps?: number | null;
+    /**
+     * Explicitly define which amounts increase or reduce the base before calculating the supplier share.
+     */
+    percentageBasis?: {
+      productDiscounts: 'deduct' | 'ignore';
+      orderDiscounts: 'deduct_allocated' | 'ignore';
+      taxes: 'include' | 'exclude';
+      shipping: 'include_allocated' | 'exclude';
+      tipsDonations: 'include_allocated' | 'exclude';
+      paymentFees: 'deduct_actual' | 'store_absorbs';
+    };
+    /**
+     * Enter the amount in the selected currency, with up to two decimals.
+     */
+    fixedMinor?: number | null;
+    currency?: string | null;
+    effectiveFrom?: string | null;
+    effectiveTo?: string | null;
+  };
+  purchasingNotes?: string | null;
   updatedAt: string;
   createdAt: string;
   deletedAt?: string | null;
   _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "media".
+ */
+export interface Media {
+  id: number;
+  alt: string;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -2832,6 +2826,159 @@ export interface Variant {
   _status?: ('draft' | 'published') | null;
 }
 /**
+ * Private record of local sales operated from the CMS.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "localSales".
+ */
+export interface LocalSale {
+  id: number;
+  order: number | Order;
+  /**
+   * Prevents duplicate records for the same order and retry.
+   */
+  idempotencyKey: string;
+  status: 'pending_payment' | 'paid' | 'cancelled' | 'conflict';
+  fulfillmentMode: 'local_collection' | 'delivery';
+  paymentStatus: 'pending' | 'approved' | 'rejected' | 'cancelled' | 'unverified';
+  paymentMethod: 'mercado-pago' | 'bank-transfer' | 'cash';
+  paymentExpiresAt?: string | null;
+  /**
+   * Optional private data allowed by checkout.
+   */
+  buyerContact?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Immutable order identity, options, quantities, and amounts.
+   */
+  snapshot:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Never store gateway credentials or secrets.
+   */
+  paymentEvidence?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "orders".
+ */
+export interface Order {
+  id: number;
+  items?:
+    | {
+        product?: (number | null) | Product;
+        variant?: (number | null) | Variant;
+        quantity: number;
+        id?: string | null;
+      }[]
+    | null;
+  shippingAddress?: {
+    title?: string | null;
+    firstName?: string | null;
+    lastName?: string | null;
+    company?: string | null;
+    addressLine1?: string | null;
+    addressLine2?: string | null;
+    city?: string | null;
+    state?: string | null;
+    postalCode?: string | null;
+    country?: string | null;
+    phone?: string | null;
+  };
+  customer?: (number | null) | User;
+  customerEmail?: string | null;
+  transactions?: (number | Transaction)[] | null;
+  status?: OrderStatus;
+  amount?: number | null;
+  currency?: 'ARS' | null;
+  cashVerification?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  transferBankReference?: string | null;
+  transferVerification?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Does not confirm receipt of funds.
+   */
+  transferReportedAt?: string | null;
+  checkoutKey?: string | null;
+  cartReference?: string | null;
+  publicReference: string;
+  fulfillmentMode?: ('local_collection' | 'delivery') | null;
+  buyerContact?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  transferIdentification?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  paymentMethod: 'mercado-pago' | 'bank-transfer' | 'cash';
+  paymentExpiresAt?: string | null;
+  paymentStatus: 'pending' | 'approved' | 'rejected' | 'cancelled' | 'unverified';
+  receivedAt?: string | null;
+  experienceRating?: number | null;
+  experienceComment?: string | null;
+  commercialSnapshot?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "transactions".
  */
@@ -3392,6 +3539,10 @@ export interface PayloadLockedDocument {
         value: number | User;
       } | null)
     | ({
+        relationTo: 'suppliers';
+        value: number | Supplier;
+      } | null)
+    | ({
         relationTo: 'media';
         value: number | Media;
       } | null)
@@ -3532,6 +3683,84 @@ export interface UsersSelect<T extends boolean = true> {
         createdAt?: T;
         expiresAt?: T;
       };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "suppliers_select".
+ */
+export interface SuppliersSelect<T extends boolean = true> {
+  name?: T;
+  reference?: T;
+  country?: T;
+  contactName?: T;
+  contactEmail?: T;
+  contactPhone?: T;
+  defaultTerms?:
+    | T
+    | {
+        mode?: T;
+        method?: T;
+        shareBps?: T;
+        percentageBasis?:
+          | T
+          | {
+              productDiscounts?: T;
+              orderDiscounts?: T;
+              taxes?: T;
+              shipping?: T;
+              tipsDonations?: T;
+              paymentFees?: T;
+            };
+        fixedMinor?: T;
+        currency?: T;
+        effectiveFrom?: T;
+        effectiveTo?: T;
+      };
+  agreements?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "supplier-agreements_select".
+ */
+export interface SupplierAgreementsSelect<T extends boolean = true> {
+  reference?: T;
+  supplier?: T;
+  product?: T;
+  variant?: T;
+  revision?: T;
+  previousAgreement?: T;
+  status?: T;
+  terms?:
+    | T
+    | {
+        mode?: T;
+        method?: T;
+        shareBps?: T;
+        percentageBasis?:
+          | T
+          | {
+              productDiscounts?: T;
+              orderDiscounts?: T;
+              taxes?: T;
+              shipping?: T;
+              tipsDonations?: T;
+              paymentFees?: T;
+            };
+        fixedMinor?: T;
+        currency?: T;
+        effectiveFrom?: T;
+        effectiveTo?: T;
+      };
+  approvedBy?: T;
+  approvedAt?: T;
+  terminatedAt?: T;
+  terminationReason?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -4053,6 +4282,39 @@ export interface ProductsSelect<T extends boolean = true> {
   packageLengthMm?: T;
   packageWidthMm?: T;
   packageHeightMm?: T;
+  supplier?: T;
+  supplierSKU?: T;
+  purchaseCost?:
+    | T
+    | {
+        amountMinor?: T;
+        currency?: T;
+        baseQuantity?: T;
+        baseUnit?: T;
+        updatedAt?: T;
+      };
+  termsOverride?:
+    | T
+    | {
+        mode?: T;
+        method?: T;
+        shareBps?: T;
+        percentageBasis?:
+          | T
+          | {
+              productDiscounts?: T;
+              orderDiscounts?: T;
+              taxes?: T;
+              shipping?: T;
+              tipsDonations?: T;
+              paymentFees?: T;
+            };
+        fixedMinor?: T;
+        currency?: T;
+        effectiveFrom?: T;
+        effectiveTo?: T;
+      };
+  purchasingNotes?: T;
   updatedAt?: T;
   createdAt?: T;
   deletedAt?: T;
@@ -4435,6 +4697,8 @@ export interface CmsSetting {
   faqs: boolean;
   header: boolean;
   footer: boolean;
+  suppliers: boolean;
+  supplierAgreements: boolean;
   paymentNotifications: boolean;
   localSales: boolean;
   categories: boolean;
@@ -4620,6 +4884,8 @@ export interface CmsSettingsSelect<T extends boolean = true> {
   faqs?: T;
   header?: T;
   footer?: T;
+  suppliers?: T;
+  supplierAgreements?: T;
   paymentNotifications?: T;
   localSales?: T;
   categories?: T;
