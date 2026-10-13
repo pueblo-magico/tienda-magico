@@ -35,6 +35,10 @@ import { Tags } from './collections/Tags'
 import { Users } from './collections/Users'
 import { Suppliers } from './collections/Suppliers'
 import { SupplierAgreements } from './collections/SupplierAgreements'
+import { SupplierPaymentProfiles } from './collections/SupplierPaymentProfiles'
+import { SupplierObligations } from './collections/SupplierObligations'
+import { SupplierPayouts } from './collections/SupplierPayouts'
+import { SupplierSettlements } from './collections/SupplierSettlements'
 import { Footer } from './globals/Footer'
 import { Header } from './globals/Header'
 import { SEO } from './globals/SEO'
@@ -83,6 +87,10 @@ export default buildConfig({
     Users,
     Suppliers,
     SupplierAgreements,
+    SupplierPaymentProfiles,
+    SupplierObligations,
+    SupplierSettlements,
+    SupplierPayouts,
     Media,
     LocalSales,
     PaymentNotifications,

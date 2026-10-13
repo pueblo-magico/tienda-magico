@@ -75,6 +75,10 @@ export interface Config {
     users: User;
     suppliers: Supplier;
     'supplier-agreements': SupplierAgreement;
+    'supplier-payment-profiles': SupplierPaymentProfile;
+    'supplier-obligations': SupplierObligation;
+    'supplier-settlements': SupplierSettlement;
+    'supplier-payouts': SupplierPayout;
     media: Media;
     localSales: LocalSale;
     'payment-notifications': PaymentNotification;
@@ -113,6 +117,10 @@ export interface Config {
     users: UsersSelect<false> | UsersSelect<true>;
     suppliers: SuppliersSelect<false> | SuppliersSelect<true>;
     'supplier-agreements': SupplierAgreementsSelect<false> | SupplierAgreementsSelect<true>;
+    'supplier-payment-profiles': SupplierPaymentProfilesSelect<false> | SupplierPaymentProfilesSelect<true>;
+    'supplier-obligations': SupplierObligationsSelect<false> | SupplierObligationsSelect<true>;
+    'supplier-settlements': SupplierSettlementsSelect<false> | SupplierSettlementsSelect<true>;
+    'supplier-payouts': SupplierPayoutsSelect<false> | SupplierPayoutsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     localSales: LocalSalesSelect<false> | LocalSalesSelect<true>;
     'payment-notifications': PaymentNotificationsSelect<false> | PaymentNotificationsSelect<true>;
@@ -2826,38 +2834,46 @@ export interface Variant {
   _status?: ('draft' | 'published') | null;
 }
 /**
- * Private record of local sales operated from the CMS.
+ * Private payout destination. Never store tokens or credentials in this record.
  *
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "localSales".
+ * via the `definition` "supplier-payment-profiles".
  */
-export interface LocalSale {
+export interface SupplierPaymentProfile {
   id: number;
+  supplier: number | Supplier;
+  provider: 'mercado-pago';
+  recipientEmail: string;
+  currency: 'ARS';
+  status: 'pending' | 'verified' | 'disabled';
+  verifiedAt?: string | null;
+  verifiedBy?: (number | null) | User;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Immutable snapshots created when an order becomes payment-approved.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "supplier-obligations".
+ */
+export interface SupplierObligation {
+  id: number;
+  sourceKey: string;
   order: number | Order;
-  /**
-   * Prevents duplicate records for the same order and retry.
-   */
-  idempotencyKey: string;
-  status: 'pending_payment' | 'paid' | 'cancelled' | 'conflict';
-  fulfillmentMode: 'local_collection' | 'delivery';
-  paymentStatus: 'pending' | 'approved' | 'rejected' | 'cancelled' | 'unverified';
-  paymentMethod: 'mercado-pago' | 'bank-transfer' | 'cash';
-  paymentExpiresAt?: string | null;
-  /**
-   * Optional private data allowed by checkout.
-   */
-  buyerContact?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  /**
-   * Immutable order identity, options, quantities, and amounts.
-   */
+  orderLine: number;
+  product: number | Product;
+  variant?: (number | null) | Variant;
+  supplier?: (number | null) | Supplier;
+  agreement?: (number | null) | SupplierAgreement;
+  agreementRevision?: number | null;
+  status: 'eligible' | 'held' | 'approved' | 'partially_paid' | 'paid' | 'reversed' | 'disputed';
+  currency: string;
+  eligibleBaseMinor: number;
+  supplierAmountMinor?: number | null;
+  storeAmountMinor?: number | null;
+  outstandingMinor?: number | null;
+  reviewReason?: string | null;
   snapshot:
     | {
         [k: string]: unknown;
@@ -2867,18 +2883,7 @@ export interface LocalSale {
     | number
     | boolean
     | null;
-  /**
-   * Never store gateway credentials or secrets.
-   */
-  paymentEvidence?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
+  calculatedAt: string;
   updatedAt: string;
   createdAt: string;
 }
@@ -3041,6 +3046,120 @@ export interface Cart {
   status?: ('active' | 'purchased' | 'abandoned') | null;
   subtotal?: number | null;
   currency?: 'ARS' | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "supplier-settlements".
+ */
+export interface SupplierSettlement {
+  id: number;
+  reference: string;
+  supplier: number | Supplier;
+  currency: 'ARS';
+  amountMinor: number;
+  outstandingMinor: number;
+  status: 'draft' | 'approved' | 'payment_pending' | 'partially_paid' | 'paid' | 'cancelled';
+  approvedBy?: (number | null) | User;
+  approvedAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * An administrator must explicitly review and confirm before a payout is submitted.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "supplier-payouts".
+ */
+export interface SupplierPayout {
+  id: number;
+  supplier: number | Supplier;
+  settlement: number | SupplierSettlement;
+  paymentProfile: number | SupplierPaymentProfile;
+  amountMinor: number;
+  currency: 'ARS';
+  status:
+    | 'awaiting_approval'
+    | 'submitting'
+    | 'submitted'
+    | 'processing'
+    | 'succeeded'
+    | 'failed'
+    | 'reconciliation_required';
+  idempotencyKey: string;
+  providerPayoutId?: string | null;
+  providerTransactionId?: string | null;
+  providerStatus?: string | null;
+  destinationSnapshot?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  confirmedBy?: (number | null) | User;
+  confirmedAt?: string | null;
+  failureCode?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Private record of local sales operated from the CMS.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "localSales".
+ */
+export interface LocalSale {
+  id: number;
+  order: number | Order;
+  /**
+   * Prevents duplicate records for the same order and retry.
+   */
+  idempotencyKey: string;
+  status: 'pending_payment' | 'paid' | 'cancelled' | 'conflict';
+  fulfillmentMode: 'local_collection' | 'delivery';
+  paymentStatus: 'pending' | 'approved' | 'rejected' | 'cancelled' | 'unverified';
+  paymentMethod: 'mercado-pago' | 'bank-transfer' | 'cash';
+  paymentExpiresAt?: string | null;
+  /**
+   * Optional private data allowed by checkout.
+   */
+  buyerContact?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Immutable order identity, options, quantities, and amounts.
+   */
+  snapshot:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Never store gateway credentials or secrets.
+   */
+  paymentEvidence?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -3543,6 +3662,22 @@ export interface PayloadLockedDocument {
         value: number | Supplier;
       } | null)
     | ({
+        relationTo: 'supplier-payment-profiles';
+        value: number | SupplierPaymentProfile;
+      } | null)
+    | ({
+        relationTo: 'supplier-obligations';
+        value: number | SupplierObligation;
+      } | null)
+    | ({
+        relationTo: 'supplier-settlements';
+        value: number | SupplierSettlement;
+      } | null)
+    | ({
+        relationTo: 'supplier-payouts';
+        value: number | SupplierPayout;
+      } | null)
+    | ({
         relationTo: 'media';
         value: number | Media;
       } | null)
@@ -3759,6 +3894,84 @@ export interface SupplierAgreementsSelect<T extends boolean = true> {
   terminatedAt?: T;
   terminationReason?: T;
   notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "supplier-payment-profiles_select".
+ */
+export interface SupplierPaymentProfilesSelect<T extends boolean = true> {
+  supplier?: T;
+  provider?: T;
+  recipientEmail?: T;
+  currency?: T;
+  status?: T;
+  verifiedAt?: T;
+  verifiedBy?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "supplier-obligations_select".
+ */
+export interface SupplierObligationsSelect<T extends boolean = true> {
+  sourceKey?: T;
+  order?: T;
+  orderLine?: T;
+  product?: T;
+  variant?: T;
+  supplier?: T;
+  agreement?: T;
+  agreementRevision?: T;
+  status?: T;
+  currency?: T;
+  eligibleBaseMinor?: T;
+  supplierAmountMinor?: T;
+  storeAmountMinor?: T;
+  outstandingMinor?: T;
+  reviewReason?: T;
+  snapshot?: T;
+  calculatedAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "supplier-settlements_select".
+ */
+export interface SupplierSettlementsSelect<T extends boolean = true> {
+  reference?: T;
+  supplier?: T;
+  currency?: T;
+  amountMinor?: T;
+  outstandingMinor?: T;
+  status?: T;
+  approvedBy?: T;
+  approvedAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "supplier-payouts_select".
+ */
+export interface SupplierPayoutsSelect<T extends boolean = true> {
+  supplier?: T;
+  settlement?: T;
+  paymentProfile?: T;
+  amountMinor?: T;
+  currency?: T;
+  status?: T;
+  idempotencyKey?: T;
+  providerPayoutId?: T;
+  providerTransactionId?: T;
+  providerStatus?: T;
+  destinationSnapshot?: T;
+  confirmedBy?: T;
+  confirmedAt?: T;
+  failureCode?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -4699,6 +4912,10 @@ export interface CmsSetting {
   footer: boolean;
   suppliers: boolean;
   supplierAgreements: boolean;
+  supplierObligations: boolean;
+  supplierPaymentProfiles: boolean;
+  supplierSettlements: boolean;
+  supplierPayouts: boolean;
   paymentNotifications: boolean;
   localSales: boolean;
   categories: boolean;
@@ -4886,6 +5103,10 @@ export interface CmsSettingsSelect<T extends boolean = true> {
   footer?: T;
   suppliers?: T;
   supplierAgreements?: T;
+  supplierObligations?: T;
+  supplierPaymentProfiles?: T;
+  supplierSettlements?: T;
+  supplierPayouts?: T;
   paymentNotifications?: T;
   localSales?: T;
   categories?: T;
