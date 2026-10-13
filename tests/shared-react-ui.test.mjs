@@ -29,7 +29,7 @@ test("el storefront consume directamente la biblioteca compartida de Pueblo Magi
 
   assert.match(
     packageJson.dependencies["@pueblo-magico/react-ui"],
-    /^\^0\.2\./,
+    /^\^0\.5\./,
   );
   assert.match(
     npmConfig,
