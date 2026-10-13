@@ -1,18 +1,20 @@
 import { sql } from '@payloadcms/db-postgres'
 import type { Endpoint, PayloadRequest } from 'payload'
+import { randomUUID } from 'node:crypto'
 
 import { relationID } from '../collections/sellableItems'
 import {
   assertManualPayoutConfirmation,
   assertPayoutConfirmation,
+  allocateSupplierPayment,
   ManualPayoutConfirmationError,
   PayoutConfirmationError,
-  supplierObligationUpdateForPayout,
 } from '../lib/supplierFinance/policy'
 import { activeTransaction } from './transferWriteLock'
 
 type ManualPayoutInput = {
   acknowledged: true
+  amountMinor: number
   paidAt: string
   reference: string
 }
@@ -21,17 +23,20 @@ export function manualSupplierPayoutInput(value: unknown): ManualPayoutInput {
   if (!value || typeof value !== 'object' || Array.isArray(value))
     throw new ManualPayoutConfirmationError('confirmation_required')
   if (
-    Object.keys(value).length !== 3 ||
+    Object.keys(value).length !== 4 ||
     !('acknowledged' in value) ||
     value.acknowledged !== true ||
     !('reference' in value) ||
     typeof value.reference !== 'string' ||
+    !('amountMinor' in value) ||
+    !Number.isSafeInteger(value.amountMinor) ||
     !('paidAt' in value) ||
     typeof value.paidAt !== 'string'
   )
     throw new ManualPayoutConfirmationError('confirmation_required')
   return {
     acknowledged: true,
+    amountMinor: Number(value.amountMinor),
     reference: value.reference.trim(),
     paidAt: value.paidAt,
   }
@@ -95,11 +100,21 @@ async function recordManualSupplierPayout(
       await req.payload.db.commitTransaction(transactionID)
       return Response.json({ reconciled: true, status: 'succeeded', alreadyReconciled: true })
     }
-    const settlementID = relationID(payout.settlement)
-    const profileID = relationID(payout.paymentProfile)
-    const supplierID = relationID(payout.supplier)
-    if (settlementID == null || profileID == null || supplierID == null)
+    const settlementID = Number(relationID(payout.settlement))
+    const profileID = Number(relationID(payout.paymentProfile))
+    const supplierID = Number(relationID(payout.supplier))
+    if (
+      !Number.isSafeInteger(settlementID) ||
+      settlementID <= 0 ||
+      !Number.isSafeInteger(profileID) ||
+      profileID <= 0 ||
+      !Number.isSafeInteger(supplierID) ||
+      supplierID <= 0
+    )
       throw new ManualPayoutConfirmationError('settlement')
+    await transaction.execute(
+      sql`SELECT pg_advisory_xact_lock(hashtextextended(${`supplier-settlement:${settlementID}`}, 0))`,
+    )
     const [settlement, profile] = await Promise.all([
       req.payload.findByID({
         collection: 'supplier-settlements',
@@ -117,8 +132,8 @@ async function recordManualSupplierPayout(
       }),
     ])
     if (
-      relationID(settlement.supplier) !== supplierID ||
-      relationID(profile.supplier) !== supplierID
+      Number(relationID(settlement.supplier)) !== supplierID ||
+      Number(relationID(profile.supplier)) !== supplierID
     )
       throw new PayoutConfirmationError('profile')
 
@@ -159,32 +174,36 @@ async function recordManualSupplierPayout(
     const obligations = await req.payload.find({
       collection: 'supplier-obligations',
       where: { settlement: { equals: settlementID } },
+      sort: 'id',
       limit: 1000,
       depth: 0,
       overrideAccess: true,
       req,
     })
-    const obligationUpdate = supplierObligationUpdateForPayout('succeeded')
-    const obligationTotal = obligations.docs.reduce(
-      (total, obligation) => total + Number(obligation.outstandingMinor),
+    const activeObligations = obligations.docs
+      .filter((obligation) => Number(obligation.outstandingMinor) > 0)
+      .map((obligation) => ({
+        id: Number(obligation.id),
+        status: obligation.status,
+        outstandingMinor: Number(obligation.outstandingMinor),
+      }))
+    const allocation = allocateSupplierPayment({
+      amountMinor: input.amountMinor,
+      obligations: activeObligations,
+    })
+    const obligationTotal = activeObligations.reduce(
+      (total, obligation) => total + obligation.outstandingMinor,
       0,
     )
-    if (
-      !obligationUpdate ||
-      obligations.hasNextPage ||
-      obligations.docs.length === 0 ||
-      !Number.isSafeInteger(obligationTotal) ||
-      obligationTotal !== payout.amountMinor ||
-      obligations.docs.some((obligation) => obligation.status !== 'approved')
-    )
+    if (obligations.hasNextPage || obligationTotal !== settlement.outstandingMinor || !allocation)
       throw new ManualPayoutConfirmationError('amount')
 
     const recordedAt = new Date().toISOString()
-    for (const obligation of obligations.docs) {
+    for (const obligation of allocation.allocations) {
       await req.payload.update({
         collection: 'supplier-obligations',
         id: obligation.id,
-        data: obligationUpdate,
+        data: { status: obligation.status, outstandingMinor: obligation.outstandingMinor },
         overrideAccess: true,
         req,
       })
@@ -192,7 +211,7 @@ async function recordManualSupplierPayout(
     await req.payload.update({
       collection: 'supplier-settlements',
       id: settlementID,
-      data: { outstandingMinor: 0, status: 'paid' },
+      data: { outstandingMinor: allocation.outstandingMinor, status: allocation.status },
       overrideAccess: true,
       req,
     })
@@ -200,6 +219,7 @@ async function recordManualSupplierPayout(
       collection: 'supplier-payouts',
       id: payoutID,
       data: {
+        amountMinor: input.amountMinor,
         status: 'succeeded',
         paymentMethod: 'manual',
         providerStatus: 'manual_reconciled',
@@ -218,8 +238,30 @@ async function recordManualSupplierPayout(
       overrideAccess: true,
       req,
     })
+    if (allocation.outstandingMinor > 0) {
+      await req.payload.create({
+        collection: 'supplier-payouts',
+        data: {
+          supplier: supplierID,
+          settlement: settlementID,
+          paymentProfile: profileID,
+          amountMinor: allocation.outstandingMinor,
+          currency: 'ARS',
+          paymentMethod: 'mercado-pago',
+          status: 'awaiting_approval',
+          idempotencyKey: randomUUID(),
+        },
+        overrideAccess: true,
+        req,
+      })
+    }
     await req.payload.db.commitTransaction(transactionID)
-    return Response.json({ reconciled: true, status: 'succeeded' })
+    return Response.json({
+      reconciled: true,
+      status: 'succeeded',
+      settlementStatus: allocation.status,
+      outstandingMinor: allocation.outstandingMinor,
+    })
   } catch (error) {
     await req.payload.db.rollbackTransaction(transactionID)
     if (

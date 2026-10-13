@@ -40,6 +40,7 @@ test("los perfiles y movimientos financieros son privados y separados del catalo
     namedField(SupplierPayouts, "settlement").relationTo,
     "supplier-settlements",
   );
+  assert.notEqual(namedField(SupplierPayouts, "settlement").unique, true);
 });
 
 test("la transición de un pedido a pago aprobado dispara obligaciones idempotentes", () => {
@@ -273,11 +274,13 @@ test("el payout persistido admite una conciliación manual explícita y auditabl
       acknowledged: true,
       reference: "  TRX-9182  ",
       paidAt: "2026-10-12T15:30:00.000Z",
+      amountMinor: 25_000,
     }),
     {
       acknowledged: true,
       reference: "TRX-9182",
       paidAt: "2026-10-12T15:30:00.000Z",
+      amountMinor: 25_000,
     },
   );
   assert.throws(() =>
@@ -285,7 +288,16 @@ test("el payout persistido admite una conciliación manual explícita y auditabl
       acknowledged: true,
       reference: "TRX-9182",
       paidAt: "2026-10-12T15:30:00.000Z",
+      amountMinor: 25_000,
       amount: 1,
+    }),
+  );
+  assert.throws(() =>
+    manualSupplierPayoutInput({
+      acknowledged: true,
+      reference: "TRX-9182",
+      paidAt: "2026-10-12T15:30:00.000Z",
+      amountMinor: 25_000.5,
     }),
   );
 });

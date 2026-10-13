@@ -76,7 +76,6 @@ export const SupplierPayouts: CollectionConfig = {
       type: 'relationship',
       relationTo: 'supplier-settlements',
       required: true,
-      unique: true,
       index: true,
       access: immutable,
       label: { es: 'Liquidación aprobada', en: 'Approved settlement' },

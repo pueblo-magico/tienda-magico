@@ -42,6 +42,7 @@ import * as migration_20261013_114215_task_supplier_obligations from './20261013
 import * as migration_20261013_121053_task_auto_supplier_settlements from './20261013_121053_task_auto_supplier_settlements';
 import * as migration_20261013_130951_task_manual_supplier_payout from './20261013_130951_task_manual_supplier_payout';
 import * as migration_20261013_131048_task_manual_supplier_payout_reference from './20261013_131048_task_manual_supplier_payout_reference';
+import * as migration_20261013_132814_task_partial_supplier_payout from './20261013_132814_task_partial_supplier_payout';
 
 export const migrations = [
   {
@@ -262,6 +263,11 @@ export const migrations = [
   {
     up: migration_20261013_131048_task_manual_supplier_payout_reference.up,
     down: migration_20261013_131048_task_manual_supplier_payout_reference.down,
-    name: '20261013_131048_task_manual_supplier_payout_reference'
+    name: '20261013_131048_task_manual_supplier_payout_reference',
+  },
+  {
+    up: migration_20261013_132814_task_partial_supplier_payout.up,
+    down: migration_20261013_132814_task_partial_supplier_payout.down,
+    name: '20261013_132814_task_partial_supplier_payout',
   },
 ];

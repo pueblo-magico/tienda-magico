@@ -6,7 +6,7 @@ import {
   getMercadoPagoPayoutStatus,
   SupplierPayoutProviderError,
 } from '../lib/supplierFinance/mercadoPagoPayouts'
-import { supplierObligationUpdateForPayout } from '../lib/supplierFinance/policy'
+import { allocateSupplierPayment } from '../lib/supplierFinance/policy'
 import { activeTransaction } from './transferWriteLock'
 
 export const reconcileSupplierPayoutEndpoint: Endpoint = {
@@ -90,6 +90,9 @@ async function reconcileSupplierPayout(req: PayloadRequest, payoutID: number): P
 
     const settlementID = relationID(payout.settlement)
     if (settlementID == null) return rollback(req, transactionID, 'settlement', 409)
+    await transaction.execute(
+      sql`SELECT pg_advisory_xact_lock(hashtextextended(${`supplier-settlement:${settlementID}`}, 0))`,
+    )
     const settlement = await req.payload.findByID({
       collection: 'supplier-settlements',
       id: settlementID,
@@ -100,6 +103,43 @@ async function reconcileSupplierPayout(req: PayloadRequest, payoutID: number): P
     if (result.status === 'succeeded') {
       if (settlement.outstandingMinor !== payout.amountMinor)
         return rollback(req, transactionID, 'amount', 409)
+      const obligations = await req.payload.find({
+        collection: 'supplier-obligations',
+        where: { settlement: { equals: settlementID } },
+        sort: 'id',
+        limit: 1000,
+        depth: 0,
+        overrideAccess: true,
+        req,
+      })
+      const activeObligations = obligations.docs
+        .filter((obligation) => Number(obligation.outstandingMinor) > 0)
+        .map((obligation) => ({
+          id: Number(obligation.id),
+          status: obligation.status,
+          outstandingMinor: Number(obligation.outstandingMinor),
+        }))
+      const allocation = allocateSupplierPayment({
+        amountMinor: payout.amountMinor,
+        obligations: activeObligations,
+      })
+      if (
+        obligations.hasNextPage ||
+        !allocation ||
+        allocation.outstandingMinor !== 0 ||
+        activeObligations.reduce((total, obligation) => total + obligation.outstandingMinor, 0) !==
+          settlement.outstandingMinor
+      )
+        return rollback(req, transactionID, 'obligations', 409)
+      for (const obligation of allocation.allocations) {
+        await req.payload.update({
+          collection: 'supplier-obligations',
+          id: obligation.id,
+          data: { status: obligation.status, outstandingMinor: obligation.outstandingMinor },
+          overrideAccess: true,
+          req,
+        })
+      }
       await req.payload.update({
         collection: 'supplier-settlements',
         id: settlementID,
@@ -107,33 +147,14 @@ async function reconcileSupplierPayout(req: PayloadRequest, payoutID: number): P
         overrideAccess: true,
         req,
       })
-      const obligationUpdate = supplierObligationUpdateForPayout(result.status)
-      const obligations = await req.payload.find({
-        collection: 'supplier-obligations',
-        where: { settlement: { equals: settlementID } },
-        limit: 1000,
-        depth: 0,
-        overrideAccess: true,
-        req,
-      })
-      if (!obligationUpdate || obligations.hasNextPage || obligations.docs.length === 0)
-        return rollback(req, transactionID, 'obligations', 409)
-      for (const obligation of obligations.docs) {
-        if (obligation.status !== 'approved')
-          return rollback(req, transactionID, 'obligations', 409)
-        await req.payload.update({
-          collection: 'supplier-obligations',
-          id: obligation.id,
-          data: obligationUpdate,
-          overrideAccess: true,
-          req,
-        })
-      }
     } else if (result.status === 'failed') {
       await req.payload.update({
         collection: 'supplier-settlements',
         id: settlementID,
-        data: { status: 'approved' },
+        data: {
+          status:
+            settlement.outstandingMinor < settlement.amountMinor ? 'partially_paid' : 'approved',
+        },
         overrideAccess: true,
         req,
       })

@@ -13,10 +13,11 @@ Este flujo registra la deuda con proveedores por consignación y exige una confi
 7. La aprobación exige un único perfil verificado del mismo proveedor y moneda; dentro de la misma transacción prepara automáticamente un pago por el saldo total. Si falta el perfil, la liquidación continúa en borrador y no se envía dinero.
 8. El administrador revisa proveedor, importe, moneda y destino, marca la confirmación y recién entonces solicita el envío.
 9. Una respuesta HTTP `202` de Mercado Pago se registra como `submitted`; no se considera dinero acreditado.
-10. La acción de conciliación consulta la transacción. Solamente `success` con detalle `accredited` cierra la liquidación como pagada.
+10. La acción de conciliación consulta la transacción. Solamente `success` con detalle `accredited` cierra el saldo del pago y las obligaciones pendientes.
 11. Un resultado incierto pasa a `reconciliation_required`. No se reenvía automáticamente con otra clave idempotente.
+12. Un pago manual puede cubrir todo el saldo o una parte. La parte pagada se asigna por identificador ascendente entre las obligaciones pendientes y, si queda saldo, se prepara un nuevo pago para que administración decida cómo continuarlo.
 
-La primera integración está limitada deliberadamente a ARS, al pago total del saldo pendiente y al modo de prueba de Mercado Pago Payouts. La asignación de descuentos, impuestos, envío y comisiones que no estén representados en el total de línea, los ajustes por devolución y la consolidación de varios pedidos en una liquidación periódica siguen siendo incrementos posteriores.
+La primera integración está limitada deliberadamente a ARS y al modo de prueba de Mercado Pago Payouts. Cada envío automático de Mercado Pago cubre el saldo pendiente completo del pago preparado; los pagos parciales se registran manualmente antes de preparar el siguiente saldo. La asignación de descuentos, impuestos, envío y comisiones que no estén representados en el total de línea, los ajustes por devolución y la consolidación de varios pedidos en una liquidación periódica siguen siendo incrementos posteriores.
 
 ## Configuración local
 
@@ -44,15 +45,16 @@ La credencial debe pertenecer a Payouts y no debe reutilizarse en el navegador n
 
 Cuando Mercado Pago Payouts no esté disponible, un administrador puede registrar una transferencia que ya se realizó fuera del sistema desde el pago preparado:
 
-1. Abrir el pago en **Finanzas > Pagos a proveedores** y verificar proveedor, liquidación, destino, moneda e importe.
-2. En **Registrar pago manual**, ingresar la fecha efectiva —no futura ni anterior a la aprobación— y una referencia externa única del banco o medio de pago.
+1. Abrir el pago en **Finanzas > Pagos a proveedores** y verificar proveedor, liquidación, destino, moneda y saldo.
+2. En **Registrar pago manual**, ingresar el importe efectivamente pagado, la fecha efectiva —no futura ni anterior al día de aprobación— y una referencia externa única del banco o medio de pago.
 3. Usar **Revisar pago**. La confirmación muestra nuevamente importe, fecha y referencia y aclara que la acción no transfiere dinero.
-4. Confirmar únicamente después de verificar el movimiento externo. El sistema registra el actor y la fecha, marca el pago como manual y conciliado, y cierra la liquidación y sus obligaciones dentro de una transacción.
-5. Si el resultado no es concluyente, no volver a registrar el movimiento hasta revisar el estado del pago.
+4. Confirmar únicamente después de verificar el movimiento externo. El sistema registra el actor y la fecha y marca el pago como manual y conciliado dentro de una transacción.
+5. Si el importe es parcial, el sistema aplica el dinero primero a la obligación pendiente de menor ID, conserva el saldo restante como pagado parcialmente y prepara un nuevo pago por ese saldo. Si cubre todo, cierra la liquidación y sus obligaciones.
+6. Si el resultado no es concluyente, no volver a registrar el movimiento hasta revisar el estado del pago.
 
-Este primer incremento manual cubre únicamente el saldo completo de una liquidación aprobada. Los pagos parciales requieren asignación determinista entre obligaciones y permanecen como incremento posterior. No se adjuntan comprobantes hasta disponer de almacenamiento privado, autorización y validación de archivos.
+No se adjuntan comprobantes hasta disponer de almacenamiento privado, autorización y validación de archivos.
 
-La referencia manual posee una restricción única en PostgreSQL además de la validación previa de la aplicación. La migración agrega columnas anulables y un método con valor predeterminado `mercado-pago`, por lo que los pagos existentes conservan compatibilidad. La reversión elimina solamente esos campos e índice; no revierte transferencias externas ni debe ejecutarse después de registrar pagos manuales sin exportar previamente la auditoría.
+La referencia manual posee una restricción única en PostgreSQL además de la validación previa de la aplicación. La migración de pagos parciales reemplaza la unicidad de liquidación por un índice no único para conservar el historial de cada movimiento. Su reversión falla si una liquidación ya tiene más de un pago: antes de revertir se debe exportar la auditoría y resolver esos registros; ninguna reversión revierte transferencias externas.
 
 ## Límite de producción
 

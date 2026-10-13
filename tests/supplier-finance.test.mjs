@@ -84,6 +84,18 @@ test("solo un admin puede confirmar un pago elegible de una liquidacion aprobada
       acknowledged: true,
     }),
   );
+  assert.doesNotThrow(() =>
+    assertPayoutConfirmation({
+      actorRoles: ["admin"],
+      settlementStatus: "partially_paid",
+      settlementCurrency: "ARS",
+      outstandingMinor: 25_000,
+      profileStatus: "verified",
+      profileCurrency: "ARS",
+      amountMinor: 25_000,
+      acknowledged: true,
+    }),
+  );
   for (const [code, override] of [
     ["forbidden", { actorRoles: ["finance"] }],
     ["confirmation_required", { acknowledged: false }],
@@ -132,13 +144,19 @@ test("el pago manual exige referencia, fecha y confirmación para cubrir el sald
   };
 
   assert.doesNotThrow(() => validate(valid));
+  assert.doesNotThrow(() => validate({ ...valid, amountMinor: 25_000 }));
+  assert.doesNotThrow(() =>
+    validate({ ...valid, paidAt: "2026-10-10T00:00:00.000Z" }),
+  );
   for (const [code, override] of [
     ["forbidden", { actorRoles: ["finance"] }],
     ["confirmation_required", { acknowledged: false }],
     ["payout", { payoutStatus: "submitted" }],
     ["settlement", { settlementStatus: "draft" }],
     ["currency", { settlementCurrency: "BRL" }],
-    ["amount", { amountMinor: 49_999 }],
+    ["amount", { amountMinor: 50_001 }],
+    ["amount", { amountMinor: 99 }],
+    ["amount", { amountMinor: 0 }],
     ["reference", { reference: "  " }],
     ["reference", { reference: "ab" }],
     ["paid_at", { paidAt: "not-a-date" }],
@@ -152,6 +170,51 @@ test("el pago manual exige referencia, fecha y confirmación para cubrir el sald
         error.code === code,
     );
   }
+});
+
+test("un pago parcial se asigna de forma determinista y conserva el saldo restante", () => {
+  assert.equal(
+    typeof supplierFinancePolicy.allocateSupplierPayment,
+    "function",
+  );
+  const allocate = supplierFinancePolicy.allocateSupplierPayment;
+  assert.deepEqual(
+    allocate({
+      amountMinor: 4000,
+      obligations: [
+        { id: 10, status: "approved", outstandingMinor: 3000 },
+        { id: 11, status: "approved", outstandingMinor: 5000 },
+      ],
+    }),
+    {
+      allocations: [
+        {
+          id: 10,
+          appliedMinor: 3000,
+          outstandingMinor: 0,
+          status: "paid",
+        },
+        {
+          id: 11,
+          appliedMinor: 1000,
+          outstandingMinor: 4000,
+          status: "partially_paid",
+        },
+      ],
+      outstandingMinor: 4000,
+      status: "partially_paid",
+    },
+  );
+  assert.equal(
+    allocate({
+      amountMinor: 8001,
+      obligations: [
+        { id: 10, status: "approved", outstandingMinor: 3000 },
+        { id: 11, status: "approved", outstandingMinor: 5000 },
+      ],
+    }),
+    null,
+  );
 });
 
 test("la liquidación aprobable coincide exactamente con sus obligaciones elegibles", () => {

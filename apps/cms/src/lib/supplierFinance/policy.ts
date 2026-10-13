@@ -81,7 +81,8 @@ export class PayoutConfirmationError extends Error {
 export function assertPayoutConfirmation(input: PayoutConfirmationInput): void {
   if (!input.actorRoles.includes('admin')) throw new PayoutConfirmationError('forbidden')
   if (input.acknowledged !== true) throw new PayoutConfirmationError('confirmation_required')
-  if (input.settlementStatus !== 'approved') throw new PayoutConfirmationError('settlement')
+  if (!['approved', 'partially_paid'].includes(input.settlementStatus))
+    throw new PayoutConfirmationError('settlement')
   if (input.profileStatus !== 'verified') throw new PayoutConfirmationError('profile')
   if (
     !input.settlementCurrency ||
@@ -91,7 +92,7 @@ export function assertPayoutConfirmation(input: PayoutConfirmationInput): void {
     throw new PayoutConfirmationError('currency')
   if (
     !Number.isSafeInteger(input.amountMinor) ||
-    input.amountMinor <= 0 ||
+    input.amountMinor < 100 ||
     !Number.isSafeInteger(input.outstandingMinor) ||
     input.outstandingMinor <= 0 ||
     input.amountMinor !== input.outstandingMinor
@@ -133,27 +134,92 @@ export function assertManualPayoutConfirmation(input: ManualPayoutConfirmationIn
   if (!input.actorRoles.includes('admin')) throw new ManualPayoutConfirmationError('forbidden')
   if (input.acknowledged !== true) throw new ManualPayoutConfirmationError('confirmation_required')
   if (input.payoutStatus !== 'awaiting_approval') throw new ManualPayoutConfirmationError('payout')
-  if (input.settlementStatus !== 'approved') throw new ManualPayoutConfirmationError('settlement')
+  if (!['approved', 'partially_paid'].includes(input.settlementStatus))
+    throw new ManualPayoutConfirmationError('settlement')
   if (input.settlementCurrency !== 'ARS') throw new ManualPayoutConfirmationError('currency')
   if (
     !Number.isSafeInteger(input.amountMinor) ||
-    input.amountMinor <= 0 ||
+    input.amountMinor < 100 ||
     !Number.isSafeInteger(input.outstandingMinor) ||
     input.outstandingMinor <= 0 ||
-    input.amountMinor !== input.outstandingMinor
+    input.amountMinor > input.outstandingMinor
   )
     throw new ManualPayoutConfirmationError('amount')
   if (input.reference.trim().length < 3 || input.reference.trim().length > 120)
     throw new ManualPayoutConfirmationError('reference')
   const paidAt = Date.parse(input.paidAt)
   const approvedAt = Date.parse(input.settlementApprovedAt)
-  if (
-    !Number.isFinite(paidAt) ||
-    !Number.isFinite(approvedAt) ||
-    paidAt < approvedAt ||
-    paidAt > Date.now()
-  )
+  if (!Number.isFinite(paidAt) || !Number.isFinite(approvedAt) || paidAt > Date.now())
     throw new ManualPayoutConfirmationError('paid_at')
+  const paidDate = new Date(paidAt).toISOString().slice(0, 10)
+  const approvedDate = new Date(approvedAt).toISOString().slice(0, 10)
+  if (paidDate < approvedDate) throw new ManualPayoutConfirmationError('paid_at')
+}
+
+export type SupplierPaymentObligation = {
+  id: number
+  status: string
+  outstandingMinor: number
+}
+
+export type SupplierPaymentAllocation = {
+  id: number
+  appliedMinor: number
+  outstandingMinor: number
+  status: 'partially_paid' | 'paid'
+}
+
+export function allocateSupplierPayment(input: {
+  amountMinor: number
+  obligations: SupplierPaymentObligation[]
+}): {
+  allocations: SupplierPaymentAllocation[]
+  outstandingMinor: number
+  status: 'partially_paid' | 'paid'
+} | null {
+  if (
+    !Number.isSafeInteger(input.amountMinor) ||
+    input.amountMinor <= 0 ||
+    !input.obligations.length
+  )
+    return null
+
+  let totalOutstanding = 0
+  for (const obligation of input.obligations) {
+    if (
+      !Number.isSafeInteger(obligation.id) ||
+      obligation.id <= 0 ||
+      !['approved', 'partially_paid'].includes(obligation.status) ||
+      !Number.isSafeInteger(obligation.outstandingMinor) ||
+      obligation.outstandingMinor <= 0
+    )
+      return null
+    totalOutstanding += obligation.outstandingMinor
+    if (!Number.isSafeInteger(totalOutstanding)) return null
+  }
+  if (input.amountMinor > totalOutstanding) return null
+
+  let remainingPayment = input.amountMinor
+  const allocations: SupplierPaymentAllocation[] = []
+  for (const obligation of input.obligations) {
+    if (remainingPayment === 0) break
+    const appliedMinor = Math.min(remainingPayment, obligation.outstandingMinor)
+    const outstandingMinor = obligation.outstandingMinor - appliedMinor
+    allocations.push({
+      id: obligation.id,
+      appliedMinor,
+      outstandingMinor,
+      status: outstandingMinor === 0 ? 'paid' : 'partially_paid',
+    })
+    remainingPayment -= appliedMinor
+  }
+  if (remainingPayment !== 0) return null
+  const outstandingMinor = totalOutstanding - input.amountMinor
+  return {
+    allocations,
+    outstandingMinor,
+    status: outstandingMinor === 0 ? 'paid' : 'partially_paid',
+  }
 }
 
 export type SettlementObligationInput = {
