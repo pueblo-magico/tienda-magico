@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-test("la integración continua protege los PR sin depender de secretos", async () => {
+test("la integración continua protege los PR y autentica GitHub Packages", async () => {
   const workflow = await readFile(".github/workflows/ci.yml", "utf8");
 
   assert.match(
@@ -11,9 +11,16 @@ test("la integración continua protege los PR sin depender de secretos", async (
   );
   assert.match(workflow, /permissions:\s*\n\s+contents: read/);
   assert.match(workflow, /packages: read/);
-  assert.match(workflow, /NODE_AUTH_TOKEN: \$\{\{ github\.token \}\}/);
+  assert.match(
+    workflow,
+    /NODE_AUTH_TOKEN: \$\{\{ secrets\.GH_PACKAGES_TOKEN \}\}/,
+  );
   assert.match(workflow, /cancel-in-progress: true/);
-  assert.doesNotMatch(workflow, /secrets\./);
+  assert.equal(
+    (workflow.match(/secrets\./g) ?? []).length,
+    1,
+    "El workflow solo debe acceder al secreto de lectura de paquetes",
+  );
   assert.equal(
     (workflow.match(/node-version: 24\.18\.0/g) ?? []).length,
     4,
