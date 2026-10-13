@@ -14,7 +14,7 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
 export async function down({ db, payload, req }: MigrateDownArgs): Promise<void> {
   await db.execute(sql`
    ALTER TABLE "supplier_payouts" DROP CONSTRAINT "supplier_payouts_manual_recorded_by_id_users_id_fk";
-  
+
   DROP INDEX "supplier_payouts_manual_recorded_by_idx";
   ALTER TABLE "supplier_payouts" DROP COLUMN "payment_method";
   ALTER TABLE "supplier_payouts" DROP COLUMN "manual_reference";
