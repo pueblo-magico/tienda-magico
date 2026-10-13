@@ -10,6 +10,8 @@ test("la integración continua protege los PR sin depender de secretos", async (
     /pull_request:\s*\n\s+branches: \[develop, staging, production\]/,
   );
   assert.match(workflow, /permissions:\s*\n\s+contents: read/);
+  assert.match(workflow, /packages: read/);
+  assert.match(workflow, /NODE_AUTH_TOKEN: \$\{\{ github\.token \}\}/);
   assert.match(workflow, /cancel-in-progress: true/);
   assert.doesNotMatch(workflow, /secrets\./);
   assert.equal(
