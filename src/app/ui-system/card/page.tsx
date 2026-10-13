@@ -1,19 +1,22 @@
+"use client";
+
 import {
   Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
-} from "@/components/ui/Card";
+} from "@pueblo-magico/react-ui";
 import { CopyButton } from "@/components/ui/CopyButton";
-import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
+import { Button } from "@pueblo-magico/react-ui";
+import { ButtonLink } from "@/components/ui/ButtonLink";
+import { Input } from "@pueblo-magico/react-ui";
 import { DocsPageHeader } from "@/components/ui-system/DocsPageHeader";
 import { DocsSection } from "@/components/ui-system/DocsSection";
 import { StepsCard } from "@/components/cards/StepsCard";
 import { ReviewCard } from "@/components/cards/ReviewCard";
-import { Checkbox } from "@/components/ui/Checkbox";
+import { Checkbox } from "@pueblo-magico/react-ui";
 import { FileText, Store, Banknote } from "lucide-react";
 
 export default function CardPage() {
@@ -21,7 +24,7 @@ export default function CardPage() {
     <>
       <DocsPageHeader
         title="Card"
-        description="Primitiva composable de shadcn/ui adaptada a los tokens de Pueblo Mágico. Base para resúmenes y tarjetas de dominio; no reemplaza las variantes editoriales de InfoCard."
+        description="Primitiva compartida de @pueblo-magico/react-ui. Base para resúmenes y tarjetas de dominio; no reemplaza las variantes editoriales de InfoCard."
       />
       <DocsSection title="Resumen y acciones">
         <ReviewCard
@@ -64,7 +67,7 @@ export default function CardPage() {
             },
           ]}
         />
-        <Card className="max-w-xl">
+        <Card variant="outlined" className="max-w-xl">
           <CardHeader layout="split">
             <CardTitle variant="editorial">Transferencia pendiente</CardTitle>
             <CardDescription>
@@ -88,17 +91,17 @@ export default function CardPage() {
             </dl>
           </CardContent>
           <CardFooter>
-            <Button href="/es/mis-pedidos" size="sm">
+            <ButtonLink href="/es/mis-pedidos" size="sm">
               Mis pedidos
-            </Button>
-            <Button disabled size="sm" variant="secondary">
+            </ButtonLink>
+            <Button isDisabled size="sm" variant="secondary">
               Verificando
             </Button>
           </CardFooter>
         </Card>
       </DocsSection>
       <DocsSection title="Acceso privado de caja">
-        <Card className="w-full max-w-xl">
+        <Card variant="outlined" className="w-full max-w-xl">
           <CardHeader>
             <CardTitle>Caja · confirmar efectivo</CardTitle>
             <CardDescription>
@@ -115,28 +118,20 @@ export default function CardPage() {
             />
           </CardContent>
           <CardFooter>
-            <Button disabled>Ingresar (ejemplo)</Button>
+            <Button isDisabled>Ingresar (ejemplo)</Button>
           </CardFooter>
         </Card>
       </DocsSection>
       <DocsSection title="Uso y migración">
         <p>
-          Componé CardHeader, CardTitle, CardDescription, CardContent y
-          CardFooter. Usá un encabezado semántico y conservá las reglas de
-          negocio fuera de estas primitivas. CopyButton anuncia éxito o error y
-          requiere etiquetas localizadas. El portado manual de Card no requiere
-          dependencias adicionales. CardHeader admite la distribución split para
-          separar título y referencia; CardTitle admite la variante editorial
-          para títulos serif sin clases tipográficas incompatibles. Para
-          referencias con texto forest, usá bg-warm en lugar del fondo forest de
-          bg-background-secondary.
+          Importá Card, CardHeader, CardTitle, Body, CardBody y CardFooter
+          directamente desde @pueblo-magico/react-ui. Usá un encabezado
+          semántico y conservá las reglas de negocio fuera de estas primitivas.
+          CopyButton anuncia éxito o error y requiere etiquetas localizadas.
+          CardHeader admite la distribución split para separar título y
+          referencia. Para referencias con texto forest, usá bg-warm en lugar
+          del fondo forest de bg-background-secondary.
         </p>
-        <a
-          href="https://ui.shadcn.com/docs/components/card"
-          className="text-text-secondary underline"
-        >
-          Documentación de shadcn/ui
-        </a>
       </DocsSection>
     </>
   );

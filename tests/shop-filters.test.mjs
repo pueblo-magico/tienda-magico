@@ -60,6 +60,10 @@ test("el panel aplica filtros al cambiar y no muestra botón aplicar", async () 
     source,
     /<Slider[\s\S]+value=\{\[priceRange\.min, priceRange\.max\]\}/,
   );
+  assert.match(source, /import \{ Slider \} from "@pueblo-magico\/react-ui"/);
+  assert.match(source, /mode="range"/);
+  assert.match(source, /label=\{labels\.price\}/);
+  assert.match(source, /formatValue=/);
   assert.doesNotMatch(source, /type="range"/);
 });
 

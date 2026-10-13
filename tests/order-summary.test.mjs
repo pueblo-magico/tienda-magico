@@ -107,9 +107,7 @@ for (const locale of ["es", "en"]) {
       );
       assert.ok(html.includes("bg-warm text-text-secondary"));
       const titleClass = html.match(/<h2[^>]*class="([^"]+)"/)?.[1] ?? "";
-      assert.ok(titleClass.includes("font-normal"));
-      assert.ok(!titleClass.includes("font-bold"));
-      assert.ok(!titleClass.includes("text-base"));
+      assert.ok(titleClass.includes("pm-card__title"));
     }
   });
 }

@@ -2,7 +2,8 @@
 
 import { useState, type FormEvent } from "react";
 import { MessageCircle } from "lucide-react";
-import { Button, Input, Select, Textarea } from "@/components/ui";
+import { Input, Select, Textarea } from "@pueblo-magico/react-ui";
+import { Button } from "@pueblo-magico/react-ui";
 import { buildWhatsAppUrl } from "./whatsapp";
 
 type ContactLabels = {
@@ -73,14 +74,14 @@ export function ImpactContactForm({
           name="name"
           label={labels.name}
           placeholder={labels.namePlaceholder}
-          required
+          isRequired
         />
         <Input
           name="email"
           type="email"
           label={labels.email}
           placeholder={labels.emailPlaceholder}
-          required
+          isRequired
         />
       </div>
       <Select
@@ -89,14 +90,14 @@ export function ImpactContactForm({
         placeholder={labels.interestPlaceholder}
         defaultValue=""
         options={interests}
-        required
+        isRequired
       />
       <Textarea
         name="message"
         label={labels.message}
         placeholder={labels.messagePlaceholder}
-        hint={labels.hint}
-        required
+        description={labels.hint}
+        isRequired
       />
       <label className="text-text-primary flex cursor-pointer items-start gap-3 text-sm leading-relaxed">
         <input
@@ -129,7 +130,7 @@ export function ImpactContactForm({
           . {labels.consentSuffix}
         </span>
       </label>
-      <Button type="submit" disabled={!hasConsent}>
+      <Button type="submit" isDisabled={!hasConsent}>
         <MessageCircle aria-hidden className="size-4" strokeWidth={2} />
         {labels.submit}
       </Button>

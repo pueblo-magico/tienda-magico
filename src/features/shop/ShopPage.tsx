@@ -1,8 +1,8 @@
 import { getTranslations } from "next-intl/server";
 import Image from "next/image";
 import Link from "next/link";
-import { Container } from "@/components/layout/Container";
-import { Body, Eyebrow, PageTitle } from "@/components/typography";
+import { Container } from "@pueblo-magico/react-ui";
+import { Body, Eyebrow, PageTitle } from "@pueblo-magico/react-ui";
 import { loadShopCatalog } from "./load-shop-catalog";
 import { ProductGrid } from "./ProductGrid";
 import { ShopFilters } from "./ShopFilters";

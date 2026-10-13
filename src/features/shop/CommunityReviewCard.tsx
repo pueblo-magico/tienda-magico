@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { getTranslations } from "next-intl/server";
-import { InfoCard } from "@/components/cards";
+import { InfoCard } from "@pueblo-magico/react-ui";
 
 export async function CommunityReviewCard() {
   const t = await getTranslations("shop.supportingCards.review");

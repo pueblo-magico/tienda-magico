@@ -3,8 +3,8 @@
 import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { CheckCircle2, Info, PackageCheck, Sprout } from "lucide-react";
-import { Modal } from "@/components/ui/Modal";
-import { Button } from "@/components/ui/Button";
+import { Modal } from "@pueblo-magico/react-ui";
+import { Button } from "@pueblo-magico/react-ui";
 
 export function ReceiptConfirmationModal({
   summary,
@@ -23,13 +23,15 @@ export function ReceiptConfirmationModal({
   const receipt = useTranslations("orders.receipt");
   return (
     <Modal
-      open
+      isOpen
       title={t("title")}
       closeLabel={t("cancel")}
       variant="celebration"
       size="wide"
       isDismissable={!busy}
-      onClose={onClose}
+      onOpenChange={(isOpen) => {
+        if (!isOpen) onClose();
+      }}
     >
       <div className="space-y-5" aria-busy={busy}>
         <div
@@ -63,10 +65,10 @@ export function ReceiptConfirmationModal({
           </p>
         ) : null}
         <div className="flex flex-col gap-3 sm:flex-row">
-          <Button variant="secondary" disabled={busy} onPress={onClose}>
+          <Button variant="secondary" isDisabled={busy} onPress={onClose}>
             {t("cancel")}
           </Button>
-          <Button disabled={busy} aria-busy={busy} onPress={onConfirm}>
+          <Button isDisabled={busy} isLoading={busy} onPress={onConfirm}>
             <CheckCircle2 aria-hidden strokeWidth={2} />
             {t(busy ? "saving" : "confirm")}
           </Button>

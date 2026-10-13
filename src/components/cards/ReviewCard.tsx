@@ -2,12 +2,12 @@ import type { ReactNode } from "react";
 import { Pencil } from "lucide-react";
 import {
   Card,
+  CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
+} from "@pueblo-magico/react-ui";
+import { ButtonLink } from "@/components/ui/ButtonLink";
 
 export function ReviewCard({
   title,
@@ -25,7 +25,7 @@ export function ReviewCard({
   children: ReactNode;
 }) {
   return (
-    <Card>
+    <Card variant="outlined">
       <CardHeader layout="split">
         <div className="flex items-start gap-4">
           <span aria-hidden className="text-text-secondary shrink-0">
@@ -38,7 +38,7 @@ export function ReviewCard({
             ) : null}
           </div>
         </div>
-        <Button
+        <ButtonLink
           variant="link"
           size="sm"
           href={editHref}
@@ -46,7 +46,7 @@ export function ReviewCard({
         >
           <Pencil aria-hidden className="size-4" />
           {editLabel}
-        </Button>
+        </ButtonLink>
       </CardHeader>
       <CardContent>{children}</CardContent>
     </Card>

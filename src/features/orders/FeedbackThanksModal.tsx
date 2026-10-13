@@ -2,9 +2,7 @@
 
 import { Check, Heart, Sprout } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { Modal } from "@/components/ui/Modal";
-import { Button } from "@/components/ui/Button";
-import { Rating } from "@/components/ui/Rating";
+import { Button, Modal, Rating } from "@pueblo-magico/react-ui";
 
 export function FeedbackThanksModal({
   open,
@@ -18,8 +16,10 @@ export function FeedbackThanksModal({
   const t = useTranslations("orders.feedbackThanks");
   return (
     <Modal
-      open={open}
-      onClose={onClose}
+      isOpen={open}
+      onOpenChange={(isOpen) => {
+        if (!isOpen) onClose();
+      }}
       title={t("title")}
       closeLabel={t("close")}
       variant="celebration"

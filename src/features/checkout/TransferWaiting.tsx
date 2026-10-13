@@ -4,10 +4,11 @@ import { useEffect, useState, useTransition, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { localizePath } from "@/config/navigation";
-import { Body, PageTitle } from "@/components/typography";
-import { Button } from "@/components/ui/Button";
+import { Body, PageTitle } from "@pueblo-magico/react-ui";
+import { Button } from "@pueblo-magico/react-ui";
+import { ButtonLink } from "@/components/ui/ButtonLink";
 import { IconAction } from "@/components/ui/IconAction";
-import { Card, CardContent } from "@/components/ui/Card";
+import { Card, CardContent } from "@pueblo-magico/react-ui";
 import { ArrowRight, ClipboardList, Package2, Sprout } from "lucide-react";
 import { getTransferWaitingState } from "@/lib/checkout/transfer-waiting";
 import type { CheckoutOrder } from "@/types/commerce";
@@ -98,7 +99,7 @@ export function TransferWaiting({
           </p>
         </>
       ) : null}
-      <Card>
+      <Card variant="outlined">
         <CardContent>
           <dl className="text-text-primary space-y-3 text-left text-sm">
             {state.canPay && !hasReported && !newerReference
@@ -130,17 +131,20 @@ export function TransferWaiting({
                 />
                 <Body size="sm">{t("retryHint")}</Body>
               </div>
-              <Button className="w-full" href={localizePath(locale, "/cart")}>
+              <ButtonLink
+                className="w-full"
+                href={localizePath(locale, "/cart")}
+              >
                 {t("retry")}
                 <ArrowRight aria-hidden className="size-5" strokeWidth={2} />
-              </Button>
+              </ButtonLink>
             </>
           ) : null}
           {canRefresh && canReport ? (
             <Button
               variant="secondary"
               className="w-full"
-              disabled={refreshing || hasReported || reporting}
+              isDisabled={refreshing || hasReported || reporting}
               onClick={async () => {
                 setReporting(true);
                 setReportFailed(false);
@@ -176,7 +180,7 @@ export function TransferWaiting({
           <IconAction
             icon={<ClipboardList className="size-6" strokeWidth={1.5} />}
             loading={refreshing}
-            disabled={refreshing}
+            isDisabled={refreshing}
             onClick={() => startTransition(() => router.refresh())}
           >
             {t("check")}

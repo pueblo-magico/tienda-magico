@@ -1,8 +1,10 @@
-import { Accordion } from "@/components/ui/Accordion";
+"use client";
+
+import { Accordion } from "@pueblo-magico/react-ui";
 import { DocsPageHeader } from "@/components/ui-system/DocsPageHeader";
 import { DocsSection } from "@/components/ui-system/DocsSection";
 import { UserRound } from "lucide-react";
-import { Input } from "@/components/ui/Input";
+import { Input } from "@pueblo-magico/react-ui";
 
 export default function AccordionPage() {
   return (
@@ -17,18 +19,18 @@ export default function AccordionPage() {
           items={[
             {
               id: "shipping",
-              title: "Shipping",
+              header: "Shipping",
               content:
                 "Free shipping on orders over $75 within the continental US.",
             },
             {
               id: "returns",
-              title: "Returns",
+              header: "Returns",
               content: "Unopened products can be returned within 30 days.",
             },
             {
               id: "sourcing",
-              title: "Sourcing",
+              header: "Sourcing",
               content:
                 "Ingredients are sourced from regenerative mountain communities.",
             },
@@ -37,14 +39,17 @@ export default function AccordionPage() {
       </DocsSection>
       <DocsSection title="Tarjetas con iconos" className="w-full">
         <Accordion
-          variant="card"
           type="multiple"
-          defaultOpenItems={["datos"]}
+          defaultExpandedItems={["datos"]}
           items={[
             {
               id: "datos",
-              title: "Tus datos",
-              icon: <UserRound strokeWidth={1.5} className="size-6" />,
+              header: (
+                <>
+                  <UserRound aria-hidden strokeWidth={1.5} className="size-6" />
+                  <span>Tus datos</span>
+                </>
+              ),
               content: (
                 <Input
                   name="accordion-example-name"

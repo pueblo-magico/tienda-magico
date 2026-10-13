@@ -5,7 +5,10 @@ import { DrawerDemo } from "./DrawerDemo";
 export default function DrawerPage() {
   return (
     <>
-      <DocsPageHeader title="Drawer" description="Slide-over panel for cart, filters, and mobile flows." />
+      <DocsPageHeader
+        title="Drawer"
+        description="Panel lateral compartido con foco contenido, cierre por Escape, restauración del foco y ubicación lógica al inicio o al final."
+      />
       <DocsSection title="Demo">
         <DrawerDemo />
       </DocsSection>

@@ -201,7 +201,8 @@ test("la tarjeta de producto usa una jerarquía compacta para catálogo", () => 
     }),
   );
 
-  assert.match(html, /aspect-square/);
+  assert.match(html, /pm-media-card__media--square/);
+  assert.match(html, /pm-media-card__media--zoom/);
   assert.match(html, /p-2/);
   assert.match(html, /text-text-primary font-serif text-sm/);
   assert.match(html, /group[^"]*h-full/);

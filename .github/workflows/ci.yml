@@ -9,6 +9,10 @@ on:
 
 permissions:
   contents: read
+  packages: read
+
+env:
+  NODE_AUTH_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}

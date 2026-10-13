@@ -175,6 +175,7 @@ jobs:
     environment: ${{ github.ref_name }}
     timeout-minutes: 90
     env:
+      NODE_AUTH_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
       IMAGE_TAG: ${{ needs.prepare.outputs.image_tag }}
       BUILD_RELEASE: ${{ needs.prepare.outputs.build_release }}
       ARTIFACT: ${{ needs.prepare.outputs.artifact }}

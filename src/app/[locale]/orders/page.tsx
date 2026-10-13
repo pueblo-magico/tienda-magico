@@ -4,15 +4,15 @@ import { Sprout } from "lucide-react";
 import { commerce } from "@/lib/commerce";
 import { getSiteSettings } from "@/lib/cms";
 import { guestCartReferences } from "@/lib/checkout/guest-orders";
-import { Container } from "@/components/layout/Container";
+import { Container } from "@pueblo-magico/react-ui";
 import {
   Card,
   CardContent,
-  CardTitle,
   CardDescription,
-} from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
-import { Body, PageTitle } from "@/components/typography";
+  CardTitle,
+} from "@pueblo-magico/react-ui";
+import { ButtonLink } from "@/components/ui/ButtonLink";
+import { Body, PageTitle } from "@pueblo-magico/react-ui";
 import { buildWhatsAppUrl } from "@/features/impact";
 import { OrderList } from "@/features/orders/OrderList";
 import { RecoverOrders } from "./RecoverOrders";
@@ -61,7 +61,7 @@ export default async function OrdersPage({
         ) : (
           <OrderList orders={orders} serverTime={Date.now()} />
         )}
-        <Card>
+        <Card variant="outlined">
           <CardContent className="flex flex-col gap-5 sm:flex-row sm:items-center">
             <Sprout
               aria-hidden
@@ -72,7 +72,7 @@ export default async function OrdersPage({
               <CardTitle>{t("supportTitle")}</CardTitle>
               <CardDescription>{t("supportBody")}</CardDescription>
             </div>
-            <Button
+            <ButtonLink
               href={buildWhatsAppUrl(
                 settings.contactPhone ?? undefined,
                 t("supportMessage"),
@@ -83,7 +83,7 @@ export default async function OrdersPage({
               rel="noreferrer"
             >
               {t("support")}
-            </Button>
+            </ButtonLink>
           </CardContent>
         </Card>
       </Container>

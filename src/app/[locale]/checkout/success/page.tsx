@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { Container } from "@/components/layout/Container";
-import { Section } from "@/components/layout/Section";
-import { Body, Eyebrow, PageTitle } from "@/components/typography";
-import { Button } from "@/components/ui/Button";
+import { Container } from "@pueblo-magico/react-ui";
+import { Section } from "@pueblo-magico/react-ui";
+import { Body, Eyebrow, PageTitle } from "@pueblo-magico/react-ui";
+import { ButtonLink } from "@/components/ui/ButtonLink";
 import { localizePath } from "@/config/navigation";
 import { checkout } from "@/lib/checkout";
 
@@ -50,8 +50,12 @@ export default async function CheckoutSuccessPage({
         </PageTitle>
         <Body className="text-forest/80">{t("success.body")}</Body>
 
-        {paymentId || statusParam || preferenceId || externalReference || paymentStatus ? (
-          <dl className="mx-auto max-w-sm space-y-2 rounded-2xl border border-border bg-card px-4 py-3 text-left text-sm text-forest/80">
+        {paymentId ||
+        statusParam ||
+        preferenceId ||
+        externalReference ||
+        paymentStatus ? (
+          <dl className="border-border bg-card text-forest/80 mx-auto max-w-sm space-y-2 rounded-2xl border px-4 py-3 text-left text-sm">
             {paymentId ? (
               <div className="flex justify-between gap-3">
                 <dt className="text-muted">{t("paymentId")}</dt>
@@ -82,13 +86,15 @@ export default async function CheckoutSuccessPage({
         ) : null}
 
         <div className="flex flex-wrap items-center justify-center gap-3">
-          <Button href={localizePath(locale, "/shop")}>{t("continueShopping")}</Button>
-          <Button href={`/${locale}`} variant="ghost">
+          <ButtonLink href={localizePath(locale, "/shop")}>
+            {t("continueShopping")}
+          </ButtonLink>
+          <ButtonLink href={`/${locale}`} variant="ghost">
             {t("backHome")}
-          </Button>
+          </ButtonLink>
         </div>
 
-        <p className="text-xs text-muted">
+        <p className="text-muted text-xs">
           <Link
             href={localizePath(locale, "/cart")}
             className="underline-offset-4 hover:underline"

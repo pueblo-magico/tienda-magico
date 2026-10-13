@@ -2,9 +2,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { localizePath } from "@/config/navigation";
 import { buildCategoryPath } from "@/features/shop/category-hierarchy";
-import { Container } from "@/components/layout/Container";
-import { Section } from "@/components/layout/Section";
-import { Body, Eyebrow, SectionTitle } from "@/components/typography";
+import { Container } from "@pueblo-magico/react-ui";
+import { Section } from "@pueblo-magico/react-ui";
+import { Body, Eyebrow, SectionTitle } from "@pueblo-magico/react-ui";
 import { commerce } from "@/lib/commerce";
 import type { FeaturedCategoriesBlockData } from "@/lib/cms";
 import type {

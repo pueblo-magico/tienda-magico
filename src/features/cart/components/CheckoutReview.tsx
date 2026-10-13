@@ -20,13 +20,14 @@ import { ReviewCard } from "@/components/cards/ReviewCard";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
-  CardDescription,
-} from "@/components/ui/Card";
-import { Checkbox } from "@/components/ui/Checkbox";
-import { Button } from "@/components/ui/Button";
-import { Body, Eyebrow, PageTitle } from "@/components/typography";
+} from "@pueblo-magico/react-ui";
+import { Checkbox } from "@pueblo-magico/react-ui";
+import { Button } from "@pueblo-magico/react-ui";
+import { ButtonLink } from "@/components/ui/ButtonLink";
+import { Body, Eyebrow, PageTitle } from "@pueblo-magico/react-ui";
 import { legalLinks, localizePath } from "@/config/navigation";
 import { formatMoney } from "@/lib/commerce/utils/format";
 import { checkoutReviewSnapshot } from "@/lib/checkout/review";
@@ -91,7 +92,7 @@ export function CheckoutReview() {
     return (
       <div className="space-y-4 text-center">
         <Body>{cartText("empty")}</Body>
-        <Button href={cartHref}>{t("back")}</Button>
+        <ButtonLink href={cartHref}>{t("back")}</ButtonLink>
       </div>
     );
 
@@ -141,9 +142,9 @@ export function CheckoutReview() {
       {!validBuyer || !configured || !cart.fulfillmentMode ? (
         <p role="alert" className="text-text-black">
           {t("missing")}{" "}
-          <Button variant="link" href={cartHref}>
+          <ButtonLink variant="link" href={cartHref}>
             {t("back")}
-          </Button>
+          </ButtonLink>
         </p>
       ) : null}
       <div className="grid items-start gap-6 lg:grid-cols-5">
@@ -283,7 +284,7 @@ export function CheckoutReview() {
           </ReviewCard>
         </div>
         <aside className="space-y-4 lg:col-span-2">
-          <Card>
+          <Card variant="outlined">
             <CardHeader>
               <CardTitle variant="editorial">{t("summary")}</CardTitle>
               <CardDescription>{t("summaryHint")}</CardDescription>
@@ -342,8 +343,8 @@ export function CheckoutReview() {
                 className="w-full"
                 size="lg"
                 shape="rounded"
-                disabled={!accepted || !canConfirm}
-                aria-busy={isMutating}
+                isDisabled={!accepted || !canConfirm}
+                isLoading={isMutating}
                 onClick={() => confirmCheckout(accepted, snapshot)}
               >
                 {t(isMutating ? "confirming" : "confirm", { amount: total })}
@@ -354,10 +355,10 @@ export function CheckoutReview() {
               </p>
             </CardContent>
           </Card>
-          <Button href={cartHref} variant="link">
+          <ButtonLink href={cartHref} variant="link">
             <ArrowLeft aria-hidden className="size-5" />
             {t("back")}
-          </Button>
+          </ButtonLink>
         </aside>
       </div>
     </div>

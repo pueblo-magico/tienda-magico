@@ -127,6 +127,7 @@ run(
   'docker',
   [
     'buildx', 'build', '--load', '--platform', options.platform,
+    '--secret', 'id=npm_token,env=NODE_AUTH_TOKEN',
     '-f', 'deploy/docker/storefront.Dockerfile',
     '--build-arg', 'COMMERCE_PROVIDER=payload',
     '--build-arg', `NEXT_PUBLIC_SITE_URL=${options.shopUrl}`,

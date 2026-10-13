@@ -3,15 +3,15 @@
 import { useState, type FormEvent } from "react";
 import { useTranslations } from "next-intl";
 import { CheckCircle2 } from "lucide-react";
-import { Button } from "@/components/ui/Button";
 import {
+  Button,
   Card,
   CardContent,
   CardDescription,
   CardTitle,
-} from "@/components/ui/Card";
-import { RatingInput } from "@/components/ui/Rating";
-import { Textarea } from "@/components/ui/Textarea";
+  RatingInput,
+  Textarea,
+} from "@pueblo-magico/react-ui";
 import { FeedbackThanksModal } from "./FeedbackThanksModal";
 
 export function OrderReceiptFeedback({
@@ -77,7 +77,7 @@ export function OrderReceiptFeedback({
   }
 
   return (
-    <Card className="mt-4">
+    <Card variant="outlined" className="mt-4">
       <CardContent
         className={
           layout === "wide" ? "grid gap-6 lg:grid-cols-3" : "space-y-5"
@@ -107,11 +107,11 @@ export function OrderReceiptFeedback({
         >
           <RatingInput
             value={rating}
-            onChange={setRating}
+            onChange={(value) => setRating(value ?? 0)}
             label={t("ratingLabel")}
             clearLabel={t("ratingValues.0")}
             valueLabel={(value) => t(`ratingValues.${value}`)}
-            disabled={saving}
+            isDisabled={saving}
           />
           <Textarea
             name="experienceComment"
@@ -119,9 +119,9 @@ export function OrderReceiptFeedback({
             placeholder={t("commentPlaceholder")}
             value={comment}
             maxLength={1000}
-            disabled={saving}
-            onChange={(event) => setComment(event.currentTarget.value)}
-            hint={t("commentHint")}
+            isDisabled={saving}
+            onChange={setComment}
+            description={t("commentHint")}
           />
           {failed ? (
             <p role="alert" className="text-terracotta text-sm">
@@ -129,13 +129,13 @@ export function OrderReceiptFeedback({
             </p>
           ) : null}
           <div className="flex flex-col gap-3 sm:col-span-2 sm:flex-row sm:justify-end">
-            <Button type="submit" disabled={saving} aria-busy={saving}>
+            <Button type="submit" isDisabled={saving} isLoading={saving}>
               {t(feedbackOnly ? "submitFeedback" : "confirm")}
             </Button>
             {!formId || feedbackOnly ? (
               <Button
                 variant="secondary"
-                disabled={saving}
+                isDisabled={saving}
                 onPress={() => setDismissed(true)}
               >
                 {t("skip")}

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Check, Copy } from "lucide-react";
-import { Button } from "./Button";
+import { Button } from "@pueblo-magico/react-ui";
 
 type Props = {
   value: string;
@@ -17,10 +17,9 @@ export function CopyButton({ value, label, copiedLabel, errorLabel }: Props) {
     <span className="inline-flex items-center gap-2">
       <Button
         variant="ghost"
-        size="icon-sm"
+        size="icon"
         aria-label={label}
-        title={label}
-        onClick={async () => {
+        onPress={async () => {
           try {
             await navigator.clipboard.writeText(value);
             setState("copied");

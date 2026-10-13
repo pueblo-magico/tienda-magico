@@ -5,7 +5,7 @@ import {
   resolveNavigationHref,
   type Locale,
 } from "@/config/navigation";
-import { Container } from "./Container";
+import { Container } from "@pueblo-magico/react-ui";
 import { LegalFooter } from "./LegalFooter";
 import { cn } from "@/lib/utils/cn";
 

@@ -54,6 +54,9 @@ function cmsMediaPatterns(): RemotePattern[] {
 }
 
 const nextConfig: NextConfig = {
+  experimental: {
+    optimizePackageImports: ["@pueblo-magico/react-ui"],
+  },
   allowedDevOrigins: developmentOrigins(
     process.env.DEV_STOREFRONT_URL,
     process.env.NODE_ENV,

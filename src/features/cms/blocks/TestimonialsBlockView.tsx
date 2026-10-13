@@ -1,6 +1,6 @@
-import { Container } from "@/components/layout/Container";
-import { Section } from "@/components/layout/Section";
-import { Body, Eyebrow, SectionTitle } from "@/components/typography";
+import { Container } from "@pueblo-magico/react-ui";
+import { Section } from "@pueblo-magico/react-ui";
+import { Body, Eyebrow, SectionTitle } from "@pueblo-magico/react-ui";
 import type { CmsTestimonial, TestimonialsBlockData } from "@/lib/cms";
 import { getTestimonials } from "@/lib/cms";
 
@@ -55,12 +55,14 @@ export async function TestimonialsBlockView({
           {items.map((item) => (
             <li
               key={String(item.id)}
-              className="rounded-2xl border border-border bg-card px-5 py-6"
+              className="border-border bg-card rounded-2xl border px-5 py-6"
             >
               <Body className="text-forest/90">“{item.quote}”</Body>
-              <p className="mt-4 text-sm font-medium text-forest">{item.name}</p>
+              <p className="text-forest mt-4 text-sm font-medium">
+                {item.name}
+              </p>
               {item.role ? (
-                <p className="text-xs uppercase tracking-[0.12em] text-muted">
+                <p className="text-muted text-xs tracking-[0.12em] uppercase">
                   {item.role}
                 </p>
               ) : null}
