@@ -3,14 +3,23 @@ import test from "node:test";
 
 import { SupplierPaymentProfiles } from "../apps/cms/src/collections/SupplierPaymentProfiles.ts";
 import { SupplierFinanceEvents } from "../apps/cms/src/collections/SupplierFinanceEvents.ts";
+import { SupplierPayoutPolicyEvents } from "../apps/cms/src/collections/SupplierPayoutPolicyEvents.ts";
 import { SupplierObligations } from "../apps/cms/src/collections/SupplierObligations.ts";
 import { SupplierPayouts } from "../apps/cms/src/collections/SupplierPayouts.ts";
 import { SupplierSettlements } from "../apps/cms/src/collections/SupplierSettlements.ts";
 import { ordersCollectionOverride } from "../apps/cms/src/collections/orderCommercialSnapshot.ts";
-import { supplierPayoutConfirmationInput } from "../apps/cms/src/utilities/confirmSupplierPayout.ts";
+import {
+  confirmSupplierPayout,
+  supplierPayoutConfirmationInput,
+} from "../apps/cms/src/utilities/confirmSupplierPayout.ts";
 import { createSupplierObligationsForPaidOrder } from "../apps/cms/src/utilities/createSupplierObligationsForPaidOrder.ts";
 import { manualSupplierPayoutInput } from "../apps/cms/src/utilities/recordManualSupplierPayout.ts";
 import { appendSupplierFinanceEvent } from "../apps/cms/src/utilities/appendSupplierFinanceEvent.ts";
+import { SupplierPayoutPolicy } from "../apps/cms/src/globals/SupplierPayoutPolicy.ts";
+import {
+  appendSupplierPayoutPolicyEvent,
+  validateSupplierPayoutPolicy,
+} from "../apps/cms/src/utilities/supplierPayoutPolicy.ts";
 
 const namedField = (collection, name) =>
   collection.fields.find((field) => field.name === name);
@@ -82,6 +91,105 @@ test("los eventos financieros son anexos, privados y exportables para contabilid
       `Falta el campo contable ${field}`,
     );
   }
+});
+
+test("la política de pagos queda cerrada por defecto y solo administración puede cambiarla", () => {
+  assert.equal(SupplierPayoutPolicy.slug, "supplier-payout-policy");
+  assert.equal(SupplierPayoutPolicy.access.read({ req: {} }), false);
+  assert.equal(
+    SupplierPayoutPolicy.access.update({
+      req: { user: { roles: ["finance"] } },
+    }),
+    false,
+  );
+  assert.equal(
+    SupplierPayoutPolicy.access.update({
+      req: { user: { roles: ["admin"] } },
+    }),
+    true,
+  );
+  assert.equal(
+    namedField(SupplierPayoutPolicy, "emergencyStop").defaultValue,
+    true,
+  );
+  assert.equal(
+    namedField(SupplierPayoutPolicy, "outboundProviderPaymentsEnabled")
+      .defaultValue,
+    false,
+  );
+  assert.equal(
+    namedField(SupplierPayoutPolicy, "automaticProviderPaymentsEnabled")
+      .defaultValue,
+    false,
+  );
+  assert.throws(() =>
+    validateSupplierPayoutPolicy({
+      data: {
+        emergencyStop: true,
+        outboundProviderPaymentsEnabled: true,
+        automaticProviderPaymentsEnabled: true,
+      },
+      originalDoc: {},
+    }),
+  );
+});
+
+test("los cambios de política generan un historial privado, inmutable e idempotente", async () => {
+  assert.equal(SupplierPayoutPolicyEvents.access.read({ req: {} }), false);
+  assert.equal(
+    SupplierPayoutPolicyEvents.access.read({
+      req: { user: { roles: ["finance"] } },
+    }),
+    true,
+  );
+  assert.equal(SupplierPayoutPolicyEvents.access.create({ req: {} }), false);
+  assert.equal(SupplierPayoutPolicyEvents.access.update({ req: {} }), false);
+  assert.equal(SupplierPayoutPolicyEvents.access.delete({ req: {} }), false);
+  assert.equal(namedField(SupplierPayoutPolicyEvents, "eventKey").unique, true);
+
+  const events = [];
+  const req = {
+    user: { id: 9 },
+    payload: {
+      find: async ({ collection, where }) => {
+        assert.equal(collection, "supplier-payout-policy-events");
+        return {
+          docs: events.filter(
+            (event) => event.eventKey === where.eventKey.equals,
+          ),
+        };
+      },
+      create: async ({ collection, data, overrideAccess }) => {
+        assert.equal(collection, "supplier-payout-policy-events");
+        assert.equal(overrideAccess, true);
+        events.push(data);
+        return data;
+      },
+    },
+  };
+  const args = {
+    doc: {
+      emergencyStop: false,
+      outboundProviderPaymentsEnabled: true,
+      automaticProviderPaymentsEnabled: false,
+      updatedAt: "2026-10-13T15:00:00.000Z",
+    },
+    previousDoc: {
+      emergencyStop: true,
+      outboundProviderPaymentsEnabled: false,
+      automaticProviderPaymentsEnabled: false,
+    },
+    req,
+  };
+
+  await appendSupplierPayoutPolicyEvent(args);
+  await appendSupplierPayoutPolicyEvent(args);
+
+  assert.equal(events.length, 1);
+  assert.equal(events[0].actor, 9);
+  assert.equal(events[0].previousEmergencyStop, true);
+  assert.equal(events[0].emergencyStop, false);
+  assert.equal(events[0].outboundProviderPaymentsEnabled, true);
 });
 
 test("la escritura de eventos es idempotente y limita los datos a campos contables", async () => {
@@ -308,6 +416,75 @@ test("la confirmacion exige aceptación explicita sin aceptar campos adicionales
   assert.throws(() =>
     supplierPayoutConfirmationInput({ acknowledged: true, amount: 1 }),
   );
+});
+
+test("la confirmación consulta la política persistida y no llega al proveedor si está bloqueada", async () => {
+  let committed = false;
+  let rolledBack = false;
+  const transaction = { execute: async () => ({ rows: [] }) };
+  const req = {
+    user: { id: 9, roles: ["admin"] },
+    payload: {
+      db: {
+        name: "postgres",
+        sessions: { tx: { db: transaction } },
+        beginTransaction: async () => "tx",
+        commitTransaction: async () => {
+          committed = true;
+        },
+        rollbackTransaction: async () => {
+          rolledBack = true;
+        },
+      },
+      findByID: async ({ collection }) => {
+        if (collection === "users") return { id: 9, roles: ["admin"] };
+        if (collection === "supplier-payouts")
+          return {
+            id: 17,
+            status: "awaiting_approval",
+            settlement: 5,
+            paymentProfile: 8,
+            supplier: 3,
+            amountMinor: 50_000,
+          };
+        if (collection === "supplier-settlements")
+          return {
+            id: 5,
+            supplier: 3,
+            status: "approved",
+            currency: "ARS",
+            outstandingMinor: 50_000,
+          };
+        if (collection === "supplier-payment-profiles")
+          return {
+            id: 8,
+            supplier: 3,
+            status: "verified",
+            currency: "ARS",
+          };
+        throw new Error(`Colección inesperada: ${collection}`);
+      },
+      findGlobal: async ({ slug, overrideAccess }) => {
+        assert.equal(slug, "supplier-payout-policy");
+        assert.equal(overrideAccess, true);
+        return {
+          emergencyStop: true,
+          outboundProviderPaymentsEnabled: false,
+          automaticProviderPaymentsEnabled: false,
+        };
+      },
+      logger: {
+        error: () => assert.fail("No debe registrarse un error interno"),
+      },
+    },
+  };
+
+  const response = await confirmSupplierPayout(req, 17);
+
+  assert.equal(response.status, 409);
+  assert.deepEqual(await response.json(), { code: "emergency_stop" });
+  assert.equal(rolledBack, true);
+  assert.equal(committed, false);
 });
 
 test("la acción de pago queda disponible solo desde un payout persistido", () => {

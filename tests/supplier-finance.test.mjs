@@ -124,6 +124,55 @@ test("solo un admin puede confirmar un pago elegible de una liquidacion aprobada
   }
 });
 
+test("la politica bloquea envios por defecto y mantiene separado el modo automatico", () => {
+  for (const [code, policy, mode] of [
+    [
+      "emergency_stop",
+      {
+        emergencyStop: true,
+        outboundProviderPaymentsEnabled: true,
+        automaticProviderPaymentsEnabled: true,
+      },
+      "confirmed",
+    ],
+    [
+      "outbound_disabled",
+      {
+        emergencyStop: false,
+        outboundProviderPaymentsEnabled: false,
+        automaticProviderPaymentsEnabled: false,
+      },
+      "confirmed",
+    ],
+    [
+      "automatic_disabled",
+      {
+        emergencyStop: false,
+        outboundProviderPaymentsEnabled: true,
+        automaticProviderPaymentsEnabled: false,
+      },
+      "automatic",
+    ],
+  ]) {
+    assert.throws(
+      () =>
+        supplierFinancePolicy.assertSupplierPayoutExecutionPolicy(policy, mode),
+      (error) => error.code === code,
+    );
+  }
+
+  assert.doesNotThrow(() =>
+    supplierFinancePolicy.assertSupplierPayoutExecutionPolicy(
+      {
+        emergencyStop: false,
+        outboundProviderPaymentsEnabled: true,
+        automaticProviderPaymentsEnabled: false,
+      },
+      "confirmed",
+    ),
+  );
+});
+
 test("el pago manual exige referencia, fecha y confirmación para cubrir el saldo aprobado", () => {
   assert.equal(
     typeof supplierFinancePolicy.assertManualPayoutConfirmation,

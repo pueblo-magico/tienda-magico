@@ -97,6 +97,7 @@ Never commit `.env`.
 | `supplier-payment-profiles`          | App                         | Destinos de pago privados y verificados               |
 | `supplier-settlements`               | App                         | Liquidaciones aprobables de deuda con proveedores     |
 | `supplier-payouts`                   | App                         | Confirmación, envío y conciliación de pagos de prueba |
+| `supplier-payout-policy-events`      | App                         | Auditoría inmutable de habilitaciones y bloqueos      |
 | `media`                              | App                         | Public-read uploads                                   |
 | `pages`                              | App (Phase 6)               | Marketing pages with layout blocks (draft/publish)    |
 | `posts`                              | App (Phase 6)               | Journal / editorial posts                             |
@@ -108,14 +109,15 @@ Never commit `.env`.
 | `carts`                              | Plugin                      | Carts + item endpoints (`allowGuestCarts: true`)      |
 | `orders`, `addresses`, …             | Plugin                      | Checkout domain (payments TBD)                        |
 
-## Globals (Phase 6)
+## Globals
 
-| Slug            | Purpose                                               |
-| --------------- | ----------------------------------------------------- |
-| `header`        | Logo override, nav items, optional CTA                |
-| `footer`        | Tagline, link columns, legal links                    |
-| `site-settings` | Site name, contact, social links                      |
-| `seo`           | Default title template, description, OG image, robots |
+| Slug                     | Purpose                                               |
+| ------------------------ | ----------------------------------------------------- |
+| `header`                 | Logo override, nav items, optional CTA                |
+| `footer`                 | Tagline, link columns, legal links                    |
+| `site-settings`          | Site name, contact, social links                      |
+| `seo`                    | Default title template, description, OG image, robots |
+| `supplier-payout-policy` | Freno de emergencia y permisos de ejecución de pagos  |
 
 ## Layout blocks (Pages)
 

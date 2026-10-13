@@ -2,7 +2,12 @@ import { sql } from '@payloadcms/db-postgres'
 import type { Endpoint, PayloadRequest } from 'payload'
 
 import { relationID } from '../collections/sellableItems'
-import { PayoutConfirmationError, assertPayoutConfirmation } from '../lib/supplierFinance/policy'
+import {
+  PayoutConfirmationError,
+  SupplierPayoutExecutionPolicyError,
+  assertPayoutConfirmation,
+  assertSupplierPayoutExecutionPolicy,
+} from '../lib/supplierFinance/policy'
 import {
   SupplierPayoutProviderError,
   submitMercadoPagoPayout,
@@ -111,6 +116,16 @@ export async function confirmSupplierPayout(
       amountMinor: payout.amountMinor,
       acknowledged: true,
     })
+    await transaction.execute(
+      sql`SELECT pg_advisory_xact_lock(hashtextextended('supplier-payout-policy', 0))`,
+    )
+    const payoutPolicy = await req.payload.findGlobal({
+      slug: 'supplier-payout-policy',
+      depth: 0,
+      overrideAccess: true,
+      req,
+    })
+    assertSupplierPayoutExecutionPolicy(payoutPolicy, 'confirmed')
     const accessToken = process.env.MERCADOPAGO_PAYOUTS_ACCESS_TOKEN?.trim()
     if (!accessToken || process.env.MERCADOPAGO_PAYOUTS_TEST_MODE !== 'true')
       return await rollbackResponse(req, transactionID, 'configuration', 503)
@@ -243,7 +258,10 @@ export async function confirmSupplierPayout(
     }
   } catch (error) {
     await req.payload.db.rollbackTransaction(transactionID)
-    if (error instanceof PayoutConfirmationError) {
+    if (
+      error instanceof PayoutConfirmationError ||
+      error instanceof SupplierPayoutExecutionPolicyError
+    ) {
       const status = error.code === 'forbidden' ? 403 : 409
       return Response.json({ code: error.code }, { status })
     }

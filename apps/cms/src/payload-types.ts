@@ -80,6 +80,7 @@ export interface Config {
     'supplier-settlements': SupplierSettlement;
     'supplier-payouts': SupplierPayout;
     'supplier-finance-events': SupplierFinanceEvent;
+    'supplier-payout-policy-events': SupplierPayoutPolicyEvent;
     media: Media;
     localSales: LocalSale;
     'payment-notifications': PaymentNotification;
@@ -123,6 +124,7 @@ export interface Config {
     'supplier-settlements': SupplierSettlementsSelect<false> | SupplierSettlementsSelect<true>;
     'supplier-payouts': SupplierPayoutsSelect<false> | SupplierPayoutsSelect<true>;
     'supplier-finance-events': SupplierFinanceEventsSelect<false> | SupplierFinanceEventsSelect<true>;
+    'supplier-payout-policy-events': SupplierPayoutPolicyEventsSelect<false> | SupplierPayoutPolicyEventsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     localSales: LocalSalesSelect<false> | LocalSalesSelect<true>;
     'payment-notifications': PaymentNotificationsSelect<false> | PaymentNotificationsSelect<true>;
@@ -155,6 +157,7 @@ export interface Config {
     footer: Footer;
     'site-settings': SiteSetting;
     'commerce-settings': CommerceSetting;
+    'supplier-payout-policy': SupplierPayoutPolicy;
     seo: Seo;
     'cms-settings': CmsSetting;
   };
@@ -163,6 +166,7 @@ export interface Config {
     footer: FooterSelect<false> | FooterSelect<true>;
     'site-settings': SiteSettingsSelect<false> | SiteSettingsSelect<true>;
     'commerce-settings': CommerceSettingsSelect<false> | CommerceSettingsSelect<true>;
+    'supplier-payout-policy': SupplierPayoutPolicySelect<false> | SupplierPayoutPolicySelect<true>;
     seo: SeoSelect<false> | SeoSelect<true>;
     'cms-settings': CmsSettingsSelect<false> | CmsSettingsSelect<true>;
   };
@@ -3156,6 +3160,26 @@ export interface SupplierFinanceEvent {
   createdAt: string;
 }
 /**
+ * Immutable history of changes that enable or block supplier payouts.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "supplier-payout-policy-events".
+ */
+export interface SupplierPayoutPolicyEvent {
+  id: number;
+  eventKey: string;
+  emergencyStop: boolean;
+  outboundProviderPaymentsEnabled: boolean;
+  automaticProviderPaymentsEnabled: boolean;
+  previousEmergencyStop?: boolean | null;
+  previousOutboundProviderPaymentsEnabled?: boolean | null;
+  previousAutomaticProviderPaymentsEnabled?: boolean | null;
+  actor?: (number | null) | User;
+  occurredAt: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * Private record of local sales operated from the CMS.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -3727,10 +3751,6 @@ export interface PayloadLockedDocument {
         value: number | SupplierPayout;
       } | null)
     | ({
-        relationTo: 'supplier-finance-events';
-        value: number | SupplierFinanceEvent;
-      } | null)
-    | ({
         relationTo: 'media';
         value: number | Media;
       } | null)
@@ -4058,6 +4078,23 @@ export interface SupplierFinanceEventsSelect<T extends boolean = true> {
   correlationKey?: T;
   externalReference?: T;
   reason?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "supplier-payout-policy-events_select".
+ */
+export interface SupplierPayoutPolicyEventsSelect<T extends boolean = true> {
+  eventKey?: T;
+  emergencyStop?: T;
+  outboundProviderPaymentsEnabled?: T;
+  automaticProviderPaymentsEnabled?: T;
+  previousEmergencyStop?: T;
+  previousOutboundProviderPaymentsEnabled?: T;
+  previousAutomaticProviderPaymentsEnabled?: T;
+  actor?: T;
+  occurredAt?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -4955,6 +4992,29 @@ export interface CommerceSetting {
   createdAt?: string | null;
 }
 /**
+ * Safety controls for outbound money movement. Reconciliation and manual recording remain available while submissions are blocked.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "supplier-payout-policy".
+ */
+export interface SupplierPayoutPolicy {
+  id: number;
+  /**
+   * Immediately blocks new supplier payout submissions. Status checks and external payment records remain available.
+   */
+  emergencyStop: boolean;
+  /**
+   * Allows an administrative confirmation to request a payment from the configured provider.
+   */
+  outboundProviderPaymentsEnabled: boolean;
+  /**
+   * Reserves permission for future automations. The current manual confirmation does not depend on this option.
+   */
+  automaticProviderPaymentsEnabled: boolean;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "seo".
  */
@@ -5151,6 +5211,18 @@ export interface CommerceSettingsSelect<T extends boolean = true> {
         cvu?: T;
         paymentWindowMinutes?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "supplier-payout-policy_select".
+ */
+export interface SupplierPayoutPolicySelect<T extends boolean = true> {
+  emergencyStop?: T;
+  outboundProviderPaymentsEnabled?: T;
+  automaticProviderPaymentsEnabled?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

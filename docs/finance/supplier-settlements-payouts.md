@@ -17,6 +17,8 @@ Este flujo registra la deuda con proveedores por consignación y exige una confi
 11. Un resultado incierto pasa a `reconciliation_required`. No se reenvía automáticamente con otra clave idempotente.
 12. Un pago manual puede cubrir todo el saldo o una parte. La parte pagada se asigna por identificador ascendente entre las obligaciones pendientes y, si queda saldo, se prepara un nuevo pago para que administración decida cómo continuarlo.
 13. Cada preparación, inicio de envío, respuesta de Mercado Pago, consulta de estado y conciliación manual crea un evento financiero anexo e inmutable. La misma clave de evento no se registra dos veces.
+14. Todo envío externo consulta la política persistida inmediatamente antes de llamar al proveedor. Por defecto los envíos están deshabilitados y el freno de emergencia está activo.
+15. Solamente administración puede cambiar la política. Cada cambio efectivo conserva un evento inmutable con valores anteriores, valores nuevos, responsable y fecha.
 
 La primera integración está limitada deliberadamente a ARS y al modo de prueba de Mercado Pago Payouts. Cada envío automático de Mercado Pago cubre el saldo pendiente completo del pago preparado; los pagos parciales se registran manualmente antes de preparar el siguiente saldo. La asignación de descuentos, impuestos, envío y comisiones que no estén representados en el total de línea, los ajustes por devolución y la consolidación de varios pedidos en una liquidación periódica siguen siendo incrementos posteriores.
 
@@ -34,13 +36,24 @@ La credencial debe pertenecer a Payouts y no debe reutilizarse en el navegador n
 
 ## Operación con Mercado Pago de prueba
 
-1. En **Finanzas > Perfiles de pago**, crear el destino del proveedor. Un administrador debe marcarlo como verificado.
-2. Confirmar un pedido consignado como pagado y abrir la liquidación borrador que el sistema preparó en **Finanzas > Liquidaciones**.
-3. Revisar proveedor, moneda e importe contra las obligaciones vinculadas y aprobarla desde la acción del documento. El sistema prepara el pago sin enviarlo.
-4. En **Finanzas > Pagos a proveedores**, abrir el pago preparado y comprobar liquidación, proveedor, saldo y perfil.
-5. Aceptar la advertencia y usar **Confirmar y enviar**. Este es el único paso que solicita el movimiento de dinero.
-6. Si el estado queda enviado, procesando o requiere conciliación, usar **Consultar estado en Mercado Pago**.
-7. No crear ni confirmar otro pago ante un resultado incierto. Conciliar primero la misma transacción por su identificador externo.
+1. En **Configuración > Política de pagos a proveedores**, mantener deshabilitada la ejecución automática, habilitar los envíos a proveedores y recién entonces desactivar el freno de emergencia. Guardar ambos cambios juntos. Esta acción no envía dinero.
+2. En **Finanzas > Perfiles de pago**, crear el destino del proveedor. Un administrador debe marcarlo como verificado.
+3. Confirmar un pedido consignado como pagado y abrir la liquidación borrador que el sistema preparó en **Finanzas > Liquidaciones**.
+4. Revisar proveedor, moneda e importe contra las obligaciones vinculadas y aprobarla desde la acción del documento. El sistema prepara el pago sin enviarlo.
+5. En **Finanzas > Pagos a proveedores**, abrir el pago preparado y comprobar liquidación, proveedor, saldo y perfil.
+6. Aceptar la advertencia y usar **Confirmar y enviar**. Este es el único paso que solicita el movimiento de dinero.
+7. Si el estado queda enviado, procesando o requiere conciliación, usar **Consultar estado en Mercado Pago**.
+8. No crear ni confirmar otro pago ante un resultado incierto. Conciliar primero la misma transacción por su identificador externo.
+
+## Política y freno de emergencia
+
+- **Freno de emergencia** bloquea toda nueva solicitud al proveedor. Debe permanecer activo salvo durante una operación habilitada y supervisada.
+- **Habilitar envíos a proveedores** permite la acción administrativa **Confirmar y enviar**. No elimina la confirmación explícita ni las demás validaciones.
+- **Habilitar ejecución automática** es una autorización separada para una automatización futura. No puede activarse mientras el freno esté activo ni mientras los envíos estén deshabilitados, y todavía no inicia pagos por sí sola.
+- Los bloqueos no impiden **Consultar estado en Mercado Pago** ni **Registrar pago manual**. Esas acciones no crean una nueva transferencia externa y deben seguir disponibles para cerrar operaciones ya iniciadas.
+- **Finanzas > Cambios de política de pagos** permite revisar el historial de cambios. No se puede editar ni borrar desde el panel o las API.
+
+Ante una incidencia, activar primero el freno de emergencia. Después conciliar los pagos que ya tengan identificador externo; no intentar reenviarlos.
 
 ## Registro de una transferencia manual
 
@@ -65,7 +78,7 @@ Los eventos se crean dentro de la misma transacción que el cambio financiero. S
 
 Actualmente Mercado Pago no informa comisiones ni importe neto recibido mediante el adaptador de prueba, por lo que se registra comisión cero con responsabilidad `unknown`; esto no significa que la operación productiva sea gratuita. La exportación puede usar estos registros como fuente operativa idempotente, pero no reemplaza el asiento definitivo del libro mayor.
 
-La reversión de la migración elimina el historial de eventos. Antes de revertir en un entorno que ya procesó pagos se debe exportar la tabla y preservar su auditoría fuera del sistema.
+La reversión de las migraciones elimina el historial de eventos financieros y de cambios de política. Antes de revertir en un entorno que ya procesó pagos o habilitó envíos se deben exportar ambas tablas y preservar su auditoría fuera del sistema. La reversión no cancela ni revierte transferencias externas.
 
 ## Límite de producción
 

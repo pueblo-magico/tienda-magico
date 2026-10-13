@@ -7,6 +7,7 @@ const serverManaged = { create: () => false, update: () => false }
 
 export const SupplierFinanceEvents: CollectionConfig = {
   slug: 'supplier-finance-events',
+  lockDocuments: false,
   labels: {
     singular: { es: 'Evento financiero de proveedor', en: 'Supplier finance event' },
     plural: { es: 'Eventos financieros de proveedores', en: 'Supplier finance events' },

@@ -2819,6 +2819,186 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.supplier_payout_policy_events": {
+      "name": "supplier_payout_policy_events",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "event_key": {
+          "name": "event_key",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "emergency_stop": {
+          "name": "emergency_stop",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "outbound_provider_payments_enabled": {
+          "name": "outbound_provider_payments_enabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "automatic_provider_payments_enabled": {
+          "name": "automatic_provider_payments_enabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "previous_emergency_stop": {
+          "name": "previous_emergency_stop",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "previous_outbound_provider_payments_enabled": {
+          "name": "previous_outbound_provider_payments_enabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "previous_automatic_provider_payments_enabled": {
+          "name": "previous_automatic_provider_payments_enabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "actor_id": {
+          "name": "actor_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "occurred_at": {
+          "name": "occurred_at",
+          "type": "timestamp(3) with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp(3) with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp(3) with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "supplier_payout_policy_events_event_key_idx": {
+          "name": "supplier_payout_policy_events_event_key_idx",
+          "columns": [
+            {
+              "expression": "event_key",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "supplier_payout_policy_events_actor_idx": {
+          "name": "supplier_payout_policy_events_actor_idx",
+          "columns": [
+            {
+              "expression": "actor_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "supplier_payout_policy_events_occurred_at_idx": {
+          "name": "supplier_payout_policy_events_occurred_at_idx",
+          "columns": [
+            {
+              "expression": "occurred_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "supplier_payout_policy_events_updated_at_idx": {
+          "name": "supplier_payout_policy_events_updated_at_idx",
+          "columns": [
+            {
+              "expression": "updated_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "supplier_payout_policy_events_created_at_idx": {
+          "name": "supplier_payout_policy_events_created_at_idx",
+          "columns": [
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "supplier_payout_policy_events_actor_id_users_id_fk": {
+          "name": "supplier_payout_policy_events_actor_id_users_id_fk",
+          "tableFrom": "supplier_payout_policy_events",
+          "tableTo": "users",
+          "columnsFrom": [
+            "actor_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.media": {
       "name": "media",
       "schema": "",
@@ -18951,12 +19131,6 @@
           "primaryKey": false,
           "notNull": false
         },
-        "supplier_finance_events_id": {
-          "name": "supplier_finance_events_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
         "media_id": {
           "name": "media_id",
           "type": "integer",
@@ -19192,21 +19366,6 @@
           "columns": [
             {
               "expression": "supplier_payouts_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "payload_locked_documents_rels_supplier_finance_events_id_idx": {
-          "name": "payload_locked_documents_rels_supplier_finance_events_id_idx",
-          "columns": [
-            {
-              "expression": "supplier_finance_events_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -19573,19 +19732,6 @@
           "tableTo": "supplier_payouts",
           "columnsFrom": [
             "supplier_payouts_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "payload_locked_documents_rels_supplier_finance_events_fk": {
-          "name": "payload_locked_documents_rels_supplier_finance_events_fk",
-          "tableFrom": "payload_locked_documents_rels",
-          "tableTo": "supplier_finance_events",
-          "columnsFrom": [
-            "supplier_finance_events_id"
           ],
           "columnsTo": [
             "id"
@@ -21560,6 +21706,58 @@
           "primaryKey": false,
           "notNull": false,
           "default": 15
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp(3) with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp(3) with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.supplier_payout_policy": {
+      "name": "supplier_payout_policy",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "emergency_stop": {
+          "name": "emergency_stop",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "outbound_provider_payments_enabled": {
+          "name": "outbound_provider_payments_enabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "automatic_provider_payments_enabled": {
+          "name": "automatic_provider_payments_enabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
         },
         "updated_at": {
           "name": "updated_at",
@@ -25111,6 +25309,6 @@
     "tables": {},
     "columns": {}
   },
-  "id": "7573fc62-94bf-4119-a8ff-ad7a0c3a70da",
+  "id": "48c0bcee-a449-422b-b59f-57e35fe05146",
   "prevId": "00000000-0000-0000-0000-000000000000"
 }

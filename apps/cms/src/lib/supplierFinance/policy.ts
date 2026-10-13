@@ -78,6 +78,34 @@ export class PayoutConfirmationError extends Error {
   }
 }
 
+export type SupplierPayoutExecutionPolicy = {
+  emergencyStop?: boolean | null
+  outboundProviderPaymentsEnabled?: boolean | null
+  automaticProviderPaymentsEnabled?: boolean | null
+}
+
+export type SupplierPayoutExecutionMode = 'confirmed' | 'automatic'
+
+export type SupplierPayoutExecutionPolicyCode =
+  'emergency_stop' | 'outbound_disabled' | 'automatic_disabled'
+
+export class SupplierPayoutExecutionPolicyError extends Error {
+  constructor(readonly code: SupplierPayoutExecutionPolicyCode) {
+    super(code)
+  }
+}
+
+export function assertSupplierPayoutExecutionPolicy(
+  policy: SupplierPayoutExecutionPolicy,
+  mode: SupplierPayoutExecutionMode,
+): void {
+  if (policy.emergencyStop !== false) throw new SupplierPayoutExecutionPolicyError('emergency_stop')
+  if (policy.outboundProviderPaymentsEnabled !== true)
+    throw new SupplierPayoutExecutionPolicyError('outbound_disabled')
+  if (mode === 'automatic' && policy.automaticProviderPaymentsEnabled !== true)
+    throw new SupplierPayoutExecutionPolicyError('automatic_disabled')
+}
+
 export function assertPayoutConfirmation(input: PayoutConfirmationInput): void {
   if (!input.actorRoles.includes('admin')) throw new PayoutConfirmationError('forbidden')
   if (input.acknowledged !== true) throw new PayoutConfirmationError('confirmation_required')
