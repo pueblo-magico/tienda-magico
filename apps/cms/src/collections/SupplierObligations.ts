@@ -84,6 +84,14 @@ export const SupplierObligations: CollectionConfig = {
       label: { es: 'Revisión del acuerdo', en: 'Agreement revision' },
     },
     {
+      name: 'settlement',
+      type: 'relationship',
+      relationTo: 'supplier-settlements',
+      index: true,
+      admin: { readOnly: true },
+      label: { es: 'Liquidación', en: 'Settlement' },
+    },
+    {
       name: 'status',
       type: 'select',
       required: true,

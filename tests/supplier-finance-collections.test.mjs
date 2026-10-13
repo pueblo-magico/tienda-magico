@@ -32,6 +32,10 @@ test("los perfiles y movimientos financieros son privados y separados del catalo
     "suppliers",
   );
   assert.equal(
+    SupplierSettlements.access.create({ req: { user: { roles: ["admin"] } } }),
+    false,
+  );
+  assert.equal(
     namedField(SupplierPayouts, "settlement").relationTo,
     "supplier-settlements",
   );
@@ -51,8 +55,9 @@ test("la transición de un pedido a pago aprobado dispara obligaciones idempoten
   assert.equal(SupplierObligations.access.delete({ req: {} }), false);
 });
 
-test("el hook persiste una sola obligación consignada con snapshot contractual", async () => {
+test("el hook agrupa obligaciones consignadas en una sola liquidación idempotente", async () => {
   const obligations = [];
+  const settlements = [];
   const req = {
     payload: {
       find: async ({ collection, where }) => {
@@ -60,6 +65,12 @@ test("el hook persiste una sola obligación consignada con snapshot contractual"
           const sourceKey = where.sourceKey.equals;
           return {
             docs: obligations.filter((doc) => doc.sourceKey === sourceKey),
+          };
+        }
+        if (collection === "supplier-settlements") {
+          const reference = where.reference.equals;
+          return {
+            docs: settlements.filter((doc) => doc.reference === reference),
           };
         }
         if (collection === "supplier-agreements") {
@@ -98,9 +109,23 @@ test("el hook persiste una sola obligación consignada con snapshot contractual"
         return { id: 2, supplier: 3 };
       },
       create: async ({ collection, data }) => {
+        if (collection === "supplier-obligations") {
+          const obligation = { id: obligations.length + 1, ...data };
+          obligations.push(obligation);
+          return obligation;
+        }
+        if (collection === "supplier-settlements") {
+          const settlement = { id: settlements.length + 1, ...data };
+          settlements.push(settlement);
+          return settlement;
+        }
+        throw new Error(`unexpected collection ${collection}`);
+      },
+      update: async ({ collection, id, data }) => {
         assert.equal(collection, "supplier-obligations");
-        obligations.push(data);
-        return data;
+        const obligation = obligations.find((doc) => doc.id === id);
+        Object.assign(obligation, data);
+        return obligation;
       },
     },
   };
@@ -108,7 +133,10 @@ test("el hook persiste una sola obligación consignada con snapshot contractual"
     doc: {
       id: 7,
       paymentStatus: "approved",
-      items: [{ product: 2, quantity: 1 }],
+      items: [
+        { product: 2, quantity: 1 },
+        { product: 2, quantity: 1 },
+      ],
       commercialSnapshot: {
         items: [
           {
@@ -118,6 +146,13 @@ test("el hook persiste una sola obligación consignada con snapshot contractual"
             quantity: 1,
             total: { amount: "100.00", currencyCode: "ARS" },
           },
+          {
+            productId: "2",
+            merchandiseId: "product:2",
+            sku: "SKU-2",
+            quantity: 1,
+            total: { amount: "50.00", currencyCode: "ARS" },
+          },
         ],
       },
     },
@@ -126,11 +161,25 @@ test("el hook persiste una sola obligación consignada con snapshot contractual"
   };
   await createSupplierObligationsForPaidOrder(args);
   await createSupplierObligationsForPaidOrder(args);
-  assert.equal(obligations.length, 1);
+  assert.equal(obligations.length, 2);
   assert.equal(obligations[0].sourceKey, "order:7:line:0");
+  assert.equal(obligations[1].sourceKey, "order:7:line:1");
   assert.equal(obligations[0].status, "eligible");
   assert.equal(obligations[0].supplierAmountMinor, 3500);
+  assert.equal(obligations[1].supplierAmountMinor, 1750);
   assert.equal(obligations[0].snapshot.agreement.revision, 4);
+  assert.equal(settlements.length, 1);
+  assert.deepEqual(settlements[0], {
+    id: 1,
+    reference: "AUTO-ORD-7-PROV-3-ARS",
+    supplier: 3,
+    currency: "ARS",
+    amountMinor: 5250,
+    outstandingMinor: 5250,
+    status: "draft",
+  });
+  assert.equal(obligations[0].settlement, 1);
+  assert.equal(obligations[1].settlement, 1);
 });
 
 test("los importes e identidad externa no se pueden cambiar desde la API", () => {

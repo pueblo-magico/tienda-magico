@@ -13,6 +13,13 @@ type SnapshotItem = {
   total: { amount: string; currencyCode: string }
 }
 
+type SettlementCandidate = {
+  id: number
+  supplier: number
+  currency: 'ARS'
+  supplierAmountMinor: number
+}
+
 function snapshotItems(value: unknown): SnapshotItem[] {
   if (!value || typeof value !== 'object' || !('items' in value) || !Array.isArray(value.items))
     throw new Error('El pedido pagado no tiene un snapshot comercial válido.')
@@ -30,6 +37,7 @@ export const createSupplierObligationsForPaidOrder: CollectionAfterChangeHook = 
   if (lines.length !== snapshots.length)
     throw new Error('Las líneas del pedido no coinciden con su snapshot comercial.')
   const calculatedAt = new Date().toISOString()
+  const settlementCandidates: SettlementCandidate[] = []
 
   for (const [index, line] of lines.entries()) {
     const sourceKey = `order:${String(doc.id)}:line:${index}`
@@ -41,7 +49,30 @@ export const createSupplierObligationsForPaidOrder: CollectionAfterChangeHook = 
       overrideAccess: true,
       req,
     })
-    if (existing.docs.length) continue
+    if (existing.docs.length) {
+      const obligation = existing.docs[0]
+      const obligationID = Number(relationID(obligation.id))
+      const obligationSupplier = Number(relationID(obligation.supplier))
+      if (
+        obligation.status === 'eligible' &&
+        relationID(obligation.settlement) == null &&
+        Number.isSafeInteger(obligationID) &&
+        obligationID > 0 &&
+        Number.isSafeInteger(obligationSupplier) &&
+        obligationSupplier > 0 &&
+        obligation.currency === 'ARS' &&
+        Number.isSafeInteger(obligation.supplierAmountMinor) &&
+        Number(obligation.supplierAmountMinor) > 0
+      ) {
+        settlementCandidates.push({
+          id: obligationID,
+          supplier: obligationSupplier,
+          currency: 'ARS',
+          supplierAmountMinor: Number(obligation.supplierAmountMinor),
+        })
+      }
+      continue
+    }
     const productID = relationID(line.product)
     const variantID = relationID(line.variant)
     if (productID == null) throw new Error('La línea pagada no referencia un producto válido.')
@@ -91,7 +122,7 @@ export const createSupplierObligationsForPaidOrder: CollectionAfterChangeHook = 
           : derived.kind === 'review'
             ? derived.reason
             : null
-    await req.payload.create({
+    const obligation = await req.payload.create({
       collection: 'supplier-obligations',
       data: {
         sourceKey,
@@ -134,6 +165,87 @@ export const createSupplierObligationsForPaidOrder: CollectionAfterChangeHook = 
       overrideAccess: true,
       req,
     })
+    const obligationID = Number(relationID(obligation.id))
+    if (
+      obligation.status === 'eligible' &&
+      supplierRelation != null &&
+      obligation.currency === 'ARS' &&
+      Number.isSafeInteger(obligationID) &&
+      obligationID > 0 &&
+      Number.isSafeInteger(obligation.supplierAmountMinor) &&
+      Number(obligation.supplierAmountMinor) > 0
+    ) {
+      settlementCandidates.push({
+        id: obligationID,
+        supplier: supplierRelation,
+        currency: 'ARS',
+        supplierAmountMinor: Number(obligation.supplierAmountMinor),
+      })
+    }
   }
+
+  await prepareDraftSettlements(req, doc.id, settlementCandidates)
   return doc
+}
+
+async function prepareDraftSettlements(
+  req: Parameters<CollectionAfterChangeHook>[0]['req'],
+  orderID: string | number,
+  candidates: SettlementCandidate[],
+) {
+  const groups = new Map<string, SettlementCandidate[]>()
+  for (const candidate of candidates) {
+    const key = `${candidate.supplier}:${candidate.currency}`
+    groups.set(key, [...(groups.get(key) ?? []), candidate])
+  }
+
+  for (const group of groups.values()) {
+    const first = group[0]
+    const reference = `AUTO-ORD-${String(orderID)}-PROV-${first.supplier}-${first.currency}`
+    const amountMinor = group.reduce((total, obligation) => {
+      const next = total + obligation.supplierAmountMinor
+      if (!Number.isSafeInteger(next))
+        throw new Error('El total de la liquidación supera el rango seguro.')
+      return next
+    }, 0)
+    const existing = await req.payload.find({
+      collection: 'supplier-settlements',
+      where: { reference: { equals: reference } },
+      limit: 1,
+      depth: 0,
+      overrideAccess: true,
+      req,
+    })
+    const settlement =
+      existing.docs[0] ??
+      (await req.payload.create({
+        collection: 'supplier-settlements',
+        data: {
+          reference,
+          supplier: first.supplier,
+          currency: first.currency,
+          amountMinor,
+          outstandingMinor: amountMinor,
+          status: 'draft',
+        },
+        overrideAccess: true,
+        req,
+      }))
+    if (
+      relationID(settlement.supplier) !== first.supplier ||
+      settlement.currency !== first.currency ||
+      settlement.amountMinor !== amountMinor
+    )
+      throw new Error('La liquidación automática existente no coincide con sus obligaciones.')
+
+    for (const obligation of group) {
+      await req.payload.update({
+        collection: 'supplier-obligations',
+        id: obligation.id,
+        data: { settlement: settlement.id },
+        overrideAccess: true,
+        req,
+      })
+    }
+  }
 }

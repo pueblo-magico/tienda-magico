@@ -8,14 +8,15 @@ Este flujo registra la deuda con proveedores por consignación y exige una confi
 2. Los términos efectivos de compra no generan deuda por cada venta.
 3. Los términos de consignación calculan la participación por porcentaje o importe fijo usando unidades menores enteras, sin aritmética de punto flotante.
 4. Cada obligación conserva un snapshot del pedido, producto, variante, proveedor, acuerdo, revisión, términos y versión del cálculo. Un acuerdo faltante o ambiguo queda retenido para revisión.
-5. Una liquidación se prepara en borrador y un administrador la aprueba.
-6. El pago referencia una liquidación aprobada y un perfil de pago verificado del mismo proveedor.
-7. El administrador revisa proveedor, importe, moneda y destino, marca la confirmación y recién entonces solicita el envío.
-8. Una respuesta HTTP `202` de Mercado Pago se registra como `submitted`; no se considera dinero acreditado.
-9. La acción de conciliación consulta la transacción. Solamente `success` con detalle `accredited` cierra la liquidación como pagada.
-10. Un resultado incierto pasa a `reconciliation_required`. No se reenvía automáticamente con otra clave idempotente.
+5. Las obligaciones elegibles del mismo pedido, proveedor y moneda se agrupan automáticamente en una liquidación borrador idempotente; no se pueden crear liquidaciones arbitrarias desde la API o el panel.
+6. Un administrador revisa y aprueba la liquidación.
+7. La aprobación exige un único perfil verificado del mismo proveedor y moneda; dentro de la misma transacción prepara automáticamente un pago por el saldo total. Si falta el perfil, la liquidación continúa en borrador y no se envía dinero.
+8. El administrador revisa proveedor, importe, moneda y destino, marca la confirmación y recién entonces solicita el envío.
+9. Una respuesta HTTP `202` de Mercado Pago se registra como `submitted`; no se considera dinero acreditado.
+10. La acción de conciliación consulta la transacción. Solamente `success` con detalle `accredited` cierra la liquidación como pagada.
+11. Un resultado incierto pasa a `reconciliation_required`. No se reenvía automáticamente con otra clave idempotente.
 
-La primera integración está limitada deliberadamente a ARS, al pago total del saldo pendiente y al modo de prueba de Mercado Pago Payouts. La asignación de descuentos, impuestos, envío y comisiones que no estén representados en el total de línea, los ajustes por devolución y la agrupación automática en liquidaciones siguen siendo incrementos posteriores.
+La primera integración está limitada deliberadamente a ARS, al pago total del saldo pendiente y al modo de prueba de Mercado Pago Payouts. La asignación de descuentos, impuestos, envío y comisiones que no estén representados en el total de línea, los ajustes por devolución y la consolidación de varios pedidos en una liquidación periódica siguen siendo incrementos posteriores.
 
 ## Configuración local
 
@@ -32,11 +33,12 @@ La credencial debe pertenecer a Payouts y no debe reutilizarse en el navegador n
 ## Operación manual
 
 1. En **Finanzas > Perfiles de pago**, crear el destino del proveedor. Un administrador debe marcarlo como verificado.
-2. En **Finanzas > Liquidaciones**, crear un borrador en ARS y aprobarlo desde la acción del documento.
-3. En **Finanzas > Pagos a proveedores**, crear un pago por el saldo total, seleccionando el mismo proveedor, liquidación y perfil.
-4. Revisar todos los datos, aceptar la advertencia y usar **Confirmar y enviar**.
-5. Si el estado queda enviado, procesando o requiere conciliación, usar **Consultar estado en Mercado Pago**.
-6. No crear ni confirmar otro pago ante un resultado incierto. Conciliar primero la misma transacción por su identificador externo.
+2. Confirmar un pedido consignado como pagado y abrir la liquidación borrador que el sistema preparó en **Finanzas > Liquidaciones**.
+3. Revisar proveedor, moneda e importe contra las obligaciones vinculadas y aprobarla desde la acción del documento. El sistema prepara el pago sin enviarlo.
+4. En **Finanzas > Pagos a proveedores**, abrir el pago preparado y comprobar liquidación, proveedor, saldo y perfil.
+5. Aceptar la advertencia y usar **Confirmar y enviar**. Este es el único paso que solicita el movimiento de dinero.
+6. Si el estado queda enviado, procesando o requiere conciliación, usar **Consultar estado en Mercado Pago**.
+7. No crear ni confirmar otro pago ante un resultado incierto. Conciliar primero la misma transacción por su identificador externo.
 
 ## Límite de producción
 

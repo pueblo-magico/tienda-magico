@@ -2867,6 +2867,7 @@ export interface SupplierObligation {
   supplier?: (number | null) | Supplier;
   agreement?: (number | null) | SupplierAgreement;
   agreementRevision?: number | null;
+  settlement?: (number | null) | SupplierSettlement;
   status: 'eligible' | 'held' | 'approved' | 'partially_paid' | 'paid' | 'reversed' | 'disputed';
   currency: string;
   eligibleBaseMinor: number;
@@ -3925,6 +3926,7 @@ export interface SupplierObligationsSelect<T extends boolean = true> {
   supplier?: T;
   agreement?: T;
   agreementRevision?: T;
+  settlement?: T;
   status?: T;
   currency?: T;
   eligibleBaseMinor?: T;

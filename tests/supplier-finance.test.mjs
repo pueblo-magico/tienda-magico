@@ -6,6 +6,7 @@ import {
   assertPayoutConfirmation,
   calculateSupplierObligation,
 } from "../apps/cms/src/lib/supplierFinance/policy.ts";
+import * as supplierFinancePolicy from "../apps/cms/src/lib/supplierFinance/policy.ts";
 import {
   buildMercadoPagoPayoutBody,
   getMercadoPagoPayoutStatus,
@@ -109,6 +110,80 @@ test("solo un admin puede confirmar un pago elegible de una liquidacion aprobada
         error instanceof PayoutConfirmationError && error.code === code,
     );
   }
+});
+
+test("la liquidación aprobable coincide exactamente con sus obligaciones elegibles", () => {
+  assert.equal(
+    supplierFinancePolicy.validateSettlementObligations({
+      settlementSupplier: 3,
+      settlementCurrency: "ARS",
+      settlementAmountMinor: 5000,
+      obligations: [
+        { supplier: 3, currency: "ARS", amountMinor: 3500, status: "eligible" },
+        { supplier: 3, currency: "ARS", amountMinor: 1500, status: "eligible" },
+      ],
+    }),
+    true,
+  );
+  for (const obligations of [
+    [],
+    [{ supplier: 4, currency: "ARS", amountMinor: 5000, status: "eligible" }],
+    [{ supplier: 3, currency: "ARS", amountMinor: 4999, status: "eligible" }],
+    [{ supplier: 3, currency: "ARS", amountMinor: 5000, status: "held" }],
+  ]) {
+    assert.equal(
+      supplierFinancePolicy.validateSettlementObligations({
+        settlementSupplier: 3,
+        settlementCurrency: "ARS",
+        settlementAmountMinor: 5000,
+        obligations,
+      }),
+      false,
+    );
+  }
+});
+
+test("el pago automático solo usa un único perfil verificado compatible", () => {
+  const verified = { id: 8, supplier: 3, currency: "ARS", status: "verified" };
+  assert.equal(
+    supplierFinancePolicy.automaticPayoutProfileID({
+      supplier: 3,
+      currency: "ARS",
+      profiles: [verified],
+    }),
+    8,
+  );
+  for (const profiles of [
+    [],
+    [verified, { ...verified, id: 9 }],
+    [{ ...verified, status: "pending" }],
+    [{ ...verified, supplier: 4 }],
+    [{ ...verified, currency: "BRL" }],
+  ]) {
+    assert.equal(
+      supplierFinancePolicy.automaticPayoutProfileID({
+        supplier: 3,
+        currency: "ARS",
+        profiles,
+      }),
+      null,
+    );
+  }
+});
+
+test("la acreditación cierra el saldo de las obligaciones vinculadas", () => {
+  assert.deepEqual(
+    supplierFinancePolicy.supplierObligationUpdateForPayout("succeeded"),
+    { status: "paid", outstandingMinor: 0 },
+  );
+  assert.equal(
+    supplierFinancePolicy.supplierObligationUpdateForPayout("processing"),
+    null,
+  );
+  assert.equal(
+    supplierFinancePolicy.supplierObligationUpdateForPayout("failed"),
+    null,
+  );
 });
 
 test("el adaptador crea un payout ARS idempotente y no confunde aceptado con acreditado", async () => {

@@ -98,3 +98,70 @@ export function assertPayoutConfirmation(input: PayoutConfirmationInput): void {
   )
     throw new PayoutConfirmationError('amount')
 }
+
+export type SettlementObligationInput = {
+  supplier: number
+  currency: string
+  amountMinor: number
+  status: string
+}
+
+export function validateSettlementObligations(input: {
+  settlementSupplier: number
+  settlementCurrency: string
+  settlementAmountMinor: number
+  obligations: SettlementObligationInput[]
+}): boolean {
+  if (
+    !input.obligations.length ||
+    !Number.isSafeInteger(input.settlementSupplier) ||
+    input.settlementSupplier <= 0 ||
+    !Number.isSafeInteger(input.settlementAmountMinor) ||
+    input.settlementAmountMinor <= 0
+  )
+    return false
+
+  let total = 0
+  for (const obligation of input.obligations) {
+    if (
+      obligation.status !== 'eligible' ||
+      obligation.supplier !== input.settlementSupplier ||
+      obligation.currency !== input.settlementCurrency ||
+      !Number.isSafeInteger(obligation.amountMinor) ||
+      obligation.amountMinor <= 0
+    )
+      return false
+    total += obligation.amountMinor
+    if (!Number.isSafeInteger(total)) return false
+  }
+  return total === input.settlementAmountMinor
+}
+
+export type AutomaticPayoutProfile = {
+  id: number
+  supplier: number
+  currency: string
+  status: string
+}
+
+export function automaticPayoutProfileID(input: {
+  supplier: number
+  currency: string
+  profiles: AutomaticPayoutProfile[]
+}): number | null {
+  const compatible = input.profiles.filter(
+    (profile) =>
+      Number.isSafeInteger(profile.id) &&
+      profile.id > 0 &&
+      profile.supplier === input.supplier &&
+      profile.currency === input.currency &&
+      profile.status === 'verified',
+  )
+  return compatible.length === 1 ? compatible[0].id : null
+}
+
+export function supplierObligationUpdateForPayout(
+  payoutStatus: string,
+): { status: 'paid'; outstandingMinor: 0 } | null {
+  return payoutStatus === 'succeeded' ? { status: 'paid', outstandingMinor: 0 } : null
+}

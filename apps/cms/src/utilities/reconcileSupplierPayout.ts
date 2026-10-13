@@ -6,6 +6,7 @@ import {
   getMercadoPagoPayoutStatus,
   SupplierPayoutProviderError,
 } from '../lib/supplierFinance/mercadoPagoPayouts'
+import { supplierObligationUpdateForPayout } from '../lib/supplierFinance/policy'
 import { activeTransaction } from './transferWriteLock'
 
 export const reconcileSupplierPayoutEndpoint: Endpoint = {
@@ -106,6 +107,28 @@ async function reconcileSupplierPayout(req: PayloadRequest, payoutID: number): P
         overrideAccess: true,
         req,
       })
+      const obligationUpdate = supplierObligationUpdateForPayout(result.status)
+      const obligations = await req.payload.find({
+        collection: 'supplier-obligations',
+        where: { settlement: { equals: settlementID } },
+        limit: 1000,
+        depth: 0,
+        overrideAccess: true,
+        req,
+      })
+      if (!obligationUpdate || obligations.hasNextPage || obligations.docs.length === 0)
+        return rollback(req, transactionID, 'obligations', 409)
+      for (const obligation of obligations.docs) {
+        if (obligation.status !== 'approved')
+          return rollback(req, transactionID, 'obligations', 409)
+        await req.payload.update({
+          collection: 'supplier-obligations',
+          id: obligation.id,
+          data: obligationUpdate,
+          overrideAccess: true,
+          req,
+        })
+      }
     } else if (result.status === 'failed') {
       await req.payload.update({
         collection: 'supplier-settlements',

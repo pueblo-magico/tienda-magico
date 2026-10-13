@@ -18,9 +18,13 @@ export const SupplierSettlements: CollectionConfig = {
     group: { es: 'Finanzas', en: 'Finance' },
     useAsTitle: 'reference',
     defaultColumns: ['reference', 'supplier', 'currency', 'amountMinor', 'status'],
+    description: {
+      es: 'Borradores preparados automáticamente desde obligaciones elegibles.',
+      en: 'Drafts prepared automatically from eligible obligations.',
+    },
   },
   access: {
-    create: canManageSettlements,
+    create: () => false,
     read: canManageSettlements,
     update: canManageSettlements,
     delete: ({ req: { user } }) => checkRole(['admin'], user),

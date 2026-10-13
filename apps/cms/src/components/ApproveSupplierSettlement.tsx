@@ -7,14 +7,16 @@ const copy = {
   es: {
     approve: 'Aprobar liquidación',
     approving: 'Aprobando…',
-    success: 'Liquidación aprobada. Recargá para preparar el pago.',
+    success: 'Liquidación aprobada y pago preparado. Recargá para revisarlo.',
+    profileRequired: 'Verificá un único perfil de pago antes de aprobar la liquidación.',
     approved: 'Esta liquidación ya fue aprobada o cerrada.',
     error: 'No se pudo aprobar. Revisá el importe y el estado antes de reintentar.',
   },
   en: {
     approve: 'Approve settlement',
     approving: 'Approving…',
-    success: 'Settlement approved. Reload to prepare its payout.',
+    success: 'Settlement approved and payout prepared. Reload to review it.',
+    profileRequired: 'Verify exactly one payment profile before approving the settlement.',
     approved: 'This settlement was already approved or closed.',
     error: 'Approval failed. Check the amount and status before retrying.',
   },
@@ -41,7 +43,11 @@ export default function ApproveSupplierSettlement() {
         `${config.routes.api}/supplier-settlements/${encodeURIComponent(String(id))}/approve`,
         { method: 'POST', credentials: 'same-origin', signal: AbortSignal.timeout(15_000) },
       )
-      if (!response.ok) throw new Error()
+      const result = (await response.json()) as { code?: string }
+      if (!response.ok) {
+        setMessage(result.code === 'payment_profile' ? text.profileRequired : text.error)
+        return
+      }
       setApproved(true)
       setMessage(text.success)
     } catch {
