@@ -3051,6 +3051,8 @@ export interface Cart {
   createdAt: string;
 }
 /**
+ * Drafts prepared automatically from eligible obligations.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "supplier-settlements".
  */
@@ -3092,6 +3094,10 @@ export interface SupplierPayout {
   providerPayoutId?: string | null;
   providerTransactionId?: string | null;
   providerStatus?: string | null;
+  paymentMethod: 'mercado-pago' | 'manual';
+  manualReference?: string | null;
+  manualPaidAt?: string | null;
+  manualRecordedBy?: (number | null) | User;
   destinationSnapshot?:
     | {
         [k: string]: unknown;
@@ -3970,6 +3976,10 @@ export interface SupplierPayoutsSelect<T extends boolean = true> {
   providerPayoutId?: T;
   providerTransactionId?: T;
   providerStatus?: T;
+  paymentMethod?: T;
+  manualReference?: T;
+  manualPaidAt?: T;
+  manualRecordedBy?: T;
   destinationSnapshot?: T;
   confirmedBy?: T;
   confirmedAt?: T;

@@ -99,6 +99,63 @@ export function assertPayoutConfirmation(input: PayoutConfirmationInput): void {
     throw new PayoutConfirmationError('amount')
 }
 
+export type ManualPayoutConfirmationInput = {
+  actorRoles: string[]
+  payoutStatus: string
+  settlementStatus: string
+  settlementApprovedAt: string
+  settlementCurrency: string
+  outstandingMinor: number
+  amountMinor: number
+  reference: string
+  paidAt: string
+  acknowledged: boolean
+}
+
+export type ManualPayoutConfirmationCode =
+  | 'forbidden'
+  | 'confirmation_required'
+  | 'payout'
+  | 'settlement'
+  | 'currency'
+  | 'amount'
+  | 'reference'
+  | 'duplicate_reference'
+  | 'paid_at'
+
+export class ManualPayoutConfirmationError extends Error {
+  constructor(readonly code: ManualPayoutConfirmationCode) {
+    super(code)
+  }
+}
+
+export function assertManualPayoutConfirmation(input: ManualPayoutConfirmationInput): void {
+  if (!input.actorRoles.includes('admin')) throw new ManualPayoutConfirmationError('forbidden')
+  if (input.acknowledged !== true) throw new ManualPayoutConfirmationError('confirmation_required')
+  if (input.payoutStatus !== 'awaiting_approval') throw new ManualPayoutConfirmationError('payout')
+  if (input.settlementStatus !== 'approved') throw new ManualPayoutConfirmationError('settlement')
+  if (input.settlementCurrency !== 'ARS') throw new ManualPayoutConfirmationError('currency')
+  if (
+    !Number.isSafeInteger(input.amountMinor) ||
+    input.amountMinor <= 0 ||
+    !Number.isSafeInteger(input.outstandingMinor) ||
+    input.outstandingMinor <= 0 ||
+    input.amountMinor !== input.outstandingMinor
+  )
+    throw new ManualPayoutConfirmationError('amount')
+  if (input.reference.trim().length < 3 || input.reference.trim().length > 120)
+    throw new ManualPayoutConfirmationError('reference')
+  const paidAt = Date.parse(input.paidAt)
+  const approvedAt = Date.parse(input.settlementApprovedAt)
+  if (
+    !Number.isFinite(paidAt) ||
+    !Number.isFinite(approvedAt) ||
+    paidAt < approvedAt ||
+    paidAt > Date.now()
+  )
+    throw new ManualPayoutConfirmationError('paid_at')
+}
+
 export type SettlementObligationInput = {
   supplier: number
   currency: string

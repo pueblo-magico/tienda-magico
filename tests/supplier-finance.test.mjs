@@ -112,6 +112,48 @@ test("solo un admin puede confirmar un pago elegible de una liquidacion aprobada
   }
 });
 
+test("el pago manual exige referencia, fecha y confirmación para cubrir el saldo aprobado", () => {
+  assert.equal(
+    typeof supplierFinancePolicy.assertManualPayoutConfirmation,
+    "function",
+  );
+  const validate = supplierFinancePolicy.assertManualPayoutConfirmation;
+  const valid = {
+    actorRoles: ["admin"],
+    payoutStatus: "awaiting_approval",
+    settlementStatus: "approved",
+    settlementApprovedAt: "2026-10-10T15:30:00.000Z",
+    settlementCurrency: "ARS",
+    outstandingMinor: 50_000,
+    amountMinor: 50_000,
+    reference: "TRANSFERENCIA-2026-001",
+    paidAt: "2026-10-12T15:30:00.000Z",
+    acknowledged: true,
+  };
+
+  assert.doesNotThrow(() => validate(valid));
+  for (const [code, override] of [
+    ["forbidden", { actorRoles: ["finance"] }],
+    ["confirmation_required", { acknowledged: false }],
+    ["payout", { payoutStatus: "submitted" }],
+    ["settlement", { settlementStatus: "draft" }],
+    ["currency", { settlementCurrency: "BRL" }],
+    ["amount", { amountMinor: 49_999 }],
+    ["reference", { reference: "  " }],
+    ["reference", { reference: "ab" }],
+    ["paid_at", { paidAt: "not-a-date" }],
+    ["paid_at", { paidAt: "2026-10-09T15:30:00.000Z" }],
+    ["paid_at", { paidAt: "2099-01-01T00:00:00.000Z" }],
+  ]) {
+    assert.throws(
+      () => validate({ ...valid, ...override }),
+      (error) =>
+        error instanceof supplierFinancePolicy.ManualPayoutConfirmationError &&
+        error.code === code,
+    );
+  }
+});
+
 test("la liquidación aprobable coincide exactamente con sus obligaciones elegibles", () => {
   assert.equal(
     supplierFinancePolicy.validateSettlementObligations({

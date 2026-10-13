@@ -160,6 +160,7 @@ async function approveSupplierSettlement(req: PayloadRequest, settlementID: numb
           paymentProfile: profileID,
           amountMinor: settlement.amountMinor,
           currency: 'ARS',
+          paymentMethod: 'mercado-pago',
           status: 'awaiting_approval',
           idempotencyKey: randomUUID(),
         },

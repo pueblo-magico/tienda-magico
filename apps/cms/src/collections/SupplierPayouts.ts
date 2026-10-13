@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto'
 
 import { checkRole } from '../access/utilities'
 import { confirmSupplierPayoutEndpoint } from '../utilities/confirmSupplierPayout'
+import { recordManualSupplierPayoutEndpoint } from '../utilities/recordManualSupplierPayout'
 import { reconcileSupplierPayoutEndpoint } from '../utilities/reconcileSupplierPayout'
 
 const immutable = { update: () => false }
@@ -11,7 +12,11 @@ const canManagePayouts: Access = ({ req: { user } }) => checkRole(['admin', 'fin
 
 export const SupplierPayouts: CollectionConfig = {
   slug: 'supplier-payouts',
-  endpoints: [confirmSupplierPayoutEndpoint, reconcileSupplierPayoutEndpoint],
+  endpoints: [
+    confirmSupplierPayoutEndpoint,
+    reconcileSupplierPayoutEndpoint,
+    recordManualSupplierPayoutEndpoint,
+  ],
   labels: {
     singular: { es: 'Pago a proveedor', en: 'Supplier payout' },
     plural: { es: 'Pagos a proveedores', en: 'Supplier payouts' },
@@ -52,6 +57,11 @@ export const SupplierPayouts: CollectionConfig = {
       name: 'reconcilePayout',
       type: 'ui',
       admin: { components: { Field: '@/components/ReconcileSupplierPayout' } },
+    },
+    {
+      name: 'recordManualPayout',
+      type: 'ui',
+      admin: { components: { Field: '@/components/RecordManualSupplierPayout' } },
     },
     {
       name: 'supplier',
@@ -153,6 +163,44 @@ export const SupplierPayouts: CollectionConfig = {
       admin: { readOnly: true },
       access: serverManaged,
       label: { es: 'Estado informado por Mercado Pago', en: 'Mercado Pago status' },
+    },
+    {
+      name: 'paymentMethod',
+      type: 'select',
+      required: true,
+      defaultValue: 'mercado-pago',
+      admin: { readOnly: true },
+      access: serverManaged,
+      options: [
+        { label: 'Mercado Pago', value: 'mercado-pago' },
+        { label: { es: 'Transferencia manual', en: 'Manual transfer' }, value: 'manual' },
+      ],
+      label: { es: 'Medio de pago', en: 'Payment method' },
+    },
+    {
+      name: 'manualReference',
+      type: 'text',
+      maxLength: 120,
+      unique: true,
+      index: true,
+      admin: { readOnly: true },
+      access: serverManaged,
+      label: { es: 'Referencia del pago manual', en: 'Manual payment reference' },
+    },
+    {
+      name: 'manualPaidAt',
+      type: 'date',
+      admin: { readOnly: true },
+      access: serverManaged,
+      label: { es: 'Fecha del pago manual', en: 'Manual payment date' },
+    },
+    {
+      name: 'manualRecordedBy',
+      type: 'relationship',
+      relationTo: 'users',
+      admin: { readOnly: true },
+      access: serverManaged,
+      label: { es: 'Registrado por', en: 'Recorded by' },
     },
     {
       name: 'destinationSnapshot',

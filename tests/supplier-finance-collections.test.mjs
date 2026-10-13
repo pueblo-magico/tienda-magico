@@ -8,6 +8,7 @@ import { SupplierSettlements } from "../apps/cms/src/collections/SupplierSettlem
 import { ordersCollectionOverride } from "../apps/cms/src/collections/orderCommercialSnapshot.ts";
 import { supplierPayoutConfirmationInput } from "../apps/cms/src/utilities/confirmSupplierPayout.ts";
 import { createSupplierObligationsForPaidOrder } from "../apps/cms/src/utilities/createSupplierObligationsForPaidOrder.ts";
+import { manualSupplierPayoutInput } from "../apps/cms/src/utilities/recordManualSupplierPayout.ts";
 
 const namedField = (collection, name) =>
   collection.fields.find((field) => field.name === name);
@@ -237,5 +238,54 @@ test("la acción de pago queda disponible solo desde un payout persistido", () =
       (endpoint) => endpoint.path === "/:id/reconcile",
     ),
     true,
+  );
+});
+
+test("el payout persistido admite una conciliación manual explícita y auditable", () => {
+  const manualAction = namedField(SupplierPayouts, "recordManualPayout");
+  assert.equal(manualAction.type, "ui");
+  assert.match(
+    manualAction.admin.components.Field,
+    /RecordManualSupplierPayout/,
+  );
+  assert.equal(
+    SupplierPayouts.endpoints.some(
+      (endpoint) => endpoint.path === "/:id/record-manual",
+    ),
+    true,
+  );
+
+  for (const field of [
+    "paymentMethod",
+    "manualReference",
+    "manualPaidAt",
+    "manualRecordedBy",
+  ]) {
+    const config = namedField(SupplierPayouts, field);
+    assert.ok(config, `Falta el campo auditable ${field}`);
+    assert.equal(config.access.create(), false);
+    assert.equal(config.access.update(), false);
+  }
+  assert.equal(namedField(SupplierPayouts, "manualReference").unique, true);
+
+  assert.deepEqual(
+    manualSupplierPayoutInput({
+      acknowledged: true,
+      reference: "  TRX-9182  ",
+      paidAt: "2026-10-12T15:30:00.000Z",
+    }),
+    {
+      acknowledged: true,
+      reference: "TRX-9182",
+      paidAt: "2026-10-12T15:30:00.000Z",
+    },
+  );
+  assert.throws(() =>
+    manualSupplierPayoutInput({
+      acknowledged: true,
+      reference: "TRX-9182",
+      paidAt: "2026-10-12T15:30:00.000Z",
+      amount: 1,
+    }),
   );
 });

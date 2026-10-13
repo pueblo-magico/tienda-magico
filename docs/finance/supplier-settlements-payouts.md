@@ -30,7 +30,7 @@ MERCADOPAGO_PAYOUTS_WEBHOOK_URL=https://cms.example.test/api/webhook
 
 La credencial debe pertenecer a Payouts y no debe reutilizarse en el navegador ni en el checkout público. La URL de notificación es opcional y, si se define, debe usar HTTPS.
 
-## Operación manual
+## Operación con Mercado Pago de prueba
 
 1. En **Finanzas > Perfiles de pago**, crear el destino del proveedor. Un administrador debe marcarlo como verificado.
 2. Confirmar un pedido consignado como pagado y abrir la liquidación borrador que el sistema preparó en **Finanzas > Liquidaciones**.
@@ -39,6 +39,20 @@ La credencial debe pertenecer a Payouts y no debe reutilizarse en el navegador n
 5. Aceptar la advertencia y usar **Confirmar y enviar**. Este es el único paso que solicita el movimiento de dinero.
 6. Si el estado queda enviado, procesando o requiere conciliación, usar **Consultar estado en Mercado Pago**.
 7. No crear ni confirmar otro pago ante un resultado incierto. Conciliar primero la misma transacción por su identificador externo.
+
+## Registro de una transferencia manual
+
+Cuando Mercado Pago Payouts no esté disponible, un administrador puede registrar una transferencia que ya se realizó fuera del sistema desde el pago preparado:
+
+1. Abrir el pago en **Finanzas > Pagos a proveedores** y verificar proveedor, liquidación, destino, moneda e importe.
+2. En **Registrar pago manual**, ingresar la fecha efectiva —no futura ni anterior a la aprobación— y una referencia externa única del banco o medio de pago.
+3. Usar **Revisar pago**. La confirmación muestra nuevamente importe, fecha y referencia y aclara que la acción no transfiere dinero.
+4. Confirmar únicamente después de verificar el movimiento externo. El sistema registra el actor y la fecha, marca el pago como manual y conciliado, y cierra la liquidación y sus obligaciones dentro de una transacción.
+5. Si el resultado no es concluyente, no volver a registrar el movimiento hasta revisar el estado del pago.
+
+Este primer incremento manual cubre únicamente el saldo completo de una liquidación aprobada. Los pagos parciales requieren asignación determinista entre obligaciones y permanecen como incremento posterior. No se adjuntan comprobantes hasta disponer de almacenamiento privado, autorización y validación de archivos.
+
+La referencia manual posee una restricción única en PostgreSQL además de la validación previa de la aplicación. La migración agrega columnas anulables y un método con valor predeterminado `mercado-pago`, por lo que los pagos existentes conservan compatibilidad. La reversión elimina solamente esos campos e índice; no revierte transferencias externas ni debe ejecutarse después de registrar pagos manuales sin exportar previamente la auditoría.
 
 ## Límite de producción
 
