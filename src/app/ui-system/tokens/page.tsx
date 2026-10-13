@@ -1,6 +1,5 @@
 import { DocsPageHeader } from "@/components/ui-system/DocsPageHeader";
 import { DocsSection } from "@/components/ui-system/DocsSection";
-import { Button } from "@/components/ui/Button";
 
 const backgrounds = [
   {
@@ -98,13 +97,6 @@ export default function TokensPage() {
           </div>
           <code className="text-text-primary text-xs">border-terracotta</code>
         </div>
-      </DocsSection>
-
-      <DocsSection title="Botón terracota">
-        <Button color="terracotta">Continuar</Button>
-        <code className="text-text-primary text-xs">
-          {'<Button color="terracotta">'}
-        </code>
       </DocsSection>
 
       <DocsSection title="Typography" className="flex-col items-start gap-3">

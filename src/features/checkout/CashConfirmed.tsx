@@ -11,14 +11,14 @@ import {
 } from "lucide-react";
 import {
   Card,
+  CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
-import { PageTitle } from "@/components/typography/PageTitle";
-import { Eyebrow } from "@/components/typography/Eyebrow";
+} from "@pueblo-magico/react-ui";
+import { Button } from "@pueblo-magico/react-ui";
+import { ButtonLink } from "@/components/ui/ButtonLink";
+import { Eyebrow, PageTitle } from "@pueblo-magico/react-ui";
 import { OrderReceiptFeedback } from "@/features/orders/OrderReceiptFeedback";
 import { localizePath } from "@/config/navigation";
 import { ReceiptConfirmationModal } from "@/features/orders/ReceiptConfirmationModal";
@@ -108,7 +108,7 @@ export function CashConfirmed({
       </header>
       <div className="grid items-stretch gap-4 lg:grid-cols-2">
         <div className="min-w-0 [&>div]:h-full">{summary}</div>
-        <Card>
+        <Card variant="outlined">
           <CardHeader>
             <CardTitle variant="editorial">{t("timeline")}</CardTitle>
             <CardDescription>{t("timelineBody")}</CardDescription>
@@ -143,10 +143,13 @@ export function CashConfirmed({
                 </li>
               ))}
             </ol>
-            <Button href={localizePath(locale, "/orders")} className="w-full">
+            <ButtonLink
+              href={localizePath(locale, "/orders")}
+              className="w-full"
+            >
               <ShoppingBag aria-hidden className="size-5" />
               {t("orders")}
-            </Button>
+            </ButtonLink>
             {!receivedAt ? (
               <>
                 <Button
@@ -154,8 +157,8 @@ export function CashConfirmed({
                     setFailed(false);
                     setReviewingReceipt(true);
                   }}
-                  disabled={saving}
-                  aria-busy={saving}
+                  isDisabled={saving}
+                  isLoading={saving}
                   variant="secondary"
                   className="w-full"
                 >
@@ -195,10 +198,10 @@ export function CashConfirmed({
       ) : null}
       <div className="flex flex-wrap items-center justify-between gap-4">
         {returnLink}
-        <Button variant="secondary" href={localizePath(locale, "/shop")}>
+        <ButtonLink variant="secondary" href={localizePath(locale, "/shop")}>
           <Banknote aria-hidden className="size-5" />
           {t("explore")}
-        </Button>
+        </ButtonLink>
       </div>
     </div>
   );

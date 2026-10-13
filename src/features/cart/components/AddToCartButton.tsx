@@ -3,7 +3,7 @@
 import { LoaderCircle, ShoppingCart } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@pueblo-magico/react-ui";
 import { useCart } from "@/features/cart/CartProvider";
 
 type Props = {
@@ -32,11 +32,10 @@ export function AddToCartButton({ merchandiseId }: Props) {
       onMouseOver={() => setIsHovering(true)}
       onMouseOut={() => setIsHovering(false)}
       type="button"
-      size="icon-sm"
+      size="icon"
       shape="rounded"
       aria-label={label}
-      title={label}
-      disabled={!configured || isAdding}
+      isDisabled={!configured || isAdding}
       onClick={() => void handleAdd()}
       className="shrink-0"
     >
@@ -47,7 +46,11 @@ export function AddToCartButton({ merchandiseId }: Props) {
           strokeWidth={2}
         />
       ) : (
-        <ShoppingCart aria-hidden className={`size-4 ease-in-out duration-200 ${isHovering && "-mt-1"}`} strokeWidth={2} />
+        <ShoppingCart
+          aria-hidden
+          className={`size-4 transition-[margin] duration-200 ${isHovering ? "-mt-1" : ""}`}
+          strokeWidth={2}
+        />
       )}
     </Button>
   );

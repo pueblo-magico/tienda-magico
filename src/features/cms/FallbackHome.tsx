@@ -1,16 +1,16 @@
-import { Button } from "@/components/ui/Button";
+import { ButtonLink } from "@/components/ui/ButtonLink";
 import { localizePath } from "@/config/navigation";
 import { buildCategoryPath } from "@/features/shop/category-hierarchy";
-import { ImpactCard } from "@/components/cards/ImpactCard";
+import { StatCard } from "@pueblo-magico/react-ui";
 import { ProductCard } from "@/components/cards/ProductCard";
-import { Container } from "@/components/layout/Container";
-import { Section } from "@/components/layout/Section";
+import { Container } from "@pueblo-magico/react-ui";
+import { Section } from "@pueblo-magico/react-ui";
 import {
   Body,
   Eyebrow,
   PageTitle,
   SectionTitle,
-} from "@/components/typography";
+} from "@pueblo-magico/react-ui";
 import { commerce, formatMoney } from "@/lib/commerce";
 import { getTranslations } from "next-intl/server";
 
@@ -48,10 +48,12 @@ export async function FallbackHome({ locale }: { locale: string }) {
           <PageTitle>{t("title")}</PageTitle>
           <Body size="lg">{t("subtitle")}</Body>
           <div className="flex flex-wrap gap-3">
-            <Button href={localizePath(locale, "/shop")}>{t("cta")}</Button>
-            <Button href={`/${locale}/impact`} variant="secondary">
+            <ButtonLink href={localizePath(locale, "/shop")}>
+              {t("cta")}
+            </ButtonLink>
+            <ButtonLink href={`/${locale}/impact`} variant="secondary">
               {t("secondaryCta")}
-            </Button>
+            </ButtonLink>
           </div>
         </Container>
       </Section>
@@ -128,9 +130,9 @@ export async function FallbackHome({ locale }: { locale: string }) {
           <Eyebrow>{tSections("storyEyebrow")}</Eyebrow>
           <SectionTitle>{tSections("storyTitle")}</SectionTitle>
           <Body>{tSections("storyBody")}</Body>
-          <Button href={`/${locale}/about`} variant="secondary">
+          <ButtonLink href={`/${locale}/about`} variant="secondary">
             {tSections("storyCta")}
-          </Button>
+          </ButtonLink>
         </Container>
       </Section>
 
@@ -142,21 +144,21 @@ export async function FallbackHome({ locale }: { locale: string }) {
           </div>
           <ul className="grid gap-4 sm:grid-cols-3">
             <li>
-              <ImpactCard
+              <StatCard
                 value={tSections("impact1Value")}
                 label={tSections("impact1Label")}
                 description={tSections("impact1Description")}
               />
             </li>
             <li>
-              <ImpactCard
+              <StatCard
                 value={tSections("impact2Value")}
                 label={tSections("impact2Label")}
                 description={tSections("impact2Description")}
               />
             </li>
             <li>
-              <ImpactCard
+              <StatCard
                 value={tSections("impact3Value")}
                 label={tSections("impact3Label")}
                 description={tSections("impact3Description")}

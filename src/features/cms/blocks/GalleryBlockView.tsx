@@ -1,7 +1,7 @@
 import Image from "next/image";
-import { Container } from "@/components/layout/Container";
-import { Section } from "@/components/layout/Section";
-import { SectionTitle } from "@/components/typography";
+import { Container } from "@pueblo-magico/react-ui";
+import { Section } from "@pueblo-magico/react-ui";
+import { SectionTitle } from "@pueblo-magico/react-ui";
 import type { GalleryBlockData } from "@/lib/cms";
 import { mediaAlt, resolveMediaUrl } from "@/lib/cms";
 import { cn } from "@/lib/utils/cn";
@@ -33,7 +33,7 @@ export function GalleryBlockView({ block }: { block: GalleryBlockData }) {
         >
           {images.map((image) => (
             <li key={image.key} className="space-y-2">
-              <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-sand/40">
+              <div className="bg-sand/40 relative aspect-[4/5] overflow-hidden rounded-2xl">
                 <Image
                   src={image.url!}
                   alt={image.alt}
@@ -43,7 +43,7 @@ export function GalleryBlockView({ block }: { block: GalleryBlockData }) {
                 />
               </div>
               {image.caption ? (
-                <p className="text-sm text-muted">{image.caption}</p>
+                <p className="text-muted text-sm">{image.caption}</p>
               ) : null}
             </li>
           ))}

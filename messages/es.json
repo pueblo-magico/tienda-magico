@@ -152,6 +152,7 @@
   "cart": {
     "reviewPurchase": "Revisar compra",
     "title": "Tu carrito",
+    "close": "Cerrar carrito",
     "empty": "Tu carrito está vacío.",
     "continue": "Seguir comprando",
     "loading": "Cargando tu carrito…",
@@ -239,6 +240,7 @@
     "search": "Buscar",
     "searchPlaceholder": "Buscar productos",
     "searchDialogTitle": "Buscar en la tienda",
+    "searchDialogClose": "Cerrar búsqueda de la tienda",
     "openSearch": "Abrir búsqueda",
     "sort": "Ordenar por",
     "submit": "Aplicar",

@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Package, PackageOpen } from "lucide-react";
-import { Button } from "@/components/ui/Button";
+import { ButtonLink } from "@/components/ui/ButtonLink";
 import {
   localizePath,
   mainNavigation,
@@ -132,7 +132,7 @@ export function Header({ className }: { className?: string }) {
               onClick={() => setSearchOpen(true)}
               className="text-text-black hover:bg-card-hover"
             />
-            <Button
+            <ButtonLink
               href={localizePath(locale, "/orders")}
               variant="ghost"
               size="icon-sm"
@@ -162,7 +162,7 @@ export function Header({ className }: { className?: string }) {
                   {pendingOrders}
                 </span>
               ) : null}
-            </Button>
+            </ButtonLink>
             <CartButton
               count={itemCount}
               onClick={openCart}

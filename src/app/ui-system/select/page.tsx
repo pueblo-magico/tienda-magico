@@ -1,4 +1,6 @@
-import { Select } from "@/components/ui/Select";
+"use client";
+
+import { Select } from "@pueblo-magico/react-ui";
 import { DocsPageHeader } from "@/components/ui-system/DocsPageHeader";
 import { DocsSection } from "@/components/ui-system/DocsSection";
 
@@ -12,6 +14,7 @@ export default function SelectPage() {
       <DocsSection title="Example" className="w-full max-w-md">
         <Select
           label="Sort by"
+          placeholder="Elegí una opción"
           name="sort"
           defaultValue="featured"
           options={[
@@ -24,8 +27,8 @@ export default function SelectPage() {
       <DocsSection title="Inline" className="w-full max-w-md">
         <Select
           label="Ordenar por"
-          layout="inline"
-          controlSize="compact"
+          placeholder="Elegí una opción"
+          buttonClassName="h-9 rounded-md px-3 text-xs"
           name="inline-sort"
           defaultValue="featured"
           options={[

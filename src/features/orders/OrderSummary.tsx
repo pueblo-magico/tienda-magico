@@ -4,11 +4,11 @@ import { useFormatter, useTranslations } from "next-intl";
 import type { CheckoutOrder } from "@/types/commerce";
 import {
   Card,
+  CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/components/ui/Card";
+} from "@pueblo-magico/react-ui";
 import { CopyButton } from "@/components/ui/CopyButton";
 
 export function OrderSummary({ order }: { order: CheckoutOrder }) {
@@ -19,7 +19,7 @@ export function OrderSummary({ order }: { order: CheckoutOrder }) {
     format.number(Number(amount), { style: "currency", currency });
   const date = order.createdAt ? new Date(order.createdAt) : null;
   return (
-    <Card className="min-w-0 lg:col-span-2">
+    <Card variant="outlined" className="min-w-0 lg:col-span-2">
       <CardHeader layout="split">
         <div className="min-w-0 space-y-1">
           <CardTitle variant="editorial">{t("title")}</CardTitle>

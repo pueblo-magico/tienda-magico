@@ -1,4 +1,4 @@
-import { Body, Eyebrow, PageTitle } from "@/components/typography";
+import { Body, Eyebrow, PageTitle } from "@pueblo-magico/react-ui";
 
 export function DocsPageHeader({
   eyebrow = "Components",

@@ -1,13 +1,18 @@
-import { ImpactCard, InfoCard } from "@/components/cards";
-import { Container } from "@/components/layout/Container";
-import { Section } from "@/components/layout/Section";
+"use client";
+
+import { InfoCard, StatCard } from "@pueblo-magico/react-ui";
+import { Container } from "@pueblo-magico/react-ui";
+import { Section } from "@pueblo-magico/react-ui";
 import {
   Body,
   Eyebrow,
   PageTitle,
   SectionTitle,
-} from "@/components/typography";
-import { Badge, Button, Input, Select, Textarea } from "@/components/ui";
+} from "@pueblo-magico/react-ui";
+import { Badge } from "@pueblo-magico/react-ui";
+import { Input, Select, Textarea } from "@pueblo-magico/react-ui";
+import { Button } from "@pueblo-magico/react-ui";
+import { ButtonLink } from "@/components/ui/ButtonLink";
 import { DocsPageHeader } from "@/components/ui-system/DocsPageHeader";
 import { DocsSection } from "@/components/ui-system/DocsSection";
 
@@ -61,10 +66,12 @@ export default function UsageExamplePage() {
                 locales y una forma más simple de habitar el mundo.
               </Body>
               <div className="mt-8 flex flex-wrap justify-center gap-3">
-                <Button href="#example-collection">Ver colección</Button>
-                <Button href="#example-contact" variant="secondary">
+                <ButtonLink href="#example-collection">
+                  Ver colección
+                </ButtonLink>
+                <ButtonLink href="#example-contact" variant="secondary">
                   Conocer el proyecto
-                </Button>
+                </ButtonLink>
               </div>
             </Container>
           </Section>
@@ -128,37 +135,37 @@ export default function UsageExamplePage() {
                   Una relación que crece
                 </SectionTitle>
                 <Body className="mt-4">
-                  ImpactCard keeps statistics consistent across landing pages
-                  and CMS-driven sections.
+                  StatCard mantiene las estadísticas consistentes entre las
+                  páginas y las secciones administradas desde el CMS.
                 </Body>
               </div>
               <div className="mt-10 grid gap-4 sm:grid-cols-3">
-                <ImpactCard
+                <StatCard
                   value="12+"
                   label="Comunidades"
                   description="Vinculadas mediante relaciones responsables."
                 />
-                <ImpactCard
+                <StatCard
                   value="40%"
                   label="Regenerativo"
                   description="Materiales elegidos con cuidado por la tierra."
                 />
-                <ImpactCard
+                <StatCard
                   value="1%"
                   label="Para el planeta"
                   description="De cada compra vuelve al territorio."
                 />
-                <ImpactCard
+                <StatCard
                   value="15.000+"
                   label="Árboles Plantados"
                   description="Reforestacion en curso"
                 />
-                <ImpactCard
+                <StatCard
                   value="200ha"
                   label="cuidadas"
                   description="En un camino de 25 años con el territorio"
                 />
-                <ImpactCard
+                <StatCard
                   value="20+"
                   label="Países"
                   description="Huéspedes y voluntarios de +20 Países - Somos una comunidad diversa"
@@ -204,7 +211,7 @@ export default function UsageExamplePage() {
                     name="message"
                     label="Mensaje"
                     placeholder="¿Cómo podemos ayudarte?"
-                    hint="Este formulario es únicamente un ejemplo visual."
+                    description="Este formulario es únicamente un ejemplo visual."
                   />
                   <Button type="button">Enviar consulta</Button>
                 </form>

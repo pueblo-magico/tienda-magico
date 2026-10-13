@@ -1,6 +1,6 @@
-import { Container } from "@/components/layout/Container";
-import { Section } from "@/components/layout/Section";
-import { Eyebrow, SectionTitle } from "@/components/typography";
+import { Container } from "@pueblo-magico/react-ui";
+import { Section } from "@pueblo-magico/react-ui";
+import { Eyebrow, SectionTitle } from "@pueblo-magico/react-ui";
 import { RichText } from "@/components/typography/RichText";
 import type { SafeRichTextHtml } from "@/types/content";
 

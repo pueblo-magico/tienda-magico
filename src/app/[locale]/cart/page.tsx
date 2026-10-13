@@ -1,6 +1,6 @@
 import { setRequestLocale } from "next-intl/server";
-import { Container } from "@/components/layout/Container";
-import { Section } from "@/components/layout/Section";
+import { Container } from "@pueblo-magico/react-ui";
+import { Section } from "@pueblo-magico/react-ui";
 import { CartPageContent } from "@/features/cart";
 
 type Props = {

@@ -1,11 +1,11 @@
 import type { ReactNode } from "react";
 import {
   Card,
+  CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/components/ui/Card";
+} from "@pueblo-magico/react-ui";
 
 type Step = { id: string; icon: ReactNode; title: string; description: string };
 
@@ -19,11 +19,9 @@ export function StepsCard({
   steps: Step[];
 }) {
   return (
-    <Card className="h-full">
+    <Card variant="outlined" className="h-full">
       <CardHeader>
-        <CardTitle className="text-text-secondary font-serif text-2xl font-normal sm:text-3xl">
-          {title}
-        </CardTitle>
+        <CardTitle variant="editorial">{title}</CardTitle>
         <CardDescription className="text-base">{description}</CardDescription>
       </CardHeader>
       <CardContent>

@@ -4,7 +4,7 @@ import {
   Eyebrow,
   PageTitle,
   SectionTitle,
-} from "@/components/typography";
+} from "@pueblo-magico/react-ui";
 import { DocsPageHeader } from "@/components/ui-system/DocsPageHeader";
 import { DocsSection } from "@/components/ui-system/DocsSection";
 import { RichText } from "@/components/typography/RichText";

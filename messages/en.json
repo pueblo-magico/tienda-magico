@@ -152,6 +152,7 @@
   "cart": {
     "reviewPurchase": "Review purchase",
     "title": "Your cart",
+    "close": "Close cart",
     "empty": "Your cart is empty.",
     "continue": "Continue shopping",
     "loading": "Loading your cart…",
@@ -239,6 +240,7 @@
     "search": "Search",
     "searchPlaceholder": "Search products",
     "searchDialogTitle": "Search the shop",
+    "searchDialogClose": "Close shop search",
     "openSearch": "Open search",
     "sort": "Sort by",
     "submit": "Apply",

@@ -1,7 +1,7 @@
 import Image from "next/image";
-import { Container } from "@/components/layout/Container";
-import { Section } from "@/components/layout/Section";
-import { Body, Eyebrow, PageTitle } from "@/components/typography";
+import { Container } from "@pueblo-magico/react-ui";
+import { Section } from "@pueblo-magico/react-ui";
+import { Body, Eyebrow, PageTitle } from "@pueblo-magico/react-ui";
 import type { HeroBlockData } from "@/lib/cms";
 import { mediaAlt, resolveMediaUrl } from "@/lib/cms";
 import { CmsLinkButton } from "../CmsLink";
@@ -35,7 +35,7 @@ export function HeroBlockView({
         />
       ) : null}
       {isBackground ? (
-        <div className="absolute inset-0 bg-forest/55" aria-hidden />
+        <div className="bg-forest/55 absolute inset-0" aria-hidden />
       ) : null}
 
       <Container
@@ -52,13 +52,17 @@ export function HeroBlockView({
         >
           <div className="space-y-5">
             {block.eyebrow ? <Eyebrow>{block.eyebrow}</Eyebrow> : null}
-            <PageTitle className={isBackground ? "text-brand-foreground" : undefined}>
+            <PageTitle
+              className={isBackground ? "text-brand-foreground" : undefined}
+            >
               {block.title}
             </PageTitle>
             {block.subtitle ? (
               <Body
                 size="lg"
-                className={isBackground ? "text-brand-foreground/90" : undefined}
+                className={
+                  isBackground ? "text-brand-foreground/90" : undefined
+                }
               >
                 {block.subtitle}
               </Body>

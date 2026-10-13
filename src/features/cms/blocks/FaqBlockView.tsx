@@ -1,7 +1,7 @@
-import { Accordion } from "@/components/ui/Accordion";
-import { Container } from "@/components/layout/Container";
-import { Section } from "@/components/layout/Section";
-import { Eyebrow, SectionTitle } from "@/components/typography";
+import { Accordion } from "@/components/ui/ClientAccordion";
+import { Container } from "@pueblo-magico/react-ui";
+import { Section } from "@pueblo-magico/react-ui";
+import { Eyebrow, SectionTitle } from "@pueblo-magico/react-ui";
 import type { CmsFaq, FaqBlockData } from "@/lib/cms";
 import { getFaqs, richTextToPlain } from "@/lib/cms";
 import { RichText } from "../RichText";
@@ -55,7 +55,7 @@ export async function FaqBlockView({
         <Accordion
           items={items.map((item) => ({
             id: String(item.id),
-            title: item.question,
+            header: item.question,
             content: item.answer ? (
               <RichText value={item.answer} />
             ) : (

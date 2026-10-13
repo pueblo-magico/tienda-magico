@@ -1,5 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
+import {
+  MediaCard,
+  MediaCardContent,
+  MediaCardMedia,
+} from "@pueblo-magico/react-ui";
 import { cn } from "@/lib/utils/cn";
 
 export type ArticleCardProps = {
@@ -22,25 +27,20 @@ export function ArticleCard({
   className,
 }: ArticleCardProps) {
   return (
-    <article
-      className={cn(
-        "hover:bg-card-hover group border-border bg-card overflow-hidden rounded-2xl border transition-colors",
-        className,
-      )}
-    >
+    <MediaCard className={cn("group", className)}>
       <Link href={href} className="block">
         {imageSrc ? (
-          <div className="bg-card-hover relative aspect-[16/10] overflow-hidden">
+          <MediaCardMedia aspect="landscape" motion="zoom">
             <Image
               src={imageSrc}
               alt={imageAlt || title}
               fill
-              className="object-cover transition-transform duration-500 group-hover:scale-105"
+              className="object-cover"
               sizes="(max-width: 768px) 100vw, 33vw"
             />
-          </div>
+          </MediaCardMedia>
         ) : null}
-        <div className="space-y-2 px-4 py-4">
+        <MediaCardContent className="space-y-2 px-4 py-4">
           {category ? (
             <p className="text-text-highlight text-[11px] font-medium tracking-[0.16em] uppercase">
               {category}
@@ -50,8 +50,8 @@ export function ArticleCard({
             {title}
           </h3>
           <p className="text-text-primary text-sm leading-relaxed">{excerpt}</p>
-        </div>
+        </MediaCardContent>
       </Link>
-    </article>
+    </MediaCard>
   );
 }

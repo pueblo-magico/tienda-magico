@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Minus, Plus } from "lucide-react";
 import { useProductSelection } from "./ProductSelection";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@pueblo-magico/react-ui";
 import { useCart } from "@/features/cart";
 import { formatMoney } from "@/lib/commerce/utils/format";
 import type { Product, ProductVariant, SelectedOption } from "@/types/commerce";
@@ -167,7 +167,7 @@ export function AddToCartForm({ product, labels }: Props) {
                         type="button"
                         variant={active ? "primary" : "secondary"}
                         aria-pressed={active}
-                        disabled={isMutating}
+                        isDisabled={isMutating}
                         className="min-w-20 rounded-lg px-4 normal-case"
                         onClick={() => {
                           setSelection(candidate);
@@ -225,7 +225,7 @@ export function AddToCartForm({ product, labels }: Props) {
         <Button
           type="button"
           className="h-12 min-w-[12rem] flex-1"
-          disabled={!configured || !available || isMutating || !merchandiseId}
+          isDisabled={!configured || !available || isMutating || !merchandiseId}
           onClick={() => {
             void (async () => {
               setMessage(null);

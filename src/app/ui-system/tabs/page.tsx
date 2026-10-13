@@ -1,4 +1,6 @@
-import { Tabs } from "@/components/ui/Tabs";
+"use client";
+
+import { Tabs } from "@pueblo-magico/react-ui";
 import { DocsPageHeader } from "@/components/ui-system/DocsPageHeader";
 import { DocsSection } from "@/components/ui-system/DocsSection";
 
@@ -60,7 +62,7 @@ export default function TabsPage() {
               id: "unavailable",
               label: "No disponible",
               content: "",
-              disabled: true,
+              isDisabled: true,
             },
           ]}
         />
@@ -72,9 +74,9 @@ export default function TabsPage() {
           control; las flechas cambian la selección. Inicio y Fin recorren las
           pestañas habilitadas. En pantallas angostas la fila permite
           desplazamiento horizontal sin desbordar la página. Pasá label
-          traducido para nombrar el grupo; value y onValueChange permiten
-          selección controlada. Los estados de entrega de este ejemplo no
-          agregan capacidades al backend.
+          traducido para nombrar el grupo; value y onChange permiten selección
+          controlada. Los estados de entrega de este ejemplo no agregan
+          capacidades al backend.
         </p>
         <a
           className="text-text-secondary underline"

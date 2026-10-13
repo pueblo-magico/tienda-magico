@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 import { legalLinks } from "@/config/navigation";
-import { Container } from "./Container";
+import { Container } from "@pueblo-magico/react-ui";
 
 const arcaQrUrl = "https://experienciamagico.com/uploads/qr-arca.png";
 

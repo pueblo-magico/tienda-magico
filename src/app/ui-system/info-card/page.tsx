@@ -1,4 +1,4 @@
-import { InfoCard } from "@/components/cards";
+import { InfoCard } from "@pueblo-magico/react-ui";
 import { Droplet } from "lucide-react";
 import { DocsPageHeader } from "@/components/ui-system/DocsPageHeader";
 import { DocsSection } from "@/components/ui-system/DocsSection";
