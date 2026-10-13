@@ -1,6 +1,101 @@
-# 05 — Información privada de proveedores y costos
+# 05 — Información privada de proveedores, costos y acuerdos comerciales
 
-Estado: planificado. Depende de: 01, 04.
+## Alcance implementado por TIENDA-25
+
+El CMS incorpora proveedores privados y separa explícitamente la **Marca** pública
+del **Proveedor** operativo. Cada proveedor define términos comerciales
+predeterminados de compra o consignación. Un producto puede heredarlos o guardar
+una excepción específica, con método porcentual en puntos básicos o importe fijo
+en unidades monetarias menores, moneda y período de vigencia.
+
+Los roles `purchasing`, `finance` y `admin` pueden consultar y editar esta
+información. Clientes, visitantes y otros roles no la reciben por REST, GraphQL,
+Local API ni población pública del producto. La venta, liquidación y pago al
+proveedor se implementan por separado en TIENDA-34 y TIENDA-35; esta tarea solo
+establece la fuente contractual privada y versionada.
+
+En la UI del CMS, los porcentajes y montos se ingresan en escala humana con dos
+decimales: `35` se presenta como `35.00%` y `1250` como `1,250.00`. La
+persistencia conserva puntos básicos y unidades monetarias menores para evitar
+errores de punto flotante. Los países de proveedor y origen de producto usan el
+mismo selector ISO 3166-1, y las monedas de costos y acuerdos usan un selector
+ISO 4217 buscable.
+
+La migración descendente reasigna los roles `purchasing` y `finance` a `admin`
+antes de retirar esos valores. Esto evita cuentas inválidas, pero es una pérdida
+deliberada de granularidad y debe revisarse antes de un rollback productivo.
+La migración posterior que incorpora `editor` aplica la misma compatibilidad en
+su propio rollback.
+
+## Revisiones contractuales auditables
+
+La colección privada **Acuerdos con proveedores** complementa los términos
+predeterminados legados del proveedor y las excepciones del producto. Cada
+registro tiene una referencia única, proveedor, alcance opcional por producto o
+variante, número de revisión, revisión anterior, estado y términos comerciales.
+
+El ciclo de vida es `draft` → `active` → `expired` o `terminated`. Compras puede
+preparar borradores, pero solo finanzas o administración puede activar o cerrar
+una revisión. Al activar se registran responsable y fecha. Los términos de una
+revisión activa no se reescriben: cualquier cambio contractual requiere una
+nueva revisión consecutiva. Los acuerdos aprobados tampoco se eliminan y el
+motivo de terminación queda inmutable una vez registrado.
+
+Una revisión activa exige una fecha válida de inicio. Las vigencias de revisiones
+aprobadas no pueden solaparse para el mismo proveedor y alcance; la activación
+usa un bloqueo transaccional PostgreSQL para serializar intentos concurrentes.
+Al vencer o terminar una revisión se cierra su vigencia, sin extender una fecha
+de fin anterior. Una revisión por variante también debe identificar su producto.
+La revisión anterior debe ser consecutiva y conservar proveedor y alcance.
+
+Los acuerdos porcentuales declaran explícitamente el tratamiento de descuentos
+del producto, descuentos generales asignados, impuestos, envío asignado,
+propinas/donaciones y comisión real del medio de cobro. Esta definición es la
+fuente que TIENDA-34 deberá copiar a cada obligación inmutable; todavía no
+calcula saldos ni genera deuda al vender.
+
+La colección conserva versiones de Payload para auditoría adicional. La relación
+inversa aparece en la ficha del proveedor y permite crear revisiones sin salir de
+ese flujo. Todos los registros siguen restringidos a `purchasing`, `finance` y
+`admin`.
+
+Al publicar un producto, el servidor resuelve el acuerdo aprobado vigente con
+precedencia variante → producto → proveedor. Una cobertura ambigua o ausente
+impide la publicación. Durante la transición, los términos embebidos existentes
+del producto o proveedor cuentan como cobertura legada explícita; el indicador
+del CMS los distingue de una revisión versionada para que puedan migrarse sin
+interrumpir el catálogo. El rol `editor` puede mantener la ficha pública del
+producto, pero los campos de compras y la colección de acuerdos continúan
+denegados en el servidor.
+
+**Estado de este incremento:** código, tipos y migración generados, pruebas
+unitarias y prueba de integración PostgreSQL completos. La integración cubre
+Local API, lecturas y escrituras REST, GraphQL y relaciones pobladas para
+anónimo, cliente y editor; además, una aserción de tipos protege el contrato
+público. La cadena completa de migraciones se verificó desde una base
+descartable. La aceptación manual del CMS verificó con datos dummy el flujo
+compras → finanzas → publicación: alta del proveedor, costo BRL 1.250,00 con
+base explícita `1 g` y fecha, mensaje útil ante base inválida, activación por
+finanzas, cobertura enlazada, publicación exitosa y edición pública sin valores
+privados para el rol editor. El listado y detalle anónimos en EN/ES conservaron
+el precio público ARS después de editar compras; el DOM desktop y mobile de
+390 px y el HTML renderizado en servidor no incluyeron ningún marcador privado
+dummy. El carrito mobile y el panel de datos de checkout funcionaron con otro
+ítem vendible. Después se habilitó temporalmente una unidad local de Rape Sunu
+para recorrer con ese mismo producto el carrito y la revisión de checkout: solo
+apareció su precio público ARS. Al restaurar el inventario a cero, la revisión
+mostró el aviso de disponibilidad esperado sin romperse. Luego se inició sesión
+con el rol `customer`: la colección de acuerdos devolvió `Not Found`, la ficha
+de Rape Sunu quedó de solo lectura y la pestaña de compras no expuso proveedor,
+acuerdo, SKU, costo BRL ni notas. Con esa sesión activa, el detalle del producto
+en EN y ES conservó el precio público y su DOM no incluyó ninguno de los
+marcadores privados dummy. La navegación por teclado recorrió los controles en
+orden, con foco visible de 2 px; `Enter` abrió la búsqueda y llevó el foco a su
+campo, `Escape` la cerró y `Enter` abrió el carrito. Las respuestas REST y
+GraphQL del rol cliente quedan verificadas por la prueba de integración
+PostgreSQL, además del control manual del output renderizado.
+
+Estado: completo. Depende de: 01, 04.
 
 ## Prompt de implementación para Codex
 
@@ -30,15 +125,15 @@ Con datos dummy, hacé que un usuario autorizado cree un proveedor y guarde un c
 
 ### Definición de terminado
 
-- [ ] El personal autorizado puede editar costos en BRL para productos vendidos en ARS, con base de costo y fecha explícitas.
-- [ ] Editores de catálogo y clientes comunes no pueden leer/escribir campos privados de compras salvo que se les otorgue permiso explícito.
-- [ ] Las llamadas API anónimas, relaciones pobladas de producto y respuestas del storefront no contienen costos, contactos de proveedor ni notas.
-- [ ] Los tipos públicos de producto no pueden serializar accidentalmente registros operativos privados.
-- [ ] Las pruebas de permisos cubren anónimo, cliente, editor, finanzas y admin; las escrituras denegadas dejan los datos sin cambios.
-- [ ] La validación de costo/moneda, migración de roles, artefactos generados y documentación operativa están completos.
-- [ ] El personal autorizado completa el flujo proveedor/costo desde pantallas CMS usables, incluida validación y acceso denegado; CRUD solo por API no alcanza.
-- [ ] Los flujos reales de listado/detalle/carrito/checkout del storefront siguen funcionando con datos de compras faltantes o restringidos, y las ediciones privadas no alteran precios públicos, moneda, Marca ni origen.
-- [ ] Los controles EN/ES desktop/mobile y teclado, más los controles de filtración renderizada/de red, quedan registrados para el flujo de aceptación humana. La finalización cubre el flujo privado completo y su límite público.
+- [x] El personal autorizado puede editar costos en BRL para productos vendidos en ARS, con base de costo y fecha explícitas.
+- [x] Editores de catálogo y clientes comunes no pueden leer/escribir campos privados de compras salvo que se les otorgue permiso explícito.
+- [x] Las llamadas API anónimas, relaciones pobladas de producto y respuestas del storefront no contienen costos, contactos de proveedor ni notas.
+- [x] Los tipos públicos de producto no pueden serializar accidentalmente registros operativos privados.
+- [x] Las pruebas de permisos cubren anónimo, cliente, editor, finanzas y admin; las escrituras denegadas dejan los datos sin cambios.
+- [x] La validación de costo/moneda, migración de roles, artefactos generados y documentación operativa están completos.
+- [x] El personal autorizado completa el flujo proveedor/costo desde pantallas CMS usables, incluida validación y acceso denegado; CRUD solo por API no alcanza.
+- [x] Los flujos reales de listado/detalle/carrito/checkout del storefront siguen funcionando con datos de compras faltantes o restringidos, y las ediciones privadas no alteran precios públicos, moneda, Marca ni origen.
+- [x] Los controles EN/ES desktop/mobile y teclado, más los controles de filtración renderizada/de red, quedan registrados para el flujo de aceptación humana. La finalización cubre el flujo privado completo y su límite público.
 
 ### Fuera de alcance
 

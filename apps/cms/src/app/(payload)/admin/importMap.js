@@ -1,3 +1,7 @@
+import { default as default_690cbfcb3730fca7c16cc8d9d6eb3ffe } from '@/components/IsoCountrySelectField'
+import { default as default_e3cbc7fd3ba07e0312a509e5f7aa882e } from '@/components/PercentageInputField'
+import { default as default_fc4b1300cc4c5c4243bbecbc261cd673 } from '@/components/MoneyInputField'
+import { default as default_0e31785bd68d5ea350ab8e21affd7b7a } from '@/components/IsoCurrencySelectField'
 import { RscEntryLexicalCell as RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
 import { RscEntryLexicalField as RscEntryLexicalField_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
 import { LexicalDiffComponent as LexicalDiffComponent_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
@@ -28,6 +32,7 @@ import { VariantOptionsSelector as VariantOptionsSelector_b91672ccd6e8b071c11142
 import { PriceCell as PriceCell_e27bf7b8cc50640dcdd584767b8eac3c } from '@payloadcms/plugin-ecommerce/client'
 import { PriceInput as PriceInput_b91672ccd6e8b071c11142ab941fedfb } from '@payloadcms/plugin-ecommerce/rsc'
 import { default as default_877d7a52e86e775156f872750e2a9e89 } from '@/components/StableSKUField'
+import { default as default_833431663fcc782db052c23a3bb86b0c } from '@/components/AgreementCoverageField'
 import { default as default_49f71f6595bb3686e63393626f558d8f } from '@/components/DocumentLocaleSwitcher'
 import { default as default_2cf362c95aeaa452f807ed65ad049cab } from '@/components/ConfirmCash'
 import { default as default_4b66790fcd70e03821cf0f9aeaa7cb1f } from '@/components/ConfirmTransfer'
@@ -39,6 +44,10 @@ import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } f
 
 /** @type import('payload').ImportMap */
 export const importMap = {
+  "@/components/IsoCountrySelectField#default": default_690cbfcb3730fca7c16cc8d9d6eb3ffe,
+  "@/components/PercentageInputField#default": default_e3cbc7fd3ba07e0312a509e5f7aa882e,
+  "@/components/MoneyInputField#default": default_fc4b1300cc4c5c4243bbecbc261cd673,
+  "@/components/IsoCurrencySelectField#default": default_0e31785bd68d5ea350ab8e21affd7b7a,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalCell": RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalField": RscEntryLexicalField_44fe37237e0ebf4470c9990d8cb7b07e,
   "@payloadcms/richtext-lexical/rsc#LexicalDiffComponent": LexicalDiffComponent_44fe37237e0ebf4470c9990d8cb7b07e,
@@ -69,6 +78,7 @@ export const importMap = {
   "@payloadcms/plugin-ecommerce/client#PriceCell": PriceCell_e27bf7b8cc50640dcdd584767b8eac3c,
   "@payloadcms/plugin-ecommerce/rsc#PriceInput": PriceInput_b91672ccd6e8b071c11142ab941fedfb,
   "@/components/StableSKUField#default": default_877d7a52e86e775156f872750e2a9e89,
+  "@/components/AgreementCoverageField#default": default_833431663fcc782db052c23a3bb86b0c,
   "@/components/DocumentLocaleSwitcher#default": default_49f71f6595bb3686e63393626f558d8f,
   "@/components/ConfirmCash#default": default_2cf362c95aeaa452f807ed65ad049cab,
   "@/components/ConfirmTransfer#default": default_4b66790fcd70e03821cf0f9aeaa7cb1f,

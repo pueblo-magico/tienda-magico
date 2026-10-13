@@ -1,11 +1,3 @@
-import * as cashPickupWindow from './20260918_180000_cash_pickup_window'
-import * as migration_20260917_150000_staff_cash_commerce from './20260917_150000_staff_cash_commerce'
-import * as migration_20260917_120000_transfer_identification from './20260917_120000_transfer_identification'
-import * as migration_20260917_130000_cash_payment from './20260917_130000_cash_payment'
-import * as migration_20260917_140000_staff_cash from './20260917_140000_staff_cash'
-import * as migration_20260917_150000_order_receipt_feedback from './20260917_150000_order_receipt_feedback'
-import * as migration_20260917_110000_payment_notifications from './20260917_110000_payment_notifications'
-import * as migration_20260916_100000_transfer_reported from './20260916_100000_transfer_reported'
 import * as migration_20260825_001134_initial_schema from './20260825_001134_initial_schema'
 import * as migration_20260825_020000_spanish_ars_defaults from './20260825_020000_spanish_ars_defaults'
 import * as migration_20260825_020001_ars_defaults from './20260825_020001_ars_defaults'
@@ -33,8 +25,18 @@ import * as migration_20260914_010000_site_shop_hero from './20260914_010000_sit
 import * as migration_20260915_120000_payment_method_transfer from './20260915_120000_payment_method_transfer'
 import * as migration_20260915_150000_pending_transfer_orders from './20260915_150000_pending_transfer_orders'
 import * as migration_20260915_160000_order_public_reference from './20260915_160000_order_public_reference'
-
+import * as migration_20260916_100000_transfer_reported from './20260916_100000_transfer_reported'
 import * as migration_20260917_100000_transfer_verification from './20260917_100000_transfer_verification'
+import * as migration_20260917_110000_payment_notifications from './20260917_110000_payment_notifications'
+import * as migration_20260917_120000_transfer_identification from './20260917_120000_transfer_identification'
+import * as migration_20260917_130000_cash_payment from './20260917_130000_cash_payment'
+import * as migration_20260917_140000_staff_cash from './20260917_140000_staff_cash'
+import * as migration_20260917_150000_order_receipt_feedback from './20260917_150000_order_receipt_feedback'
+import * as migration_20260917_150000_staff_cash_commerce from './20260917_150000_staff_cash_commerce'
+import * as migration_20260918_180000_cash_pickup_window from './20260918_180000_cash_pickup_window'
+import * as migration_20260925_144130_task_05_supplier_agreements from './20260925_144130_task_05_supplier_agreements'
+import * as migration_20261011_191739_task_05_versioned_supplier_agreements from './20261011_191739_task_05_versioned_supplier_agreements'
+import * as migration_20261011_214537_task_05_catalog_editor_role from './20261011_214537_task_05_catalog_editor_role'
 
 export const migrations = [
   {
@@ -203,18 +205,33 @@ export const migrations = [
     name: '20260917_140000_staff_cash',
   },
   {
-    up: migration_20260917_150000_staff_cash_commerce.up,
-    down: migration_20260917_150000_staff_cash_commerce.down,
-    name: '20260917_150000_staff_cash_commerce',
-  },
-  {
     up: migration_20260917_150000_order_receipt_feedback.up,
     down: migration_20260917_150000_order_receipt_feedback.down,
     name: '20260917_150000_order_receipt_feedback',
   },
   {
+    up: migration_20260917_150000_staff_cash_commerce.up,
+    down: migration_20260917_150000_staff_cash_commerce.down,
+    name: '20260917_150000_staff_cash_commerce',
+  },
+  {
+    up: migration_20260918_180000_cash_pickup_window.up,
+    down: migration_20260918_180000_cash_pickup_window.down,
     name: '20260918_180000_cash_pickup_window',
-    up: cashPickupWindow.up,
-    down: cashPickupWindow.down,
+  },
+  {
+    up: migration_20260925_144130_task_05_supplier_agreements.up,
+    down: migration_20260925_144130_task_05_supplier_agreements.down,
+    name: '20260925_144130_task_05_supplier_agreements',
+  },
+  {
+    up: migration_20261011_191739_task_05_versioned_supplier_agreements.up,
+    down: migration_20261011_191739_task_05_versioned_supplier_agreements.down,
+    name: '20261011_191739_task_05_versioned_supplier_agreements',
+  },
+  {
+    up: migration_20261011_214537_task_05_catalog_editor_role.up,
+    down: migration_20261011_214537_task_05_catalog_editor_role.down,
+    name: '20261011_214537_task_05_catalog_editor_role',
   },
 ]

@@ -1,6 +1,98 @@
-# 05 — Private supplier and cost information
+# 05 — Private supplier, cost, and commercial agreement information
 
-Status: planned. Depends on: 01, 04.
+## Scope implemented by TIENDA-25
+
+The CMS adds private suppliers and explicitly separates the public **Brand**
+from the operational **Supplier**. Each supplier defines default purchase or
+consignment terms. A product can inherit them or store a specific override,
+using either basis points or a fixed minor-unit amount, currency, and effective
+date range.
+
+Only `purchasing`, `finance`, and `admin` roles can read or edit this data.
+Customers, visitors, and other roles do not receive it through REST, GraphQL,
+Local API, or public product population. Sales obligations, settlements, and
+supplier payouts remain separate work in TIENDA-34 and TIENDA-35; this task
+provides their private, versioned contractual source.
+
+In the CMS UI, percentages and money amounts use human-scale, two-decimal
+inputs: `35` is presented as `35.00%`, and `1250` as `1,250.00`. Persistence
+still uses basis points and minor currency units to avoid floating-point errors.
+Supplier country and product origin share the same searchable ISO 3166-1
+selector, while cost and agreement currencies use a searchable ISO 4217
+selector.
+
+The down migration reassigns `purchasing` and `finance` users to `admin` before
+removing those enum values. This avoids invalid accounts but deliberately loses
+role granularity and must be reviewed before a production rollback.
+The later migration that introduces `editor` applies the same compatibility in
+its own rollback.
+
+## Auditable agreement revisions
+
+The private **Supplier agreements** collection complements the supplier's legacy
+defaults and product overrides. Each record has a unique reference, supplier,
+optional product or variant scope, revision number, previous revision, lifecycle
+status, and commercial terms.
+
+The lifecycle is `draft` → `active` → `expired` or `terminated`. Purchasing can
+prepare drafts, while only finance or administration can activate or close a
+revision. Activation records the approver and timestamp. Approved financial
+terms are immutable; contractual changes require a consecutive new revision.
+Approved agreements cannot be deleted, and the termination reason becomes
+immutable once recorded.
+
+Active revisions require a valid effective start date. Effective periods of
+approved revisions may not overlap for the same supplier and scope; activation
+uses a PostgreSQL transactional advisory lock to serialize concurrent attempts.
+Expiring or terminating a revision closes its effective period without extending
+an earlier end date. A variant revision must also identify its product. The
+previous revision must be consecutive and retain the same supplier and scope.
+
+Percentage agreements explicitly state how product discounts, allocated order
+discounts, taxes, allocated shipping, tips/donations, and actual payment fees
+affect the supplier basis. TIENDA-34 will snapshot this definition into immutable
+obligations; this increment does not yet create debt or balances when a sale is
+confirmed.
+
+Payload versions provide additional audit history. The supplier screen exposes
+the reverse relationship and allows authorized staff to create revisions from
+that workflow. Records remain restricted to `purchasing`, `finance`, and `admin`.
+
+When a product is published, the server resolves the approved agreement in
+effect with variant → product → supplier precedence. Ambiguous or missing
+coverage blocks publication. During the transition, existing embedded product
+or supplier terms count as an explicit legacy fallback; the CMS coverage
+indicator distinguishes them from a versioned revision so they can be migrated
+without interrupting the catalog. The `editor` role may maintain the public
+product record, while purchasing fields and the agreements collection remain
+server-side denied.
+
+**Increment status:** code, generated types and migration, unit tests, and the
+PostgreSQL integration test are complete. Integration coverage includes Local
+API, REST reads and writes, GraphQL, and populated relationships for anonymous,
+customer, and editor access; a type assertion also protects the public contract.
+The full migration chain passed from a clean disposable database. Manual CMS
+acceptance verified the purchasing → finance → publishing workflow with dummy
+data: supplier creation, a formatted BRL 1,250.00 cost with explicit `1 g`
+basis and date, a useful invalid-basis message, finance activation, linked
+coverage, successful publication, and editor access to public fields without
+the private values. Anonymous EN/ES listing and detail pages also rendered the
+same public ARS price after the private edit; desktop and 390 px mobile DOM plus
+server-rendered HTML contained none of the dummy private markers. A temporary
+local inventory unit then exercised Rape Sunu itself through the cart and the
+checkout review; only its public ARS price was present, and restoring inventory
+to zero produced the expected availability warning without breaking review.
+The signed-in `customer` role could not open the supplier-agreement collection,
+the product remained read-only, and its purchasing tab exposed no supplier,
+agreement, supplier SKU, BRL cost, or notes. With that session active, the EN
+and ES product detail DOM retained the public price and contained none of the
+dummy private markers. Keyboard navigation followed the interactive controls
+in order with a visible 2 px focus outline; Enter opened search and focused its
+field, Escape closed it, and Enter opened the cart. The PostgreSQL integration
+test verifies the customer REST and GraphQL responses in addition to the manual
+rendered-output check.
+
+Status: complete. Depends on: 01, 04.
 
 ## Codex implementation prompt
 
@@ -30,15 +122,15 @@ Using dummy data, have an authorized user create a supplier and save a BRL cost 
 
 ### Definition of done
 
-- [ ] Authorized staff can edit BRL costs for products sold in ARS, with explicit cost basis and date.
-- [ ] Catalog editors and ordinary customers cannot read/write private purchasing fields unless explicitly granted permission.
-- [ ] Anonymous API calls, populated product relationships, and storefront responses contain no costs, supplier contacts, or notes.
-- [ ] Public product types cannot accidentally serialize private operational records.
-- [ ] Permission tests cover anonymous, customer, editor, finance, and admin; denied writes leave data unchanged.
-- [ ] Cost/currency validation, role migration, generated artifacts, and operator documentation are complete.
-- [ ] Authorized staff complete the supplier/cost workflow through usable CMS screens, including validation and denied-access behavior; API-only CRUD is insufficient.
-- [ ] Real storefront listing/detail/cart/checkout flows remain functional with missing or restricted purchasing data, and private edits do not alter public prices, currency, Brand, or origin.
-- [ ] EN/ES desktop/mobile and keyboard checks plus rendered/network leakage checks are recorded for the human acceptance flow. Completion covers the full private workflow and its public boundary.
+- [x] Authorized staff can edit BRL costs for products sold in ARS, with explicit cost basis and date.
+- [x] Catalog editors and ordinary customers cannot read/write private purchasing fields unless explicitly granted permission.
+- [x] Anonymous API calls, populated product relationships, and storefront responses contain no costs, supplier contacts, or notes.
+- [x] Public product types cannot accidentally serialize private operational records.
+- [x] Permission tests cover anonymous, customer, editor, finance, and admin; denied writes leave data unchanged.
+- [x] Cost/currency validation, role migration, generated artifacts, and operator documentation are complete.
+- [x] Authorized staff complete the supplier/cost workflow through usable CMS screens, including validation and denied-access behavior; API-only CRUD is insufficient.
+- [x] Real storefront listing/detail/cart/checkout flows remain functional with missing or restricted purchasing data, and private edits do not alter public prices, currency, Brand, or origin.
+- [x] EN/ES desktop/mobile and keyboard checks plus rendered/network leakage checks are recorded for the human acceptance flow. Completion covers the full private workflow and its public boundary.
 
 ### Out of scope
 
