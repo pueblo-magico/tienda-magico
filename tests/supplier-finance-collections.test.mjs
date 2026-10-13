@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { SupplierPaymentProfiles } from "../apps/cms/src/collections/SupplierPaymentProfiles.ts";
+import { SupplierFinanceEvents } from "../apps/cms/src/collections/SupplierFinanceEvents.ts";
 import { SupplierObligations } from "../apps/cms/src/collections/SupplierObligations.ts";
 import { SupplierPayouts } from "../apps/cms/src/collections/SupplierPayouts.ts";
 import { SupplierSettlements } from "../apps/cms/src/collections/SupplierSettlements.ts";
@@ -9,6 +10,7 @@ import { ordersCollectionOverride } from "../apps/cms/src/collections/orderComme
 import { supplierPayoutConfirmationInput } from "../apps/cms/src/utilities/confirmSupplierPayout.ts";
 import { createSupplierObligationsForPaidOrder } from "../apps/cms/src/utilities/createSupplierObligationsForPaidOrder.ts";
 import { manualSupplierPayoutInput } from "../apps/cms/src/utilities/recordManualSupplierPayout.ts";
+import { appendSupplierFinanceEvent } from "../apps/cms/src/utilities/appendSupplierFinanceEvent.ts";
 
 const namedField = (collection, name) =>
   collection.fields.find((field) => field.name === name);
@@ -41,6 +43,96 @@ test("los perfiles y movimientos financieros son privados y separados del catalo
     "supplier-settlements",
   );
   assert.notEqual(namedField(SupplierPayouts, "settlement").unique, true);
+});
+
+test("los eventos financieros son anexos, privados y exportables para contabilidad", () => {
+  assert.equal(SupplierFinanceEvents.slug, "supplier-finance-events");
+  assert.equal(SupplierFinanceEvents.access.read({ req: {} }), false);
+  assert.equal(
+    SupplierFinanceEvents.access.read({
+      req: { user: { roles: ["finance"] } },
+    }),
+    true,
+  );
+  assert.equal(SupplierFinanceEvents.access.create({ req: {} }), false);
+  assert.equal(SupplierFinanceEvents.access.update({ req: {} }), false);
+  assert.equal(SupplierFinanceEvents.access.delete({ req: {} }), false);
+  assert.equal(namedField(SupplierFinanceEvents, "eventKey").unique, true);
+  assert.equal(
+    namedField(SupplierFinanceEvents, "payout").relationTo,
+    "supplier-payouts",
+  );
+  assert.equal(
+    namedField(SupplierFinanceEvents, "settlement").relationTo,
+    "supplier-settlements",
+  );
+  for (const field of [
+    "eventType",
+    "provider",
+    "amountMinor",
+    "appliedMinor",
+    "outstandingAfterMinor",
+    "feeMinor",
+    "feeResponsibility",
+    "occurredAt",
+    "actor",
+  ]) {
+    assert.ok(
+      namedField(SupplierFinanceEvents, field),
+      `Falta el campo contable ${field}`,
+    );
+  }
+});
+
+test("la escritura de eventos es idempotente y limita los datos a campos contables", async () => {
+  const events = [];
+  const req = {
+    payload: {
+      find: async ({ collection, where }) => {
+        assert.equal(collection, "supplier-finance-events");
+        return {
+          docs: events.filter(
+            (event) => event.eventKey === where.eventKey.equals,
+          ),
+        };
+      },
+      create: async ({ collection, data, overrideAccess }) => {
+        assert.equal(collection, "supplier-finance-events");
+        assert.equal(overrideAccess, true);
+        events.push(data);
+        return data;
+      },
+    },
+  };
+  const input = {
+    eventKey: "manual:17:TRX-9182",
+    eventType: "partial_payment",
+    supplier: 3,
+    settlement: 5,
+    payout: 17,
+    provider: "manual",
+    amountMinor: 25_000,
+    appliedMinor: 25_000,
+    outstandingAfterMinor: 25_000,
+    feeMinor: 0,
+    feeResponsibility: "unknown",
+    currency: "ARS",
+    previousStatus: "awaiting_approval",
+    nextStatus: "succeeded",
+    actor: 9,
+    occurredAt: "2026-10-13T12:00:00.000Z",
+    correlationKey: "payout:17",
+    externalReference: "TRX-9182",
+    accessToken: "no-debe-persistirse",
+  };
+
+  await appendSupplierFinanceEvent(req, input);
+  await appendSupplierFinanceEvent(req, input);
+
+  assert.equal(events.length, 1);
+  assert.equal(events[0].eventKey, input.eventKey);
+  assert.equal(events[0].amountMinor, 25_000);
+  assert.equal(events[0].accessToken, undefined);
 });
 
 test("la transición de un pedido a pago aprobado dispara obligaciones idempotentes", () => {

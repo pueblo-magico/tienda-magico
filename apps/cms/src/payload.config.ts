@@ -38,6 +38,7 @@ import { SupplierAgreements } from './collections/SupplierAgreements'
 import { SupplierPaymentProfiles } from './collections/SupplierPaymentProfiles'
 import { SupplierObligations } from './collections/SupplierObligations'
 import { SupplierPayouts } from './collections/SupplierPayouts'
+import { SupplierFinanceEvents } from './collections/SupplierFinanceEvents'
 import { SupplierSettlements } from './collections/SupplierSettlements'
 import { Footer } from './globals/Footer'
 import { Header } from './globals/Header'
@@ -91,6 +92,7 @@ export default buildConfig({
     SupplierObligations,
     SupplierSettlements,
     SupplierPayouts,
+    SupplierFinanceEvents,
     Media,
     LocalSales,
     PaymentNotifications,

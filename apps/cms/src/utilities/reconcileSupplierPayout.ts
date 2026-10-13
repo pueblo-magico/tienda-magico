@@ -8,6 +8,7 @@ import {
 } from '../lib/supplierFinance/mercadoPagoPayouts'
 import { allocateSupplierPayment } from '../lib/supplierFinance/policy'
 import { activeTransaction } from './transferWriteLock'
+import { appendSupplierFinanceEvent } from './appendSupplierFinanceEvent'
 
 export const reconcileSupplierPayoutEndpoint: Endpoint = {
   path: '/:id/reconcile',
@@ -61,6 +62,15 @@ async function reconcileSupplierPayout(req: PayloadRequest, payoutID: number): P
       return rollback(req, transactionID, 'state', 409)
     if (!payout.providerPayoutId || !payout.providerTransactionId)
       return rollback(req, transactionID, 'provider_reference', 409)
+    const settlementID = Number(relationID(payout.settlement))
+    const supplierID = Number(relationID(payout.supplier))
+    if (
+      !Number.isSafeInteger(settlementID) ||
+      settlementID <= 0 ||
+      !Number.isSafeInteger(supplierID) ||
+      supplierID <= 0
+    )
+      return rollback(req, transactionID, 'settlement', 409)
 
     const accessToken = process.env.MERCADOPAGO_PAYOUTS_ACCESS_TOKEN?.trim()
     if (!accessToken || process.env.MERCADOPAGO_PAYOUTS_TEST_MODE !== 'true')
@@ -84,12 +94,31 @@ async function reconcileSupplierPayout(req: PayloadRequest, payoutID: number): P
         overrideAccess: true,
         req,
       })
+      await appendSupplierFinanceEvent(req, {
+        eventKey: `reconcile-error:${payoutID}:${payout.status}:${failureCode}`,
+        eventType: 'reconciliation_required',
+        supplier: supplierID,
+        settlement: settlementID,
+        payout: payoutID,
+        provider: 'mercado-pago',
+        amountMinor: payout.amountMinor,
+        appliedMinor: 0,
+        outstandingAfterMinor: payout.amountMinor,
+        feeMinor: 0,
+        feeResponsibility: 'unknown',
+        currency: 'ARS',
+        previousStatus: payout.status,
+        nextStatus: 'reconciliation_required',
+        actor: Number(actor.id),
+        occurredAt: new Date().toISOString(),
+        correlationKey: `payout:${payoutID}`,
+        externalReference: payout.providerTransactionId,
+        reason: failureCode,
+      })
       await req.payload.db.commitTransaction(transactionID)
       return Response.json({ code: 'reconciliation_required' }, { status: 502 })
     }
 
-    const settlementID = relationID(payout.settlement)
-    if (settlementID == null) return rollback(req, transactionID, 'settlement', 409)
     await transaction.execute(
       sql`SELECT pg_advisory_xact_lock(hashtextextended(${`supplier-settlement:${settlementID}`}, 0))`,
     )
@@ -169,6 +198,29 @@ async function reconcileSupplierPayout(req: PayloadRequest, payoutID: number): P
       },
       overrideAccess: true,
       req,
+    })
+    const eventType = result.status === 'processing' ? 'provider_status_checked' : result.status
+    await appendSupplierFinanceEvent(req, {
+      eventKey: `reconcile:${payoutID}:${payout.status}:${result.status}:${result.providerStatus}:${result.providerStatusDetail ?? 'none'}`,
+      eventType,
+      supplier: supplierID,
+      settlement: settlementID,
+      payout: payoutID,
+      provider: 'mercado-pago',
+      amountMinor: payout.amountMinor,
+      appliedMinor: result.status === 'succeeded' ? payout.amountMinor : 0,
+      outstandingAfterMinor: result.status === 'succeeded' ? 0 : settlement.outstandingMinor,
+      receivedMinor: result.status === 'succeeded' ? payout.amountMinor : undefined,
+      feeMinor: 0,
+      feeResponsibility: 'unknown',
+      currency: 'ARS',
+      previousStatus: payout.status,
+      nextStatus: result.status,
+      actor: Number(actor.id),
+      occurredAt: new Date().toISOString(),
+      correlationKey: `payout:${payoutID}`,
+      externalReference: payout.providerTransactionId,
+      reason: result.providerStatusDetail ?? undefined,
     })
     await req.payload.db.commitTransaction(transactionID)
     return Response.json({ reconciled: true, status: result.status })

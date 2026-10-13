@@ -8,6 +8,7 @@ import {
   submitMercadoPagoPayout,
 } from '../lib/supplierFinance/mercadoPagoPayouts'
 import { activeTransaction } from './transferWriteLock'
+import { appendSupplierFinanceEvent } from './appendSupplierFinanceEvent'
 
 export function supplierPayoutConfirmationInput(value: unknown): { acknowledged: true } {
   if (
@@ -132,6 +133,25 @@ export async function confirmSupplierPayout(
       overrideAccess: true,
       req,
     })
+    await appendSupplierFinanceEvent(req, {
+      eventKey: `submission-started:${payout.idempotencyKey}`,
+      eventType: 'submission_started',
+      supplier: Number(supplierID),
+      settlement: Number(settlementID),
+      payout: payoutID,
+      provider: 'mercado-pago',
+      amountMinor: payout.amountMinor,
+      appliedMinor: 0,
+      outstandingAfterMinor: settlement.outstandingMinor,
+      feeMinor: 0,
+      feeResponsibility: 'unknown',
+      currency: 'ARS',
+      previousStatus: 'awaiting_approval',
+      nextStatus: 'submitting',
+      actor: Number(actor.id),
+      occurredAt: confirmedAt,
+      correlationKey: `payout:${payoutID}`,
+    })
     try {
       const submission = await submitMercadoPagoPayout(
         {
@@ -160,6 +180,26 @@ export async function confirmSupplierPayout(
         overrideAccess: true,
         req,
       })
+      await appendSupplierFinanceEvent(req, {
+        eventKey: `submitted:${payout.idempotencyKey}`,
+        eventType: 'submitted',
+        supplier: Number(supplierID),
+        settlement: Number(settlementID),
+        payout: payoutID,
+        provider: 'mercado-pago',
+        amountMinor: payout.amountMinor,
+        appliedMinor: 0,
+        outstandingAfterMinor: settlement.outstandingMinor,
+        feeMinor: 0,
+        feeResponsibility: 'unknown',
+        currency: 'ARS',
+        previousStatus: 'submitting',
+        nextStatus: submission.status,
+        actor: Number(actor.id),
+        occurredAt: new Date().toISOString(),
+        correlationKey: `payout:${payoutID}`,
+        externalReference: submission.transactionID,
+      })
       await req.payload.update({
         collection: 'supplier-settlements',
         id: settlementID,
@@ -177,6 +217,26 @@ export async function confirmSupplierPayout(
         data: { status: 'reconciliation_required', failureCode },
         overrideAccess: true,
         req,
+      })
+      await appendSupplierFinanceEvent(req, {
+        eventKey: `submission-uncertain:${payout.idempotencyKey}`,
+        eventType: 'reconciliation_required',
+        supplier: Number(supplierID),
+        settlement: Number(settlementID),
+        payout: payoutID,
+        provider: 'mercado-pago',
+        amountMinor: payout.amountMinor,
+        appliedMinor: 0,
+        outstandingAfterMinor: settlement.outstandingMinor,
+        feeMinor: 0,
+        feeResponsibility: 'unknown',
+        currency: 'ARS',
+        previousStatus: 'submitting',
+        nextStatus: 'reconciliation_required',
+        actor: Number(actor.id),
+        occurredAt: new Date().toISOString(),
+        correlationKey: `payout:${payoutID}`,
+        reason: failureCode,
       })
       await req.payload.db.commitTransaction(transactionID)
       return Response.json({ code: 'reconciliation_required' }, { status: 502 })

@@ -79,6 +79,7 @@ export interface Config {
     'supplier-obligations': SupplierObligation;
     'supplier-settlements': SupplierSettlement;
     'supplier-payouts': SupplierPayout;
+    'supplier-finance-events': SupplierFinanceEvent;
     media: Media;
     localSales: LocalSale;
     'payment-notifications': PaymentNotification;
@@ -121,6 +122,7 @@ export interface Config {
     'supplier-obligations': SupplierObligationsSelect<false> | SupplierObligationsSelect<true>;
     'supplier-settlements': SupplierSettlementsSelect<false> | SupplierSettlementsSelect<true>;
     'supplier-payouts': SupplierPayoutsSelect<false> | SupplierPayoutsSelect<true>;
+    'supplier-finance-events': SupplierFinanceEventsSelect<false> | SupplierFinanceEventsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     localSales: LocalSalesSelect<false> | LocalSalesSelect<true>;
     'payment-notifications': PaymentNotificationsSelect<false> | PaymentNotificationsSelect<true>;
@@ -3114,6 +3116,46 @@ export interface SupplierPayout {
   createdAt: string;
 }
 /**
+ * Append-only immutable history for audit, reconciliation, and accounting export.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "supplier-finance-events".
+ */
+export interface SupplierFinanceEvent {
+  id: number;
+  eventKey: string;
+  eventType:
+    | 'payout_prepared'
+    | 'submission_started'
+    | 'submitted'
+    | 'provider_status_checked'
+    | 'succeeded'
+    | 'failed'
+    | 'reconciliation_required'
+    | 'manual_reconciled'
+    | 'partial_payment';
+  supplier: number | Supplier;
+  settlement: number | SupplierSettlement;
+  payout: number | SupplierPayout;
+  provider: 'mercado-pago' | 'manual';
+  amountMinor: number;
+  appliedMinor: number;
+  outstandingAfterMinor: number;
+  receivedMinor?: number | null;
+  feeMinor: number;
+  feeResponsibility: 'store' | 'supplier' | 'unknown';
+  currency: 'ARS';
+  previousStatus?: string | null;
+  nextStatus: string;
+  actor?: (number | null) | User;
+  occurredAt: string;
+  correlationKey: string;
+  externalReference?: string | null;
+  reason?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * Private record of local sales operated from the CMS.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -3685,6 +3727,10 @@ export interface PayloadLockedDocument {
         value: number | SupplierPayout;
       } | null)
     | ({
+        relationTo: 'supplier-finance-events';
+        value: number | SupplierFinanceEvent;
+      } | null)
+    | ({
         relationTo: 'media';
         value: number | Media;
       } | null)
@@ -3984,6 +4030,34 @@ export interface SupplierPayoutsSelect<T extends boolean = true> {
   confirmedBy?: T;
   confirmedAt?: T;
   failureCode?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "supplier-finance-events_select".
+ */
+export interface SupplierFinanceEventsSelect<T extends boolean = true> {
+  eventKey?: T;
+  eventType?: T;
+  supplier?: T;
+  settlement?: T;
+  payout?: T;
+  provider?: T;
+  amountMinor?: T;
+  appliedMinor?: T;
+  outstandingAfterMinor?: T;
+  receivedMinor?: T;
+  feeMinor?: T;
+  feeResponsibility?: T;
+  currency?: T;
+  previousStatus?: T;
+  nextStatus?: T;
+  actor?: T;
+  occurredAt?: T;
+  correlationKey?: T;
+  externalReference?: T;
+  reason?: T;
   updatedAt?: T;
   createdAt?: T;
 }

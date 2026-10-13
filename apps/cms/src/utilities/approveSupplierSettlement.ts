@@ -8,6 +8,7 @@ import {
   validateSettlementObligations,
 } from '../lib/supplierFinance/policy'
 import { activeTransaction } from './transferWriteLock'
+import { appendSupplierFinanceEvent } from './appendSupplierFinanceEvent'
 
 export const approveSupplierSettlementEndpoint: Endpoint = {
   path: '/:id/approve',
@@ -152,7 +153,7 @@ async function approveSupplierSettlement(req: PayloadRequest, settlementID: numb
       req,
     })
     if (existingPayout.docs.length === 0) {
-      await req.payload.create({
+      const payout = await req.payload.create({
         collection: 'supplier-payouts',
         data: {
           supplier: supplierID,
@@ -166,6 +167,24 @@ async function approveSupplierSettlement(req: PayloadRequest, settlementID: numb
         },
         overrideAccess: true,
         req,
+      })
+      await appendSupplierFinanceEvent(req, {
+        eventKey: `prepared:${payout.idempotencyKey}`,
+        eventType: 'payout_prepared',
+        supplier: supplierID,
+        settlement: settlementID,
+        payout: Number(payout.id),
+        provider: 'mercado-pago',
+        amountMinor: settlement.amountMinor,
+        appliedMinor: 0,
+        outstandingAfterMinor: settlement.outstandingMinor,
+        feeMinor: 0,
+        feeResponsibility: 'unknown',
+        currency: 'ARS',
+        nextStatus: 'awaiting_approval',
+        actor: Number(actor.id),
+        occurredAt: new Date().toISOString(),
+        correlationKey: `settlement:${settlementID}`,
       })
     }
     await req.payload.db.commitTransaction(transactionID)

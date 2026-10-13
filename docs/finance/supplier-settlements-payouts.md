@@ -16,6 +16,7 @@ Este flujo registra la deuda con proveedores por consignación y exige una confi
 10. La acción de conciliación consulta la transacción. Solamente `success` con detalle `accredited` cierra el saldo del pago y las obligaciones pendientes.
 11. Un resultado incierto pasa a `reconciliation_required`. No se reenvía automáticamente con otra clave idempotente.
 12. Un pago manual puede cubrir todo el saldo o una parte. La parte pagada se asigna por identificador ascendente entre las obligaciones pendientes y, si queda saldo, se prepara un nuevo pago para que administración decida cómo continuarlo.
+13. Cada preparación, inicio de envío, respuesta de Mercado Pago, consulta de estado y conciliación manual crea un evento financiero anexo e inmutable. La misma clave de evento no se registra dos veces.
 
 La primera integración está limitada deliberadamente a ARS y al modo de prueba de Mercado Pago Payouts. Cada envío automático de Mercado Pago cubre el saldo pendiente completo del pago preparado; los pagos parciales se registran manualmente antes de preparar el siguiente saldo. La asignación de descuentos, impuestos, envío y comisiones que no estén representados en el total de línea, los ajustes por devolución y la consolidación de varios pedidos en una liquidación periódica siguen siendo incrementos posteriores.
 
@@ -55,6 +56,16 @@ Cuando Mercado Pago Payouts no esté disponible, un administrador puede registra
 No se adjuntan comprobantes hasta disponer de almacenamiento privado, autorización y validación de archivos.
 
 La referencia manual posee una restricción única en PostgreSQL además de la validación previa de la aplicación. La migración de pagos parciales reemplaza la unicidad de liquidación por un índice no único para conservar el historial de cada movimiento. Su reversión falla si una liquidación ya tiene más de un pago: antes de revertir se debe exportar la auditoría y resolver esos registros; ninguna reversión revierte transferencias externas.
+
+## Auditoría y exportación contable
+
+**Finanzas > Eventos financieros de proveedores** expone un historial privado y de solo lectura para administración y finanzas. Cada evento conserva proveedor, liquidación, pago, importe enviado y aplicado, saldo posterior, moneda, comisión informada, responsable de la comisión, actor, fecha, estados anterior y nuevo, correlación y una referencia externa segura.
+
+Los eventos se crean dentro de la misma transacción que el cambio financiero. Si no se puede conservar el evento, tampoco se confirma el cambio de estado. La clave única evita duplicar eventos ante reintentos controlados. No se almacenan tokens, credenciales, encabezados, respuestas completas del proveedor ni datos bancarios completos.
+
+Actualmente Mercado Pago no informa comisiones ni importe neto recibido mediante el adaptador de prueba, por lo que se registra comisión cero con responsabilidad `unknown`; esto no significa que la operación productiva sea gratuita. La exportación puede usar estos registros como fuente operativa idempotente, pero no reemplaza el asiento definitivo del libro mayor.
+
+La reversión de la migración elimina el historial de eventos. Antes de revertir en un entorno que ya procesó pagos se debe exportar la tabla y preservar su auditoría fuera del sistema.
 
 ## Límite de producción
 

@@ -11,6 +11,7 @@ import {
   PayoutConfirmationError,
 } from '../lib/supplierFinance/policy'
 import { activeTransaction } from './transferWriteLock'
+import { appendSupplierFinanceEvent } from './appendSupplierFinanceEvent'
 
 type ManualPayoutInput = {
   acknowledged: true
@@ -238,8 +239,29 @@ async function recordManualSupplierPayout(
       overrideAccess: true,
       req,
     })
+    await appendSupplierFinanceEvent(req, {
+      eventKey: `manual:${payoutID}:${input.reference}`,
+      eventType: allocation.outstandingMinor > 0 ? 'partial_payment' : 'manual_reconciled',
+      supplier: supplierID,
+      settlement: settlementID,
+      payout: payoutID,
+      provider: 'manual',
+      amountMinor: input.amountMinor,
+      appliedMinor: input.amountMinor,
+      outstandingAfterMinor: allocation.outstandingMinor,
+      receivedMinor: input.amountMinor,
+      feeMinor: 0,
+      feeResponsibility: 'unknown',
+      currency: 'ARS',
+      previousStatus: payout.status,
+      nextStatus: 'succeeded',
+      actor: Number(actor.id),
+      occurredAt: recordedAt,
+      correlationKey: `payout:${payoutID}`,
+      externalReference: input.reference,
+    })
     if (allocation.outstandingMinor > 0) {
-      await req.payload.create({
+      const nextPayout = await req.payload.create({
         collection: 'supplier-payouts',
         data: {
           supplier: supplierID,
@@ -253,6 +275,24 @@ async function recordManualSupplierPayout(
         },
         overrideAccess: true,
         req,
+      })
+      await appendSupplierFinanceEvent(req, {
+        eventKey: `prepared:${nextPayout.idempotencyKey}`,
+        eventType: 'payout_prepared',
+        supplier: supplierID,
+        settlement: settlementID,
+        payout: Number(nextPayout.id),
+        provider: 'mercado-pago',
+        amountMinor: allocation.outstandingMinor,
+        appliedMinor: 0,
+        outstandingAfterMinor: allocation.outstandingMinor,
+        feeMinor: 0,
+        feeResponsibility: 'unknown',
+        currency: 'ARS',
+        nextStatus: 'awaiting_approval',
+        actor: Number(actor.id),
+        occurredAt: recordedAt,
+        correlationKey: `settlement:${settlementID}`,
       })
     }
     await req.payload.db.commitTransaction(transactionID)
