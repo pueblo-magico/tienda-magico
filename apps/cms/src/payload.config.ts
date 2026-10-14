@@ -35,12 +35,19 @@ import { Tags } from './collections/Tags'
 import { Users } from './collections/Users'
 import { Suppliers } from './collections/Suppliers'
 import { SupplierAgreements } from './collections/SupplierAgreements'
+import { SupplierPaymentProfiles } from './collections/SupplierPaymentProfiles'
+import { SupplierObligations } from './collections/SupplierObligations'
+import { SupplierPayouts } from './collections/SupplierPayouts'
+import { SupplierFinanceEvents } from './collections/SupplierFinanceEvents'
+import { SupplierPayoutPolicyEvents } from './collections/SupplierPayoutPolicyEvents'
+import { SupplierSettlements } from './collections/SupplierSettlements'
 import { Footer } from './globals/Footer'
 import { Header } from './globals/Header'
 import { SEO } from './globals/SEO'
 import { SiteSettings } from './globals/SiteSettings'
 import { CommerceSettings } from './globals/CommerceSettings'
 import { CmsSettings } from './globals/CmsSettings'
+import { SupplierPayoutPolicy } from './globals/SupplierPayoutPolicy'
 import { migrations } from './migrations'
 import { sellableSchema } from './utilities/sellableSchema'
 import { staffCashEndpoints } from './endpoints/staffCash'
@@ -83,6 +90,12 @@ export default buildConfig({
     Users,
     Suppliers,
     SupplierAgreements,
+    SupplierPaymentProfiles,
+    SupplierObligations,
+    SupplierSettlements,
+    SupplierPayouts,
+    SupplierFinanceEvents,
+    SupplierPayoutPolicyEvents,
     Media,
     LocalSales,
     PaymentNotifications,
@@ -96,7 +109,7 @@ export default buildConfig({
     Brands,
     Tags,
   ],
-  globals: [Header, Footer, SiteSettings, CommerceSettings, SEO, CmsSettings],
+  globals: [Header, Footer, SiteSettings, CommerceSettings, SupplierPayoutPolicy, SEO, CmsSettings],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {

@@ -2,6 +2,10 @@ import { default as default_690cbfcb3730fca7c16cc8d9d6eb3ffe } from '@/component
 import { default as default_e3cbc7fd3ba07e0312a509e5f7aa882e } from '@/components/PercentageInputField'
 import { default as default_fc4b1300cc4c5c4243bbecbc261cd673 } from '@/components/MoneyInputField'
 import { default as default_0e31785bd68d5ea350ab8e21affd7b7a } from '@/components/IsoCurrencySelectField'
+import { default as default_6c4b45de0dfdc7f495fd3e66d66f0484 } from '@/components/ApproveSupplierSettlement'
+import { default as default_85ae554a78d08db7b9223f220bafad7e } from '@/components/ConfirmSupplierPayout'
+import { default as default_a45a18542cda7039ad4a21f71f0ad087 } from '@/components/ReconcileSupplierPayout'
+import { default as default_f3c1d254343c094bbbe2c2c91df70696 } from '@/components/RecordManualSupplierPayout'
 import { RscEntryLexicalCell as RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
 import { RscEntryLexicalField as RscEntryLexicalField_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
 import { LexicalDiffComponent as LexicalDiffComponent_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
@@ -48,6 +52,10 @@ export const importMap = {
   "@/components/PercentageInputField#default": default_e3cbc7fd3ba07e0312a509e5f7aa882e,
   "@/components/MoneyInputField#default": default_fc4b1300cc4c5c4243bbecbc261cd673,
   "@/components/IsoCurrencySelectField#default": default_0e31785bd68d5ea350ab8e21affd7b7a,
+  "@/components/ApproveSupplierSettlement#default": default_6c4b45de0dfdc7f495fd3e66d66f0484,
+  "@/components/ConfirmSupplierPayout#default": default_85ae554a78d08db7b9223f220bafad7e,
+  "@/components/ReconcileSupplierPayout#default": default_a45a18542cda7039ad4a21f71f0ad087,
+  "@/components/RecordManualSupplierPayout#default": default_f3c1d254343c094bbbe2c2c91df70696,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalCell": RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalField": RscEntryLexicalField_44fe37237e0ebf4470c9990d8cb7b07e,
   "@payloadcms/richtext-lexical/rsc#LexicalDiffComponent": LexicalDiffComponent_44fe37237e0ebf4470c9990d8cb7b07e,

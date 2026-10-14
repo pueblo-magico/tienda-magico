@@ -12,16 +12,17 @@ Related storefront docs:
 - [Payload content / merchandising](../../docs/commerce/payload-content.md)
 - [CMS homepage developer guide](../../docs/cms/developer.md)
 - [CMS homepage content guide](../../docs/cms/content.md)
+- [Liquidaciones y pagos a proveedores](../../docs/finance/supplier-settlements-payouts.md)
 
 ## Stack
 
-| Piece          | Choice                                           |
-| -------------- | ------------------------------------------------ |
-| CMS            | Payload 3 (Next.js App Router admin)             |
-| Database       | PostgreSQL (`@payloadcms/db-postgres`)           |
-| Ecommerce      | `@payloadcms/plugin-ecommerce`                   |
-| Catalog extras | `categories`, product `slug` / gallery / summary |
-| Payments       | Not wired yet (Stripe can be added later)        |
+| Piece          | Choice                                               |
+| -------------- | ---------------------------------------------------- |
+| CMS            | Payload 3 (Next.js App Router admin)                 |
+| Database       | PostgreSQL (`@payloadcms/db-postgres`)               |
+| Ecommerce      | `@payloadcms/plugin-ecommerce`                       |
+| Catalog extras | `categories`, product `slug` / gallery / summary     |
+| Payments       | Checkout existente + Payouts de prueba a proveedores |
 
 ## Ports
 
@@ -72,42 +73,51 @@ npm run generate:types
 
 ## Environment (`apps/cms/.env`)
 
-| Variable                    | Required    | Notes                                                                  |
-| --------------------------- | ----------- | ---------------------------------------------------------------------- |
-| `DATABASE_URL`              | Yes         | e.g. `postgresql://postgres:postgres@127.0.0.1:5433/tienda_magico_cms` |
-| `PAYLOAD_SECRET`            | Yes         | Long random string                                                     |
-| `NEXT_PUBLIC_SERVER_URL`    | Recommended | Public CMS URL (`http://localhost:4000`)                               |
-| `PAYLOAD_PUBLIC_SERVER_URL` | Optional    | Same as above if used                                                  |
-| `CORS_ORIGINS`              | Recommended | Comma-separated storefront origins (`http://localhost:3000`)           |
+| Variable                           | Required             | Notes                                                                      |
+| ---------------------------------- | -------------------- | -------------------------------------------------------------------------- |
+| `DATABASE_URL`                     | Yes                  | e.g. `postgresql://postgres:postgres@127.0.0.1:5433/tienda_magico_cms`     |
+| `PAYLOAD_SECRET`                   | Yes                  | Long random string                                                         |
+| `NEXT_PUBLIC_SERVER_URL`           | Recommended          | Public CMS URL (`http://localhost:4000`)                                   |
+| `PAYLOAD_PUBLIC_SERVER_URL`        | Optional             | Same as above if used                                                      |
+| `CORS_ORIGINS`                     | Recommended          | Comma-separated storefront origins (`http://localhost:3000`)               |
+| `MERCADOPAGO_PAYOUTS_ACCESS_TOKEN` | Para pagos de prueba | Credencial exclusiva de Mercado Pago Payouts; nunca se expone al navegador |
+| `MERCADOPAGO_PAYOUTS_TEST_MODE`    | Para pagos de prueba | Debe ser `true`; producción permanece bloqueada hasta implementar la firma |
+| `MERCADOPAGO_PAYOUTS_WEBHOOK_URL`  | Optional             | URL HTTPS para notificaciones; no reemplaza la conciliación del estado     |
 
 Never commit `.env`.
 
 ## Collections (high level)
 
-| Slug                                 | Source                      | Purpose                                            |
-| ------------------------------------ | --------------------------- | -------------------------------------------------- |
-| `users`                              | App                         | Admins/customers; API keys enabled                 |
-| `suppliers`                          | App (Task 05)               | Private suppliers and default commercial terms     |
-| `supplier-agreements`                | App (Task 05)               | Private versioned supplier agreement revisions     |
-| `media`                              | App                         | Public-read uploads                                |
-| `pages`                              | App (Phase 6)               | Marketing pages with layout blocks (draft/publish) |
-| `posts`                              | App (Phase 6)               | Journal / editorial posts                          |
-| `testimonials`                       | App (Phase 6)               | Quotes for Testimonials blocks                     |
-| `faqs`                               | App (Phase 6)               | FAQ entries for FAQ blocks                         |
-| `categories`                         | App                         | Storefront “collections” listing                   |
-| `products`                           | Ecommerce plugin + override | Catalog (draft/publish)                            |
-| `variants` / variant types & options | Plugin                      | Product variants                                   |
-| `carts`                              | Plugin                      | Carts + item endpoints (`allowGuestCarts: true`)   |
-| `orders`, `addresses`, …             | Plugin                      | Checkout domain (payments TBD)                     |
+| Slug                                 | Source                      | Purpose                                               |
+| ------------------------------------ | --------------------------- | ----------------------------------------------------- |
+| `users`                              | App                         | Admins/customers; API keys enabled                    |
+| `suppliers`                          | App (Task 05)               | Private suppliers and default commercial terms        |
+| `supplier-agreements`                | App (Task 05)               | Private versioned supplier agreement revisions        |
+| `supplier-obligations`               | App                         | Snapshots inmutables de deuda por línea pagada        |
+| `supplier-payment-profiles`          | App                         | Destinos de pago privados y verificados               |
+| `supplier-settlements`               | App                         | Liquidaciones aprobables de deuda con proveedores     |
+| `supplier-payouts`                   | App                         | Confirmación, envío y conciliación de pagos de prueba |
+| `supplier-payout-policy-events`      | App                         | Auditoría inmutable de habilitaciones y bloqueos      |
+| `media`                              | App                         | Public-read uploads                                   |
+| `pages`                              | App (Phase 6)               | Marketing pages with layout blocks (draft/publish)    |
+| `posts`                              | App (Phase 6)               | Journal / editorial posts                             |
+| `testimonials`                       | App (Phase 6)               | Quotes for Testimonials blocks                        |
+| `faqs`                               | App (Phase 6)               | FAQ entries for FAQ blocks                            |
+| `categories`                         | App                         | Storefront “collections” listing                      |
+| `products`                           | Ecommerce plugin + override | Catalog (draft/publish)                               |
+| `variants` / variant types & options | Plugin                      | Product variants                                      |
+| `carts`                              | Plugin                      | Carts + item endpoints (`allowGuestCarts: true`)      |
+| `orders`, `addresses`, …             | Plugin                      | Checkout domain (payments TBD)                        |
 
-## Globals (Phase 6)
+## Globals
 
-| Slug            | Purpose                                               |
-| --------------- | ----------------------------------------------------- |
-| `header`        | Logo override, nav items, optional CTA                |
-| `footer`        | Tagline, link columns, legal links                    |
-| `site-settings` | Site name, contact, social links                      |
-| `seo`           | Default title template, description, OG image, robots |
+| Slug                     | Purpose                                               |
+| ------------------------ | ----------------------------------------------------- |
+| `header`                 | Logo override, nav items, optional CTA                |
+| `footer`                 | Tagline, link columns, legal links                    |
+| `site-settings`          | Site name, contact, social links                      |
+| `seo`                    | Default title template, description, OG image, robots |
+| `supplier-payout-policy` | Freno de emergencia y permisos de ejecución de pagos  |
 
 ## Layout blocks (Pages)
 

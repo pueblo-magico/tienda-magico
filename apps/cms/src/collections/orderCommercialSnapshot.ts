@@ -8,6 +8,7 @@ import { confirmCashEndpoint } from '../utilities/confirmCash'
 import { cancelCashEndpoint } from '../utilities/cancelCash'
 import { replacePendingCash } from '../utilities/replacePendingCash'
 import { completePaidCart } from '../utilities/completePaidCart'
+import { createSupplierObligationsForPaidOrder } from '../utilities/createSupplierObligationsForPaidOrder'
 import { lockTransferWrite, protectTransferDeletion } from '../utilities/transferWriteLock'
 
 const immutableAfterCreation = { update: () => false }
@@ -126,6 +127,7 @@ export const ordersCollectionOverride = ({
     ],
     afterChange: [
       completePaidCart,
+      createSupplierObligationsForPaidOrder,
       ...(defaultCollection.hooks?.afterChange ?? []),
       async ({ doc, operation, req }) => {
         if (operation !== 'create' || doc.fulfillmentMode !== 'local_collection') return doc
