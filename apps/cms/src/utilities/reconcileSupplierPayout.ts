@@ -3,9 +3,10 @@ import type { Endpoint, PayloadRequest } from 'payload'
 
 import { relationID } from '../collections/sellableItems'
 import {
-  getMercadoPagoPayoutStatus,
   SupplierPayoutProviderError,
-} from '../lib/supplierFinance/mercadoPagoPayouts'
+  type SupplierPayoutProvider,
+} from '../lib/supplierFinance/payoutProvider'
+import { resolveConfiguredSupplierPayoutProvider } from '../lib/supplierFinance/supplierPayoutProviders'
 import { allocateSupplierPayment } from '../lib/supplierFinance/policy'
 import { activeTransaction } from './transferWriteLock'
 import { appendSupplierFinanceEvent } from './appendSupplierFinanceEvent'
@@ -28,7 +29,13 @@ export const reconcileSupplierPayoutEndpoint: Endpoint = {
   },
 }
 
-async function reconcileSupplierPayout(req: PayloadRequest, payoutID: number): Promise<Response> {
+export async function reconcileSupplierPayout(
+  req: PayloadRequest,
+  payoutID: number,
+  resolveProvider: (
+    provider: string,
+  ) => SupplierPayoutProvider = resolveConfiguredSupplierPayoutProvider,
+): Promise<Response> {
   const transactionID = await req.payload.db.beginTransaction().catch(() => null)
   if (!transactionID) return Response.json({ code: 'unavailable' }, { status: 503 })
   req.transactionID = transactionID
@@ -72,19 +79,25 @@ async function reconcileSupplierPayout(req: PayloadRequest, payoutID: number): P
     )
       return rollback(req, transactionID, 'settlement', 409)
 
-    const accessToken = process.env.MERCADOPAGO_PAYOUTS_ACCESS_TOKEN?.trim()
-    if (!accessToken || process.env.MERCADOPAGO_PAYOUTS_TEST_MODE !== 'true')
+    let provider: SupplierPayoutProvider
+    try {
+      provider = resolveProvider(payout.paymentMethod)
+      if (provider.id !== payout.paymentMethod || provider.id !== 'mercado-pago')
+        throw new SupplierPayoutProviderError('configuration')
+    } catch (error) {
+      if (error instanceof SupplierPayoutProviderError)
+        return rollback(req, transactionID, error.code, 503)
+      throw error
+    }
+    if (!provider.capabilities.queryStatus)
       return rollback(req, transactionID, 'configuration', 503)
 
     let result
     try {
-      result = await getMercadoPagoPayoutStatus(
-        {
-          payoutID: payout.providerPayoutId,
-          transactionID: payout.providerTransactionId,
-        },
-        { accessToken, testMode: true },
-      )
+      result = await provider.getStatus({
+        payoutID: payout.providerPayoutId,
+        transactionID: payout.providerTransactionId,
+      })
     } catch (error) {
       const failureCode = error instanceof SupplierPayoutProviderError ? error.code : 'uncertain'
       await req.payload.update({

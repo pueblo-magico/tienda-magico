@@ -19,8 +19,17 @@ Este flujo registra la deuda con proveedores por consignación y exige una confi
 13. Cada preparación, inicio de envío, respuesta de Mercado Pago, consulta de estado y conciliación manual crea un evento financiero anexo e inmutable. La misma clave de evento no se registra dos veces.
 14. Todo envío externo consulta la política persistida inmediatamente antes de llamar al proveedor. Por defecto los envíos están deshabilitados y el freno de emergencia está activo.
 15. Solamente administración puede cambiar la política. Cada cambio efectivo conserva un evento inmutable con valores anteriores, valores nuevos, responsable y fecha.
+16. Las acciones administrativas resuelven el proveedor desde el perfil o pago persistido; la solicitud del navegador no puede elegirlo. El contrato interno normaliza destinatario, envío, consulta de estado, errores y capacidades antes de entrar al adaptador de Mercado Pago.
 
 La primera integración está limitada deliberadamente a ARS y al modo de prueba de Mercado Pago Payouts. Cada envío automático de Mercado Pago cubre el saldo pendiente completo del pago preparado; los pagos parciales se registran manualmente antes de preparar el siguiente saldo. La asignación de descuentos, impuestos, envío y comisiones que no estén representados en el total de línea, los ajustes por devolución y la consolidación de varios pedidos en una liquidación periódica siguen siendo incrementos posteriores.
+
+## Proveedores de pago
+
+- `mercado-pago` implementa envío y consulta de estado, admite una URL HTTPS de notificación y declara que no puede cancelar una transferencia desde esta integración.
+- `manual` representa el registro contable de una transferencia ya realizada. Declara explícitamente que no puede enviar, consultar ni cancelar operaciones externas; se usa mediante **Registrar pago manual**.
+- `fake` es un adaptador determinista e idempotente exclusivo para pruebas automatizadas. El resolvedor usado por la aplicación lo rechaza y nunca puede seleccionarse desde un perfil, un pago o una solicitud HTTP.
+
+Agregar otro proveedor exige implementar el mismo contrato normalizado, declarar sus capacidades, mapear errores sin exponer respuestas ni credenciales y habilitarlo explícitamente en el resolvedor del servidor. No se debe ramificar lógica específica de un proveedor dentro de las acciones administrativas.
 
 ## Configuración local
 

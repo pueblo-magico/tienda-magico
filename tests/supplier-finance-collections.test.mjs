@@ -14,6 +14,7 @@ import {
 } from "../apps/cms/src/utilities/confirmSupplierPayout.ts";
 import { createSupplierObligationsForPaidOrder } from "../apps/cms/src/utilities/createSupplierObligationsForPaidOrder.ts";
 import { manualSupplierPayoutInput } from "../apps/cms/src/utilities/recordManualSupplierPayout.ts";
+import { reconcileSupplierPayout } from "../apps/cms/src/utilities/reconcileSupplierPayout.ts";
 import { appendSupplierFinanceEvent } from "../apps/cms/src/utilities/appendSupplierFinanceEvent.ts";
 import { SupplierPayoutPolicy } from "../apps/cms/src/globals/SupplierPayoutPolicy.ts";
 import {
@@ -485,6 +486,205 @@ test("la confirmación consulta la política persistida y no llega al proveedor 
   assert.deepEqual(await response.json(), { code: "emergency_stop" });
   assert.equal(rolledBack, true);
   assert.equal(committed, false);
+});
+
+test("la confirmación resuelve el proveedor verificado sin aceptar una selección del cliente", async () => {
+  const updates = [];
+  const events = [];
+  const submissions = [];
+  let resolvedProvider;
+  const transaction = { execute: async () => ({ rows: [] }) };
+  const req = {
+    user: { id: 9, roles: ["admin"] },
+    payload: {
+      db: {
+        name: "postgres",
+        sessions: { tx: { db: transaction } },
+        beginTransaction: async () => "tx",
+        commitTransaction: async () => {},
+        rollbackTransaction: async () => assert.fail("No debe revertir"),
+      },
+      findByID: async ({ collection }) => {
+        if (collection === "users") return { id: 9, roles: ["admin"] };
+        if (collection === "supplier-payouts")
+          return {
+            id: 17,
+            status: "awaiting_approval",
+            settlement: 5,
+            paymentProfile: 8,
+            supplier: 3,
+            amountMinor: 50_000,
+            idempotencyKey: "018f47bd-4c30-7d2a-a58e-93784f3123e1",
+          };
+        if (collection === "supplier-settlements")
+          return {
+            id: 5,
+            supplier: 3,
+            status: "approved",
+            currency: "ARS",
+            outstandingMinor: 50_000,
+          };
+        if (collection === "supplier-payment-profiles")
+          return {
+            id: 8,
+            supplier: 3,
+            provider: "mercado-pago",
+            recipientEmail: "proveedor@example.test",
+            status: "verified",
+            currency: "ARS",
+            verifiedAt: "2026-10-14T12:00:00.000Z",
+          };
+        throw new Error(`Colección inesperada: ${collection}`);
+      },
+      findGlobal: async () => ({
+        emergencyStop: false,
+        outboundProviderPaymentsEnabled: true,
+        automaticProviderPaymentsEnabled: false,
+      }),
+      find: async () => ({ docs: [] }),
+      create: async ({ data }) => events.push(data),
+      update: async (operation) => updates.push(operation),
+      logger: { error: () => assert.fail("No debe registrar un error") },
+    },
+  };
+  const provider = {
+    id: "mercado-pago",
+    capabilities: {
+      submit: true,
+      queryStatus: true,
+      notifications: true,
+      cancel: false,
+    },
+    validateRecipient: () => {},
+    submit: async (request) => {
+      submissions.push(request);
+      return {
+        provider: "mercado-pago",
+        payoutID: "POP123",
+        transactionID: "TOP123",
+        status: "submitted",
+        providerStatus: "created",
+      };
+    },
+    getStatus: async () => assert.fail("No debe consultar el estado"),
+  };
+
+  const response = await confirmSupplierPayout(req, 17, (providerID) => {
+    resolvedProvider = providerID;
+    return provider;
+  });
+
+  assert.equal(response.status, 200);
+  assert.equal(resolvedProvider, "mercado-pago");
+  assert.equal(submissions.length, 1);
+  assert.deepEqual(submissions[0].recipient, {
+    kind: "email",
+    value: "proveedor@example.test",
+  });
+  assert.equal(
+    submissions[0].idempotencyKey,
+    "018f47bd-4c30-7d2a-a58e-93784f3123e1",
+  );
+  assert.equal(
+    updates.some(
+      ({ collection, data }) =>
+        collection === "supplier-payouts" &&
+        data.providerTransactionId === "TOP123",
+    ),
+    true,
+  );
+  assert.equal(
+    events.some(({ eventType }) => eventType === "submitted"),
+    true,
+  );
+});
+
+test("la conciliación usa el proveedor persistido y sus referencias externas", async () => {
+  const updates = [];
+  const events = [];
+  let resolvedProvider;
+  let statusInput;
+  const transaction = { execute: async () => ({ rows: [] }) };
+  const req = {
+    user: { id: 9, roles: ["admin"] },
+    payload: {
+      db: {
+        name: "postgres",
+        sessions: { tx: { db: transaction } },
+        beginTransaction: async () => "tx",
+        commitTransaction: async () => {},
+        rollbackTransaction: async () => assert.fail("No debe revertir"),
+      },
+      findByID: async ({ collection }) => {
+        if (collection === "users") return { id: 9, roles: ["admin"] };
+        if (collection === "supplier-payouts")
+          return {
+            id: 17,
+            status: "submitted",
+            settlement: 5,
+            supplier: 3,
+            amountMinor: 50_000,
+            paymentMethod: "mercado-pago",
+            providerPayoutId: "POP123",
+            providerTransactionId: "TOP123",
+          };
+        if (collection === "supplier-settlements")
+          return {
+            id: 5,
+            status: "payment_pending",
+            amountMinor: 50_000,
+            outstandingMinor: 50_000,
+          };
+        throw new Error(`Colección inesperada: ${collection}`);
+      },
+      find: async () => ({ docs: [] }),
+      create: async ({ data }) => events.push(data),
+      update: async (operation) => updates.push(operation),
+      logger: { error: () => assert.fail("No debe registrar un error") },
+    },
+  };
+  const provider = {
+    id: "mercado-pago",
+    capabilities: {
+      submit: true,
+      queryStatus: true,
+      notifications: true,
+      cancel: false,
+    },
+    validateRecipient: () => {},
+    submit: async () => assert.fail("No debe reenviar el pago"),
+    getStatus: async (input) => {
+      statusInput = input;
+      return {
+        status: "processing",
+        providerStatus: "approved",
+        providerStatusDetail: null,
+      };
+    },
+  };
+
+  const response = await reconcileSupplierPayout(req, 17, (providerID) => {
+    resolvedProvider = providerID;
+    return provider;
+  });
+
+  assert.equal(response.status, 200);
+  assert.equal(resolvedProvider, "mercado-pago");
+  assert.deepEqual(statusInput, {
+    payoutID: "POP123",
+    transactionID: "TOP123",
+  });
+  assert.equal(
+    updates.some(
+      ({ collection, data }) =>
+        collection === "supplier-payouts" && data.status === "processing",
+    ),
+    true,
+  );
+  assert.equal(
+    events.some(({ eventType }) => eventType === "provider_status_checked"),
+    true,
+  );
 });
 
 test("la acción de pago queda disponible solo desde un payout persistido", () => {

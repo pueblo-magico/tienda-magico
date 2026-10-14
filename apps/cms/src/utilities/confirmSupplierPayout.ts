@@ -10,8 +10,9 @@ import {
 } from '../lib/supplierFinance/policy'
 import {
   SupplierPayoutProviderError,
-  submitMercadoPagoPayout,
-} from '../lib/supplierFinance/mercadoPagoPayouts'
+  type SupplierPayoutProvider,
+} from '../lib/supplierFinance/payoutProvider'
+import { resolveConfiguredSupplierPayoutProvider } from '../lib/supplierFinance/supplierPayoutProviders'
 import { activeTransaction } from './transferWriteLock'
 import { appendSupplierFinanceEvent } from './appendSupplierFinanceEvent'
 
@@ -54,6 +55,9 @@ export const confirmSupplierPayoutEndpoint: Endpoint = {
 export async function confirmSupplierPayout(
   req: PayloadRequest,
   payoutID: number,
+  resolveProvider: (
+    provider: string,
+  ) => SupplierPayoutProvider = resolveConfiguredSupplierPayoutProvider,
 ): Promise<Response> {
   const transactionID = await req.payload.db.beginTransaction().catch(() => null)
   if (!transactionID) return Response.json({ code: 'unavailable' }, { status: 503 })
@@ -126,8 +130,18 @@ export async function confirmSupplierPayout(
       req,
     })
     assertSupplierPayoutExecutionPolicy(payoutPolicy, 'confirmed')
-    const accessToken = process.env.MERCADOPAGO_PAYOUTS_ACCESS_TOKEN?.trim()
-    if (!accessToken || process.env.MERCADOPAGO_PAYOUTS_TEST_MODE !== 'true')
+    let provider: SupplierPayoutProvider
+    try {
+      provider = resolveProvider(profile.provider)
+      if (provider.id !== profile.provider || provider.id !== 'mercado-pago')
+        throw new SupplierPayoutProviderError('configuration')
+      provider.validateRecipient({ kind: 'email', value: profile.recipientEmail })
+    } catch (error) {
+      if (error instanceof SupplierPayoutProviderError)
+        return await rollbackResponse(req, transactionID, error.code, 503)
+      throw error
+    }
+    if (!provider.capabilities.submit)
       return await rollbackResponse(req, transactionID, 'configuration', 503)
 
     const confirmedAt = new Date().toISOString()
@@ -168,21 +182,14 @@ export async function confirmSupplierPayout(
       correlationKey: `payout:${payoutID}`,
     })
     try {
-      const submission = await submitMercadoPagoPayout(
-        {
-          externalReference: `supplier_payout_${payoutID}`,
-          description: `Pago proveedor ${supplierID}`,
-          recipientEmail: profile.recipientEmail,
-          amountMinor: payout.amountMinor,
-          currency: 'ARS',
-          notificationURL: process.env.MERCADOPAGO_PAYOUTS_WEBHOOK_URL?.trim() || undefined,
-        },
-        {
-          accessToken,
-          idempotencyKey: payout.idempotencyKey,
-          testMode: true,
-        },
-      )
+      const submission = await provider.submit({
+        externalReference: `supplier_payout_${payoutID}`,
+        description: `Pago proveedor ${supplierID}`,
+        recipient: { kind: 'email', value: profile.recipientEmail },
+        amountMinor: payout.amountMinor,
+        currency: 'ARS',
+        idempotencyKey: payout.idempotencyKey,
+      })
       await req.payload.update({
         collection: 'supplier-payouts',
         id: payoutID,
