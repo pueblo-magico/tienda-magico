@@ -5,6 +5,7 @@ import { checkRole } from '../access/utilities'
 import { confirmSupplierPayoutEndpoint } from '../utilities/confirmSupplierPayout'
 import { recordManualSupplierPayoutEndpoint } from '../utilities/recordManualSupplierPayout'
 import { reconcileSupplierPayoutEndpoint } from '../utilities/reconcileSupplierPayout'
+import { receiveSupplierPayoutNotificationEndpoint } from '../utilities/receiveSupplierPayoutNotification'
 
 const immutable = { update: () => false }
 const serverManaged = { create: () => false, update: () => false }
@@ -16,6 +17,7 @@ export const SupplierPayouts: CollectionConfig = {
     confirmSupplierPayoutEndpoint,
     reconcileSupplierPayoutEndpoint,
     recordManualSupplierPayoutEndpoint,
+    receiveSupplierPayoutNotificationEndpoint,
   ],
   labels: {
     singular: { es: 'Pago a proveedor', en: 'Supplier payout' },

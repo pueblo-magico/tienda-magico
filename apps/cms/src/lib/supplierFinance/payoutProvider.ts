@@ -30,6 +30,18 @@ export type SupplierPayoutStatus = {
   status: 'processing' | 'succeeded' | 'failed' | 'reconciliation_required'
   providerStatus: string
   providerStatusDetail: string | null
+  externalReference: string
+  amountMinor: number
+  currency: 'ARS'
+}
+
+export type SupplierPayoutNotification = {
+  payoutID: string
+  transactionID: string
+  externalReference: string
+  providerStatus: string
+  providerStatusDetail: string | null
+  occurredAt: string
 }
 
 export type SupplierPayoutProviderCapabilities = {
@@ -54,4 +66,5 @@ export interface SupplierPayoutProvider {
   validateRecipient(recipient: SupplierPayoutRecipient): void
   submit(request: SupplierPayoutRequest): Promise<SupplierPayoutSubmission>
   getStatus(input: { payoutID: string; transactionID: string }): Promise<SupplierPayoutStatus>
+  parseNotification(input: unknown): SupplierPayoutNotification
 }

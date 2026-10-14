@@ -426,14 +426,44 @@ test("la conciliacion solo acredita success/accredited y conserva estados incier
         fetch: async () =>
           Response.json({
             id: "TOP123",
+            external_reference: "supplier_payout_42",
             status: providerStatus,
             status_detail: detail,
+            amount: { currency: "ARS", value: "125.50" },
           }),
       },
     );
     assert.equal(result.status, expected);
     assert.equal(result.providerStatus, providerStatus);
     assert.equal(result.providerStatusDetail, detail);
+  }
+});
+
+test("la consulta autoritativa rechaza identidad, importe o moneda incompletos", async () => {
+  const valid = {
+    id: "TOP123",
+    external_reference: "supplier_payout_42",
+    status: "approved",
+    status_detail: null,
+    amount: { currency: "ARS", value: "125.50" },
+  };
+  for (const body of [
+    { ...valid, external_reference: null },
+    { ...valid, amount: { currency: "USD", value: "125.50" } },
+    { ...valid, amount: { currency: "ARS", value: "125.555" } },
+    { ...valid, amount: null },
+  ]) {
+    await assert.rejects(
+      getMercadoPagoPayoutStatus(
+        { payoutID: "POP123", transactionID: "TOP123" },
+        {
+          accessToken: "TEST-redacted",
+          testMode: true,
+          fetch: async () => Response.json(body),
+        },
+      ),
+      (error) => error.code === "uncertain",
+    );
   }
 });
 
@@ -456,8 +486,10 @@ test("el proveedor de Mercado Pago normaliza envío, consulta y capacidades", as
       }
       return Response.json({
         id: "TOP123",
+        external_reference: "supplier_payout_42",
         status: "success",
         status_detail: "accredited",
+        amount: { currency: "ARS", value: "125.50" },
       });
     },
   });
@@ -478,8 +510,72 @@ test("el proveedor de Mercado Pago normaliza envío, consulta y capacidades", as
     idempotencyKey: "018f47bd-4c30-7d2a-a58e-93784f3123e1",
   });
   assert.equal(submission.provider, "mercado-pago");
-  assert.equal((await provider.getStatus(submission)).status, "succeeded");
+  assert.deepEqual(await provider.getStatus(submission), {
+    status: "succeeded",
+    providerStatus: "success",
+    providerStatusDetail: "accredited",
+    externalReference: "supplier_payout_42",
+    amountMinor: 12_550,
+    currency: "ARS",
+  });
   assert.equal(requests.length, 2);
+});
+
+test("la notificación de Payouts se normaliza sin confiar en su estado", () => {
+  const provider = createMercadoPagoPayoutProvider({
+    accessToken: "TEST-redacted",
+    testMode: true,
+  });
+  assert.deepEqual(
+    provider.parseNotification({
+      created_date: "2026-01-29T15:20:25.470Z",
+      external_reference: "supplier_payout_42",
+      id: "TOP123",
+      last_updated_date: "2026-01-29T15:21:25.470Z",
+      payout: {
+        external_reference: "supplier_payout_42",
+        id: "POP123",
+        notification_url:
+          "https://cms.example.test/api/supplier-payouts/webhooks/mercado-pago",
+      },
+      status: "success",
+      status_detail: "accredited",
+    }),
+    {
+      payoutID: "POP123",
+      transactionID: "TOP123",
+      externalReference: "supplier_payout_42",
+      providerStatus: "success",
+      providerStatusDetail: "accredited",
+      occurredAt: "2026-01-29T15:21:25.470Z",
+    },
+  );
+});
+
+test("la notificación rechaza referencias contradictorias y datos no válidos", () => {
+  const provider = createMercadoPagoPayoutProvider({
+    accessToken: "TEST-redacted",
+    testMode: true,
+  });
+  const valid = {
+    created_date: "2026-01-29T15:20:25.470Z",
+    external_reference: "supplier_payout_42",
+    id: "TOP123",
+    last_updated_date: "2026-01-29T15:21:25.470Z",
+    payout: { external_reference: "supplier_payout_42", id: "POP123" },
+    status: "approved",
+  };
+  for (const value of [
+    { ...valid, id: "../../TOP123" },
+    { ...valid, last_updated_date: "no-es-fecha" },
+    { ...valid, payout: { ...valid.payout, external_reference: "otro_pago" } },
+    { ...valid, status: "APPROVED" },
+  ]) {
+    assert.throws(
+      () => provider.parseNotification(value),
+      (error) => error.code === "invalid",
+    );
+  }
 });
 
 test("el proveedor manual declara que no puede enviar ni consultar externamente", async () => {

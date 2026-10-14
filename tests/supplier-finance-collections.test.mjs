@@ -15,8 +15,10 @@ import {
 import { createSupplierObligationsForPaidOrder } from "../apps/cms/src/utilities/createSupplierObligationsForPaidOrder.ts";
 import { manualSupplierPayoutInput } from "../apps/cms/src/utilities/recordManualSupplierPayout.ts";
 import { reconcileSupplierPayout } from "../apps/cms/src/utilities/reconcileSupplierPayout.ts";
+import { receiveSupplierPayoutNotification } from "../apps/cms/src/utilities/receiveSupplierPayoutNotification.ts";
 import { appendSupplierFinanceEvent } from "../apps/cms/src/utilities/appendSupplierFinanceEvent.ts";
 import { SupplierPayoutPolicy } from "../apps/cms/src/globals/SupplierPayoutPolicy.ts";
+import { SupplierPayoutProviderError } from "../apps/cms/src/lib/supplierFinance/payoutProvider.ts";
 import {
   appendSupplierPayoutPolicyEvent,
   validateSupplierPayoutPolicy,
@@ -602,6 +604,7 @@ test("la confirmación resuelve el proveedor verificado sin aceptar una selecci�
 test("la conciliación usa el proveedor persistido y sus referencias externas", async () => {
   const updates = [];
   const events = [];
+  let userLookups = 0;
   let resolvedProvider;
   let statusInput;
   const transaction = { execute: async () => ({ rows: [] }) };
@@ -616,7 +619,10 @@ test("la conciliación usa el proveedor persistido y sus referencias externas", 
         rollbackTransaction: async () => assert.fail("No debe revertir"),
       },
       findByID: async ({ collection }) => {
-        if (collection === "users") return { id: 9, roles: ["admin"] };
+        if (collection === "users") {
+          userLookups += 1;
+          return { id: 9, roles: ["admin"] };
+        }
         if (collection === "supplier-payouts")
           return {
             id: 17,
@@ -624,6 +630,7 @@ test("la conciliación usa el proveedor persistido y sus referencias externas", 
             settlement: 5,
             supplier: 3,
             amountMinor: 50_000,
+            currency: "ARS",
             paymentMethod: "mercado-pago",
             providerPayoutId: "POP123",
             providerTransactionId: "TOP123",
@@ -659,8 +666,12 @@ test("la conciliación usa el proveedor persistido y sus referencias externas", 
         status: "processing",
         providerStatus: "approved",
         providerStatusDetail: null,
+        externalReference: "supplier_payout_17",
+        amountMinor: 50_000,
+        currency: "ARS",
       };
     },
+    parseNotification: () => assert.fail("No debe procesar notificaciones"),
   };
 
   const response = await reconcileSupplierPayout(req, 17, (providerID) => {
@@ -685,6 +696,161 @@ test("la conciliación usa el proveedor persistido y sus referencias externas", 
     events.some(({ eventType }) => eventType === "provider_status_checked"),
     true,
   );
+
+  const lookupsBeforeSystemReconciliation = userLookups;
+  const systemResponse = await reconcileSupplierPayout(
+    { ...req, user: undefined },
+    17,
+    () => provider,
+    "system",
+  );
+  assert.equal(systemResponse.status, 200);
+  assert.equal(userLookups, lookupsBeforeSystemReconciliation);
+
+  provider.getStatus = async () => ({
+    status: "succeeded",
+    providerStatus: "success",
+    providerStatusDetail: "accredited",
+    externalReference: "supplier_payout_otra",
+    amountMinor: 50_000,
+    currency: "ARS",
+  });
+  const mismatch = await reconcileSupplierPayout(req, 17, () => provider);
+  assert.equal(mismatch.status, 502);
+  assert.deepEqual(await mismatch.json(), { code: "reconciliation_required" });
+  assert.equal(
+    updates.some(
+      ({ collection, data }) =>
+        collection === "supplier-payouts" &&
+        data.failureCode === "provider_mismatch",
+    ),
+    true,
+  );
+});
+
+test("el webhook usa la notificación solo para localizar y consulta el estado autoritativo", async () => {
+  let reconciledPayoutID;
+  const notification = {
+    created_date: "2026-01-29T15:20:25.470Z",
+    external_reference: "supplier_payout_17",
+    id: "TOP123",
+    last_updated_date: "2026-01-29T15:21:25.470Z",
+    payout: { external_reference: "supplier_payout_17", id: "POP123" },
+    status: "success",
+    status_detail: "accredited",
+  };
+  const provider = {
+    id: "mercado-pago",
+    capabilities: {
+      submit: true,
+      queryStatus: true,
+      notifications: true,
+      cancel: false,
+    },
+    validateRecipient: () => {},
+    submit: async () => assert.fail("No debe enviar"),
+    getStatus: async () => assert.fail("La conciliación controla la consulta"),
+    parseNotification: (value) => {
+      assert.equal(value, notification);
+      return {
+        payoutID: "POP123",
+        transactionID: "TOP123",
+        externalReference: "supplier_payout_17",
+        providerStatus: "success",
+        providerStatusDetail: "accredited",
+        occurredAt: "2026-01-29T15:21:25.470Z",
+      };
+    },
+  };
+  const req = {
+    headers: new Headers({
+      "content-type": "application/json",
+      "content-length": "320",
+    }),
+    json: async () => notification,
+    payload: {
+      find: async ({ collection, where, limit, overrideAccess }) => {
+        assert.equal(collection, "supplier-payouts");
+        assert.equal(limit, 2);
+        assert.equal(overrideAccess, true);
+        assert.deepEqual(where, {
+          and: [
+            { providerPayoutId: { equals: "POP123" } },
+            { providerTransactionId: { equals: "TOP123" } },
+            { paymentMethod: { equals: "mercado-pago" } },
+          ],
+        });
+        return {
+          docs: [
+            {
+              id: 17,
+              providerPayoutId: "POP123",
+              providerTransactionId: "TOP123",
+              paymentMethod: "mercado-pago",
+            },
+          ],
+        };
+      },
+    },
+  };
+
+  const response = await receiveSupplierPayoutNotification(req, {
+    resolveProvider: (providerID) => {
+      assert.equal(providerID, "mercado-pago");
+      return provider;
+    },
+    reconcile: async (_req, payoutID, resolvedProvider) => {
+      reconciledPayoutID = payoutID;
+      assert.equal(resolvedProvider, provider);
+      return Response.json({ reconciled: true, status: "succeeded" });
+    },
+  });
+
+  assert.equal(response.status, 200);
+  assert.equal(reconciledPayoutID, 17);
+  assert.deepEqual(await response.json(), {
+    received: true,
+    reconciled: true,
+    status: "succeeded",
+  });
+});
+
+test("el webhook rechaza cuerpos inválidos y no expone pagos desconocidos", async () => {
+  const provider = {
+    id: "mercado-pago",
+    capabilities: { notifications: true },
+    parseNotification: () => {
+      throw new SupplierPayoutProviderError("invalid");
+    },
+  };
+  const base = {
+    headers: new Headers({ "content-type": "application/json" }),
+    json: async () => ({}),
+    payload: { find: async () => assert.fail("No debe buscar") },
+  };
+  const invalid = await receiveSupplierPayoutNotification(base, {
+    resolveProvider: () => provider,
+    reconcile: async () => assert.fail("No debe conciliar"),
+  });
+  assert.equal(invalid.status, 400);
+
+  provider.parseNotification = () => ({
+    payoutID: "POP123",
+    transactionID: "TOP123",
+    externalReference: "supplier_payout_17",
+    providerStatus: "approved",
+    providerStatusDetail: null,
+    occurredAt: "2026-01-29T15:21:25.470Z",
+  });
+  const unknown = await receiveSupplierPayoutNotification(
+    { ...base, payload: { find: async () => ({ docs: [] }) } },
+    {
+      resolveProvider: () => provider,
+      reconcile: async () => assert.fail("No debe conciliar"),
+    },
+  );
+  assert.equal(unknown.status, 200);
+  assert.deepEqual(await unknown.json(), { received: true, matched: false });
 });
 
 test("la acción de pago queda disponible solo desde un payout persistido", () => {
@@ -706,6 +872,12 @@ test("la acción de pago queda disponible solo desde un payout persistido", () =
   assert.equal(
     SupplierPayouts.endpoints.some(
       (endpoint) => endpoint.path === "/:id/reconcile",
+    ),
+    true,
+  );
+  assert.equal(
+    SupplierPayouts.endpoints.some(
+      (endpoint) => endpoint.path === "/webhooks/mercado-pago",
     ),
     true,
   );

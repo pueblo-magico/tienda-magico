@@ -38,10 +38,25 @@ En `apps/cms/.env`:
 ```dotenv
 MERCADOPAGO_PAYOUTS_ACCESS_TOKEN=TEST-reemplazar-con-token-de-payouts
 MERCADOPAGO_PAYOUTS_TEST_MODE=true
-MERCADOPAGO_PAYOUTS_WEBHOOK_URL=https://cms.example.test/api/webhook
+MERCADOPAGO_PAYOUTS_WEBHOOK_URL=https://cms.example.test/api/supplier-payouts/webhooks/mercado-pago
 ```
 
 La credencial debe pertenecer a Payouts y no debe reutilizarse en el navegador ni en el checkout público. La URL de notificación es opcional y, si se define, debe usar HTTPS.
+
+## Notificaciones de Payouts
+
+Mercado Pago documenta para Payouts una notificación propia con los identificadores del lote y de la transacción, la referencia externa y el estado observado. A diferencia de los Webhooks de cobros, la [documentación oficial de notificaciones de Payouts](https://www.mercadopago.com.ar/developers/en/docs/payouts/notifications) no documenta actualmente una firma `x-signature`. Por eso el CMS no considera auténtico el estado incluido en el callback ni reutiliza el verificador de Checkout.
+
+El endpoint público `POST /api/supplier-payouts/webhooks/mercado-pago` aplica este flujo:
+
+1. Acepta únicamente JSON acotado y valida estrictamente identificadores, referencia, estado y fecha.
+2. Localiza un único pago por proveedor, lote y transacción, sin revelar si una referencia desconocida existe.
+3. Comprueba que la referencia externa corresponda al pago persistido.
+4. Ignora el estado del callback como evidencia contable y consulta la transacción mediante el access token del servidor.
+5. Compara referencia, importe y moneda de la [respuesta autoritativa](https://www.mercadopago.com.ar/developers/en/reference/online-payments/payouts/get-transaction-information/get) antes de cambiar saldos.
+6. Usa el mismo bloqueo transaccional y las mismas claves de evento que la conciliación manual, por lo que las entregas repetidas no duplican la aplicación ni la auditoría.
+
+Si falta configuración o falla la consulta autoritativa, el endpoint responde con error para permitir el reintento de Mercado Pago. Una notificación desconocida se reconoce sin exponer información ni modificar datos. La consulta manual continúa disponible cuando no llega el callback.
 
 ## Operación con Mercado Pago de prueba
 
@@ -91,4 +106,4 @@ La reversión de las migraciones elimina el historial de eventos financieros y d
 
 ## Límite de producción
 
-La configuración rechaza el envío cuando `MERCADOPAGO_PAYOUTS_TEST_MODE` no es `true`. Antes de habilitar producción se debe confirmar la elegibilidad de la cuenta, implementar la firma exigida por Mercado Pago, validar credenciales y callbacks en el entorno de despliegue, y completar pruebas de integración con un entorno autorizado. No se debe quitar este bloqueo para resolver un error de configuración.
+La configuración rechaza el envío cuando `MERCADOPAGO_PAYOUTS_TEST_MODE` no es `true`. Antes de habilitar producción se debe confirmar la elegibilidad de la cuenta, validar con Mercado Pago si la protección de callbacks cambió o existe una firma adicional no publicada, validar credenciales y callbacks en el entorno de despliegue, y completar pruebas de integración con una cuenta autorizada. No se debe quitar este bloqueo para resolver un error de configuración.
