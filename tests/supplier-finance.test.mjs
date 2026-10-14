@@ -13,6 +13,12 @@ import {
   submitMercadoPagoPayout,
 } from "../apps/cms/src/lib/supplierFinance/mercadoPagoPayouts.ts";
 import {
+  createFakePayoutProvider,
+  createManualPayoutProvider,
+  createMercadoPagoPayoutProvider,
+  resolveConfiguredSupplierPayoutProvider,
+} from "../apps/cms/src/lib/supplierFinance/supplierPayoutProviders.ts";
+import {
   deriveSupplierObligation,
   moneyStringToMinor,
 } from "../apps/cms/src/lib/supplierFinance/orderObligations.ts";
@@ -429,6 +435,104 @@ test("la conciliacion solo acredita success/accredited y conserva estados incier
     assert.equal(result.providerStatus, providerStatus);
     assert.equal(result.providerStatusDetail, detail);
   }
+});
+
+test("el proveedor de Mercado Pago normaliza envío, consulta y capacidades", async () => {
+  const requests = [];
+  const provider = createMercadoPagoPayoutProvider({
+    accessToken: "TEST-redacted",
+    testMode: true,
+    fetch: async (url, init) => {
+      requests.push({ url, init });
+      if (init?.method === "POST") {
+        return Response.json(
+          {
+            id: "POP123",
+            status: "created",
+            transactions: [{ id: "TOP123" }],
+          },
+          { status: 202 },
+        );
+      }
+      return Response.json({
+        id: "TOP123",
+        status: "success",
+        status_detail: "accredited",
+      });
+    },
+  });
+
+  assert.equal(provider.id, "mercado-pago");
+  assert.deepEqual(provider.capabilities, {
+    submit: true,
+    queryStatus: true,
+    notifications: true,
+    cancel: false,
+  });
+  const submission = await provider.submit({
+    externalReference: "supplier_payout_42",
+    description: "Pago proveedor 42",
+    recipient: { kind: "email", value: "proveedor@example.test" },
+    amountMinor: 12_550,
+    currency: "ARS",
+    idempotencyKey: "018f47bd-4c30-7d2a-a58e-93784f3123e1",
+  });
+  assert.equal(submission.provider, "mercado-pago");
+  assert.equal((await provider.getStatus(submission)).status, "succeeded");
+  assert.equal(requests.length, 2);
+});
+
+test("el proveedor manual declara que no puede enviar ni consultar externamente", async () => {
+  const provider = createManualPayoutProvider();
+  assert.equal(provider.id, "manual");
+  assert.deepEqual(provider.capabilities, {
+    submit: false,
+    queryStatus: false,
+    notifications: false,
+    cancel: false,
+  });
+  await assert.rejects(
+    provider.submit({
+      externalReference: "supplier_payout_42",
+      description: "Pago proveedor 42",
+      recipient: { kind: "email", value: "proveedor@example.test" },
+      amountMinor: 12_550,
+      currency: "ARS",
+      idempotencyKey: "018f47bd-4c30-7d2a-a58e-93784f3123e1",
+    }),
+    (error) => error.code === "unsupported",
+  );
+});
+
+test("el proveedor falso es determinista e idempotente para pruebas", async () => {
+  const provider = createFakePayoutProvider({ status: "processing" });
+  const request = {
+    externalReference: "supplier_payout_42",
+    description: "Pago proveedor 42",
+    recipient: { kind: "email", value: "proveedor@example.test" },
+    amountMinor: 12_550,
+    currency: "ARS",
+    idempotencyKey: "018f47bd-4c30-7d2a-a58e-93784f3123e1",
+  };
+  const first = await provider.submit(request);
+  const repeated = await provider.submit(request);
+  assert.deepEqual(repeated, first);
+  assert.equal((await provider.getStatus(first)).status, "processing");
+});
+
+test("el registro productivo rechaza proveedores desconocidos o falsos", () => {
+  assert.throws(
+    () =>
+      resolveConfiguredSupplierPayoutProvider("fake", {
+        MERCADOPAGO_PAYOUTS_ACCESS_TOKEN: "TEST-redacted",
+        MERCADOPAGO_PAYOUTS_TEST_MODE: "true",
+      }),
+    (error) => error.code === "configuration",
+  );
+  assert.throws(
+    () => resolveConfiguredSupplierPayoutProvider("unknown", {}),
+    (error) => error.code === "configuration",
+  );
 });
 
 test("el snapshot monetario se convierte a centavos sin punto flotante", () => {

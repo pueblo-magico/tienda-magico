@@ -1,3 +1,7 @@
+import { SupplierPayoutProviderError, type SupplierPayoutStatus } from './payoutProvider'
+
+export { SupplierPayoutProviderError } from './payoutProvider'
+
 export type MercadoPagoPayoutRequest = {
   externalReference: string
   description: string
@@ -7,7 +11,7 @@ export type MercadoPagoPayoutRequest = {
   notificationURL?: string
 }
 
-export type SupplierPayoutSubmission = {
+export type MercadoPagoPayoutSubmission = {
   provider: 'mercado-pago'
   payoutID: string
   transactionID: string
@@ -15,25 +19,10 @@ export type SupplierPayoutSubmission = {
   providerStatus: string
 }
 
-export type SupplierPayoutStatus = {
-  status: 'processing' | 'succeeded' | 'failed' | 'reconciliation_required'
-  providerStatus: string
-  providerStatusDetail: string | null
-}
-
 type MercadoPagoPayoutResponse = {
   id?: unknown
   status?: unknown
   transactions?: Array<{ id?: unknown }> | null
-}
-
-export class SupplierPayoutProviderError extends Error {
-  constructor(
-    readonly code: 'invalid' | 'configuration' | 'provider' | 'uncertain',
-    options?: { cause?: unknown },
-  ) {
-    super(code, options)
-  }
 }
 
 function validatedInput(input: MercadoPagoPayoutRequest): MercadoPagoPayoutRequest {
@@ -85,7 +74,7 @@ export async function submitMercadoPagoPayout(
     testMode: true
     fetch?: typeof fetch
   },
-): Promise<SupplierPayoutSubmission> {
+): Promise<MercadoPagoPayoutSubmission> {
   if (!options.accessToken.trim() || !/^[A-Za-z0-9-]{20,100}$/.test(options.idempotencyKey))
     throw new SupplierPayoutProviderError('configuration')
   const send = options.fetch ?? fetch
