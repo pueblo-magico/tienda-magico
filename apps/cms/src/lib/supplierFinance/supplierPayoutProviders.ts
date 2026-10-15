@@ -1,6 +1,7 @@
 import {
   SupplierPayoutProviderError,
   type SupplierPayoutProvider,
+  type SupplierPayoutNotification,
   type SupplierPayoutRequest,
   type SupplierPayoutStatus,
 } from './payoutProvider'
@@ -21,6 +22,52 @@ type SupplierPayoutEnvironment = {
 }
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const providerIDPattern = /^[A-Za-z0-9_-]{3,100}$/
+const externalReferencePattern = /^[A-Za-z0-9_-]{1,50}$/
+const providerStatusPattern = /^[a-z_]{1,50}$/
+
+function object(value: unknown): Record<string, unknown> {
+  return value !== null && typeof value === 'object' && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {}
+}
+
+function parsePayoutNotification(input: unknown): SupplierPayoutNotification {
+  const value = object(input)
+  const payout = object(value.payout)
+  const transactionID = value.id
+  const payoutID = payout.id
+  const externalReference = value.external_reference
+  const payoutExternalReference = payout.external_reference
+  const providerStatus = value.status
+  const providerStatusDetail = value.status_detail ?? null
+  const updatedAt = value.last_updated_date
+  if (
+    typeof transactionID !== 'string' ||
+    !providerIDPattern.test(transactionID) ||
+    typeof payoutID !== 'string' ||
+    !providerIDPattern.test(payoutID) ||
+    typeof externalReference !== 'string' ||
+    !externalReferencePattern.test(externalReference) ||
+    payoutExternalReference !== externalReference ||
+    typeof providerStatus !== 'string' ||
+    !providerStatusPattern.test(providerStatus) ||
+    (providerStatusDetail !== null &&
+      (typeof providerStatusDetail !== 'string' ||
+        !providerStatusPattern.test(providerStatusDetail))) ||
+    typeof updatedAt !== 'string' ||
+    !Number.isFinite(Date.parse(updatedAt))
+  )
+    throw new SupplierPayoutProviderError('invalid')
+  return {
+    payoutID,
+    transactionID,
+    externalReference,
+    providerStatus,
+    providerStatusDetail,
+    occurredAt: new Date(updatedAt).toISOString(),
+  }
+}
 
 function validateEmailRecipient(recipient: SupplierPayoutRequest['recipient']): void {
   if (recipient.kind !== 'email' || !emailPattern.test(recipient.value))
@@ -61,10 +108,15 @@ export function createMercadoPagoPayoutProvider(
     getStatus(input) {
       return getMercadoPagoPayoutStatus(input, options)
     },
+    parseNotification: parsePayoutNotification,
   }
 }
 
 const unsupportedOperation = async (): Promise<never> => {
+  throw new SupplierPayoutProviderError('unsupported')
+}
+
+const unsupportedNotification = (): never => {
   throw new SupplierPayoutProviderError('unsupported')
 }
 
@@ -80,6 +132,7 @@ export function createManualPayoutProvider(): SupplierPayoutProvider {
     validateRecipient: validateEmailRecipient,
     submit: unsupportedOperation,
     getStatus: unsupportedOperation,
+    parseNotification: unsupportedNotification,
   }
 }
 
@@ -87,6 +140,7 @@ export function createFakePayoutProvider(options?: {
   status?: SupplierPayoutStatus['status']
 }): SupplierPayoutProvider {
   const submissions = new Map<string, Awaited<ReturnType<SupplierPayoutProvider['submit']>>>()
+  const requests = new Map<string, SupplierPayoutRequest>()
   const status = options?.status ?? 'processing'
   return {
     id: 'fake',
@@ -110,21 +164,28 @@ export function createFakePayoutProvider(options?: {
         providerStatus: 'created',
       }
       submissions.set(request.idempotencyKey, submission)
+      requests.set(request.idempotencyKey, request)
       return submission
     },
     async getStatus(input) {
-      const known = [...submissions.values()].some(
-        (submission) =>
+      const known = [...submissions.entries()].find(
+        ([, submission]) =>
           submission.payoutID === input.payoutID &&
           submission.transactionID === input.transactionID,
       )
       if (!known) throw new SupplierPayoutProviderError('provider')
+      const request = requests.get(known[0])
+      if (!request) throw new SupplierPayoutProviderError('provider')
       return {
         status,
         providerStatus: status === 'succeeded' ? 'success' : status,
         providerStatusDetail: status === 'succeeded' ? 'accredited' : null,
+        externalReference: request.externalReference,
+        amountMinor: request.amountMinor,
+        currency: request.currency,
       }
     },
+    parseNotification: parsePayoutNotification,
   }
 }
 

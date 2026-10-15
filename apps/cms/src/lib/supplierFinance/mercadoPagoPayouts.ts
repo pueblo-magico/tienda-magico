@@ -25,6 +25,14 @@ type MercadoPagoPayoutResponse = {
   transactions?: Array<{ id?: unknown }> | null
 }
 
+function moneyValueToMinor(value: unknown): number | null {
+  const raw = typeof value === 'number' ? String(value) : value
+  if (typeof raw !== 'string' || !/^\d{1,10}(?:\.\d{1,2})?$/.test(raw)) return null
+  const [whole, fraction = ''] = raw.split('.')
+  const minor = Number(whole) * 100 + Number(fraction.padEnd(2, '0'))
+  return Number.isSafeInteger(minor) && minor <= 1_000_000_000_000 ? minor : null
+}
+
 function validatedInput(input: MercadoPagoPayoutRequest): MercadoPagoPayoutRequest {
   if (
     !/^[A-Za-z0-9_-]{1,50}$/.test(input.externalReference) ||
@@ -146,14 +154,28 @@ export async function getMercadoPagoPayoutStatus(
   } catch (cause) {
     throw new SupplierPayoutProviderError('uncertain', { cause })
   }
-  let data: { id?: unknown; status?: unknown; status_detail?: unknown }
+  let data: {
+    id?: unknown
+    status?: unknown
+    status_detail?: unknown
+    external_reference?: unknown
+    amount?: { currency?: unknown; value?: unknown } | null
+  }
   try {
     data = (await response.json()) as typeof data
   } catch (cause) {
     throw new SupplierPayoutProviderError(response.ok ? 'uncertain' : 'provider', { cause })
   }
   if (!response.ok) throw new SupplierPayoutProviderError('provider')
-  if (data.id !== input.transactionID || typeof data.status !== 'string')
+  const amountMinor = moneyValueToMinor(data.amount?.value)
+  if (
+    data.id !== input.transactionID ||
+    typeof data.status !== 'string' ||
+    typeof data.external_reference !== 'string' ||
+    !/^[A-Za-z0-9_-]{1,50}$/.test(data.external_reference) ||
+    data.amount?.currency !== 'ARS' ||
+    amountMinor == null
+  )
     throw new SupplierPayoutProviderError('uncertain')
   const providerStatusDetail = typeof data.status_detail === 'string' ? data.status_detail : null
   let status: SupplierPayoutStatus['status'] = 'reconciliation_required'
@@ -164,5 +186,12 @@ export async function getMercadoPagoPayoutStatus(
   )
     status = 'processing'
   else if (['error', 'rejected', 'canceled', 'refunded'].includes(data.status)) status = 'failed'
-  return { status, providerStatus: data.status, providerStatusDetail }
+  return {
+    status,
+    providerStatus: data.status,
+    providerStatusDetail,
+    externalReference: data.external_reference,
+    amountMinor,
+    currency: 'ARS',
+  }
 }

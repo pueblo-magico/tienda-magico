@@ -81,8 +81,8 @@ npm run generate:types
 | `PAYLOAD_PUBLIC_SERVER_URL`        | Optional             | Same as above if used                                                      |
 | `CORS_ORIGINS`                     | Recommended          | Comma-separated storefront origins (`http://localhost:3000`)               |
 | `MERCADOPAGO_PAYOUTS_ACCESS_TOKEN` | Para pagos de prueba | Credencial exclusiva de Mercado Pago Payouts; nunca se expone al navegador |
-| `MERCADOPAGO_PAYOUTS_TEST_MODE`    | Para pagos de prueba | Debe ser `true`; producción permanece bloqueada hasta implementar la firma |
-| `MERCADOPAGO_PAYOUTS_WEBHOOK_URL`  | Optional             | URL HTTPS para notificaciones; no reemplaza la conciliación del estado     |
+| `MERCADOPAGO_PAYOUTS_TEST_MODE`    | Para pagos de prueba | Debe ser `true`; la ejecución productiva permanece bloqueada               |
+| `MERCADOPAGO_PAYOUTS_WEBHOOK_URL`  | Optional             | URL HTTPS del endpoint de pagos; dispara una consulta autoritativa         |
 
 Never commit `.env`.
 

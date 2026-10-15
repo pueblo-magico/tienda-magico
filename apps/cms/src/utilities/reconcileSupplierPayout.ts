@@ -35,6 +35,7 @@ export async function reconcileSupplierPayout(
   resolveProvider: (
     provider: string,
   ) => SupplierPayoutProvider = resolveConfiguredSupplierPayoutProvider,
+  actorMode: 'admin' | 'system' = 'admin',
 ): Promise<Response> {
   const transactionID = await req.payload.db.beginTransaction().catch(() => null)
   if (!transactionID) return Response.json({ code: 'unavailable' }, { status: 503 })
@@ -45,14 +46,19 @@ export async function reconcileSupplierPayout(
     await transaction.execute(
       sql`SELECT pg_advisory_xact_lock(hashtextextended(${`supplier-payout:${payoutID}`}, 0))`,
     )
-    const actor = await req.payload.findByID({
-      collection: 'users',
-      id: req.user!.id,
-      depth: 0,
-      overrideAccess: true,
-      req,
-    })
-    if (!actor.roles?.includes('admin')) return rollback(req, transactionID, 'forbidden', 403)
+    let actorID: number | undefined
+    if (actorMode === 'admin') {
+      if (!req.user) return rollback(req, transactionID, 'forbidden', 403)
+      const actor = await req.payload.findByID({
+        collection: 'users',
+        id: req.user.id,
+        depth: 0,
+        overrideAccess: true,
+        req,
+      })
+      if (!actor.roles?.includes('admin')) return rollback(req, transactionID, 'forbidden', 403)
+      actorID = Number(actor.id)
+    }
 
     const payout = await req.payload.findByID({
       collection: 'supplier-payouts',
@@ -122,7 +128,44 @@ export async function reconcileSupplierPayout(
         currency: 'ARS',
         previousStatus: payout.status,
         nextStatus: 'reconciliation_required',
-        actor: Number(actor.id),
+        actor: actorID,
+        occurredAt: new Date().toISOString(),
+        correlationKey: `payout:${payoutID}`,
+        externalReference: payout.providerTransactionId,
+        reason: failureCode,
+      })
+      await req.payload.db.commitTransaction(transactionID)
+      return Response.json({ code: 'reconciliation_required' }, { status: 502 })
+    }
+    if (
+      result.externalReference !== `supplier_payout_${payoutID}` ||
+      result.amountMinor !== payout.amountMinor ||
+      result.currency !== payout.currency
+    ) {
+      const failureCode = 'provider_mismatch'
+      await req.payload.update({
+        collection: 'supplier-payouts',
+        id: payoutID,
+        data: { status: 'reconciliation_required', failureCode },
+        overrideAccess: true,
+        req,
+      })
+      await appendSupplierFinanceEvent(req, {
+        eventKey: `reconcile-mismatch:${payoutID}:${payout.status}`,
+        eventType: 'reconciliation_required',
+        supplier: supplierID,
+        settlement: settlementID,
+        payout: payoutID,
+        provider: 'mercado-pago',
+        amountMinor: payout.amountMinor,
+        appliedMinor: 0,
+        outstandingAfterMinor: payout.amountMinor,
+        feeMinor: 0,
+        feeResponsibility: 'unknown',
+        currency: 'ARS',
+        previousStatus: payout.status,
+        nextStatus: 'reconciliation_required',
+        actor: actorID,
         occurredAt: new Date().toISOString(),
         correlationKey: `payout:${payoutID}`,
         externalReference: payout.providerTransactionId,
@@ -229,7 +272,7 @@ export async function reconcileSupplierPayout(
       currency: 'ARS',
       previousStatus: payout.status,
       nextStatus: result.status,
-      actor: Number(actor.id),
+      actor: actorID,
       occurredAt: new Date().toISOString(),
       correlationKey: `payout:${payoutID}`,
       externalReference: payout.providerTransactionId,
