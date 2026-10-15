@@ -526,6 +526,57 @@ test("porcentajes e importes usan entradas decimales sin exponer unidades intern
   assert.equal(parseScaledNumberInput("12.3456", 100), undefined);
 });
 
+test("el alta de proveedores explica los datos y corrige porcentajes ambiguos", () => {
+  for (const name of [
+    "name",
+    "reference",
+    "country",
+    "contactName",
+    "contactEmail",
+    "contactPhone",
+    "defaultTerms",
+    "agreements",
+    "notes",
+  ]) {
+    assert.ok(
+      namedField(Suppliers.fields, name).admin?.description?.es,
+      `Falta ayuda en español para ${name}`,
+    );
+  }
+
+  const defaultTerms = namedField(Suppliers.fields, "defaultTerms");
+  const mode = namedField(defaultTerms.fields, "mode");
+  const method = namedField(defaultTerms.fields, "method");
+  const share = namedField(defaultTerms.fields, "shareBps");
+
+  assert.equal(
+    mode.label.es,
+    "¿Cómo trabajamos habitualmente con este proveedor?",
+  );
+  assert.equal(
+    method.label.es,
+    "¿Cómo calculamos la participación del proveedor?",
+  );
+  assert.equal(share.label.es, "Participación del proveedor (%)");
+  assert.match(share.admin.description.es, /35.*35,00 %/);
+  const percentageTerms = {
+    siblingData: { mode: "consignment", method: "percentage" },
+  };
+  assert.equal(
+    share.validate(null, percentageTerms),
+    "Indicá qué porcentaje de la venta recibe el proveedor.",
+  );
+  assert.equal(share.validate(3500, percentageTerms), true);
+  assert.match(
+    share.validate(350000, percentageTerms),
+    /puntos básicos.*35.*35,00 %/i,
+  );
+  assert.equal(
+    share.validate(null, { siblingData: { mode: "purchase" } }),
+    true,
+  );
+});
+
 test("todos los países editables y las monedas de compras usan selectores ISO", () => {
   const supplierCountry = namedField(Suppliers.fields, "country");
   assert.equal(

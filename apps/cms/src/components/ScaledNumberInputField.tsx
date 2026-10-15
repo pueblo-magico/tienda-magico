@@ -1,8 +1,8 @@
 'use client'
 
 import { FieldError, TextInput, useField } from '@payloadcms/ui'
-import { useState, type ChangeEvent, type ComponentProps } from 'react'
-import type { NumberFieldClientComponent } from 'payload'
+import { useCallback, useState, type ChangeEvent, type ComponentProps } from 'react'
+import type { NumberFieldClientComponent, Validate } from 'payload'
 
 import { formatScaledNumberInput, parseScaledNumberInput } from '../utilities/scaledNumberInput'
 
@@ -11,20 +11,45 @@ type Props = ComponentProps<NumberFieldClientComponent> & {
   suffix?: string
 }
 
-export function ScaledNumberInputField({ field, path, readOnly, scale, suffix }: Props) {
+export function ScaledNumberInputField({
+  field,
+  path: pathFromProps,
+  readOnly,
+  scale,
+  suffix,
+  validate,
+}: Props) {
+  const { max = Infinity, min = -Infinity, required } = field
+  const memoizedValidate: Validate = useCallback(
+    (value, options) => {
+      if (!validate) return true
+      const validationOptions = {
+        ...options,
+        ...field,
+        max,
+        min,
+        required,
+      } as Parameters<NonNullable<typeof validate>>[1]
+      return validate(value, validationOptions)
+    },
+    [field, max, min, required, validate],
+  )
   const {
     customComponents: { Description } = {},
     disabled,
     errorMessage,
+    path,
     setValue,
     showError,
-    value,
-  } = useField<number | null>({ path })
+    value: fieldValue,
+  } = useField({
+    potentiallyStalePath: pathFromProps,
+    validate: memoizedValidate,
+  })
+  const value = typeof fieldValue === 'number' ? fieldValue : null
   const [isEditing, setIsEditing] = useState(false)
   const [editingValue, setEditingValue] = useState('')
-  const displayValue = isEditing
-    ? editingValue
-    : formatScaledNumberInput(value, { scale, suffix })
+  const displayValue = isEditing ? editingValue : formatScaledNumberInput(value, { scale, suffix })
 
   return (
     <div

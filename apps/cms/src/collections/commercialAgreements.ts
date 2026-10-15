@@ -1,5 +1,10 @@
 import { ValidationError } from 'payload'
-import type { CollectionBeforeValidateHook, Field, FieldHook } from 'payload'
+import type {
+  CollectionBeforeValidateHook,
+  Field,
+  FieldHook,
+  NumberFieldSingleValidation,
+} from 'payload'
 
 import { purchasingFinanceFieldAccess } from '../access/purchasingFinanceAccess'
 
@@ -390,13 +395,41 @@ export const validatePurchasingData: CollectionBeforeValidateHook = ({ data, ori
   return data
 }
 
-export function commercialTermsFields({ allowInherit }: { allowInherit: boolean }): Field[] {
+export const validatePercentageShare: NumberFieldSingleValidation = (value, { siblingData }) => {
+  const terms =
+    siblingData && typeof siblingData === 'object'
+      ? (siblingData as { method?: unknown; mode?: unknown })
+      : null
+  if (terms?.mode !== 'consignment' || terms.method !== 'percentage') return true
+  if (value == null) return 'Indicá qué porcentaje de la venta recibe el proveedor.'
+  if (typeof value !== 'number' || !Number.isSafeInteger(value))
+    return 'Ingresá un porcentaje válido con hasta dos decimales.'
+  if (value >= 100_000)
+    return 'El valor parece estar expresado en puntos básicos. Escribí 35 para representar 35,00 %.'
+  if (value < 1 || value > 10_000)
+    return 'Ingresá un porcentaje entre 0,01 % y 100 %. Por ejemplo, 35 para 35,00 %.'
+  return true
+}
+
+export function commercialTermsFields({
+  allowInherit,
+  supplierModeLabel = false,
+}: {
+  allowInherit: boolean
+  supplierModeLabel?: boolean
+}): Field[] {
   return [
     {
       name: 'mode',
       type: 'select',
       required: true,
       defaultValue: allowInherit ? 'inherit' : 'purchase',
+      label: supplierModeLabel
+        ? {
+            es: '¿Cómo trabajamos habitualmente con este proveedor?',
+            en: 'How do we usually work with this supplier?',
+          }
+        : { es: 'Modalidad comercial', en: 'Commercial model' },
       options: [
         ...(allowInherit
           ? [
@@ -409,27 +442,47 @@ export function commercialTermsFields({ allowInherit }: { allowInherit: boolean 
         { label: { es: 'Compra', en: 'Purchase' }, value: 'purchase' },
         { label: { es: 'Consignación', en: 'Consignment' }, value: 'consignment' },
       ],
+      admin: {
+        description: {
+          es: 'Compra: Pueblo Mágico adquiere la mercadería. Consignación: el proveedor conserva la propiedad hasta la venta y recibe la parte acordada.',
+          en: 'Purchase: Pueblo Mágico buys the goods. Consignment: the supplier retains ownership until sale and receives the agreed share.',
+        },
+      },
     },
     {
       name: 'method',
       type: 'select',
+      label: {
+        es: '¿Cómo calculamos la participación del proveedor?',
+        en: 'How is the supplier share calculated?',
+      },
       options: [
         { label: { es: 'Porcentaje de la venta', en: 'Percentage of sale' }, value: 'percentage' },
         { label: { es: 'Importe fijo por unidad', en: 'Fixed amount per unit' }, value: 'fixed' },
       ],
-      admin: { condition: (_, siblingData) => siblingData?.mode === 'consignment' },
+      admin: {
+        condition: (_, siblingData) => siblingData?.mode === 'consignment',
+        description: {
+          es: 'Elegí si la parte del proveedor se calcula como porcentaje de la venta o como importe fijo por unidad vendida.',
+          en: 'Choose whether the supplier share is calculated as a sale percentage or a fixed amount per unit sold.',
+        },
+      },
     },
     {
       name: 'shareBps',
       type: 'number',
       min: 1,
       max: 10_000,
-      label: { es: 'Porcentaje del proveedor', en: 'Supplier percentage' },
+      validate: validatePercentageShare,
+      label: { es: 'Participación del proveedor (%)', en: 'Supplier share (%)' },
       admin: {
         condition: (_, siblingData) =>
           siblingData?.mode === 'consignment' && siblingData?.method === 'percentage',
         components: { Field: '@/components/PercentageInputField' },
-        description: { es: 'Ingresá 35 para 35,00 %.', en: 'Enter 35 for 35.00%.' },
+        description: {
+          es: 'Ingresá la participación que recibe el proveedor: escribí 35 para indicar 35,00 %. No ingreses puntos básicos.',
+          en: 'Enter the share received by the supplier: type 35 for 35.00%. Do not enter basis points.',
+        },
       },
     },
     {
@@ -557,10 +610,34 @@ export function commercialTermsFields({ allowInherit }: { allowInherit: boolean 
         condition: (_, siblingData) =>
           siblingData?.mode === 'consignment' && siblingData?.method === 'fixed',
         components: { Field: '@/components/IsoCurrencySelectField' },
+        description: {
+          es: 'Moneda en la que se paga el importe fijo al proveedor.',
+          en: 'Currency used to pay the fixed amount to the supplier.',
+        },
       },
     },
-    { name: 'effectiveFrom', type: 'date', label: { es: 'Vigente desde', en: 'Effective from' } },
-    { name: 'effectiveTo', type: 'date', label: { es: 'Vigente hasta', en: 'Effective to' } },
+    {
+      name: 'effectiveFrom',
+      type: 'date',
+      label: { es: 'Vigente desde', en: 'Effective from' },
+      admin: {
+        description: {
+          es: 'Fecha desde la que se aplican estas condiciones. Dejala vacía si ya están vigentes sin una fecha de inicio formal.',
+          en: 'Date from which these terms apply. Leave empty if they are already active without a formal start date.',
+        },
+      },
+    },
+    {
+      name: 'effectiveTo',
+      type: 'date',
+      label: { es: 'Vigente hasta', en: 'Effective to' },
+      admin: {
+        description: {
+          es: 'Última fecha de vigencia. Dejala vacía si las condiciones no tienen vencimiento definido.',
+          en: 'End date for these terms. Leave empty if the terms have no defined expiry.',
+        },
+      },
+    },
   ]
 }
 
