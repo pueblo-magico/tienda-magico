@@ -1,7 +1,6 @@
 import Image from "next/image";
-import { Container } from "@/components/layout/Container";
-import { Section } from "@/components/layout/Section";
-import { Eyebrow, SectionTitle } from "@/components/typography";
+import { Container, Section } from "@pueblo-magico/react-ui";
+import { Eyebrow, SectionTitle } from "@pueblo-magico/react-ui";
 import type { InfoSectionBlockData } from "@/lib/cms";
 import { mediaAlt, resolveMediaUrl } from "@/lib/cms";
 import { cn } from "@/lib/utils/cn";
@@ -42,7 +41,10 @@ export function InfoSectionBlockView({
         <div className={cn("space-y-4", centered && "mx-auto")}>
           {block.eyebrow ? <Eyebrow>{block.eyebrow}</Eyebrow> : null}
           <SectionTitle>{block.title}</SectionTitle>
-          <RichText value={block.body} className={centered ? "mx-auto" : undefined} />
+          <RichText
+            value={block.body}
+            className={centered ? "mx-auto" : undefined}
+          />
           <CmsLinkButton link={block.link} locale={locale} />
         </div>
 

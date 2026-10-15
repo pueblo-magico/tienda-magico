@@ -1,0 +1,163 @@
+name: Verificación continua
+
+on:
+  pull_request:
+    branches: [develop, staging, production]
+  push:
+    branches: [develop]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: read
+
+env:
+  NODE_AUTH_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Calidad y tipos
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Descargar código
+        uses: actions/checkout@v4
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.18.0
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            apps/cms/package-lock.json
+      - name: Instalar dependencias del storefront
+        run: npm ci
+      - name: Instalar dependencias del CMS
+        run: npm --prefix apps/cms ci
+      - name: Revisar storefront
+        run: npm run lint
+      - name: Revisar CMS
+        run: npm run lint:cms
+      - name: Validar tipos del storefront
+        run: npm run typecheck
+      - name: Validar tipos del CMS
+        run: npm run typecheck:cms
+
+  tests:
+    name: Pruebas automatizadas
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Descargar código
+        uses: actions/checkout@v4
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.18.0
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            apps/cms/package-lock.json
+      - name: Instalar dependencias del storefront
+        run: npm ci
+      - name: Instalar dependencias del CMS
+        run: npm --prefix apps/cms ci
+      - name: Ejecutar pruebas unitarias y de despliegue
+        run: npm run test:ci
+
+  database:
+    name: Integración con PostgreSQL
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: tienda_magico_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d tienda_magico_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      TIENDA_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/tienda_magico_test
+      PAYLOAD_SECRET: ci-supplier-agreements-secret-not-for-production
+    steps:
+      - name: Descargar código
+        uses: actions/checkout@v4
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.18.0
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            apps/cms/package-lock.json
+      - name: Instalar dependencias del storefront
+        run: npm ci
+      - name: Instalar dependencias del CMS
+        run: npm --prefix apps/cms ci
+      - name: Probar acuerdos contra PostgreSQL
+        run: npm run test:task-05:db
+
+  build:
+    name: Compilación de producción
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: tienda_magico_build
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d tienda_magico_build"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      COMMERCE_PROVIDER: payload
+      PAYLOAD_ECOMMERCE_URL: http://127.0.0.1:4000
+      NEXT_PUBLIC_SITE_URL: http://127.0.0.1:3000
+      NEXT_PUBLIC_SERVER_URL: http://127.0.0.1:4000
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/tienda_magico_build
+      PAYLOAD_SECRET: ci-build-secret-not-for-production
+    steps:
+      - name: Descargar código
+        uses: actions/checkout@v4
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.18.0
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            apps/cms/package-lock.json
+      - name: Instalar dependencias del storefront
+        run: npm ci
+      - name: Instalar dependencias del CMS
+        run: npm --prefix apps/cms ci
+      - name: Compilar storefront
+        shell: bash
+        run: |
+          set -o pipefail
+          build_log="$(mktemp)"
+          if npm run build 2>&1 | tee "$build_log"; then
+            exit 0
+          fi
+          if ! grep -Fq "@vercel/turbopack-next/internal/font/google/font" "$build_log"; then
+            exit 1
+          fi
+          echo "Reintentando una vez por el fallo intermitente de next/font/google en Turbopack."
+          npm run build
+      - name: Compilar CMS
+        run: npm run build:cms

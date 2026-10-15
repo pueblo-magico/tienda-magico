@@ -1,9 +1,14 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { Badge } from "@/components/ui/Badge";
+import {
+  Badge,
+  MediaCard,
+  MediaCardContent,
+  MediaCardMedia,
+  Rating,
+} from "@pueblo-magico/react-ui";
 import { MediaPlaceholder } from "@/components/media/MediaPlaceholder";
-import { Rating } from "@/components/ui/Rating";
 import { cn } from "@/lib/utils/cn";
 
 export type ProductCardProps = {
@@ -38,34 +43,34 @@ export function ProductCard({
   className,
 }: ProductCardProps) {
   return (
-    <article
+    <MediaCard
       className={cn(
-        "hover:bg-card-hover group border-border bg-card flex h-full flex-col overflow-hidden rounded-2xl border transition-colors hover:shadow-md transition-shadow duration-500",
+        "group h-full transition-shadow duration-500 hover:shadow-md",
         className,
       )}
     >
       <Link href={href} className="block">
-        <div className="bg-card-hover relative aspect-square overflow-hidden">
+        <MediaCardMedia
+          aspect="square"
+          motion="zoom"
+          overlay={badge ? <Badge variant="accent">{badge}</Badge> : undefined}
+          overlayPlacement="top-start"
+        >
           {imageSrc ? (
             <Image
               src={imageSrc}
               alt={imageAlt || title}
               fill
-              className="object-cover object-top transition-transform duration-500 group-hover:scale-105"
+              className="object-cover object-top"
               sizes="(max-width: 768px) 50vw, 25vw"
               loading={imageLoading}
             />
           ) : (
             <MediaPlaceholder label={noMediaLabel} />
           )}
-          {badge ? (
-            <Badge className="absolute top-3 left-3" variant="forest">
-              {badge}
-            </Badge>
-          ) : null}
-        </div>
+        </MediaCardMedia>
       </Link>
-      <div className="flex flex-1 flex-col space-y-1 p-2">
+      <MediaCardContent className="flex flex-1 flex-col space-y-1 p-2">
         <Link href={href} className="block">
           <h3 className="text-text-primary font-serif text-sm">{title}</h3>
         </Link>
@@ -76,13 +81,13 @@ export function ProductCard({
               <Rating
                 value={rating}
                 label={ratingLabel}
-                reviewCount={reviewCount}
+                reviewCount={reviewCount ? `(${reviewCount})` : undefined}
               />
             ) : null}
           </div>
           <span className="self-end">{action}</span>
         </div>
-      </div>
-    </article>
+      </MediaCardContent>
+    </MediaCard>
   );
 }

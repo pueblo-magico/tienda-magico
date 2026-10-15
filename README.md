@@ -11,6 +11,12 @@ Multilingual headless ecommerce storefront for Pueblo Mágico.
 
 ## Getting started
 
+El storefront consume `@pueblo-magico/react-ui` desde GitHub Packages. Antes de
+instalar las dependencias, exportá `NODE_AUTH_TOKEN` con un token clásico de
+GitHub que tenga el permiso `read:packages`. Los entornos de despliegue exponen
+el secreto del repositorio `GH_PACKAGES_TOKEN` al build del contenedor como
+`NODE_AUTH_TOKEN`; BuildKit lo monta como secreto y no lo guarda en la imagen.
+
 ```bash
 npm install
 cp .env.example .env.local

@@ -11,8 +11,8 @@ import {
   Truck,
   UserRound,
 } from "lucide-react";
-import { Accordion } from "@/components/ui/Accordion";
-import { Select } from "@/components/ui/Select";
+import { Accordion } from "@pueblo-magico/react-ui";
+import { Input, Select } from "@pueblo-magico/react-ui";
 import {
   IDENTIFICATION_TYPES,
   normalizeTransferIdentification,
@@ -25,8 +25,7 @@ import {
   type FulfillmentMode,
 } from "@/lib/commerce/local-purchase";
 import { formatMoney } from "@/lib/commerce/utils/format";
-import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
+import { Button } from "@pueblo-magico/react-ui";
 import { cn } from "@/lib/utils/cn";
 import {
   isBankTransferAvailable,
@@ -133,13 +132,16 @@ export function CartSummary({
       </div>
       <p className="text-text-primary px-2 pb-2 text-sm">{labels.taxesNote}</p>
       <Accordion
-        variant="card"
-        defaultOpenItems={["buyer"]}
+        defaultExpandedItems={["buyer"]}
         items={[
           {
             id: "buyer",
-            title: labels.buyerLegend,
-            icon: <UserRound strokeWidth={1.5} className="size-6" />,
+            header: (
+              <>
+                <UserRound aria-hidden strokeWidth={1.5} className="size-6" />
+                <span>{labels.buyerLegend}</span>
+              </>
+            ),
             content: (
               <>
                 <fieldset className="space-y-3">
@@ -150,8 +152,8 @@ export function CartSummary({
                     placeholder={t("buyerNamePlaceholder")}
                     label={labels.buyerName}
                     value={buyerName}
-                    onChange={(event) => onBuyerNameChange(event.target.value)}
-                    required
+                    onChange={onBuyerNameChange}
+                    isRequired
                   />
                   <Input
                     name={`${paymentGroupName}-buyer-email`}
@@ -160,8 +162,8 @@ export function CartSummary({
                     placeholder={t("buyerEmailPlaceholder")}
                     label={labels.buyerEmail}
                     value={buyerEmail}
-                    onChange={(event) => onBuyerEmailChange(event.target.value)}
-                    required
+                    onChange={onBuyerEmailChange}
+                    isRequired
                   />
                 </fieldset>
                 {!hasBuyerDetails ? (
@@ -175,13 +177,16 @@ export function CartSummary({
         ]}
       />
       <Accordion
-        variant="card"
-        defaultOpenItems={["fulfillment"]}
+        defaultExpandedItems={["fulfillment"]}
         items={[
           {
             id: "fulfillment",
-            title: labels.fulfillmentLegend,
-            icon: <Truck strokeWidth={1.5} className="size-6" />,
+            header: (
+              <>
+                <Truck aria-hidden strokeWidth={1.5} className="size-6" />
+                <span>{labels.fulfillmentLegend}</span>
+              </>
+            ),
             content: (
               <>
                 <fieldset className="space-y-3">
@@ -244,13 +249,16 @@ export function CartSummary({
         ]}
       />
       <Accordion
-        variant="card"
-        defaultOpenItems={["payment"]}
+        defaultExpandedItems={["payment"]}
         items={[
           {
             id: "payment",
-            title: labels.paymentLegend,
-            icon: <CreditCard strokeWidth={1.5} className="size-6" />,
+            header: (
+              <>
+                <CreditCard aria-hidden strokeWidth={1.5} className="size-6" />
+                <span>{labels.paymentLegend}</span>
+              </>
+            ),
             content: (
               <fieldset className="space-y-3">
                 <legend className="sr-only">{labels.paymentLegend}</legend>
@@ -323,13 +331,16 @@ export function CartSummary({
       />
       {paymentMethod === BANK_TRANSFER ? (
         <Accordion
-          variant="card"
-          defaultOpenItems={["identification"]}
+          defaultExpandedItems={["identification"]}
           items={[
             {
               id: "identification",
-              title: t("transferDetails"),
-              icon: <FileText strokeWidth={1.5} className="size-6" />,
+              header: (
+                <>
+                  <FileText aria-hidden strokeWidth={1.5} className="size-6" />
+                  <span>{t("transferDetails")}</span>
+                </>
+              ),
               content: (
                 <fieldset className="space-y-3" disabled={disabled}>
                   <legend className="sr-only">
@@ -338,36 +349,38 @@ export function CartSummary({
                   <Select
                     name={`${paymentGroupName}-identification-type`}
                     label={t("identificationType")}
+                    placeholder={t("identificationType")}
                     value={identification.type}
                     options={IDENTIFICATION_TYPES.map((type) => ({
                       value: type,
                       label: type,
                     }))}
-                    onChange={(event) =>
+                    onChange={(value) => {
+                      if (!value) return;
                       onIdentificationChange({
                         ...identification,
-                        type: event.target.value,
-                      })
-                    }
+                        type: value as TransferIdentification["type"],
+                      });
+                    }}
                     aria-describedby={identificationHintId}
-                    required
+                    isRequired
                   />
                   <Input
                     name={`${paymentGroupName}-identification-number`}
                     label={t("identificationNumber")}
                     placeholder={t("identificationPlaceholder")}
                     value={identification.number}
-                    onChange={(event) =>
+                    onChange={(value) =>
                       onIdentificationChange({
                         ...identification,
-                        number: event.target.value,
+                        number: value,
                       })
                     }
                     inputMode="numeric"
                     autoComplete="off"
                     maxLength={32}
                     aria-describedby={identificationHintId}
-                    required
+                    isRequired
                   />
                   <p
                     id={identificationHintId}
@@ -389,10 +402,9 @@ export function CartSummary({
       <Button
         type="button"
         className="w-full gap-3"
-        textCase="sentence"
         size="lg"
-        aria-busy={disabled}
-        disabled={
+        isLoading={disabled}
+        isDisabled={
           disabled ||
           cart.totalQuantity === 0 ||
           !hasEnabledFulfillmentMode ||

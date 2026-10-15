@@ -1,9 +1,9 @@
 import { ProductCard } from "@/components/cards/ProductCard";
 import { localizePath } from "@/config/navigation";
-import { Container } from "@/components/layout/Container";
-import { Section } from "@/components/layout/Section";
-import { Button } from "@/components/ui/Button";
-import { Eyebrow, SectionTitle } from "@/components/typography";
+import { Container } from "@pueblo-magico/react-ui";
+import { Section } from "@pueblo-magico/react-ui";
+import { ButtonLink } from "@/components/ui/ButtonLink";
+import { Eyebrow, SectionTitle } from "@pueblo-magico/react-ui";
 import { formatMoney } from "@/lib/commerce/utils/format";
 import type { ProductSummary } from "@/types/commerce";
 import { useTranslations } from "next-intl";
@@ -34,9 +34,9 @@ export function RelatedProducts({
             <Eyebrow>{eyebrow}</Eyebrow>
             <SectionTitle>{title}</SectionTitle>
           </div>
-          <Button href={localizePath(locale, "/shop")} variant="link">
+          <ButtonLink href={localizePath(locale, "/shop")} variant="link">
             View all →
-          </Button>
+          </ButtonLink>
         </div>
         <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {products.map((product) => (

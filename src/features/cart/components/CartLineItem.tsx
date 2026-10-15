@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@pueblo-magico/react-ui";
 import { localizePath } from "@/config/navigation";
 import type { CartLine } from "@/types/commerce";
 import { formatMoney } from "@/lib/commerce/utils/format";
@@ -100,7 +100,7 @@ export function CartLineItem({
         {line.issue === "priceChanged" ? (
           <Button
             variant="secondary"
-            disabled={disabled}
+            isDisabled={disabled}
             onClick={() => void confirmPrices()}
           >
             {t("confirmPrice")}

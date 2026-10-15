@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
-import { Select } from "@/components/ui/Select";
+import { Select } from "@pueblo-magico/react-ui";
 import type { ShopSortValue } from "./constants";
 import { buildShopHref, type ShopQuery } from "./search-params";
 
@@ -38,14 +38,15 @@ export function ShopToolbar({ locale, query, labels }: Props) {
       <Select
         name="sort"
         label={labels.sort}
-        layout="inline"
-        controlSize="compact"
+        placeholder={labels.sort}
+        buttonClassName="h-9 rounded-md px-3 text-xs"
         value={query.sort}
         options={sortOptions}
-        disabled={pending}
+        isDisabled={pending}
         className="w-52"
-        onChange={(event) => {
-          const sort = event.target.value as ShopSortValue;
+        onChange={(value) => {
+          if (!value) return;
+          const sort = value as ShopSortValue;
           startTransition(() => {
             router.replace(
               buildShopHref(

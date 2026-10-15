@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
-import { Container } from "@/components/layout/Container";
-import { Section } from "@/components/layout/Section";
-import { Body, Eyebrow, SectionTitle } from "@/components/typography";
+import { Button } from "@pueblo-magico/react-ui";
+import { Input } from "@pueblo-magico/react-ui";
+import { Container } from "@pueblo-magico/react-ui";
+import { Section } from "@pueblo-magico/react-ui";
+import { Body, Eyebrow, SectionTitle } from "@pueblo-magico/react-ui";
 import type { NewsletterBlockData } from "@/lib/cms";
 
 export function NewsletterBlockView({ block }: { block: NewsletterBlockData }) {
@@ -15,14 +15,14 @@ export function NewsletterBlockView({ block }: { block: NewsletterBlockData }) {
   return (
     <Section spacing="md">
       <Container>
-        <div className="rounded-3xl border border-border bg-card px-6 py-10 sm:px-10">
+        <div className="border-border bg-card rounded-3xl border px-6 py-10 sm:px-10">
           <div className="mx-auto flex max-w-xl flex-col gap-4">
             {block.eyebrow ? <Eyebrow>{block.eyebrow}</Eyebrow> : null}
             <SectionTitle>{block.title}</SectionTitle>
             {block.description ? <Body>{block.description}</Body> : null}
 
             {submitted ? (
-              <p className="text-sm text-forest">
+              <p className="text-forest text-sm">
                 {block.successMessage || "Thanks for subscribing."}
               </p>
             ) : (
@@ -37,12 +37,12 @@ export function NewsletterBlockView({ block }: { block: NewsletterBlockData }) {
                 <Input
                   type="email"
                   name="email"
-                  required
+                  isRequired
                   autoComplete="email"
                   label={undefined}
                   placeholder={block.placeholder || "you@example.com"}
                   value={email}
-                  onChange={(event) => setEmail(event.target.value)}
+                  onChange={setEmail}
                   className="sm:flex-1"
                   aria-label="Email"
                 />

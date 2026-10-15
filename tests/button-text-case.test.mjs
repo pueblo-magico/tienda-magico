@@ -1,20 +1,12 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { createElement } from "react";
-import { renderToStaticMarkup } from "react-dom/server";
-import { Button } from "../src/components/ui/Button.tsx";
 
-test("el botón permite conservar mayúsculas y minúsculas sin clases contradictorias", () => {
-  const html = renderToStaticMarkup(
-    createElement(Button, { textCase: "sentence" }, "Pagar"),
-  );
-  assert.doesNotMatch(html, /uppercase/);
-  assert.match(html, /normal-case/);
-});
-
-test("el botón conserva las mayúsculas predeterminadas", () => {
-  assert.match(
-    renderToStaticMarkup(createElement(Button, null, "Pagar")),
-    /uppercase/,
-  );
+test("Tienda deja la transformación del texto al botón compartido", async () => {
+  const sources = await Promise.all([
+    readFile("src/features/cart/components/CartSummary.tsx", "utf8"),
+    readFile("src/features/checkout/StaffCashDesk.tsx", "utf8"),
+    readFile("src/app/ui-system/button/page.tsx", "utf8"),
+  ]);
+  assert.doesNotMatch(sources.join("\n"), /textCase=/);
 });

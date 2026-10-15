@@ -1,6 +1,6 @@
-import { Container } from "@/components/layout/Container";
-import { Section } from "@/components/layout/Section";
-import { Body, Eyebrow, SectionTitle } from "@/components/typography";
+import { Container } from "@pueblo-magico/react-ui";
+import { Section } from "@pueblo-magico/react-ui";
+import { Body, Eyebrow, SectionTitle } from "@pueblo-magico/react-ui";
 import type { CtaBlockData } from "@/lib/cms";
 import { cn } from "@/lib/utils/cn";
 import { CmsLinkButton } from "../CmsLink";
@@ -22,19 +22,23 @@ export function CtaBlockView({
             "rounded-3xl px-6 py-10 sm:px-10",
             style === "brand" && "bg-forest text-brand-foreground",
             style === "sand" && "bg-sand/50 text-forest",
-            style === "outline" && "border border-border bg-card text-forest",
+            style === "outline" && "border-border bg-card text-forest border",
           )}
         >
           <div className="mx-auto flex max-w-2xl flex-col items-start gap-4 text-left">
             {block.eyebrow ? (
               <Eyebrow
-                className={style === "brand" ? "text-brand-foreground/70" : undefined}
+                className={
+                  style === "brand" ? "text-brand-foreground/70" : undefined
+                }
               >
                 {block.eyebrow}
               </Eyebrow>
             ) : null}
             <SectionTitle
-              className={style === "brand" ? "text-brand-foreground" : undefined}
+              className={
+                style === "brand" ? "text-brand-foreground" : undefined
+              }
             >
               {block.title}
             </SectionTitle>

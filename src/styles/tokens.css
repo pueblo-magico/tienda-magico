@@ -32,6 +32,9 @@
   --brand-active: color-mix(in srgb, var(--surface-secondary) 78%, black);
   --brand-foreground: #ffffff;
 
+  /* Shared package bridge: preserve the optimized next/font Jost instance. */
+  --pm-font-sans: var(--font-jost), sans-serif;
+
   /* Legacy aliases. Prefer the semantic tokens above in new code. */
   --forest: var(--text-secondary);
   --forest-hover: var(--brand-hover);

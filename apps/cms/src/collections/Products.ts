@@ -1,6 +1,6 @@
 import type { CollectionOverride } from '@payloadcms/plugin-ecommerce/types'
 import { sellableFields, validateSellableItem } from './sellableItems'
-import type { Field, PayloadRequest } from 'payload'
+import type { Access, Field, PayloadRequest } from 'payload'
 import { clarifyVariantFields } from './variantEditorGuidance'
 import { normalizeProductCategories } from './productClassificationHooks'
 import { validateProductPublication } from './productPublication'
@@ -11,6 +11,9 @@ import {
   revalidateStorefrontProductDelete,
 } from '../hooks/revalidateStorefrontCatalog'
 import { seoField } from '../fields/seo'
+import { purchasingFields, validatePurchasingData } from './commercialAgreements'
+import { canEditCatalog, canManagePurchasing } from '../access/purchasingFinanceAccess'
+import { validateProductAgreementCoverage } from './SupplierAgreements'
 import {
   FixedToolbarFeature,
   HeadingFeature,
@@ -28,6 +31,14 @@ import {
  * Shared across locales: slug, gallery, classifications, and pricing.
  */
 export const productsCollectionOverride: CollectionOverride = ({ defaultCollection }) => {
+  const extendAccessForPurchasing =
+    (defaultAccess: Access | undefined): Access =>
+    (args) =>
+      canManagePurchasing(args.req.user) ||
+      canEditCatalog(args.req.user) ||
+      defaultAccess?.(args) ||
+      false
+
   const documentLocaleSwitcher = {
     path: '@/components/DocumentLocaleSwitcher',
     exportName: 'default',
@@ -216,6 +227,7 @@ export const productsCollectionOverride: CollectionOverride = ({ defaultCollecti
       label: { es: 'País de origen (ISO)', en: 'Country of origin (ISO)' },
       localized: false,
       admin: {
+        components: { Field: '@/components/IsoCountrySelectField' },
         description: {
           es: 'Código ISO 3166-1 alpha-2 compartido entre idiomas, por ejemplo AR o BR.',
           en: 'ISO 3166-1 alpha-2 code shared between locales, for example AR or BR.',
@@ -286,6 +298,12 @@ export const productsCollectionOverride: CollectionOverride = ({ defaultCollecti
 
   return {
     ...defaultCollection,
+    access: {
+      ...defaultCollection.access,
+      create: extendAccessForPurchasing(defaultCollection.access?.create),
+      read: extendAccessForPurchasing(defaultCollection.access?.read),
+      update: extendAccessForPurchasing(defaultCollection.access?.update),
+    },
     versions: {
       ...(typeof defaultCollection.versions === 'object' ? defaultCollection.versions : {}),
       drafts: {
@@ -341,9 +359,14 @@ export const productsCollectionOverride: CollectionOverride = ({ defaultCollecti
         ...(defaultCollection.hooks?.afterDelete ?? []),
         revalidateStorefrontProductDelete,
       ],
-      beforeChange: [...(defaultCollection.hooks?.beforeChange ?? []), validateProductPublication],
+      beforeChange: [
+        ...(defaultCollection.hooks?.beforeChange ?? []),
+        validateProductPublication,
+        validateProductAgreementCoverage,
+      ],
       beforeValidate: [
         ...(defaultCollection.hooks?.beforeValidate ?? []),
+        validatePurchasingData,
         normalizeProductCategories,
         validateInformationSections,
         validateProductMedia,
@@ -369,6 +392,10 @@ export const productsCollectionOverride: CollectionOverride = ({ defaultCollecti
           {
             label: { es: 'Venta e inventario', en: 'Sales and inventory' },
             fields: merchandisingFields,
+          },
+          {
+            label: { es: 'Compras y proveedor', en: 'Purchasing and supplier' },
+            fields: purchasingFields,
           },
         ],
       },
