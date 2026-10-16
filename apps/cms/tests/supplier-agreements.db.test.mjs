@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 
+import { SupplierPayouts } from '../src/collections/SupplierPayouts.ts'
+import { SupplierSettlements } from '../src/collections/SupplierSettlements.ts'
+
 const databaseURL = process.env.TIENDA_TEST_DATABASE_URL
 
 test(
@@ -79,6 +82,47 @@ test(
           defaultTerms: { mode: 'purchase' },
         },
       })
+      const purchaseSupplierFromAdmin = await payload.create({
+        collection: 'suppliers',
+        overrideAccess: true,
+        data: {
+          name: `Proveedor compra formulario ${suffix}`,
+          reference: `PROV-COMPRA-${suffix}`,
+          defaultTerms: {
+            mode: 'purchase',
+            method: null,
+            shareBps: null,
+            percentageBasis: null,
+            fixedMinor: null,
+            currency: null,
+            effectiveFrom: null,
+            effectiveTo: null,
+          },
+        },
+      })
+      assert.equal(purchaseSupplierFromAdmin.defaultTerms.mode, 'purchase')
+      assert.equal(purchaseSupplierFromAdmin.defaultTerms.shareBps, null)
+
+      const fixedSupplierFromAdmin = await payload.create({
+        collection: 'suppliers',
+        overrideAccess: true,
+        data: {
+          name: `Proveedor consignación fija ${suffix}`,
+          reference: `PROV-FIJO-${suffix}`,
+          defaultTerms: {
+            mode: 'consignment',
+            method: 'fixed',
+            shareBps: null,
+            percentageBasis: null,
+            fixedMinor: 125000,
+            currency: 'ARS',
+            effectiveFrom: null,
+            effectiveTo: null,
+          },
+        },
+      })
+      assert.equal(fixedSupplierFromAdmin.defaultTerms.method, 'fixed')
+      assert.equal(fixedSupplierFromAdmin.defaultTerms.shareBps, null)
       const draft = await payload.create({
         collection: 'supplier-agreements',
         overrideAccess: false,
@@ -146,6 +190,245 @@ test(
           purchasingNotes: 'Dato privado original',
         },
       })
+
+      const consignmentSupplier = await payload.create({
+        collection: 'suppliers',
+        overrideAccess: true,
+        data: {
+          name: `Proveedor consignación flujo ${suffix}`,
+          reference: `PROV-FLUJO-${suffix}`,
+          defaultTerms: {
+            mode: 'consignment',
+            method: 'percentage',
+            shareBps: 3500,
+            currency: 'ARS',
+            percentageBasis: {
+              productDiscounts: 'deduct',
+              orderDiscounts: 'deduct_allocated',
+              taxes: 'exclude',
+              shipping: 'exclude',
+              tipsDonations: 'exclude',
+              paymentFees: 'store_absorbs',
+            },
+          },
+        },
+      })
+      const consignmentDraft = await payload.create({
+        collection: 'supplier-agreements',
+        overrideAccess: false,
+        user: purchasing,
+        data: {
+          reference: `ACUERDO-FLUJO-${suffix}`,
+          supplier: consignmentSupplier.id,
+          revision: 1,
+          status: 'draft',
+          terms: {
+            mode: 'consignment',
+            method: 'percentage',
+            shareBps: 3500,
+            currency: 'ARS',
+            percentageBasis: {
+              productDiscounts: 'deduct',
+              orderDiscounts: 'deduct_allocated',
+              taxes: 'exclude',
+              shipping: 'exclude',
+              tipsDonations: 'exclude',
+              paymentFees: 'store_absorbs',
+            },
+            effectiveFrom: '2026-01-01T00:00:00.000Z',
+          },
+        },
+      })
+      await payload.update({
+        collection: 'supplier-agreements',
+        id: consignmentDraft.id,
+        overrideAccess: false,
+        user: finance,
+        data: { status: 'active' },
+      })
+      const consignmentProduct = await payload.create({
+        collection: 'products',
+        overrideAccess: false,
+        user: purchasing,
+        locale: 'es',
+        data: {
+          title: `Producto consignado ${suffix}`,
+          summary: 'Producto para probar el flujo contable',
+          slug: `producto-consignado-${suffix}`,
+          sku: `CONSIG-${suffix}`,
+          inventory: 2,
+          priceInARSEnabled: true,
+          priceInARS: 10000,
+          _status: 'published',
+          supplier: consignmentSupplier.id,
+          termsOverride: { mode: 'inherit' },
+        },
+      })
+      const pendingPaymentProfile = await payload.create({
+        collection: 'supplier-payment-profiles',
+        overrideAccess: false,
+        user: admin,
+        data: {
+          supplier: consignmentSupplier.id,
+          provider: 'mercado-pago',
+          recipientEmail: `pagos-proveedor-${suffix}@example.test`,
+          currency: 'ARS',
+          status: 'verified',
+        },
+      })
+      assert.equal(pendingPaymentProfile.status, 'pending')
+      const paymentProfile = await payload.update({
+        collection: 'supplier-payment-profiles',
+        id: pendingPaymentProfile.id,
+        overrideAccess: false,
+        user: admin,
+        data: { status: 'verified' },
+      })
+      assert.equal(paymentProfile.status, 'verified')
+
+      const paidOrder = await payload.create({
+        collection: 'orders',
+        overrideAccess: true,
+        data: {
+          items: [{ product: consignmentProduct.id, quantity: 1 }],
+          amount: 10000,
+          currency: 'ARS',
+          checkoutKey: `checkout:supplier-flow:${suffix}`,
+          cartReference: `cart:supplier-flow:${suffix}`,
+          publicReference: `ORDER-SUPPLIER-${suffix}`,
+          fulfillmentMode: 'delivery',
+          paymentMethod: 'mercado-pago',
+          paymentStatus: 'approved',
+          commercialSnapshot: {
+            items: [
+              {
+                productId: String(consignmentProduct.id),
+                merchandiseId: `product:${consignmentProduct.id}`,
+                sku: `CONSIG-${suffix}`,
+                quantity: 1,
+                total: { amount: '100.00', currencyCode: 'ARS' },
+              },
+            ],
+          },
+        },
+      })
+      const obligations = await payload.find({
+        collection: 'supplier-obligations',
+        where: { order: { equals: paidOrder.id } },
+        depth: 0,
+        overrideAccess: true,
+      })
+      assert.equal(obligations.docs.length, 1)
+      assert.equal(obligations.docs[0].status, 'eligible')
+      assert.equal(obligations.docs[0].supplierAmountMinor, 3500)
+      assert.equal(obligations.docs[0].outstandingMinor, 3500)
+
+      const settlements = await payload.find({
+        collection: 'supplier-settlements',
+        where: { supplier: { equals: consignmentSupplier.id } },
+        depth: 0,
+        overrideAccess: true,
+      })
+      assert.equal(settlements.docs.length, 1)
+      assert.equal(settlements.docs[0].status, 'draft')
+      assert.equal(settlements.docs[0].amountMinor, 3500)
+
+      const approveHandler = SupplierSettlements.endpoints.find(
+        (endpoint) => endpoint.path === '/:id/approve',
+      )?.handler
+      assert.ok(approveHandler)
+      const serverOrigin = new URL(payload.config.serverURL).origin
+      const approveRequest = Object.assign(
+        new Request(`${serverOrigin}/api/supplier-settlements/${settlements.docs[0].id}/approve`, {
+          method: 'POST',
+          headers: { origin: serverOrigin },
+        }),
+        {
+          context: {},
+          payload,
+          routeParams: { id: String(settlements.docs[0].id) },
+          user: admin,
+        },
+      )
+      const approveResponse = await approveHandler(approveRequest)
+      assert.equal(approveResponse.status, 200)
+      assert.deepEqual(await approveResponse.json(), { approved: true, payoutPrepared: true })
+
+      const payouts = await payload.find({
+        collection: 'supplier-payouts',
+        where: { settlement: { equals: settlements.docs[0].id } },
+        depth: 0,
+        overrideAccess: true,
+      })
+      assert.equal(payouts.docs.length, 1)
+      assert.equal(payouts.docs[0].status, 'awaiting_approval')
+      assert.equal(payouts.docs[0].amountMinor, 3500)
+
+      const recordManualHandler = SupplierPayouts.endpoints.find(
+        (endpoint) => endpoint.path === '/:id/record-manual',
+      )?.handler
+      assert.ok(recordManualHandler)
+      const approvedSettlement = await payload.findByID({
+        collection: 'supplier-settlements',
+        id: settlements.docs[0].id,
+        depth: 0,
+        overrideAccess: true,
+      })
+      const manualReference = `PAGO-MANUAL-${suffix}`
+      const recordRequest = Object.assign(
+        new Request(`${serverOrigin}/api/supplier-payouts/${payouts.docs[0].id}/record-manual`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', origin: serverOrigin },
+          body: JSON.stringify({
+            acknowledged: true,
+            amountMinor: 3500,
+            paidAt: approvedSettlement.approvedAt,
+            reference: manualReference,
+          }),
+        }),
+        {
+          context: {},
+          payload,
+          routeParams: { id: String(payouts.docs[0].id) },
+          user: admin,
+        },
+      )
+      const recordResponse = await recordManualHandler(recordRequest)
+      assert.equal(recordResponse.status, 200)
+      assert.deepEqual(await recordResponse.json(), {
+        reconciled: true,
+        status: 'succeeded',
+        settlementStatus: 'paid',
+        outstandingMinor: 0,
+      })
+
+      const [paidPayout, paidSettlement, paidObligation] = await Promise.all([
+        payload.findByID({
+          collection: 'supplier-payouts',
+          id: payouts.docs[0].id,
+          depth: 0,
+          overrideAccess: true,
+        }),
+        payload.findByID({
+          collection: 'supplier-settlements',
+          id: settlements.docs[0].id,
+          depth: 0,
+          overrideAccess: true,
+        }),
+        payload.findByID({
+          collection: 'supplier-obligations',
+          id: obligations.docs[0].id,
+          depth: 0,
+          overrideAccess: true,
+        }),
+      ])
+      assert.equal(paidPayout.status, 'succeeded')
+      assert.equal(paidPayout.paymentMethod, 'manual')
+      assert.equal(paidPayout.manualReference, manualReference)
+      assert.equal(paidSettlement.status, 'paid')
+      assert.equal(paidSettlement.outstandingMinor, 0)
+      assert.equal(paidObligation.status, 'paid')
+      assert.equal(paidObligation.outstandingMinor, 0)
 
       for (const user of [undefined, customer, editor]) {
         const visibleProduct = await payload.findByID({

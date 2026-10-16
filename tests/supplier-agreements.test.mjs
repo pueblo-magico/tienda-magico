@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { Suppliers } from "../apps/cms/src/collections/Suppliers.ts";
+import {
+  normalizeSupplierDefaultTerms,
+  Suppliers,
+} from "../apps/cms/src/collections/Suppliers.ts";
 import { SupplierAgreements } from "../apps/cms/src/collections/SupplierAgreements.ts";
 import * as supplierAgreementModule from "../apps/cms/src/collections/SupplierAgreements.ts";
 import { normalizeAgreementCoverage } from "../apps/cms/src/lib/suppliers/agreementCoverage.ts";
@@ -577,6 +580,48 @@ test("el alta de proveedores explica los datos y corrige porcentajes ambiguos", 
   );
 });
 
+test("el proveedor descarta valores ocultos que no corresponden a la modalidad", () => {
+  assert.deepEqual(
+    normalizeSupplierDefaultTerms({
+      name: "Compra",
+      defaultTerms: {
+        mode: "purchase",
+        method: null,
+        shareBps: null,
+        percentageBasis: null,
+        fixedMinor: null,
+        currency: null,
+      },
+    }),
+    {
+      name: "Compra",
+      defaultTerms: { mode: "purchase" },
+    },
+  );
+  assert.deepEqual(
+    normalizeSupplierDefaultTerms({
+      name: "Consignación porcentual",
+      defaultTerms: {
+        mode: "consignment",
+        method: "percentage",
+        shareBps: 3500,
+        percentageBasis: null,
+        fixedMinor: null,
+        currency: "ARS",
+      },
+    }),
+    {
+      name: "Consignación porcentual",
+      defaultTerms: {
+        mode: "consignment",
+        method: "percentage",
+        shareBps: 3500,
+        currency: "ARS",
+      },
+    },
+  );
+});
+
 test("todos los países editables y las monedas de compras usan selectores ISO", () => {
   const supplierCountry = namedField(Suppliers.fields, "country");
   assert.equal(
@@ -642,6 +687,7 @@ test("valida compra y consignación sin porcentajes implícitos", () => {
         mode: "consignment",
         method: "percentage",
         shareBps: 3500,
+        currency: "ARS",
         percentageBasis: {
           productDiscounts: "deduct",
           orderDiscounts: "deduct_allocated",
@@ -657,6 +703,7 @@ test("valida compra y consignación sin porcentajes implícitos", () => {
       mode: "consignment",
       method: "percentage",
       shareBps: 3500,
+      currency: "ARS",
       percentageBasis: {
         productDiscounts: "deduct",
         orderDiscounts: "deduct_allocated",
@@ -1001,6 +1048,7 @@ test("la excepción vigente prevalece y la herencia usa el acuerdo del proveedor
     mode: "consignment",
     method: "percentage",
     shareBps: 3000,
+    currency: "ARS",
     percentageBasis: {
       productDiscounts: "deduct",
       orderDiscounts: "deduct_allocated",

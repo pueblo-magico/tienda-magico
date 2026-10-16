@@ -1,7 +1,42 @@
-import type { CollectionConfig } from 'payload'
+import type { CollectionBeforeOperationHook, CollectionConfig } from 'payload'
 
 import { purchasingFinanceAccess } from '../access/purchasingFinanceAccess'
 import { commercialTermsFields, validateSupplierCommercialTerms } from './commercialAgreements'
+
+export function normalizeSupplierDefaultTerms(data: Record<string, unknown> | undefined) {
+  if (!data?.defaultTerms || typeof data.defaultTerms !== 'object') return data
+  const defaultTerms: Record<string, unknown> = {
+    ...(data.defaultTerms as Record<string, unknown>),
+  }
+
+  if (defaultTerms.mode === 'purchase') {
+    delete defaultTerms.method
+    delete defaultTerms.shareBps
+    delete defaultTerms.percentageBasis
+    delete defaultTerms.fixedMinor
+    delete defaultTerms.currency
+  } else if (defaultTerms.mode === 'consignment' && defaultTerms.method === 'fixed') {
+    delete defaultTerms.shareBps
+    delete defaultTerms.percentageBasis
+  } else if (defaultTerms.mode === 'consignment' && defaultTerms.method === 'percentage') {
+    delete defaultTerms.fixedMinor
+    if (defaultTerms.percentageBasis == null) delete defaultTerms.percentageBasis
+  } else if (defaultTerms.percentageBasis == null) {
+    delete defaultTerms.percentageBasis
+  }
+
+  return { ...data, defaultTerms }
+}
+
+const normalizeSupplierDefaultTermsBeforeOperation: CollectionBeforeOperationHook = ({
+  args,
+  operation,
+}) => {
+  if ((operation === 'create' || operation === 'update') && 'data' in args) {
+    args.data = normalizeSupplierDefaultTerms(args.data) ?? args.data
+  }
+  return args
+}
 
 export const Suppliers: CollectionConfig = {
   slug: 'suppliers',
@@ -24,6 +59,7 @@ export const Suppliers: CollectionConfig = {
     read: purchasingFinanceAccess,
     update: purchasingFinanceAccess,
   },
+  hooks: { beforeOperation: [normalizeSupplierDefaultTermsBeforeOperation] },
   fields: [
     {
       name: 'name',

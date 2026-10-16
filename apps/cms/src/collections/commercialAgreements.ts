@@ -271,6 +271,11 @@ export function validateCommercialTerms(
       'Definí cómo se calcula la parte del proveedor en consignación.',
       path('method'),
     )
+  if (!terms.currency || !/^[A-Z]{3}$/.test(terms.currency))
+    validationError(
+      'Indicá la moneda ISO de tres letras en la que se liquida al proveedor.',
+      path('currency'),
+    )
   if (terms.method === 'percentage') {
     if (
       !Number.isInteger(terms.shareBps) ||
@@ -285,11 +290,6 @@ export function validateCommercialTerms(
       validationError(
         'El importe fijo debe expresarse en unidades monetarias menores enteras.',
         path('fixedMinor'),
-      )
-    if (!terms.currency || !/^[A-Z]{3}$/.test(terms.currency))
-      validationError(
-        'Indicá una moneda ISO de tres letras para el importe fijo.',
-        path('currency'),
       )
   }
   return { ...terms, mode }
@@ -607,12 +607,11 @@ export function commercialTermsFields({
       type: 'text',
       label: { es: 'Moneda ISO', en: 'ISO currency' },
       admin: {
-        condition: (_, siblingData) =>
-          siblingData?.mode === 'consignment' && siblingData?.method === 'fixed',
+        condition: (_, siblingData) => siblingData?.mode === 'consignment',
         components: { Field: '@/components/IsoCurrencySelectField' },
         description: {
-          es: 'Moneda en la que se paga el importe fijo al proveedor.',
-          en: 'Currency used to pay the fixed amount to the supplier.',
+          es: 'Moneda en la que se liquida la participación del proveedor. Debe coincidir con la moneda de las ventas que cubre el acuerdo.',
+          en: 'Currency used to settle the supplier share. It must match the currency of sales covered by the agreement.',
         },
       },
     },
