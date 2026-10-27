@@ -210,3 +210,13 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+## Mágico OS — reglas obligatorias para agentes (Masterplan v1.1, 27/10/2026)
+
+Mágico OS es ecosistema modular; cada producto es **comprable/deployable de forma independiente**, single-tenant dedicado por organización por defecto, mismo artefacto sin forks. OS Core posee Shell + Admin Center *local* para módulos/usuarios OS/Domains/integraciones/health; no es panel de proveedor ni Admin de módulos. Cada producto conserva lógica, datos y Admin propios. Domain = workspace Refugio/Huerta, no módulo. Operaciones = interfaz staff on-site; futura Companion = visitante/miembro. Sitios web existentes integran por hosted checkout/API; Sites es futuro opcional.
+
+**Propiedad de este repo:** Commerce storefront/checkout, catálogo vendible, órdenes, pagos del comercio, fulfillment, proveedores y costos privados; Payload editorial/CMS según límites propios. **Fuera:** inventario y precio cotizado de Reservas, Admin Center OS, Memberships, Finance, Learning. **Riesgo:** Conservar storefront y Payload separados, respetar modelos actuales. Venta autónoma Commerce sin OS Base; Mágico Sites opcional no significa migrar tienda a nuevo CMS..
+
+OIDC/Mágico Auth autentica, cada módulo autoriza y audita; no compartir DB, secretos ni cookies ni duplicar reglas de otro módulo. **Actual:** Reservas v0.1 Pueblo/SOMA en dos despliegues dedicados. Eventos/Retiros v0.2 y Memberships cercanos después; Finance/Insights/Learning/Companion/Sites futuros; no implementar por inferencia ni bloquear v0.1.
+
+Leer [ADR local](docs/architecture/adr-2026-10-27-magico-os-product-structure.md), [Masterplan v1.1](https://experienciamagico.atlassian.net/wiki/spaces/VD/pages/54263809/THE+MAGICO+OS+MASTERPLAN), instrucciones más específicas y ADR históricos antes de cambiar APIs, roles, despliegues o boundaries. Si un cambio impacta a otra app: ADR en código, Masterplan y comentario Jira con estado real. No hacer deployment/merge ni cambios productivos sin gates y permiso. Preservar todas las instrucciones técnicas anteriores de este AGENTS.md.
