@@ -220,3 +220,13 @@ Mágico OS es ecosistema modular; cada producto es **comprable/deployable de for
 OIDC/Mágico Auth autentica, cada módulo autoriza y audita; no compartir DB, secretos ni cookies ni duplicar reglas de otro módulo. **Actual:** Reservas v0.1 Pueblo/SOMA en dos despliegues dedicados. Eventos/Retiros v0.2 y Memberships cercanos después; Finance/Insights/Learning/Companion/Sites futuros; no implementar por inferencia ni bloquear v0.1.
 
 Leer [ADR local](docs/architecture/adr-2026-10-27-magico-os-product-structure.md), [Masterplan v1.1](https://experienciamagico.atlassian.net/wiki/spaces/VD/pages/54263809/THE+MAGICO+OS+MASTERPLAN), instrucciones más específicas y ADR históricos antes de cambiar APIs, roles, despliegues o boundaries. Si un cambio impacta a otra app: ADR en código, Masterplan y comentario Jira con estado real. No hacer deployment/merge ni cambios productivos sin gates y permiso. Preservar todas las instrucciones técnicas anteriores de este AGENTS.md.
+
+<!-- BEGIN: MAGICO-ARCHITECTURE-REGISTRY v1.1 -->
+## Cross-product ADR registry (pending publication)
+
+The cross-product technical ADR library is **planned** at `pueblo-magico/magico-architecture/docs/adr`; the repository does **not yet exist**. Until it is published, treat [THE MAGICO OS MASTERPLAN](https://experienciamagico.atlassian.net/wiki/spaces/VD/pages/54263809/THE+MAGICO+OS+MASTERPLAN) as the canonical cross-product decision and [this repository's local ADR](docs/architecture/adr-2026-10-27-magico-os-product-structure.md) as its implementation-specific interpretation.
+
+Stable planned IDs: **magico-architecture/ADR-0001** Modular Products; **ADR-0002** Dedicated Installations; **ADR-0003** Identity and Product Authorization; **ADR-0004** Module Integration Contracts; **ADR-0005** OS Admin Center Ownership. These global IDs are not the same as any `ADR-0001` previously numbered *inside this repository*.
+
+Keep enough of the modular product boundaries in this `AGENTS.md` to guide an agent working without other repos. Preserve historic local ADRs and supersession notes. Once the central repo exists, link the versioned canonical files here and stop copying their full rationale across repos. Changes to cross-product decisions require a proposed central ADR, Masterplan/Jira impact review, and local implementation ADRs where needed. **No merge, deployment or ticket completion follows solely from documentation.**
+<!-- END: MAGICO-ARCHITECTURE-REGISTRY v1.1 -->
