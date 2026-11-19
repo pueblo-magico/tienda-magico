@@ -1,0 +1,64 @@
+name: Validate Mágico delivery policy
+
+on:
+  pull_request:
+  push:
+    branches: [main, dev, develop, staging, production]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  policy:
+    name: Delivery policy contract
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate local policy and agent guidance
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require("node:fs");
+          const policyPath = ".magico/deployment-policy.json";
+          const agentsPath = "AGENTS.md";
+          const canonical = "https://github.com/pueblo-magico/magico-architecture/blob/main/docs/engineering/branching-and-deployment.md";
+          const policy = JSON.parse(fs.readFileSync(policyPath, "utf8"));
+          const agents = fs.readFileSync(agentsPath, "utf8");
+
+          const allowedStatus = new Set(["active", "planned", "not-applicable"]);
+          const fail = (message) => {
+            console.error(message);
+            process.exitCode = 1;
+          };
+
+          if (policy.version !== 1) fail("deployment policy version must be 1");
+          if (policy.canonicalPolicy !== canonical) fail("canonicalPolicy must reference the Mágico architecture guide");
+          if (!policy.preview || policy.preview.isolatedResourcesRequired !== true) {
+            fail("preview.isolatedResourcesRequired must be true");
+          }
+          for (const name of ["development", "production"]) {
+            const value = policy[name];
+            if (!value || !allowedStatus.has(value.status)) fail(`${name}.status is invalid`);
+            if (value?.status === "active" && (!value.branch || !value.workflow)) {
+              fail(`${name} active environments require branch and workflow`);
+            }
+          }
+
+          const legacy = new Set(policy.legacyBranches || []);
+          if (policy.repositoryType !== "governance") {
+            if (policy.development.status === "active" && policy.development.branch !== "dev" && !legacy.has(policy.development.branch)) {
+              fail("active development branch must be dev or declared transitional legacy");
+            }
+            if (policy.production.status === "active" && policy.production.branch !== "main" && !legacy.has(policy.production.branch)) {
+              fail("active production branch must be main or declared transitional legacy");
+            }
+          }
+
+          if (!agents.includes("Branching and deployment — mandatory")) {
+            fail("AGENTS.md is missing the mandatory delivery section");
+          }
+          if (!agents.includes(".magico/deployment-policy.json")) {
+            fail("AGENTS.md must point to the local deployment policy");
+          }
+          NODE

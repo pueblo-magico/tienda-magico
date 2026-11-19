@@ -1,0 +1,28 @@
+{
+  "$schema": "https://raw.githubusercontent.com/pueblo-magico/magico-architecture/main/policies/deployment-policy.schema.json",
+  "version": 1,
+  "repositoryType": "application",
+  "canonicalPolicy": "https://github.com/pueblo-magico/magico-architecture/blob/main/docs/engineering/branching-and-deployment.md",
+  "development": {
+    "status": "active",
+    "branch": "staging",
+    "workflow": ".github/workflows/deploy.yml",
+    "approvalRequired": false
+  },
+  "production": {
+    "status": "active",
+    "branch": "production",
+    "workflow": ".github/workflows/deploy.yml",
+    "approvalRequired": true
+  },
+  "preview": {
+    "allowed": false,
+    "isolatedResourcesRequired": true
+  },
+  "legacyBranches": [
+    "develop",
+    "staging",
+    "production"
+  ],
+  "notes": "Transitional legacy mapping. Migrate develop/staging/production deliberately to the dev/main promotion model without interrupting the deployed shop."
+}
